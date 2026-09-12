@@ -67,10 +67,6 @@ public final class MenuBar {
         renderedHeight = ImGui.getFrameHeight();
         if (!ImGui.beginMainMenuBar()) return;
 
-        if (ImGui.beginMenu(I18n.format("dimensium.menu.file"))) {
-            ImGui.menuItem(I18n.format("dimensium.menu.file.placeholder"));
-            ImGui.endMenu();
-        }
         if (ImGui.beginMenu(I18n.format("dimensium.menu.edit"))) {
             renderEditMenu();
             ImGui.endMenu();
