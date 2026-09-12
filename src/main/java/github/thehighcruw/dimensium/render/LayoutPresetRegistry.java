@@ -5,10 +5,13 @@
 package github.thehighcruw.dimensium.render;
 
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -57,7 +60,9 @@ public final class LayoutPresetRegistry {
         File dir = new File(DIR);
         if (!dir.isDirectory()) return Collections.emptyList();
         List<String> names = new ArrayList<>();
-        for (File f : dir.listFiles()) {
+        File[] files = dir.listFiles();
+        if (files == null) return Collections.emptyList();
+        for (File f : files) {
             if (f.isFile() && f.getName()
                 .endsWith(EXT)) {
                 names.add(
@@ -82,7 +87,10 @@ public final class LayoutPresetRegistry {
 
     public void save(String name) {
         File dir = new File(DIR);
-        if (!dir.exists()) dir.mkdirs();
+        if (!dir.exists() && !dir.mkdirs()) {
+            Dimensium.logger.error("Failed to create presets directory '{}'", dir.getAbsolutePath());
+            return;
+        }
 
         StringBuilder sb = new StringBuilder(ImGui.saveIniSettingsToMemory());
         sb.append('\n')
@@ -97,7 +105,7 @@ public final class LayoutPresetRegistry {
                 .append('\n');
         }
 
-        try (FileWriter fw = new FileWriter(new File(dir, name + EXT))) {
+        try (OutputStreamWriter fw = new OutputStreamWriter(new FileOutputStream(new File(dir, name + EXT)), StandardCharsets.UTF_8)) {
             fw.write(sb.toString());
         } catch (IOException e) {
             Dimensium.logger.error("Failed to save layout preset '{}'", name, e);
@@ -151,7 +159,7 @@ public final class LayoutPresetRegistry {
     }
 
     private static String readFile(File f) {
-        try (FileReader fr = new FileReader(f)) {
+        try (InputStreamReader fr = new InputStreamReader(new FileInputStream(f), StandardCharsets.UTF_8)) {
             char[] buf = new char[(int) f.length()];
             int n = fr.read(buf);
             return new String(buf, 0, n);
