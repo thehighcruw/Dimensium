@@ -58,8 +58,14 @@ public final class LayoutPresetRegistry {
         if (!dir.isDirectory()) return Collections.emptyList();
         List<String> names = new ArrayList<>();
         for (File f : dir.listFiles()) {
-            if (f.isFile() && f.getName().endsWith(EXT)) {
-                names.add(f.getName().substring(0, f.getName().length() - EXT.length()));
+            if (f.isFile() && f.getName()
+                .endsWith(EXT)) {
+                names.add(
+                    f.getName()
+                        .substring(
+                            0,
+                            f.getName()
+                                .length() - EXT.length()));
             }
         }
         Collections.sort(names, String.CASE_INSENSITIVE_ORDER);
@@ -79,9 +85,16 @@ public final class LayoutPresetRegistry {
         if (!dir.exists()) dir.mkdirs();
 
         StringBuilder sb = new StringBuilder(ImGui.saveIniSettingsToMemory());
-        sb.append('\n').append(WINDOWS_MARKER).append('\n');
+        sb.append('\n')
+            .append(WINDOWS_MARKER)
+            .append('\n');
         for (Map.Entry<String, BooleanSupplier> e : getters.entrySet()) {
-            sb.append(e.getKey()).append('=').append(e.getValue().getAsBoolean()).append('\n');
+            sb.append(e.getKey())
+                .append('=')
+                .append(
+                    e.getValue()
+                        .getAsBoolean())
+                .append('\n');
         }
 
         try (FileWriter fw = new FileWriter(new File(dir, name + EXT))) {
@@ -132,7 +145,8 @@ public final class LayoutPresetRegistry {
         }
         for (Map.Entry<String, Consumer<Boolean>> e : setters.entrySet()) {
             String val = props.getProperty(e.getKey());
-            if (val != null) e.getValue().accept(Boolean.parseBoolean(val));
+            if (val != null) e.getValue()
+                .accept(Boolean.parseBoolean(val));
         }
     }
 

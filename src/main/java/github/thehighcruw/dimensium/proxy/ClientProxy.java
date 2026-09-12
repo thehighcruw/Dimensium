@@ -105,19 +105,35 @@ public class ClientProxy implements IProxy {
         if (!DimensiumConfig.windowToolOptionsPanelOpen) OverlayRenderer.toolOptionsPanel.setOpen(false);
 
         LayoutPresetRegistry reg = LayoutPresetRegistry.INSTANCE;
-        reg.registerWindow("tools",          OverlayRenderer.toolPanel::isOpen,              OverlayRenderer.toolPanel::setOpen,              true);
-        reg.registerWindow("toolOptions",    OverlayRenderer.toolOptionsPanel::isOpen,       OverlayRenderer.toolOptionsPanel::setOpen,       true);
-        reg.registerWindow("toolMaskList",   ToolMaskListWindow.INSTANCE::isOpen,            ToolMaskListWindow.INSTANCE::setOpen,            true);
-        reg.registerWindow("toolMaskEditor", ToolMaskEditorWindow.INSTANCE::isOpen,          ToolMaskEditorWindow.INSTANCE::setOpen,          true);
-        reg.registerWindow("palette",        PaletteWindow.INSTANCE::isOpen,                 PaletteWindow.INSTANCE::setOpen,                 true);
-        reg.registerWindow("paletteEditor",  PaletteEditorWindow.INSTANCE::isOpen,           PaletteEditorWindow.INSTANCE::setOpen,           true);
-        reg.registerWindow("selection",      SelectionWindow.INSTANCE::isOpen,               SelectionWindow.INSTANCE::setOpen,               true);
-        reg.registerWindow("operations",     OperationsWindow.INSTANCE::isOpen,              OperationsWindow.INSTANCE::setOpen,              true);
-        reg.registerWindow("clipboard",      ClipboardWindow.INSTANCE::isOpen,               ClipboardWindow.INSTANCE::setOpen,               true);
-        reg.registerWindow("blockInfo",      BlockInfoWindow.INSTANCE::isOpen,               BlockInfoWindow.INSTANCE::setOpen,               true);
-        reg.registerWindow("history",        HistoryWindow.INSTANCE::isOpen,                 HistoryWindow.INSTANCE::setOpen,                 true);
-        reg.registerWindow("analyze",        AnalyzeWindow.INSTANCE::isOpen,                 AnalyzeWindow.INSTANCE::setOpen,                 false);
-        reg.registerWindow("autoshade",      AutoshadeWindow.INSTANCE::isOpen,               AutoshadeWindow.INSTANCE::setOpen,               false);
+        reg.registerWindow("tools", OverlayRenderer.toolPanel::isOpen, OverlayRenderer.toolPanel::setOpen, true);
+        reg.registerWindow(
+            "toolOptions",
+            OverlayRenderer.toolOptionsPanel::isOpen,
+            OverlayRenderer.toolOptionsPanel::setOpen,
+            true);
+        reg.registerWindow(
+            "toolMaskList",
+            ToolMaskListWindow.INSTANCE::isOpen,
+            ToolMaskListWindow.INSTANCE::setOpen,
+            true);
+        reg.registerWindow(
+            "toolMaskEditor",
+            ToolMaskEditorWindow.INSTANCE::isOpen,
+            ToolMaskEditorWindow.INSTANCE::setOpen,
+            true);
+        reg.registerWindow("palette", PaletteWindow.INSTANCE::isOpen, PaletteWindow.INSTANCE::setOpen, true);
+        reg.registerWindow(
+            "paletteEditor",
+            PaletteEditorWindow.INSTANCE::isOpen,
+            PaletteEditorWindow.INSTANCE::setOpen,
+            true);
+        reg.registerWindow("selection", SelectionWindow.INSTANCE::isOpen, SelectionWindow.INSTANCE::setOpen, true);
+        reg.registerWindow("operations", OperationsWindow.INSTANCE::isOpen, OperationsWindow.INSTANCE::setOpen, true);
+        reg.registerWindow("clipboard", ClipboardWindow.INSTANCE::isOpen, ClipboardWindow.INSTANCE::setOpen, true);
+        reg.registerWindow("blockInfo", BlockInfoWindow.INSTANCE::isOpen, BlockInfoWindow.INSTANCE::setOpen, true);
+        reg.registerWindow("history", HistoryWindow.INSTANCE::isOpen, HistoryWindow.INSTANCE::setOpen, true);
+        reg.registerWindow("analyze", AnalyzeWindow.INSTANCE::isOpen, AnalyzeWindow.INSTANCE::setOpen, false);
+        reg.registerWindow("autoshade", AutoshadeWindow.INSTANCE::isOpen, AutoshadeWindow.INSTANCE::setOpen, false);
     }
 
     @Override
