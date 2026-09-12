@@ -39,7 +39,7 @@ plugins {
 }
 
 group = "github.thehighcruw.dimensium"
-version = "1.0.0"
+version = project.findProperty("modVersion") as String? ?: "0.0.0-dev"
 
 java {
     toolchain {
