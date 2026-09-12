@@ -20,6 +20,7 @@ import github.thehighcruw.dimensium.handler.CreativeGuiHandler;
 import github.thehighcruw.dimensium.handler.InputHandler;
 import github.thehighcruw.dimensium.handler.KeyHandler;
 import github.thehighcruw.dimensium.handler.TickHandler;
+import github.thehighcruw.dimensium.render.LayoutPresetRegistry;
 import github.thehighcruw.dimensium.render.OverlayRenderer;
 import github.thehighcruw.dimensium.render.popup.AnalyzeWindow;
 import github.thehighcruw.dimensium.render.popup.AutoshadeWindow;
@@ -29,6 +30,7 @@ import github.thehighcruw.dimensium.render.popup.ColourFieldWindow;
 import github.thehighcruw.dimensium.render.popup.DistortSelectionWindow;
 import github.thehighcruw.dimensium.render.popup.FillSelectionWindow;
 import github.thehighcruw.dimensium.render.popup.FilterSelectionWindow;
+import github.thehighcruw.dimensium.render.popup.LayoutPresetManageWindow;
 import github.thehighcruw.dimensium.render.popup.OperationsWindow;
 import github.thehighcruw.dimensium.render.popup.PaletteEditorWindow;
 import github.thehighcruw.dimensium.render.popup.PaletteWindow;
@@ -81,12 +83,12 @@ public class ClientProxy implements IProxy {
         // in init() above) — accessing it here forces its ImGuiWindow registration.
         @SuppressWarnings("unused")
         Object[] windows = { AnalyzeWindow.INSTANCE, BlockInfoWindow.INSTANCE, AutoshadeWindow.INSTANCE,
-            ClipboardWindow.INSTANCE, ColourFieldWindow.INSTANCE, DistortSelectionWindow.INSTANCE,
-            FillSelectionWindow.INSTANCE, FilterSelectionWindow.INSTANCE, HistoryWindow.INSTANCE,
-            OperationsWindow.INSTANCE, ReplaceSelectionWindow.INSTANCE, SelectionWindow.INSTANCE,
-            SmoothSelectionWindow.INSTANCE, TypeReplaceSelectionWindow.INSTANCE, ToolMaskListWindow.INSTANCE,
-            ToolMaskEditorWindow.INSTANCE, PaletteWindow.INSTANCE, PaletteEditorWindow.INSTANCE,
-            OverlayRenderer.toolPanel, OverlayRenderer.toolOptionsPanel };
+            LayoutPresetManageWindow.INSTANCE, ClipboardWindow.INSTANCE, ColourFieldWindow.INSTANCE,
+            DistortSelectionWindow.INSTANCE, FillSelectionWindow.INSTANCE, FilterSelectionWindow.INSTANCE,
+            HistoryWindow.INSTANCE, OperationsWindow.INSTANCE, ReplaceSelectionWindow.INSTANCE,
+            SelectionWindow.INSTANCE, SmoothSelectionWindow.INSTANCE, TypeReplaceSelectionWindow.INSTANCE,
+            ToolMaskListWindow.INSTANCE, ToolMaskEditorWindow.INSTANCE, PaletteWindow.INSTANCE,
+            PaletteEditorWindow.INSTANCE, OverlayRenderer.toolPanel, OverlayRenderer.toolOptionsPanel };
 
         if (DimensiumConfig.windowHistoryOpen) HistoryWindow.INSTANCE.setOpen(true);
         if (DimensiumConfig.windowToolMaskListOpen) ToolMaskListWindow.INSTANCE.open();
@@ -101,6 +103,21 @@ public class ClientProxy implements IProxy {
         if (DimensiumConfig.windowClipboardOpen) ClipboardWindow.INSTANCE.open();
         if (!DimensiumConfig.windowToolPanelOpen) OverlayRenderer.toolPanel.setOpen(false);
         if (!DimensiumConfig.windowToolOptionsPanelOpen) OverlayRenderer.toolOptionsPanel.setOpen(false);
+
+        LayoutPresetRegistry reg = LayoutPresetRegistry.INSTANCE;
+        reg.registerWindow("tools",          OverlayRenderer.toolPanel::isOpen,              OverlayRenderer.toolPanel::setOpen,              true);
+        reg.registerWindow("toolOptions",    OverlayRenderer.toolOptionsPanel::isOpen,       OverlayRenderer.toolOptionsPanel::setOpen,       true);
+        reg.registerWindow("toolMaskList",   ToolMaskListWindow.INSTANCE::isOpen,            ToolMaskListWindow.INSTANCE::setOpen,            true);
+        reg.registerWindow("toolMaskEditor", ToolMaskEditorWindow.INSTANCE::isOpen,          ToolMaskEditorWindow.INSTANCE::setOpen,          true);
+        reg.registerWindow("palette",        PaletteWindow.INSTANCE::isOpen,                 PaletteWindow.INSTANCE::setOpen,                 true);
+        reg.registerWindow("paletteEditor",  PaletteEditorWindow.INSTANCE::isOpen,           PaletteEditorWindow.INSTANCE::setOpen,           true);
+        reg.registerWindow("selection",      SelectionWindow.INSTANCE::isOpen,               SelectionWindow.INSTANCE::setOpen,               true);
+        reg.registerWindow("operations",     OperationsWindow.INSTANCE::isOpen,              OperationsWindow.INSTANCE::setOpen,              true);
+        reg.registerWindow("clipboard",      ClipboardWindow.INSTANCE::isOpen,               ClipboardWindow.INSTANCE::setOpen,               true);
+        reg.registerWindow("blockInfo",      BlockInfoWindow.INSTANCE::isOpen,               BlockInfoWindow.INSTANCE::setOpen,               true);
+        reg.registerWindow("history",        HistoryWindow.INSTANCE::isOpen,                 HistoryWindow.INSTANCE::setOpen,                 true);
+        reg.registerWindow("analyze",        AnalyzeWindow.INSTANCE::isOpen,                 AnalyzeWindow.INSTANCE::setOpen,                 false);
+        reg.registerWindow("autoshade",      AutoshadeWindow.INSTANCE::isOpen,               AutoshadeWindow.INSTANCE::setOpen,               false);
     }
 
     @Override

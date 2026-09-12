@@ -22,6 +22,7 @@ import github.thehighcruw.dimensium.render.popup.ColourFieldWindow;
 import github.thehighcruw.dimensium.render.popup.DistortSelectionWindow;
 import github.thehighcruw.dimensium.render.popup.FillSelectionWindow;
 import github.thehighcruw.dimensium.render.popup.FilterSelectionWindow;
+import github.thehighcruw.dimensium.render.popup.LayoutPresetManageWindow;
 import github.thehighcruw.dimensium.render.popup.OperationsWindow;
 import github.thehighcruw.dimensium.render.popup.PaletteEditorWindow;
 import github.thehighcruw.dimensium.render.popup.PaletteWindow;
@@ -51,6 +52,12 @@ public final class MenuBar {
 
     private float renderedHeight = 0f;
     private final float[] pendingViewScale = { 1.0f };
+
+    private static final String POPUP_SAVE_AS = "##preset_save_as_popup";
+    private final imgui.type.ImString saveAsBuffer = new imgui.type.ImString(128);
+    private String saveAsCurrentText = "";
+    private String saveAsError = null;
+    private boolean openSaveAsPopup = false;
 
     public boolean containsMouse(float mx, float my, float screenW) {
         return my >= 0 && my < renderedHeight && mx >= 0 && mx < screenW;
@@ -107,16 +114,12 @@ public final class MenuBar {
                     ToolMaskEditorWindow.INSTANCE.isOpen())) {
                     ToolMaskEditorWindow.INSTANCE.setOpen(!ToolMaskEditorWindow.INSTANCE.isOpen());
                 }
-                if (ImGui.menuItem(
-                    I18n.format("dimensium.menu.window.history"),
-                    null,
-                    HistoryWindow.INSTANCE.isOpen())) {
+                if (ImGui
+                    .menuItem(I18n.format("dimensium.menu.window.history"), null, HistoryWindow.INSTANCE.isOpen())) {
                     HistoryWindow.INSTANCE.setOpen(!HistoryWindow.INSTANCE.isOpen());
                 }
-                if (ImGui.menuItem(
-                    I18n.format("dimensium.menu.window.palette"),
-                    null,
-                    PaletteWindow.INSTANCE.isOpen())) {
+                if (ImGui
+                    .menuItem(I18n.format("dimensium.menu.window.palette"), null, PaletteWindow.INSTANCE.isOpen())) {
                     PaletteWindow.INSTANCE.setOpen(!PaletteWindow.INSTANCE.isOpen());
                 }
                 if (ImGui.menuItem(
@@ -149,10 +152,8 @@ public final class MenuBar {
                     OperationsWindow.INSTANCE.isOpen())) {
                     OperationsWindow.INSTANCE.setOpen(!OperationsWindow.INSTANCE.isOpen());
                 }
-                if (ImGui.menuItem(
-                    I18n.format("dimensium.menu.window.analyze"),
-                    null,
-                    AnalyzeWindow.INSTANCE.isOpen())) {
+                if (ImGui
+                    .menuItem(I18n.format("dimensium.menu.window.analyze"), null, AnalyzeWindow.INSTANCE.isOpen())) {
                     AnalyzeWindow.INSTANCE.setOpen(!AnalyzeWindow.INSTANCE.isOpen());
                 }
                 if (ImGui.menuItem(
@@ -161,10 +162,8 @@ public final class MenuBar {
                     AutoshadeWindow.INSTANCE.isOpen())) {
                     AutoshadeWindow.INSTANCE.setOpen(!AutoshadeWindow.INSTANCE.isOpen());
                 }
-                if (ImGui.menuItem(
-                    I18n.format("dimensium.menu.window.fill"),
-                    null,
-                    FillSelectionWindow.INSTANCE.isOpen())) {
+                if (ImGui
+                    .menuItem(I18n.format("dimensium.menu.window.fill"), null, FillSelectionWindow.INSTANCE.isOpen())) {
                     if (FillSelectionWindow.INSTANCE.isOpen()) FillSelectionWindow.INSTANCE.close();
                     else FillSelectionWindow.INSTANCE.open();
                 }
@@ -213,7 +212,11 @@ public final class MenuBar {
                 ImGui.endMenu();
             }
             ImGui.separator();
+            renderPresetsSubmenu();
+            ImGui.separator();
             if (ImGui.menuItem(I18n.format("dimensium.menu.window.reset_layout"))) {
+                LayoutPresetRegistry.INSTANCE.clearActive();
+                LayoutPresetRegistry.INSTANCE.resetToDefaults();
                 OverlayRenderer.requestResetLayout();
             }
             ImGui.endMenu();
@@ -447,6 +450,76 @@ public final class MenuBar {
         if (ImGui.menuItem(I18n.format("dimensium.select.convex_hull"), null, false, hasSel)) {
             sel.applyOp(SelectionTransforms.convexHull(sel.getSelectedBlocks()), BooleanOp.REPLACE);
         }
+    }
+
+    private void renderPresetsSubmenu() {
+        LayoutPresetRegistry registry = LayoutPresetRegistry.INSTANCE;
+        String active = registry.getActive();
+        java.util.List<String> presets = registry.list();
+
+        for (String name : presets) {
+            if (ImGui.menuItem(name, null, name.equals(active))) {
+                registry.load(name);
+            }
+        }
+
+        ImGui.separator();
+        if (ImGui.menuItem(I18n.format("dimensium.menu.window.presets.save_as"))) {
+            saveAsBuffer.set(active != null ? active : "");
+            saveAsError = null;
+            openSaveAsPopup = true;
+        }
+        if (ImGui.menuItem(I18n.format("dimensium.menu.window.presets.manage"))) {
+            LayoutPresetManageWindow.INSTANCE.open();
+        }
+    }
+
+    public void renderPopups() {
+        if (openSaveAsPopup) {
+            ImGui.openPopup(POPUP_SAVE_AS);
+            openSaveAsPopup = false;
+        }
+
+        float scale = ImGuiManager.INSTANCE.getUIScale();
+        ImGui.setNextWindowSize(300f * scale, 0f, imgui.flag.ImGuiCond.Always);
+        if (ImGui.beginPopupModal(
+            POPUP_SAVE_AS,
+            imgui.flag.ImGuiWindowFlags.NoResize | imgui.flag.ImGuiWindowFlags.NoTitleBar)) {
+            ImGui.text(I18n.format("dimensium.layout.preset.save_as.label"));
+            ImGui.setNextItemWidth(-1f);
+            boolean confirmed = ImGui
+                .inputText("##preset_name", saveAsBuffer, imgui.flag.ImGuiInputTextFlags.EnterReturnsTrue);
+            saveAsCurrentText = saveAsBuffer.get();
+            if (ImGui.isItemEdited()) saveAsError = null;
+            if (saveAsError != null) {
+                ImGui.textColored(1f, 0.3f, 0.3f, 1f, saveAsError);
+            }
+            float btnW = (ImGui.getContentRegionAvailX() - ImGui.getStyle()
+                .getItemSpacingX()) * 0.5f;
+            if (ImGui.button(I18n.format("dimensium.layout.preset.save_as.confirm"), btnW, 0) || confirmed) {
+                String name = saveAsCurrentText.trim();
+                saveAsError = validatePresetName(name);
+                if (saveAsError == null) {
+                    LayoutPresetRegistry.INSTANCE.save(name);
+                    ImGui.closeCurrentPopup();
+                }
+            }
+            ImGui.sameLine();
+            if (ImGui.button(I18n.format("dimensium.layout.preset.save_as.cancel"), btnW, 0)) {
+                ImGui.closeCurrentPopup();
+            }
+            ImGui.endPopup();
+        }
+    }
+
+    private static String validatePresetName(String name) {
+        if (name.isEmpty()) return I18n.format("dimensium.layout.preset.save_as.error_empty");
+        for (char c : name.toCharArray()) {
+            if ("\\/:<>\"*?|".indexOf(c) >= 0) {
+                return I18n.format("dimensium.layout.preset.save_as.error_invalid_chars");
+            }
+        }
+        return null;
     }
 
     private static String shortcut(int key, int mods) {

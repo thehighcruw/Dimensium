@@ -36,6 +36,7 @@ import github.thehighcruw.dimensium.render.popup.CreateBlueprintPopup;
 import github.thehighcruw.dimensium.render.popup.DistortSelectionWindow;
 import github.thehighcruw.dimensium.render.popup.FillSelectionWindow;
 import github.thehighcruw.dimensium.render.popup.FilterSelectionWindow;
+import github.thehighcruw.dimensium.render.popup.LayoutPresetManageWindow;
 import github.thehighcruw.dimensium.render.popup.OperationsWindow;
 import github.thehighcruw.dimensium.render.popup.PaletteEditorWindow;
 import github.thehighcruw.dimensium.render.popup.PaletteWindow;
@@ -510,6 +511,8 @@ public class OverlayRenderer {
             PaletteWindow.INSTANCE.renderImGui(mc);
             PaletteEditorWindow.INSTANCE.renderImGui(mc);
             HistoryWindow.INSTANCE.renderImGui();
+            LayoutPresetManageWindow.INSTANCE.renderImGui();
+            MenuBar.INSTANCE.renderPopups();
             StatusBar.INSTANCE.render(mc.displayWidth, mc.displayHeight);
             renderKeyPressLog(mc.displayWidth, mc.displayHeight);
             ImGuiManager.INSTANCE.endFrame();

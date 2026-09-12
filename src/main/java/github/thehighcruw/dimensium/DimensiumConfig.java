@@ -145,19 +145,19 @@ public class DimensiumConfig {
 
     // ── Window open state — persisted across restarts ──
     @Config.Comment("History window open state.")
-    public static boolean windowHistoryOpen = false;
+    public static boolean windowHistoryOpen = true;
 
     @Config.Comment("Tool Mask List window open state.")
-    public static boolean windowToolMaskListOpen = false;
+    public static boolean windowToolMaskListOpen = true;
 
     @Config.Comment("Tool Mask Editor window open state.")
-    public static boolean windowToolMaskEditorOpen = false;
+    public static boolean windowToolMaskEditorOpen = true;
 
     @Config.Comment("Palette window open state.")
-    public static boolean windowPaletteOpen = false;
+    public static boolean windowPaletteOpen = true;
 
     @Config.Comment("Palette Editor window open state.")
-    public static boolean windowPaletteEditorOpen = false;
+    public static boolean windowPaletteEditorOpen = true;
 
     @Config.Comment("Analyze window open state.")
     public static boolean windowAnalyzeOpen = false;
@@ -178,13 +178,13 @@ public class DimensiumConfig {
     public static boolean windowBlockInfoOpen = true;
 
     @Config.Comment("Selection window open state.")
-    public static boolean windowSelectionOpen = false;
+    public static boolean windowSelectionOpen = true;
 
     @Config.Comment("Operations window open state.")
-    public static boolean windowOperationsOpen = false;
+    public static boolean windowOperationsOpen = true;
 
     @Config.Comment("Clipboard window open state.")
-    public static boolean windowClipboardOpen = false;
+    public static boolean windowClipboardOpen = true;
 
     // ── Window state setters — call these instead of writing fields directly ──
 
