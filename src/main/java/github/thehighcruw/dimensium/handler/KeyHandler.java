@@ -24,6 +24,7 @@ import github.thehighcruw.dimensium.Dimensium;
 import github.thehighcruw.dimensium.freecam.FreecamState;
 import github.thehighcruw.dimensium.render.GuiDimensiumOverlay;
 import github.thehighcruw.dimensium.render.OverlayRenderer;
+import github.thehighcruw.dimensium.render.ViewState;
 import github.thehighcruw.dimensium.render.imgui.ImGuiManager;
 import github.thehighcruw.dimensium.render.panel.PanelSlider;
 import github.thehighcruw.dimensium.render.popup.BlueprintBrowserPopup;
@@ -45,6 +46,7 @@ import github.thehighcruw.dimensium.tool.state.SelectToolState;
 import github.thehighcruw.dimensium.tool.state.SelectedBlockState;
 import github.thehighcruw.dimensium.tool.state.SelectionState;
 import github.thehighcruw.dimensium.tool.state.ShapePlacementState;
+import github.thehighcruw.dimensium.util.RenderUtils;
 
 @SideOnly(Side.CLIENT)
 public class KeyHandler {
@@ -69,8 +71,7 @@ public class KeyHandler {
         if (!down) return;
 
         // Log key presses for the "Show Key Presses" overlay.
-        if (DimensiumMode.INSTANCE.isActive()
-            && github.thehighcruw.dimensium.render.ViewState.INSTANCE.showKeyPresses) {
+        if (DimensiumMode.INSTANCE.isActive() && ViewState.INSTANCE.showKeyPresses) {
             StringBuilder keyLabel = new StringBuilder();
             if (Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) || Keyboard.isKeyDown(Keyboard.KEY_RCONTROL))
                 keyLabel.append("Ctrl+");
@@ -79,7 +80,7 @@ public class KeyHandler {
             if (Keyboard.isKeyDown(Keyboard.KEY_LMENU) || Keyboard.isKeyDown(Keyboard.KEY_RMENU))
                 keyLabel.append("Alt+");
             keyLabel.append(Keyboard.getKeyName(key));
-            github.thehighcruw.dimensium.render.ViewState.INSTANCE.logKey(keyLabel.toString());
+            ViewState.INSTANCE.logKey(keyLabel.toString());
         }
 
         Minecraft mc = Minecraft.getMinecraft();
@@ -232,16 +233,7 @@ public class KeyHandler {
                 if (cps.active) {
                     GuiDimensiumOverlay.confirmClipboardPlacement();
                 } else if (sel.clipboard != null) {
-                    FreecamState fs = FreecamState.INSTANCE;
-                    net.minecraft.client.gui.ScaledResolution sr = new net.minecraft.client.gui.ScaledResolution(
-                        mc,
-                        mc.displayWidth,
-                        mc.displayHeight);
-                    MovingObjectPosition mop = GuiDimensiumOverlay.raycastFromMouse(
-                        (int) fs.cursorX,
-                        (int) fs.cursorY,
-                        sr.getScaledWidth(),
-                        sr.getScaledHeight());
+                    MovingObjectPosition mop = RenderUtils.raycastAtCursor();
                     if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
                         cps.start(sel, mop.blockX, mop.blockY, mop.blockZ);
                     }
@@ -437,7 +429,7 @@ public class KeyHandler {
         int[] qrz = { 0, -1, 0, 1 };
 
         // Flip Canvas mirrors the horizontal screen axis, inverting the effective L/R direction.
-        int lrSign = github.thehighcruw.dimensium.render.ViewState.INSTANCE.flipCanvas ? -1 : 1;
+        int lrSign = ViewState.INSTANCE.flipCanvas ? -1 : 1;
 
         if (fwd) return new int[] { qfx[q], 0, qfz[q] };
         if (bwd) return new int[] { -qfx[q], 0, -qfz[q] };

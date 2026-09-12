@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.MovingObjectPosition;
 
@@ -23,6 +22,7 @@ import github.thehighcruw.dimensium.render.world.PlaneTranslationGizmo;
 import github.thehighcruw.dimensium.render.world.TranslationGizmo;
 import github.thehighcruw.dimensium.tool.state.PathToolState;
 import github.thehighcruw.dimensium.tool.state.SelectedBlockState;
+import github.thehighcruw.dimensium.util.RenderUtils;
 
 @SideOnly(Side.CLIENT)
 public class PathBrushInput implements BrushInput {
@@ -39,8 +39,7 @@ public class PathBrushInput implements BrushInput {
     @Override
     public boolean onMouseClick(int button, Minecraft mc, MovingObjectPosition ignored) {
         FreecamState fs = FreecamState.INSTANCE;
-        ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
-        int sw = sr.getScaledWidth(), sh = sr.getScaledHeight();
+        int sw = RenderUtils.scaledWidth(), sh = RenderUtils.scaledHeight();
         int mouseX = (int) fs.cursorX, mouseY = (int) fs.cursorY;
         PathToolState pts = PathToolState.INSTANCE;
 

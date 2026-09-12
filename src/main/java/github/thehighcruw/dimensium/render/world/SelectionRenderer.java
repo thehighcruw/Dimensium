@@ -32,7 +32,6 @@ import github.thehighcruw.dimensium.handler.ExtrudeHelper;
 import github.thehighcruw.dimensium.handler.KeyConstants;
 import github.thehighcruw.dimensium.handler.TickHandler;
 import github.thehighcruw.dimensium.handler.brushes.StampBrushInput;
-import github.thehighcruw.dimensium.render.GuiDimensiumOverlay;
 import github.thehighcruw.dimensium.render.MenuBar;
 import github.thehighcruw.dimensium.render.OverlayRenderer;
 import github.thehighcruw.dimensium.render.ViewState;
@@ -59,6 +58,7 @@ import github.thehighcruw.dimensium.tool.state.SelectedBlockState;
 import github.thehighcruw.dimensium.tool.state.SelectionState;
 import github.thehighcruw.dimensium.tool.state.ShapePlacementState;
 import github.thehighcruw.dimensium.util.PerfTrace;
+import github.thehighcruw.dimensium.util.RenderUtils;
 
 @SideOnly(Side.CLIENT)
 public class SelectionRenderer {
@@ -134,11 +134,7 @@ public class SelectionRenderer {
             || github.thehighcruw.dimensium.render.popup.FilterSelectionWindow.INSTANCE.isOpen()
             || github.thehighcruw.dimensium.render.popup.DistortSelectionWindow.INSTANCE.isOpen()
             || github.thehighcruw.dimensium.render.popup.SmoothSelectionWindow.INSTANCE.isOpen();
-        net.minecraft.client.gui.ScaledResolution _sr = new net.minecraft.client.gui.ScaledResolution(
-            mc,
-            mc.displayWidth,
-            mc.displayHeight);
-        float _sf = _sr.getScaleFactor();
+        float _sf = RenderUtils.scaleFactor();
         float _mx = FreecamState.INSTANCE.cursorX * _sf;
         float _my = FreecamState.INSTANCE.cursorY * _sf;
         boolean _mouseOverOtherPanel = OverlayRenderer.toolPanel.containsMouse(_mx, _my)
@@ -161,15 +157,7 @@ public class SelectionRenderer {
         if (DimensiumMode.INSTANCE.isActive() && DimensiumMode.INSTANCE.selectedTool == Tool.GRADIENT) {
             GradientToolState gs = GradientToolState.INSTANCE;
             if (gs.gradientHasPos1) {
-                net.minecraft.client.gui.ScaledResolution gsr = new net.minecraft.client.gui.ScaledResolution(
-                    mc,
-                    mc.displayWidth,
-                    mc.displayHeight);
-                MovingObjectPosition gmop = GuiDimensiumOverlay.raycastFromMouse(
-                    (int) FreecamState.INSTANCE.cursorX,
-                    (int) FreecamState.INSTANCE.cursorY,
-                    gsr.getScaledWidth(),
-                    gsr.getScaledHeight());
+                MovingObjectPosition gmop = RenderUtils.raycastAtCursor();
                 if (gmop != null && gmop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
                     double p1x = gs.gradientPos1X + 0.5 - rx;
                     double p1y = gs.gradientPos1Y + 0.5 - ry;
@@ -427,16 +415,7 @@ public class SelectionRenderer {
             if (builderActive && !DimensiumMode.INSTANCE.isActive()) {
                 bxMop = FreecamUtils.rayTrace(mc, FreecamUtils.REACH);
             } else {
-                FreecamState bxFs = FreecamState.INSTANCE;
-                net.minecraft.client.gui.ScaledResolution bxSr = new net.minecraft.client.gui.ScaledResolution(
-                    mc,
-                    mc.displayWidth,
-                    mc.displayHeight);
-                bxMop = GuiDimensiumOverlay.raycastFromMouse(
-                    (int) bxFs.cursorX,
-                    (int) bxFs.cursorY,
-                    bxSr.getScaledWidth(),
-                    bxSr.getScaledHeight());
+                bxMop = RenderUtils.raycastAtCursor();
             }
             if (bxMop != null && bxMop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
                 int mnX = Math.min(sel.pendingX, bxMop.blockX);
@@ -692,13 +671,7 @@ public class SelectionRenderer {
     // ── Magic select preview (runs each frame while MAGIC_SELECT tool is active) ──
 
     private void updateMagicSelectPreview(Minecraft mc) {
-        FreecamState fs = FreecamState.INSTANCE;
-        net.minecraft.client.gui.ScaledResolution sr = new net.minecraft.client.gui.ScaledResolution(
-            mc,
-            mc.displayWidth,
-            mc.displayHeight);
-        MovingObjectPosition mop = GuiDimensiumOverlay
-            .raycastFromMouse((int) fs.cursorX, (int) fs.cursorY, sr.getScaledWidth(), sr.getScaledHeight());
+        MovingObjectPosition mop = RenderUtils.raycastAtCursor();
 
         BuilderToolState bts = BuilderToolState.INSTANCE;
         if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) {
@@ -1000,13 +973,7 @@ public class SelectionRenderer {
     // ── Elevation tool terrain-projected preview ──────────────────────────────
 
     private void renderElevationPreview(Minecraft mc, double rx, double ry, double rz) {
-        FreecamState fs = FreecamState.INSTANCE;
-        net.minecraft.client.gui.ScaledResolution sr = new net.minecraft.client.gui.ScaledResolution(
-            mc,
-            mc.displayWidth,
-            mc.displayHeight);
-        MovingObjectPosition mop = GuiDimensiumOverlay
-            .raycastFromMouse((int) fs.cursorX, (int) fs.cursorY, sr.getScaledWidth(), sr.getScaledHeight());
+        MovingObjectPosition mop = RenderUtils.raycastAtCursor();
         if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return;
 
         ElevationToolState s = ElevationToolState.INSTANCE;

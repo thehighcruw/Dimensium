@@ -5,7 +5,6 @@
 package github.thehighcruw.dimensium.handler.brushes;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.MovingObjectPosition;
 
@@ -20,6 +19,7 @@ import github.thehighcruw.dimensium.render.world.ScaleGizmo;
 import github.thehighcruw.dimensium.render.world.TranslationGizmo;
 import github.thehighcruw.dimensium.tool.state.ShapePlacementState;
 import github.thehighcruw.dimensium.tool.state.ShapeToolState;
+import github.thehighcruw.dimensium.util.RenderUtils;
 
 @SideOnly(Side.CLIENT)
 public class ShapeBrushInput implements BrushInput {
@@ -37,8 +37,7 @@ public class ShapeBrushInput implements BrushInput {
     public boolean onMouseClick(int button, Minecraft mc, MovingObjectPosition ignored) {
         if (mc.thePlayer == null) return false;
         FreecamState fs = FreecamState.INSTANCE;
-        ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
-        int sw = sr.getScaledWidth(), sh = sr.getScaledHeight();
+        int sw = RenderUtils.scaledWidth(), sh = RenderUtils.scaledHeight();
         int mouseX = (int) fs.cursorX, mouseY = (int) fs.cursorY;
         ShapePlacementState ps = ShapePlacementState.INSTANCE;
 

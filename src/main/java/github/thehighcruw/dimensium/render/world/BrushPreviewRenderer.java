@@ -17,11 +17,9 @@ import org.lwjgl.opengl.GL11;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import github.thehighcruw.dimensium.freecam.FreecamState;
 import github.thehighcruw.dimensium.handler.KeyConstants;
 import github.thehighcruw.dimensium.handler.TickHandler;
 import github.thehighcruw.dimensium.handler.brushes.BrushInputRegistry;
-import github.thehighcruw.dimensium.render.GuiDimensiumOverlay;
 import github.thehighcruw.dimensium.render.brushes.BrushView;
 import github.thehighcruw.dimensium.render.brushes.BrushViewRegistry;
 import github.thehighcruw.dimensium.tool.DimensiumMode;
@@ -29,6 +27,7 @@ import github.thehighcruw.dimensium.tool.Tool;
 import github.thehighcruw.dimensium.tool.brushes.BrushUtil;
 import github.thehighcruw.dimensium.tool.state.BrushShape;
 import github.thehighcruw.dimensium.tool.state.BrushState;
+import github.thehighcruw.dimensium.util.RenderUtils;
 
 @SideOnly(Side.CLIENT)
 class BrushPreviewRenderer {
@@ -43,13 +42,7 @@ class BrushPreviewRenderer {
     private HashSet<Long> cachedBrushSet = null;
 
     void render(Minecraft mc, double rx, double ry, double rz) {
-        net.minecraft.client.gui.ScaledResolution sr = new net.minecraft.client.gui.ScaledResolution(
-            mc,
-            mc.displayWidth,
-            mc.displayHeight);
-        FreecamState fs = FreecamState.INSTANCE;
-        MovingObjectPosition mop = GuiDimensiumOverlay
-            .raycastFromMouse((int) fs.cursorX, (int) fs.cursorY, sr.getScaledWidth(), sr.getScaledHeight());
+        MovingObjectPosition mop = RenderUtils.raycastAtCursor();
         if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return;
 
         int bx = mop.blockX, by = mop.blockY, bz = mop.blockZ;

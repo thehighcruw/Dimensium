@@ -13,7 +13,6 @@ import java.util.Set;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.init.Blocks;
 
@@ -23,6 +22,7 @@ import github.thehighcruw.dimensium.freecam.FreecamState;
 import github.thehighcruw.dimensium.render.ViewportRegistry;
 import github.thehighcruw.dimensium.render.ViewportState;
 import github.thehighcruw.dimensium.tool.state.SelectionState;
+import github.thehighcruw.dimensium.util.RenderUtils;
 
 @SideOnly(Side.CLIENT)
 public final class LassoComputer {
@@ -71,7 +71,7 @@ public final class LassoComputer {
         // Mirrors the inverse of ViewportState.cursorToNdcX/Y, matching how
         // GuiDimensiumOverlay/TickHandler cast rays through the cursor.
         ViewportState vp = ViewportRegistry.INSTANCE.active();
-        int sf = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight).getScaleFactor();
+        int sf = RenderUtils.scaleFactor();
         final double ndcCenterX, ndcCenterY;
         if (vp != null && vp.contentW > 1 && vp.contentH > 1) {
             ndcCenterX = (vp.contentX + vp.contentW * 0.5) / sf;

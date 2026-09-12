@@ -39,6 +39,7 @@ import github.thehighcruw.dimensium.tool.state.ElevationToolState;
 import github.thehighcruw.dimensium.tool.state.GradientToolState;
 import github.thehighcruw.dimensium.tool.state.NoiseToolState;
 import github.thehighcruw.dimensium.util.PerfTrace;
+import github.thehighcruw.dimensium.util.RenderUtils;
 
 @SideOnly(Side.CLIENT)
 public class TickHandler {
@@ -83,7 +84,7 @@ public class TickHandler {
         if (!fs.active || fs.cameraEntity == null) return;
         if (!Mouse.isInsideWindow()) return;
 
-        ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
+        ScaledResolution sr = RenderUtils.scaledResolution();
         int sw = sr.getScaledWidth();
         int sh = sr.getScaledHeight();
         int sf = sr.getScaleFactor();
@@ -95,13 +96,6 @@ public class TickHandler {
         // Move software cursor (physical pixels → scaled pixels, Y inverted).
         fs.cursorX = Math.max(0, Math.min(sw - 1, fs.cursorX + rawDX / sf));
         fs.cursorY = Math.max(0, Math.min(sh - 1, fs.cursorY - rawDY / sf));
-
-        // cursorX3d: effective X for all 3D world interaction (block picking, gizmos).
-        // Mirrors cursorX when Flip Canvas is active so all 3D code reads one canonical field.
-        boolean flipCanvas = github.thehighcruw.dimensium.render.ViewState.INSTANCE.flipCanvas;
-        fs.cursorX3d = flipCanvas ? (sw - 1) - fs.cursorX : fs.cursorX;
-        fs.cursorY3d = fs.cursorY;
-        if (flipCanvas) rawDX = -rawDX;
 
         // Paint here — cursor is freshest and render ticks match frame rate, giving
         // smooth continuous strokes. Block-position dedup prevents packet spam.
@@ -235,7 +229,7 @@ public class TickHandler {
     private void applyPaintIfHeld(Minecraft mc, int sw, int sh) {
         if (!DimensiumMode.INSTANCE.isActive()) return;
         if (ImGuiManager.INSTANCE.anyModalOpen()) return;
-        int sf = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight).getScaleFactor();
+        int sf = RenderUtils.scaleFactor();
         Tool tool = DimensiumMode.INSTANCE.selectedTool;
         BrushInput input = BrushInputRegistry.get(tool);
 
@@ -271,7 +265,7 @@ public class TickHandler {
             return;
         }
 
-        int mx = (int) fs.cursorX3d, my = (int) fs.cursorY;
+        int mx = (int) fs.cursorX, my = (int) fs.cursorY;
         if (mx * sf < OverlayRenderer.toolPanel.currentW || my * sf < (int) MenuBar.INSTANCE.height()) return;
 
         MovingObjectPosition mop = GuiDimensiumOverlay.raycastFromMouse(mx, my, sw, sh);
@@ -330,7 +324,7 @@ public class TickHandler {
         double rdx, rdy, rdz;
 
         if (useCursor) {
-            double ndcX = UICoords.guiToNdcX(fs.cursorX3d);
+            double ndcX = UICoords.guiToNdcX(fs.cursorX);
             double ndcY = UICoords.guiToNdcY(fs.cursorY);
 
             double yaw = Math.toRadians(cam.rotationYaw);

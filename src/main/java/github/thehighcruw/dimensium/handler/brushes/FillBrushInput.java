@@ -8,7 +8,6 @@ import java.util.Set;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
@@ -16,7 +15,6 @@ import net.minecraft.util.MovingObjectPosition;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import github.thehighcruw.dimensium.freecam.FreecamState;
 import github.thehighcruw.dimensium.handler.BlockSender;
 import github.thehighcruw.dimensium.handler.ExtrudeHelper;
 import github.thehighcruw.dimensium.handler.KeyConstants;
@@ -26,6 +24,7 @@ import github.thehighcruw.dimensium.tool.ChangeProposal;
 import github.thehighcruw.dimensium.tool.state.FloodfillToolState;
 import github.thehighcruw.dimensium.tool.state.SelectedBlockState;
 import github.thehighcruw.dimensium.tool.state.SelectionState;
+import github.thehighcruw.dimensium.util.RenderUtils;
 
 @SideOnly(Side.CLIENT)
 public class FillBrushInput implements BrushInput {
@@ -58,10 +57,7 @@ public class FillBrushInput implements BrushInput {
             return true;
         }
 
-        FreecamState fs = FreecamState.INSTANCE;
-        ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
-        MovingObjectPosition mop = GuiDimensiumOverlay
-            .raycastFromMouse((int) fs.cursorX, (int) fs.cursorY, sr.getScaledWidth(), sr.getScaledHeight());
+        MovingObjectPosition mop = RenderUtils.raycastAtCursor();
         if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return false;
 
         int[] faceOffsets = ExtrudeHelper.sideToOutwardDir(mop.sideHit);

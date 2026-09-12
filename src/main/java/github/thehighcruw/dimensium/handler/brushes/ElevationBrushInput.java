@@ -7,7 +7,6 @@ package github.thehighcruw.dimensium.handler.brushes;
 import java.util.List;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.util.MovingObjectPosition;
 
@@ -26,6 +25,7 @@ import github.thehighcruw.dimensium.tool.BrushApplicator;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 import github.thehighcruw.dimensium.tool.mask.ToolMaskRegistry;
 import github.thehighcruw.dimensium.tool.state.ElevationToolState;
+import github.thehighcruw.dimensium.util.RenderUtils;
 
 @SideOnly(Side.CLIENT)
 public class ElevationBrushInput implements BrushInput {
@@ -69,8 +69,8 @@ public class ElevationBrushInput implements BrushInput {
             return true;
         }
 
-        int sf = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight).getScaleFactor();
-        int mx = (int) fs.cursorX3d, my = (int) fs.cursorY;
+        int sf = RenderUtils.scaleFactor();
+        int mx = (int) fs.cursorX, my = (int) fs.cursorY;
         if (mx * sf < OverlayRenderer.toolPanel.currentW || my * sf < (int) MenuBar.INSTANCE.height()) return true;
 
         MovingObjectPosition mop = GuiDimensiumOverlay.raycastFromMouse(mx, my, sw, sh);

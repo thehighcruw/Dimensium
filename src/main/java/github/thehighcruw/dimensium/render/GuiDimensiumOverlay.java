@@ -117,8 +117,7 @@ public final class GuiDimensiumOverlay {
         }
         // mouseX/mouseY are in scaled GUI pixels; panel widths are physical pixels — convert.
         Minecraft _mc = Minecraft.getMinecraft();
-        int _sf = new net.minecraft.client.gui.ScaledResolution(_mc, _mc.displayWidth, _mc.displayHeight)
-            .getScaleFactor();
+        int _sf = github.thehighcruw.dimensium.util.RenderUtils.scaleFactor();
         int physX = mouseX * _sf;
         float _uiScale = github.thehighcruw.dimensium.render.imgui.ImGuiManager.INSTANCE.getUIScale();
         if (physX < OverlayRenderer.toolPanel.currentW * _uiScale) {
@@ -259,16 +258,7 @@ public final class GuiDimensiumOverlay {
             if (tool == Tool.SELECT) {
                 SelectionState sel = SelectionState.INSTANCE;
                 if (sel.pendingPos1) {
-                    Minecraft mc = Minecraft.getMinecraft();
-                    net.minecraft.client.gui.ScaledResolution sr = new net.minecraft.client.gui.ScaledResolution(
-                        mc,
-                        mc.displayWidth,
-                        mc.displayHeight);
-                    MovingObjectPosition mop = raycastFromMouse(
-                        (int) FreecamState.INSTANCE.cursorX,
-                        (int) FreecamState.INSTANCE.cursorY,
-                        sr.getScaledWidth(),
-                        sr.getScaledHeight());
+                    MovingObjectPosition mop = github.thehighcruw.dimensium.util.RenderUtils.raycastAtCursor();
                     if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
                         sel.pendingX2 = mop.blockX;
                         sel.pendingY2 = mop.blockY;

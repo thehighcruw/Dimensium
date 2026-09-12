@@ -120,6 +120,31 @@ tasks.register<JavaExec>("cpdCheck") {
     }
 }
 
+tasks.register<JavaExec>("pmdCheck") {
+    group = "verification"
+    description = "Run PMD static analysis on main sources"
+    classpath = cpdConfiguration
+    mainClass.set("net.sourceforge.pmd.PMD")
+    val reportDir = layout.buildDirectory.dir("reports/pmd")
+    doFirst {
+        reportDir.get().asFile.mkdirs()
+    }
+    args = listOf(
+        "--dir", "src/main/java",
+        "--rulesets", "config/pmd-rules.xml",
+        "--format", "text",
+        "--report-file", reportDir.get().file("main.txt").asFile.absolutePath
+    )
+    isIgnoreExitValue = true
+    doLast {
+        val report = reportDir.get().file("main.txt").asFile
+        if (report.exists() && report.length() > 0) {
+            println(report.readText())
+        }
+        println("PMD report: ${reportDir.get().asFile.absolutePath}")
+    }
+}
+
 spotless {
     java {
         licenseHeaderFile(file("config/license-header.txt"))

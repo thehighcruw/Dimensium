@@ -5,7 +5,6 @@
 package github.thehighcruw.dimensium.handler.brushes;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ScaledResolution;
 
 import org.lwjgl.input.Keyboard;
 
@@ -17,6 +16,7 @@ import github.thehighcruw.dimensium.tool.mask.ToolMaskRegistry;
 import github.thehighcruw.dimensium.tool.state.BooleanOp;
 import github.thehighcruw.dimensium.tool.state.LassoSelectToolState;
 import github.thehighcruw.dimensium.tool.state.SelectionState;
+import github.thehighcruw.dimensium.util.RenderUtils;
 
 @SideOnly(Side.CLIENT)
 public class LassoBrushInput implements BrushInput {
@@ -46,14 +46,13 @@ public class LassoBrushInput implements BrushInput {
         } else if (lasso.dragging) {
             lasso.dragging = false;
             if (lasso.polygonPoints.size() >= 3) {
-                ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
                 java.util.Set<Long> blocks = LassoComputer.compute(
                     mc,
                     lasso.polygonPoints,
                     lasso.lassoDepth,
                     lasso.lassoIncludeNonSolid,
-                    sr.getScaledWidth(),
-                    sr.getScaledHeight());
+                    RenderUtils.scaledWidth(),
+                    RenderUtils.scaledHeight());
                 SelectionState.INSTANCE.applyOp(ToolMaskRegistry.INSTANCE.filterSelection(blocks), BooleanOp.REPLACE);
             }
             lasso.polygonPoints.clear();

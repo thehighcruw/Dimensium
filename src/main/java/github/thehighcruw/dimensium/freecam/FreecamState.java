@@ -24,9 +24,6 @@ public class FreecamState {
 
     // Software cursor position in scaled pixels.
     public float cursorX = 0, cursorY = 0;
-    // Effective cursor position for 3D world interaction.
-    // cursorX3d mirrors cursorX when Flip Canvas is active; cursorY3d is an identity for now.
-    public float cursorX3d = 0, cursorY3d = 0;
 
     // Actual perspective projection tangents captured from GL each frame.
     // Defaults match 70° vertical FOV at 4:3 until first frame is rendered.

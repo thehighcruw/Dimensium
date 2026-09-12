@@ -5,7 +5,6 @@
 package github.thehighcruw.dimensium.handler.brushes;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.MovingObjectPosition;
 
@@ -18,6 +17,7 @@ import github.thehighcruw.dimensium.render.world.PlaneTranslationGizmo;
 import github.thehighcruw.dimensium.render.world.RotationGizmo;
 import github.thehighcruw.dimensium.render.world.TranslationGizmo;
 import github.thehighcruw.dimensium.tool.state.MoveToolState;
+import github.thehighcruw.dimensium.util.RenderUtils;
 
 @SideOnly(Side.CLIENT)
 public class MoveBrushInput implements BrushInput {
@@ -38,8 +38,7 @@ public class MoveBrushInput implements BrushInput {
         EntityLivingBase eye = mc.renderViewEntity;
         if (eye == null) return false;
         FreecamState fs = FreecamState.INSTANCE;
-        ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
-        int sw = sr.getScaledWidth(), sh = sr.getScaledHeight();
+        int sw = RenderUtils.scaledWidth(), sh = RenderUtils.scaledHeight();
         int mouseX = (int) fs.cursorX, mouseY = (int) fs.cursorY;
 
         if (button == KeyConstants.LMB) {

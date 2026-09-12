@@ -32,6 +32,7 @@ import github.thehighcruw.dimensium.tool.BuilderToolState.Phase;
 import github.thehighcruw.dimensium.tool.DimensiumMode;
 import github.thehighcruw.dimensium.tool.state.BrushState;
 import github.thehighcruw.dimensium.tool.state.SelectionState;
+import github.thehighcruw.dimensium.util.RenderUtils;
 
 @SideOnly(Side.CLIENT)
 public class InputHandler {
@@ -48,13 +49,9 @@ public class InputHandler {
         // ── Overlay mouse handling ────────────────────────────────────────────
         if (DimensiumMode.INSTANCE.isActive()) {
             FreecamState fs = FreecamState.INSTANCE;
-            net.minecraft.client.gui.ScaledResolution sr = new net.minecraft.client.gui.ScaledResolution(
-                mc,
-                mc.displayWidth,
-                mc.displayHeight);
-            int sw = sr.getScaledWidth();
-            int sh = sr.getScaledHeight();
-            int sf = sr.getScaleFactor();
+            int sw = RenderUtils.scaledWidth();
+            int sh = RenderUtils.scaledHeight();
+            int sf = RenderUtils.scaleFactor();
             int mx = (int) fs.cursorX;
             int my = (int) fs.cursorY;
 

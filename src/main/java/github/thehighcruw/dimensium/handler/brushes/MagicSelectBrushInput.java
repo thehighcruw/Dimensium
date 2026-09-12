@@ -7,18 +7,16 @@ package github.thehighcruw.dimensium.handler.brushes;
 import java.util.Set;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.util.MovingObjectPosition;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import github.thehighcruw.dimensium.freecam.FreecamState;
 import github.thehighcruw.dimensium.handler.KeyConstants;
-import github.thehighcruw.dimensium.render.GuiDimensiumOverlay;
 import github.thehighcruw.dimensium.tool.mask.ToolMaskRegistry;
 import github.thehighcruw.dimensium.tool.state.MagicSelectToolState;
 import github.thehighcruw.dimensium.tool.state.SelectToolState;
 import github.thehighcruw.dimensium.tool.state.SelectionState;
+import github.thehighcruw.dimensium.util.RenderUtils;
 
 @SideOnly(Side.CLIENT)
 public class MagicSelectBrushInput implements BrushInput {
@@ -31,10 +29,7 @@ public class MagicSelectBrushInput implements BrushInput {
     @Override
     public boolean onMouseClick(int button, Minecraft mc, MovingObjectPosition ignored) {
         if (button != KeyConstants.RMB) return false;
-        FreecamState fs = FreecamState.INSTANCE;
-        ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
-        MovingObjectPosition mop = GuiDimensiumOverlay
-            .raycastFromMouse((int) fs.cursorX, (int) fs.cursorY, sr.getScaledWidth(), sr.getScaledHeight());
+        MovingObjectPosition mop = RenderUtils.raycastAtCursor();
         if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return false;
         SelectionState sel = SelectionState.INSTANCE;
         MagicSelectToolState ts = MagicSelectToolState.INSTANCE;

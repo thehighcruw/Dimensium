@@ -6,7 +6,6 @@ package github.thehighcruw.dimensium.render.popup;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.init.Blocks;
@@ -16,10 +15,9 @@ import net.minecraft.util.MovingObjectPosition;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.DimensiumConfig;
-import github.thehighcruw.dimensium.freecam.FreecamState;
-import github.thehighcruw.dimensium.render.GuiDimensiumOverlay;
 import github.thehighcruw.dimensium.render.imgui.ImGuiManager;
 import github.thehighcruw.dimensium.render.imgui.ImGuiWindow;
+import github.thehighcruw.dimensium.util.RenderUtils;
 import imgui.ImGui;
 import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiWindowFlags;
@@ -54,12 +52,7 @@ public class BlockInfoWindow extends ImGuiWindow {
         Minecraft mc = Minecraft.getMinecraft();
         if (mc.theWorld == null) return;
 
-        ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
-        int sw = sr.getScaledWidth();
-        int sh = sr.getScaledHeight();
-
-        MovingObjectPosition mop = GuiDimensiumOverlay
-            .raycastFromMouse((int) FreecamState.INSTANCE.cursorX, (int) FreecamState.INSTANCE.cursorY, sw, sh);
+        MovingObjectPosition mop = RenderUtils.raycastAtCursor();
 
         float scale = ImGuiManager.INSTANCE.getUIScale();
         ImGui.setNextWindowSizeConstraints(180 * scale, 0, 400 * scale, Float.MAX_VALUE);

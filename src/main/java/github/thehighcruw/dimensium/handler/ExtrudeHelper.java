@@ -20,11 +20,10 @@ import net.minecraft.world.World;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import github.thehighcruw.dimensium.freecam.FreecamState;
-import github.thehighcruw.dimensium.render.GuiDimensiumOverlay;
 import github.thehighcruw.dimensium.tool.BuilderToolState;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 import github.thehighcruw.dimensium.tool.state.ExtrudeToolState;
+import github.thehighcruw.dimensium.util.RenderUtils;
 
 @SideOnly(Side.CLIENT)
 public class ExtrudeHelper {
@@ -179,13 +178,7 @@ public class ExtrudeHelper {
 
     /** Builds the extrude preview proposal for the block under the cursor. Called each render frame. */
     public void buildExtrudeProposal(Minecraft mc) {
-        FreecamState fs = FreecamState.INSTANCE;
-        net.minecraft.client.gui.ScaledResolution sr = new net.minecraft.client.gui.ScaledResolution(
-            mc,
-            mc.displayWidth,
-            mc.displayHeight);
-        MovingObjectPosition mop = GuiDimensiumOverlay
-            .raycastFromMouse((int) fs.cursorX, (int) fs.cursorY, sr.getScaledWidth(), sr.getScaledHeight());
+        MovingObjectPosition mop = RenderUtils.raycastAtCursor();
 
         BuilderToolState bts = BuilderToolState.INSTANCE;
         if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) {
