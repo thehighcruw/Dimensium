@@ -6,6 +6,7 @@ package github.thehighcruw.dimensium.handler;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
@@ -305,11 +306,10 @@ public class KeyHandler {
     }
 
     private Tool toolForKey(int key, int mods) {
-        if (matches(key, mods, Dimensium.toolSelect, Dimensium.toolSelectMods)) return Tool.SELECT;
-        if (matches(key, mods, Dimensium.toolDraw, Dimensium.toolDrawMods)) return Tool.FREEHAND_DRAW;
-        if (matches(key, mods, Dimensium.toolNoise, Dimensium.toolNoiseMods)) return Tool.NOISE;
-        if (matches(key, mods, Dimensium.toolSmooth, Dimensium.toolSmoothMods)) return Tool.SMOOTH;
-        if (matches(key, mods, Dimensium.toolExtrude, Dimensium.toolExtrudeMods)) return Tool.EXTRUDE;
+        for (Map.Entry<Tool, net.minecraft.client.settings.KeyBinding> entry : Dimensium.toolKeybinds.entrySet()) {
+            int requiredMods = Dimensium.toolKeybindMods.getOrDefault(entry.getKey(), 0);
+            if (matches(key, mods, entry.getValue(), requiredMods)) return entry.getKey();
+        }
         return null;
     }
 

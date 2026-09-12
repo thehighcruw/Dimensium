@@ -496,6 +496,8 @@ dimensium.settings.category.general=General
 dimensium.settings.general.ui_scale=UI Scale
 dimensium.settings.general.scroll_speed=Scroll Speed
 dimensium.settings.category.keybinds=Keybinds
+dimensium.settings.category.tools=Tools
+dimensium.settings.category.actions=Actions
 
 # Keybind labels
 dimensium.settings.keybind.press_key=Press a key to bind... (Escape to cancel)

@@ -69,7 +69,7 @@ public class DimensiumConfig {
     public static int modsToolSelect = 0;
 
     @Config.Comment("Editor: Draw tool — key code")
-    public static int keyToolDraw = org.lwjgl.input.Keyboard.KEY_P;
+    public static int keyToolDraw = org.lwjgl.input.Keyboard.KEY_G;
     @Config.Comment("Editor: Draw tool — modifier mask")
     public static int modsToolDraw = 0;
 
@@ -87,6 +87,111 @@ public class DimensiumConfig {
     public static int keyToolExtrude = org.lwjgl.input.Keyboard.KEY_Z;
     @Config.Comment("Editor: Extrude tool — modifier mask")
     public static int modsToolExtrude = 0;
+
+    @Config.Comment("Editor: Pointer tool — key code")
+    public static int keyToolPointer = org.lwjgl.input.Keyboard.KEY_NONE;
+    @Config.Comment("Editor: Pointer tool — modifier mask")
+    public static int modsToolPointer = 0;
+
+    @Config.Comment("Editor: Magic Select tool — key code")
+    public static int keyToolMagicSelect = org.lwjgl.input.Keyboard.KEY_M;
+    @Config.Comment("Editor: Magic Select tool — modifier mask")
+    public static int modsToolMagicSelect = 0;
+
+    @Config.Comment("Editor: Freehand Select tool — key code")
+    public static int keyToolFreehandSelect = org.lwjgl.input.Keyboard.KEY_N;
+    @Config.Comment("Editor: Freehand Select tool — modifier mask")
+    public static int modsToolFreehandSelect = 0;
+
+    @Config.Comment("Editor: Lasso Select tool — key code")
+    public static int keyToolLassoSelect = org.lwjgl.input.Keyboard.KEY_L;
+    @Config.Comment("Editor: Lasso Select tool — modifier mask")
+    public static int modsToolLassoSelect = 0;
+
+    @Config.Comment("Editor: Sculpt Draw tool — key code")
+    public static int keyToolSculptDraw = org.lwjgl.input.Keyboard.KEY_NONE;
+    @Config.Comment("Editor: Sculpt Draw tool — modifier mask")
+    public static int modsToolSculptDraw = 0;
+
+    @Config.Comment("Editor: Shape tool — key code")
+    public static int keyToolShape = org.lwjgl.input.Keyboard.KEY_NONE;
+    @Config.Comment("Editor: Shape tool — modifier mask")
+    public static int modsToolShape = 0;
+
+    @Config.Comment("Editor: Stamp tool — key code")
+    public static int keyToolStamp = org.lwjgl.input.Keyboard.KEY_NONE;
+    @Config.Comment("Editor: Stamp tool — modifier mask")
+    public static int modsToolStamp = 0;
+
+    @Config.Comment("Editor: Fill tool — key code")
+    public static int keyToolFill = org.lwjgl.input.Keyboard.KEY_NONE;
+    @Config.Comment("Editor: Fill tool — modifier mask")
+    public static int modsToolFill = 0;
+
+    @Config.Comment("Editor: Painter tool — key code")
+    public static int keyToolPainter = org.lwjgl.input.Keyboard.KEY_P;
+    @Config.Comment("Editor: Painter tool — modifier mask")
+    public static int modsToolPainter = 0;
+
+    @Config.Comment("Editor: Rock tool — key code")
+    public static int keyToolRock = org.lwjgl.input.Keyboard.KEY_H;
+    @Config.Comment("Editor: Rock tool — modifier mask")
+    public static int modsToolRock = 0;
+
+    @Config.Comment("Editor: Gradient tool — key code")
+    public static int keyToolGradient = org.lwjgl.input.Keyboard.KEY_NONE;
+    @Config.Comment("Editor: Gradient tool — modifier mask")
+    public static int modsToolGradient = 0;
+
+    @Config.Comment("Editor: Move tool — key code")
+    public static int keyToolMove = org.lwjgl.input.Keyboard.KEY_NONE;
+    @Config.Comment("Editor: Move tool — modifier mask")
+    public static int modsToolMove = 0;
+
+    @Config.Comment("Editor: Path tool — key code")
+    public static int keyToolPath = org.lwjgl.input.Keyboard.KEY_NONE;
+    @Config.Comment("Editor: Path tool — modifier mask")
+    public static int modsToolPath = 0;
+
+    @Config.Comment("Editor: Elevation tool — key code")
+    public static int keyToolElevation = org.lwjgl.input.Keyboard.KEY_E;
+    @Config.Comment("Editor: Elevation tool — modifier mask")
+    public static int modsToolElevation = 0;
+
+    @Config.Comment("Editor: Distort tool — key code")
+    public static int keyToolDistort = org.lwjgl.input.Keyboard.KEY_NONE;
+    @Config.Comment("Editor: Distort tool — modifier mask")
+    public static int modsToolDistort = 0;
+
+    @Config.Comment("Editor: Weld tool — key code")
+    public static int keyToolWeld = org.lwjgl.input.Keyboard.KEY_J;
+    @Config.Comment("Editor: Weld tool — modifier mask")
+    public static int modsToolWeld = 0;
+
+    @Config.Comment("Editor: Melt tool — key code")
+    public static int keyToolMelt = org.lwjgl.input.Keyboard.KEY_K;
+    @Config.Comment("Editor: Melt tool — modifier mask")
+    public static int modsToolMelt = 0;
+
+    @Config.Comment("Editor: Roughen tool — key code")
+    public static int keyToolRoughen = org.lwjgl.input.Keyboard.KEY_NONE;
+    @Config.Comment("Editor: Roughen tool — modifier mask")
+    public static int modsToolRoughen = 0;
+
+    @Config.Comment("Editor: Shatter tool — key code")
+    public static int keyToolShatter = org.lwjgl.input.Keyboard.KEY_NONE;
+    @Config.Comment("Editor: Shatter tool — modifier mask")
+    public static int modsToolShatter = 0;
+
+    @Config.Comment("Editor: Ruler tool — key code")
+    public static int keyToolRuler = org.lwjgl.input.Keyboard.KEY_NONE;
+    @Config.Comment("Editor: Ruler tool — modifier mask")
+    public static int modsToolRuler = 0;
+
+    @Config.Comment("Editor: Modelling tool — key code")
+    public static int keyToolModelling = org.lwjgl.input.Keyboard.KEY_NONE;
+    @Config.Comment("Editor: Modelling tool — modifier mask")
+    public static int modsToolModelling = 0;
 
     @Config.Comment("Editor: Undo — key code")
     public static int keyActionUndo = org.lwjgl.input.Keyboard.KEY_Z;

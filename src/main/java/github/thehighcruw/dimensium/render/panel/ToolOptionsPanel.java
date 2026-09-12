@@ -55,9 +55,9 @@ public class ToolOptionsPanel extends ImGuiWindow {
             return;
         }
 
-        ToolPanel.ToolEntry entry = toolPanel.toolMap.get(DimensiumMode.INSTANCE.selectedTool);
-        if (entry != null) {
-            entry.section.render();
+        ToolSection section = toolPanel.sectionMap.get(DimensiumMode.INSTANCE.selectedTool);
+        if (section != null) {
+            section.render();
         }
 
         ImGui.end();

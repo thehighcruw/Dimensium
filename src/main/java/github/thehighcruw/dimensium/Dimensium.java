@@ -4,6 +4,8 @@
  */
 package github.thehighcruw.dimensium;
 
+import java.util.EnumMap;
+
 import net.minecraft.client.settings.KeyBinding;
 
 import org.apache.logging.log4j.Logger;
@@ -26,6 +28,7 @@ import github.thehighcruw.dimensium.history.ServerCaptureQueue;
 import github.thehighcruw.dimensium.history.ServerEditQueue;
 import github.thehighcruw.dimensium.network.PacketHandler;
 import github.thehighcruw.dimensium.proxy.IProxy;
+import github.thehighcruw.dimensium.tool.Tool;
 
 @Mod(
     modid = Dimensium.MODID,
@@ -56,12 +59,11 @@ public class Dimensium {
     // Global keybind — registered with MC so it appears in the controls menu.
     public static KeyBinding toggleDimensium = new KeyBinding("key.dimensium.toggle", Keyboard.KEY_RSHIFT, "Dimensium");
 
-    // Editor-view keybinds — NOT registered with MC; configurable via Settings > Keybinds.
-    public static KeyBinding toolSelect = new KeyBinding("key.dimensium.tool.select", Keyboard.KEY_B, "Dimensium");
-    public static KeyBinding toolDraw = new KeyBinding("key.dimensium.tool.draw", Keyboard.KEY_P, "Dimensium");
-    public static KeyBinding toolNoise = new KeyBinding("key.dimensium.tool.noise", Keyboard.KEY_O, "Dimensium");
-    public static KeyBinding toolSmooth = new KeyBinding("key.dimensium.tool.smooth", Keyboard.KEY_U, "Dimensium");
-    public static KeyBinding toolExtrude = new KeyBinding("key.dimensium.tool.extrude", Keyboard.KEY_Z, "Dimensium");
+    // Tool-switch keybinds — one per Tool enum value, populated by applyKeybinds().
+    public static final EnumMap<Tool, KeyBinding> toolKeybinds = buildToolKeybinds();
+    public static final EnumMap<Tool, Integer> toolKeybindMods = new EnumMap<>(Tool.class);
+
+    // Editor-view action keybinds — NOT registered with MC; configurable via Settings > Keybinds.
     public static KeyBinding actionUndo = new KeyBinding("key.dimensium.undo", Keyboard.KEY_Z, "Dimensium");
     public static KeyBinding actionRedo = new KeyBinding("key.dimensium.redo", Keyboard.KEY_Y, "Dimensium");
     public static KeyBinding actionCopy = new KeyBinding("key.dimensium.copy", Keyboard.KEY_C, "Dimensium");
@@ -83,12 +85,7 @@ public class Dimensium {
         Keyboard.KEY_PERIOD,
         "Dimensium");
 
-    // Modifier masks for each editor-view keybind (parallel to the KeyBinding objects).
-    public static int toolSelectMods = 0;
-    public static int toolDrawMods = 0;
-    public static int toolNoiseMods = 0;
-    public static int toolSmoothMods = 0;
-    public static int toolExtrudeMods = 0;
+    // Modifier masks for action keybinds.
     public static int actionUndoMods = MOD_CTRL;
     public static int actionRedoMods = MOD_CTRL;
     public static int actionCopyMods = MOD_CTRL;
@@ -101,17 +98,47 @@ public class Dimensium {
     public static int actionBlueprintBrowserMods = MOD_CTRL;
     public static int actionSettingsMods = MOD_CTRL;
 
+    private static EnumMap<Tool, KeyBinding> buildToolKeybinds() {
+        EnumMap<Tool, KeyBinding> map = new EnumMap<>(Tool.class);
+        for (Tool t : Tool.values()) {
+            map.put(
+                t,
+                new KeyBinding(
+                    "key.dimensium.tool." + t.name()
+                        .toLowerCase(),
+                    Keyboard.KEY_NONE,
+                    "Dimensium"));
+        }
+        return map;
+    }
+
     public static void applyKeybinds() {
-        toolSelect.setKeyCode(DimensiumConfig.keyToolSelect);
-        toolSelectMods = DimensiumConfig.modsToolSelect;
-        toolDraw.setKeyCode(DimensiumConfig.keyToolDraw);
-        toolDrawMods = DimensiumConfig.modsToolDraw;
-        toolNoise.setKeyCode(DimensiumConfig.keyToolNoise);
-        toolNoiseMods = DimensiumConfig.modsToolNoise;
-        toolSmooth.setKeyCode(DimensiumConfig.keyToolSmooth);
-        toolSmoothMods = DimensiumConfig.modsToolSmooth;
-        toolExtrude.setKeyCode(DimensiumConfig.keyToolExtrude);
-        toolExtrudeMods = DimensiumConfig.modsToolExtrude;
+        setToolKey(Tool.POINTER, DimensiumConfig.keyToolPointer, DimensiumConfig.modsToolPointer);
+        setToolKey(Tool.SELECT, DimensiumConfig.keyToolSelect, DimensiumConfig.modsToolSelect);
+        setToolKey(Tool.MAGIC_SELECT, DimensiumConfig.keyToolMagicSelect, DimensiumConfig.modsToolMagicSelect);
+        setToolKey(Tool.FREEHAND_SELECT, DimensiumConfig.keyToolFreehandSelect, DimensiumConfig.modsToolFreehandSelect);
+        setToolKey(Tool.LASSO_SELECT, DimensiumConfig.keyToolLassoSelect, DimensiumConfig.modsToolLassoSelect);
+        setToolKey(Tool.FREEHAND_DRAW, DimensiumConfig.keyToolDraw, DimensiumConfig.modsToolDraw);
+        setToolKey(Tool.SCULPT_DRAW, DimensiumConfig.keyToolSculptDraw, DimensiumConfig.modsToolSculptDraw);
+        setToolKey(Tool.SHAPE, DimensiumConfig.keyToolShape, DimensiumConfig.modsToolShape);
+        setToolKey(Tool.STAMP, DimensiumConfig.keyToolStamp, DimensiumConfig.modsToolStamp);
+        setToolKey(Tool.FILL, DimensiumConfig.keyToolFill, DimensiumConfig.modsToolFill);
+        setToolKey(Tool.PAINTER, DimensiumConfig.keyToolPainter, DimensiumConfig.modsToolPainter);
+        setToolKey(Tool.NOISE, DimensiumConfig.keyToolNoise, DimensiumConfig.modsToolNoise);
+        setToolKey(Tool.ROCK, DimensiumConfig.keyToolRock, DimensiumConfig.modsToolRock);
+        setToolKey(Tool.GRADIENT, DimensiumConfig.keyToolGradient, DimensiumConfig.modsToolGradient);
+        setToolKey(Tool.SMOOTH, DimensiumConfig.keyToolSmooth, DimensiumConfig.modsToolSmooth);
+        setToolKey(Tool.EXTRUDE, DimensiumConfig.keyToolExtrude, DimensiumConfig.modsToolExtrude);
+        setToolKey(Tool.MOVE, DimensiumConfig.keyToolMove, DimensiumConfig.modsToolMove);
+        setToolKey(Tool.PATH, DimensiumConfig.keyToolPath, DimensiumConfig.modsToolPath);
+        setToolKey(Tool.ELEVATION, DimensiumConfig.keyToolElevation, DimensiumConfig.modsToolElevation);
+        setToolKey(Tool.DISTORT, DimensiumConfig.keyToolDistort, DimensiumConfig.modsToolDistort);
+        setToolKey(Tool.WELD, DimensiumConfig.keyToolWeld, DimensiumConfig.modsToolWeld);
+        setToolKey(Tool.MELT, DimensiumConfig.keyToolMelt, DimensiumConfig.modsToolMelt);
+        setToolKey(Tool.ROUGHEN, DimensiumConfig.keyToolRoughen, DimensiumConfig.modsToolRoughen);
+        setToolKey(Tool.SHATTER, DimensiumConfig.keyToolShatter, DimensiumConfig.modsToolShatter);
+        setToolKey(Tool.RULER, DimensiumConfig.keyToolRuler, DimensiumConfig.modsToolRuler);
+        setToolKey(Tool.MODELLING, DimensiumConfig.keyToolModelling, DimensiumConfig.modsToolModelling);
         actionUndo.setKeyCode(DimensiumConfig.keyActionUndo);
         actionUndoMods = DimensiumConfig.modsActionUndo;
         actionRedo.setKeyCode(DimensiumConfig.keyActionRedo);
@@ -134,6 +161,12 @@ public class Dimensium {
         actionBlueprintBrowserMods = DimensiumConfig.modsActionBlueprintBrowser;
         actionSettings.setKeyCode(DimensiumConfig.keyActionSettings);
         actionSettingsMods = DimensiumConfig.modsActionSettings;
+    }
+
+    private static void setToolKey(Tool t, int key, int mods) {
+        toolKeybinds.get(t)
+            .setKeyCode(key);
+        toolKeybindMods.put(t, mods);
     }
 
     @EventHandler

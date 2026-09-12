@@ -4,8 +4,7 @@
  */
 package github.thehighcruw.dimensium.render.panel;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
+import java.util.EnumMap;
 import java.util.Map;
 
 import net.minecraft.client.resources.I18n;
@@ -14,33 +13,9 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.DimensiumConfig;
 import github.thehighcruw.dimensium.render.imgui.ImGuiWindow;
-import github.thehighcruw.dimensium.render.panel.sections.DistortSection;
-import github.thehighcruw.dimensium.render.panel.sections.ElevationSection;
-import github.thehighcruw.dimensium.render.panel.sections.ExtrudeSection;
-import github.thehighcruw.dimensium.render.panel.sections.FillSection;
-import github.thehighcruw.dimensium.render.panel.sections.FreehandSection;
-import github.thehighcruw.dimensium.render.panel.sections.FreehandSelectSection;
-import github.thehighcruw.dimensium.render.panel.sections.GradientSection;
-import github.thehighcruw.dimensium.render.panel.sections.LassoSelectSection;
-import github.thehighcruw.dimensium.render.panel.sections.MagicSelectSection;
-import github.thehighcruw.dimensium.render.panel.sections.MeltSection;
-import github.thehighcruw.dimensium.render.panel.sections.ModellingSection;
-import github.thehighcruw.dimensium.render.panel.sections.MoveSection;
-import github.thehighcruw.dimensium.render.panel.sections.NoiseSection;
-import github.thehighcruw.dimensium.render.panel.sections.PainterSection;
-import github.thehighcruw.dimensium.render.panel.sections.PathSection;
-import github.thehighcruw.dimensium.render.panel.sections.RockSection;
-import github.thehighcruw.dimensium.render.panel.sections.RoughenSection;
-import github.thehighcruw.dimensium.render.panel.sections.RulerSection;
-import github.thehighcruw.dimensium.render.panel.sections.SculptSection;
-import github.thehighcruw.dimensium.render.panel.sections.SelectSection;
-import github.thehighcruw.dimensium.render.panel.sections.ShapeSection;
-import github.thehighcruw.dimensium.render.panel.sections.ShatterSection;
-import github.thehighcruw.dimensium.render.panel.sections.SmoothSection;
-import github.thehighcruw.dimensium.render.panel.sections.StampSection;
-import github.thehighcruw.dimensium.render.panel.sections.WeldSection;
 import github.thehighcruw.dimensium.tool.DimensiumMode;
 import github.thehighcruw.dimensium.tool.Tool;
+import github.thehighcruw.dimensium.tool.ToolRegistry;
 import imgui.ImGui;
 import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiStyleVar;
@@ -82,53 +57,19 @@ public class ToolPanel extends ImGuiWindow {
             Tool.MOVE, Tool.ELEVATION, Tool.DISTORT, Tool.SHATTER },
         { Tool.RULER } };
 
-    // ── Per-tool registry ─────────────────────────────────────────────────────
+    // ── Per-tool section cache ────────────────────────────────────────────────
 
-    static final class ToolEntry {
-
-        final ToolSection section;
-        final float r, g, b;
-
-        ToolEntry(ToolSection section, float r, float g, float b) {
-            this.section = section;
-            this.r = r;
-            this.g = g;
-            this.b = b;
-        }
-    }
-
-    private static Map<Tool, ToolEntry> buildToolMap() {
+    private static Map<Tool, ToolSection> buildSectionMap() {
         ToolStates s = ToolStates.INSTANCE;
-        Map<Tool, ToolEntry> map = new LinkedHashMap<>();
-        map.put(Tool.SELECT, new ToolEntry(new SelectSection(s.select), 0.20f, 0.85f, 0.75f));
-        map.put(Tool.MAGIC_SELECT, new ToolEntry(new MagicSelectSection(s.magicSelect, s.select), 0.75f, 0.35f, 1.00f));
-        map.put(Tool.FREEHAND_SELECT, new ToolEntry(new FreehandSelectSection(s.brush), 0.20f, 0.85f, 0.75f));
-        map.put(Tool.LASSO_SELECT, new ToolEntry(new LassoSelectSection(s.lassoSelect), 0.20f, 0.85f, 0.75f));
-        map.put(Tool.STAMP, new ToolEntry(new StampSection(s.stamp), 0.90f, 0.65f, 0.20f));
-        map.put(Tool.FREEHAND_DRAW, new ToolEntry(new FreehandSection(s.freehand, s.brush), 0.24f, 0.50f, 1.00f));
-        map.put(Tool.SCULPT_DRAW, new ToolEntry(new SculptSection(s.sculpt, s.brush), 0.08f, 0.65f, 0.80f));
-        map.put(Tool.PAINTER, new ToolEntry(new PainterSection(s.painter, s.brush), 0.24f, 0.50f, 1.00f));
-        map.put(Tool.NOISE, new ToolEntry(new NoiseSection(s.noise, s.brush, s.palette), 1.00f, 0.58f, 0.20f));
-        map.put(Tool.GRADIENT, new ToolEntry(new GradientSection(s.gradient, s.brush, s.palette), 0.62f, 0.28f, 1.00f));
-        map.put(Tool.ROCK, new ToolEntry(new RockSection(s.rock, s.brush), 0.55f, 0.42f, 0.28f));
-        map.put(Tool.SMOOTH, new ToolEntry(new SmoothSection(s.smooth, s.brush), 0.20f, 0.78f, 0.72f));
-        map.put(Tool.SHAPE, new ToolEntry(new ShapeSection(s.shape), 0.28f, 0.78f, 0.30f));
-        map.put(Tool.FILL, new ToolEntry(new FillSection(s.floodfill), 1.00f, 0.78f, 0.10f));
-        map.put(Tool.EXTRUDE, new ToolEntry(new ExtrudeSection(s.extrude), 1.00f, 0.28f, 0.68f));
-        map.put(Tool.MOVE, new ToolEntry(new MoveSection(), 0.95f, 0.70f, 0.15f));
-        map.put(Tool.PATH, new ToolEntry(new PathSection(s.path), 0.55f, 0.85f, 1.00f));
-        map.put(Tool.MODELLING, new ToolEntry(new ModellingSection(s.modelling), 0.80f, 0.55f, 0.90f));
-        map.put(Tool.ELEVATION, new ToolEntry(new ElevationSection(s.elevation), 0.40f, 0.72f, 0.30f));
-        map.put(Tool.DISTORT, new ToolEntry(new DistortSection(s.distort, s.brush), 0.85f, 0.45f, 0.90f));
-        map.put(Tool.WELD, new ToolEntry(new WeldSection(s.weld, s.brush), 0.60f, 0.80f, 0.70f));
-        map.put(Tool.MELT, new ToolEntry(new MeltSection(s.melt, s.brush), 0.05f, 0.90f, 0.65f));
-        map.put(Tool.ROUGHEN, new ToolEntry(new RoughenSection(s.roughen, s.brush), 0.75f, 0.55f, 0.30f));
-        map.put(Tool.SHATTER, new ToolEntry(new ShatterSection(s.shatter, s.brush), 0.60f, 0.65f, 0.75f));
-        map.put(Tool.RULER, new ToolEntry(new RulerSection(s.ruler), 0.40f, 0.85f, 0.55f));
-        return Collections.unmodifiableMap(map);
+        Map<Tool, ToolSection> map = new EnumMap<>(Tool.class);
+        for (Tool t : Tool.values()) {
+            ToolSection section = ToolRegistry.createSection(t, s);
+            if (section != null) map.put(t, section);
+        }
+        return map;
     }
 
-    final Map<Tool, ToolEntry> toolMap = buildToolMap();
+    final Map<Tool, ToolSection> sectionMap = buildSectionMap();
     private final ImInt catIdx = new ImInt(0);
     private final ImInt toolIdx = new ImInt(0);
 
