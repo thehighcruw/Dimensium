@@ -15,4 +15,3 @@ out/
 bin/
 .settings
 .claude/worktrees
-gradle/wrapper/gradle-wrapper.jar
