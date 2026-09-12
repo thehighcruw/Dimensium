@@ -120,6 +120,8 @@ tasks.register<JavaExec>("cpdCheck") {
     }
 }
 
+tasks.named("check") { dependsOn("pmdCheck") }
+
 tasks.register<JavaExec>("pmdCheck") {
     group = "verification"
     description = "Run PMD static analysis on main sources"
