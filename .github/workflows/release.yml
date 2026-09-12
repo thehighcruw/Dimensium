@@ -28,7 +28,7 @@ jobs:
           cache: gradle
 
       - name: Build jar
-        run: ./gradlew jar -PmodVersion=${{ github.ref_name }}
+        run: ./gradlew clean jar reobfJar -PmodVersion=${{ github.ref_name }}
 
       - name: Create draft release
         uses: softprops/action-gh-release@v2
