@@ -1,0 +1,43 @@
+package github.thehighcruw.dimensium.tool.brushes;
+
+import net.minecraft.block.Block;
+import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.world.World;
+
+import github.thehighcruw.dimensium.tool.ChangeProposal;
+import github.thehighcruw.dimensium.tool.state.BrushState;
+import github.thehighcruw.dimensium.tool.state.SelectedBlockState;
+import github.thehighcruw.dimensium.tool.state.WeldToolState;
+
+public class WeldBrush implements BrushStrategy {
+
+    @Override
+    public void apply(World world, MovingObjectPosition mop) {
+        BrushState bs = BrushState.INSTANCE;
+        WeldToolState s = WeldToolState.INSTANCE;
+        SelectedBlockState sbs = SelectedBlockState.INSTANCE;
+        Block paint = sbs.getPaintBlock();
+        int meta = sbs.getPaintMeta();
+        int ox = mop.blockX, oy = mop.blockY, oz = mop.blockZ;
+        int sx = Math.min(bs.brushRadius, 12);
+        int sy = Math.min(bs.brushShape.hasHeight ? bs.brushHeight : bs.brushRadius, 12);
+        int sz = sx;
+
+        GaussianKernel kernel = GaussianKernel.build(s.weldSmoothStrength * 0.5f + 0.5f);
+        int margin = kernel.kR;
+        int snStY = 2 * (sz + margin) + 1, snStX = (2 * (sy + margin) + 1) * snStY;
+        int[] snapId = BrushUtil.snapshotBlockIds(world, ox, oy, oz, sx, sy, sz, margin);
+
+        final float threshold = s.weldThreshold;
+        final float totalW = kernel.totalWeight;
+        BrushUtil.forBrush(bs, sx, sy, sz, (dx, dy, dz) -> {
+            int wx = ox + dx, wy = oy + dy, wz = oz + dz;
+            int existing = snapId[(dx + sx + margin) * snStX + (dy + sy + margin) * snStY + (dz + sz + margin)];
+            if (existing != 0 && !s.weldReplaceSolid) return;
+            int ix = dx + sx + margin, iy = dy + sy + margin, iz = dz + sz + margin;
+            if (kernel.solidWeight(snapId, ix, iy, iz, snStX, snStY) / totalW > threshold) {
+                ChangeProposal.write(world, wx, wy, wz, paint, meta);
+            }
+        });
+    }
+}

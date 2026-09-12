@@ -1,0 +1,255 @@
+package github.thehighcruw.dimensium;
+
+import com.gtnewhorizon.gtnhlib.config.Config;
+import com.gtnewhorizon.gtnhlib.config.ConfigurationManager;
+
+@Config(modid = Dimensium.MODID)
+public class DimensiumConfig {
+
+    @Config.Comment("Maximum side length (per dimension) of a selection that can be copied. Sparse storage — only non-air blocks are held in memory.")
+    @Config.RangeInt(min = 1, max = 1000)
+    public static int maxCopyVolume = 256;
+
+    @Config.Comment("Maximum brush radius.")
+    @Config.RangeInt(min = 1, max = 100)
+    public static int maxBrushRadius = 100;
+
+    @Config.Comment("Maximum raycast distance in blocks for all editor tools (block picking, brush preview, selection).")
+    @Config.RangeInt(min = 64, max = 4096)
+    public static int raycastDistance = 1024;
+
+    @Config.Comment("Near-clip offset in blocks applied to the raycast start to avoid hitting the block the camera is inside.")
+    @Config.RangeFloat(min = 0.01f, max = 1.0f)
+    public static float raycastNearClip = 0.1f;
+
+    @Config.Comment("Ghost-block count threshold above which the shape preview falls back to bounding-box rendering.")
+    @Config.RangeInt(min = 1000, max = 500000)
+    public static int maxGhostBlocks = 100000;
+
+    @Config.Comment("Maximum number of blocks placed per smear step before the operation is cut off.")
+    @Config.RangeInt(min = 1024, max = 1048576)
+    public static int smearBlockCap = 65536;
+
+    @Config.Comment("Per-block selection rendering switches to bounding-box outline above this count.")
+    @Config.RangeInt(min = 256, max = 500000)
+    public static int maxSelectionRenderBlocks = 100000;
+
+    @Config.Comment("Maximum on-disk size of the per-player editing history, in megabytes.")
+    @Config.RangeInt(min = 1, max = 1024)
+    public static int editHistoryMaxMb = 10;
+
+    @Config.Comment("ImGui UI scale factor.")
+    @Config.RangeFloat(min = 0.5f, max = 3.0f)
+    public static float uiScale = 1.0f;
+
+    @Config.Comment("Scroll speed multiplier applied to brush-radius scrolling and freecam zoom scrolling.")
+    @Config.RangeFloat(min = 0.1f, max = 10.0f)
+    public static float worldScrollSpeedModifier = 1.0f;
+
+    @Config.Comment("Scroll speed multiplier applied to UI scrollbars.")
+    @Config.RangeFloat(min = 0.1f, max = 10.0f)
+    public static float uiScrollSpeedModifier = 1.0f;
+
+    public static void setWorldScrollSpeedModifier(float value) {
+        worldScrollSpeedModifier = value;
+    }
+
+    public static void setUiScrollSpeedModifier(float value) {
+        uiScrollSpeedModifier = value;
+    }
+
+    // ── Editor view keybinds — key codes (LWJGL) and modifier masks (MOD_CTRL=1, MOD_SHIFT=2, MOD_ALT=4) ──
+    @Config.Comment("Editor: Select tool — key code")
+    public static int keyToolSelect = org.lwjgl.input.Keyboard.KEY_B;
+    @Config.Comment("Editor: Select tool — modifier mask")
+    public static int modsToolSelect = 0;
+
+    @Config.Comment("Editor: Draw tool — key code")
+    public static int keyToolDraw = org.lwjgl.input.Keyboard.KEY_P;
+    @Config.Comment("Editor: Draw tool — modifier mask")
+    public static int modsToolDraw = 0;
+
+    @Config.Comment("Editor: Noise tool — key code")
+    public static int keyToolNoise = org.lwjgl.input.Keyboard.KEY_O;
+    @Config.Comment("Editor: Noise tool — modifier mask")
+    public static int modsToolNoise = 0;
+
+    @Config.Comment("Editor: Smooth tool — key code")
+    public static int keyToolSmooth = org.lwjgl.input.Keyboard.KEY_U;
+    @Config.Comment("Editor: Smooth tool — modifier mask")
+    public static int modsToolSmooth = 0;
+
+    @Config.Comment("Editor: Extrude tool — key code")
+    public static int keyToolExtrude = org.lwjgl.input.Keyboard.KEY_Z;
+    @Config.Comment("Editor: Extrude tool — modifier mask")
+    public static int modsToolExtrude = 0;
+
+    @Config.Comment("Editor: Undo — key code")
+    public static int keyActionUndo = org.lwjgl.input.Keyboard.KEY_Z;
+    @Config.Comment("Editor: Undo — modifier mask")
+    public static int modsActionUndo = 1; // MOD_CTRL
+
+    @Config.Comment("Editor: Redo — key code")
+    public static int keyActionRedo = org.lwjgl.input.Keyboard.KEY_Y;
+    @Config.Comment("Editor: Redo — modifier mask")
+    public static int modsActionRedo = 1; // MOD_CTRL
+
+    @Config.Comment("Editor: Copy — key code")
+    public static int keyActionCopy = org.lwjgl.input.Keyboard.KEY_C;
+    @Config.Comment("Editor: Copy — modifier mask")
+    public static int modsActionCopy = 1; // MOD_CTRL
+
+    @Config.Comment("Editor: Cut — key code")
+    public static int keyActionCut = org.lwjgl.input.Keyboard.KEY_X;
+    @Config.Comment("Editor: Cut — modifier mask")
+    public static int modsActionCut = 1; // MOD_CTRL
+
+    @Config.Comment("Editor: Paste — key code")
+    public static int keyActionPaste = org.lwjgl.input.Keyboard.KEY_V;
+    @Config.Comment("Editor: Paste — modifier mask")
+    public static int modsActionPaste = 1; // MOD_CTRL
+
+    @Config.Comment("Editor: Fill — key code")
+    public static int keyActionFill = org.lwjgl.input.Keyboard.KEY_F;
+    @Config.Comment("Editor: Fill — modifier mask")
+    public static int modsActionFill = 1; // MOD_CTRL
+
+    @Config.Comment("Editor: Erase — key code")
+    public static int keyActionErase = org.lwjgl.input.Keyboard.KEY_DELETE;
+    @Config.Comment("Editor: Erase — modifier mask")
+    public static int modsActionErase = 0;
+
+    @Config.Comment("Editor: Confirm placement — key code")
+    public static int keyActionConfirm = org.lwjgl.input.Keyboard.KEY_RETURN;
+    @Config.Comment("Editor: Confirm placement — modifier mask")
+    public static int modsActionConfirm = 0;
+
+    @Config.Comment("Editor: Save blueprint — key code")
+    public static int keyActionSaveBlueprint = org.lwjgl.input.Keyboard.KEY_P;
+    @Config.Comment("Editor: Save blueprint — modifier mask")
+    public static int modsActionSaveBlueprint = 1; // MOD_CTRL
+
+    @Config.Comment("Editor: Blueprint browser — key code")
+    public static int keyActionBlueprintBrowser = org.lwjgl.input.Keyboard.KEY_B;
+    @Config.Comment("Editor: Blueprint browser — modifier mask")
+    public static int modsActionBlueprintBrowser = 1; // MOD_CTRL
+
+    @Config.Comment("Editor: Open settings — key code")
+    public static int keyActionSettings = org.lwjgl.input.Keyboard.KEY_PERIOD;
+    @Config.Comment("Editor: Open settings — modifier mask")
+    public static int modsActionSettings = 1; // MOD_CTRL
+
+    // ── Window open state — persisted across restarts ──
+    @Config.Comment("History window open state.")
+    public static boolean windowHistoryOpen = false;
+
+    @Config.Comment("Tool Mask List window open state.")
+    public static boolean windowToolMaskListOpen = false;
+
+    @Config.Comment("Tool Mask Editor window open state.")
+    public static boolean windowToolMaskEditorOpen = false;
+
+    @Config.Comment("Palette window open state.")
+    public static boolean windowPaletteOpen = false;
+
+    @Config.Comment("Palette Editor window open state.")
+    public static boolean windowPaletteEditorOpen = false;
+
+    @Config.Comment("Analyze window open state.")
+    public static boolean windowAnalyzeOpen = false;
+
+    @Config.Comment("Autoshade window open state.")
+    public static boolean windowAutoshadeOpen = false;
+
+    @Config.Comment("Tool panel open state.")
+    public static boolean windowToolPanelOpen = true;
+
+    @Config.Comment("Tool Options panel open state.")
+    public static boolean windowToolOptionsPanelOpen = true;
+
+    @Config.Comment("Properties panel open state.")
+    public static boolean windowRightPanelOpen = true;
+
+    @Config.Comment("Block info window open state.")
+    public static boolean windowBlockInfoOpen = false;
+
+    @Config.Comment("Selection window open state.")
+    public static boolean windowSelectionOpen = false;
+
+    @Config.Comment("Operations window open state.")
+    public static boolean windowOperationsOpen = false;
+
+    @Config.Comment("Clipboard window open state.")
+    public static boolean windowClipboardOpen = false;
+
+    // ── Window state setters — call these instead of writing fields directly ──
+
+    public static void setWindowHistoryOpen(boolean v) {
+        windowHistoryOpen = v;
+        save();
+    }
+
+    public static void setWindowToolMaskListOpen(boolean v) {
+        windowToolMaskListOpen = v;
+        save();
+    }
+
+    public static void setWindowToolMaskEditorOpen(boolean v) {
+        windowToolMaskEditorOpen = v;
+        save();
+    }
+
+    public static void setWindowPaletteOpen(boolean v) {
+        windowPaletteOpen = v;
+        save();
+    }
+
+    public static void setWindowPaletteEditorOpen(boolean v) {
+        windowPaletteEditorOpen = v;
+        save();
+    }
+
+    public static void setWindowAnalyzeOpen(boolean v) {
+        windowAnalyzeOpen = v;
+        save();
+    }
+
+    public static void setWindowAutoshadeOpen(boolean v) {
+        windowAutoshadeOpen = v;
+        save();
+    }
+
+    public static void setWindowToolPanelOpen(boolean v) {
+        windowToolPanelOpen = v;
+        save();
+    }
+
+    public static void setWindowToolOptionsPanelOpen(boolean v) {
+        windowToolOptionsPanelOpen = v;
+        save();
+    }
+
+    public static void setWindowBlockInfoOpen(boolean v) {
+        windowBlockInfoOpen = v;
+        save();
+    }
+
+    public static void setWindowSelectionOpen(boolean v) {
+        windowSelectionOpen = v;
+        save();
+    }
+
+    public static void setWindowOperationsOpen(boolean v) {
+        windowOperationsOpen = v;
+        save();
+    }
+
+    public static void setWindowClipboardOpen(boolean v) {
+        windowClipboardOpen = v;
+        save();
+    }
+
+    private static void save() {
+        ConfigurationManager.save(DimensiumConfig.class);
+    }
+}

@@ -1,0 +1,692 @@
+key.dimensium.toggle=Toggle Dimensium
+key.dimensium.freecam=Toggle Freecam
+
+# Tools
+dimensium.tool.pointer=Pointer
+dimensium.tool.select=Box Select
+dimensium.tool.magic_select=Magic Select
+dimensium.tool.freehand_select=Freehand Select
+dimensium.tool.lasso_select=Lasso Select
+dimensium.tool.stamp=Stamp
+dimensium.tool.freehand_draw=Freehand Draw
+dimensium.tool.sculpt_draw=Sculpt Draw
+dimensium.tool.shape=Shape
+dimensium.tool.fill=Floodfill
+dimensium.tool.painter=Painter
+dimensium.tool.noise=Noise Painter
+dimensium.tool.rock=Rock
+dimensium.tool.gradient=Gradient
+dimensium.tool.smooth=Smooth
+dimensium.tool.extrude=Extrude
+dimensium.tool.move=Move
+dimensium.tool.path=Path
+dimensium.tool.elevation=Elevation
+dimensium.tool.distort=Distort
+dimensium.tool.weld=Weld
+dimensium.tool.melt=Melt
+dimensium.tool.roughen=Roughen
+
+# Tool categories
+dimensium.ui.category.selecting=Selecting
+dimensium.ui.category.creating=Creating
+dimensium.ui.category.painting=Painting
+dimensium.ui.category.manipulating=Manipulating
+
+# Brush shapes
+dimensium.brush_shape.sphere=Sphere
+dimensium.brush_shape.cube=Cube
+dimensium.brush_shape.cylinder=Cylinder
+dimensium.brush_shape.ellipsoid=Ellipsoid
+dimensium.brush_shape.cuboid=Cuboid
+dimensium.brush_shape.capsule=Capsule
+dimensium.brush_shape.cone=Cone
+dimensium.brush_shape.octahedron=Octahedron
+
+# Boolean ops
+dimensium.boolean_op.add=Add
+dimensium.boolean_op.subtract=Subtract
+dimensium.boolean_op.replace=Replace
+dimensium.boolean_op.intersect=Intersect
+
+# Replace modes
+dimensium.replace_mode.any=Any
+dimensium.replace_mode.air_only=Air only
+dimensium.replace_mode.solid_only=Solid only
+dimensium.replace_mode.same_block=Same block
+
+# Extrude modes
+dimensium.extrude_mode.expand=Expand
+dimensium.extrude_mode.shrink=Shrink
+
+# Shape types
+dimensium.shape_type.cuboid=Cuboid
+dimensium.shape_type.sphere=Sphere
+dimensium.shape_type.cylinder=Cylinder
+dimensium.shape_type.pyramid=Pyramid
+dimensium.shape_type.cone=Cone
+dimensium.shape_type.torus=Torus
+dimensium.shape_type.octahedron=Octahedron
+dimensium.shape_type.supersphere=Supersphere
+dimensium.shape_type.tube=Tube
+dimensium.shape_type.dodecahedron=Dodecahedron
+dimensium.shape_type.icosahedron=Icosahedron
+dimensium.shape_type.disk=Disk
+dimensium.shape_type.plane=Plane
+dimensium.shape_type.superellipse=Superellipse
+dimensium.shape_type.regular_polygon=Regular Polygon
+dimensium.shape_type.archimedean_spiral=Archimedean Spiral
+
+# Selection modes
+dimensium.selection_mode.box=Box Select
+dimensium.selection_mode.magic=Magic Select
+
+# Elevation modes
+dimensium.elevation_mode.raise=Raise
+dimensium.elevation_mode.lower=Lower
+dimensium.elevation_mode.flatten=Flatten
+
+# Elevation apply
+dimensium.elevation_apply.once=Once
+dimensium.elevation_apply.continuous=Continuous
+
+# Elevation falloff
+dimensium.elevation_falloff.flat=Flat
+dimensium.elevation_falloff.spherical=Spherical
+dimensium.elevation_falloff.linear=Linear
+dimensium.elevation_falloff.logarithmic=Logarithmic
+dimensium.elevation_falloff.normal=Normal
+dimensium.elevation_falloff.peak=Peak
+
+# Flatten direction
+dimensium.flatten_dir.both=Both
+dimensium.flatten_dir.up=Up
+dimensium.flatten_dir.down=Down
+
+# Magic select compare types
+dimensium.magic_compare.block_state=BlockState
+dimensium.magic_compare.block=Block
+dimensium.magic_compare.solid=Solid
+dimensium.magic_compare.any=Any
+
+# Magic select directions
+dimensium.magic_dir.both=Both
+dimensium.magic_dir.up_only=Up Only
+dimensium.magic_dir.down_only=Down Only
+
+# Floodfill directions
+dimensium.floodfill_dir.down=Down
+dimensium.floodfill_dir.up=Up
+
+# Smooth modifiers
+dimensium.smooth_modifier.stable=Stable
+dimensium.smooth_modifier.melt=Melt
+dimensium.smooth_modifier.grow=Grow
+
+# Noise types
+dimensium.noise_type.simplex=Simplex
+dimensium.noise_type.perlin=Perlin
+dimensium.noise_type.voronoi_edges=Voronoi Edges
+dimensium.noise_type.worley=Worley
+dimensium.noise_type.metaball=Metaball
+dimensium.noise_type.white=White
+dimensium.noise_type.splatter=Splatter
+
+# Gradient shapes
+dimensium.gradient_shape.plane=Plane
+dimensium.gradient_shape.sphere=Sphere
+
+# Gradient interpolation
+dimensium.gradient_interp.nearest=Nearest
+dimensium.gradient_interp.linear=Linear
+dimensium.gradient_interp.bezier=Bezier
+
+# Action names (history)
+dimensium.action.edit=Edit
+dimensium.action.cut=Cut
+dimensium.action.erase=Erase
+dimensium.action.paste=Paste
+dimensium.action.fill=Fill
+dimensium.action.move=Move
+dimensium.action.draw=Draw (%s)
+dimensium.action.paint=Paint (%s)
+dimensium.action.noise=Noise (%s)
+dimensium.action.gradient=Gradient (%s)
+dimensium.action.smooth=Smooth
+dimensium.action.elevation=%s
+dimensium.action.rock=Rock
+dimensium.action.extrude=Extrude
+dimensium.action.shatter=Shatter
+dimensium.action.path=Path (%s)
+
+# UI section headers
+dimensium.ui.section.brush=Brush
+dimensium.ui.section.shape=Shape
+dimensium.ui.section.options=Options
+dimensium.ui.section.dimensions=Dimensions
+dimensium.ui.section.mode=Mode
+dimensium.ui.section.falloff=Falloff
+dimensium.ui.section.apply=Apply
+dimensium.menu.window.history=History
+dimensium.menu.window.reset_layout=Reset Layout
+dimensium.ui.window.history=History
+dimensium.ui.history.total=Total: %s
+dimensium.ui.history.clear=Clear All
+dimensium.ui.history.empty=No history entries.
+dimensium.ui.panel.tools=Tools
+dimensium.ui.panel.tool_options=Tool Options
+dimensium.ui.panel.properties=Properties
+dimensium.ui.panel.viewport=Viewport
+dimensium.ui.section.tool_type=Tool Type
+dimensium.ui.section.tool_options=Tool Options
+dimensium.ui.section.block=Active Block
+dimensium.ui.section.selection=Selection
+dimensium.ui.section.operations=Operations
+dimensium.ui.section.clipboard=Clipboard
+dimensium.ui.section.recent=Recent
+
+# UI labels
+dimensium.ui.label.hollow=Hollow
+
+# UI hints / status
+dimensium.ui.hint.select1=Hold R-click and drag to set box selection
+dimensium.ui.hint.select2=Release to confirm, then Enter to apply
+dimensium.ui.hint.no_selection=No selection
+dimensium.ui.hint.click_to_select=Click to select block
+dimensium.ui.hint.fbo_failed=FBO failed:
+
+# UI operations
+dimensium.ui.op.copy=Copy
+dimensium.ui.op.fill=Fill
+dimensium.ui.op.delete=Delete
+dimensium.ui.op.paste=Paste
+dimensium.ui.op.clear=Clear
+
+# Block picker
+dimensium.ui.block_picker.air=Air
+dimensium.ui.block_picker.recent=Recent
+
+# Conflict popup
+dimensium.popup.conflict.title=History Conflict
+dimensium.popup.conflict.message.single=1 block differs from expected state.
+dimensium.popup.conflict.message.plural=%d blocks differ from expected state.
+dimensium.popup.conflict.apply=Apply regardless
+dimensium.popup.conflict.skip=Skip entry
+dimensium.popup.conflict.cancel=Cancel
+
+# Shatter tool
+dimensium.tool.shatter=Shatter
+dimensium.shatter.axis.xyz=3D (XYZ)
+dimensium.shatter.axis.x=Flat (X axis)
+dimensium.shatter.axis.y=Flat (Y axis)
+dimensium.shatter.axis.z=Flat (Z axis)
+
+# Ruler tool
+dimensium.tool.ruler=Ruler
+dimensium.tool.modelling=Modelling
+dimensium.ui.category.utility=Utility
+dimensium.ruler.mode.default=Default
+dimensium.ruler.mode.circle=Circle
+
+# Modelling tool
+dimensium.modelling.mode.convex_hull=Convex Hull
+dimensium.modelling.mode.triangle_strip=Triangle Strip
+dimensium.modelling.mode.triangle_fan=Triangle Fan
+dimensium.modelling.mode.flat=Flat
+dimensium.modelling.mode.catmull_rom=Catmull-Rom
+dimensium.modelling.mode.bezier=Bezier
+dimensium.modelling.mode.smart_surface=Smart Surface
+dimensium.modelling.paste.paste_copy=Paste Copy
+dimensium.modelling.paste.keep_existing=Keep Existing
+dimensium.action.modelling=Modelling
+
+# Blueprint system
+dimensium.blueprint.save=Save Blueprint
+dimensium.blueprint.browse=Browse
+dimensium.blueprint.create.title=Save Blueprint
+dimensium.blueprint.create.name=Name
+dimensium.blueprint.create.tags=Tags
+dimensium.blueprint.create.tags.hint=comma-separated
+dimensium.blueprint.create.save=Save
+dimensium.blueprint.create.cancel=Cancel
+dimensium.blueprint.create.error.noname=Enter a name first
+dimensium.blueprint.create.error.noclipboard=Nothing in clipboard
+dimensium.blueprint.browser.title=Blueprint Browser
+dimensium.blueprint.browser.empty=No blueprints saved yet
+dimensium.blueprint.browser.noresults=No matching blueprints
+dimensium.blueprint.browser.loading=Loading blueprints...
+dimensium.blueprint.create.thumb.hint=Drag to rotate · Scroll to zoom
+dimensium.blueprint.create.tags.suggest=Existing tags:
+dimensium.blueprint.browser.search.name.tip=Filter by name
+dimensium.blueprint.browser.search.tag.tip=Filter by tag
+
+# Tool-specific widget labels (new ImGui sections)
+dimensium.ui.boolean_op=Boolean Op
+
+dimensium.ui.brush.hollow=Hollow
+dimensium.ui.brush.shape=Shape
+dimensium.ui.brush.radius=Radius
+dimensium.ui.brush.height=Height
+
+dimensium.ui.distort.distance=Distance
+dimensium.ui.distort.distance_x=Distance X
+dimensium.ui.distort.distance_y=Distance Y
+dimensium.ui.distort.distance_z=Distance Z
+dimensium.ui.distort.randomize_seed=Randomize Seed
+dimensium.ui.distort.scale=Scale
+dimensium.ui.distort.separate_axis=Separate Axis
+dimensium.ui.distort.smooth_edges=Smooth Edges
+
+dimensium.ui.elevation.apply=Apply
+dimensium.ui.elevation.falloff=Falloff
+dimensium.ui.elevation.flatten_dir=Flatten Dir
+dimensium.ui.elevation.mode=Mode
+dimensium.ui.elevation.radius=Radius
+dimensium.ui.elevation.rate=Rate
+dimensium.ui.elevation.smoothing=Smoothing
+dimensium.ui.elevation.strength=Strength
+
+dimensium.ui.extrude.corners=Corners
+dimensium.ui.extrude.count=Count
+dimensium.ui.extrude.displace=Displace
+dimensium.ui.extrude.limit=Limit
+dimensium.ui.extrude.mode=Mode
+
+dimensium.ui.fill.corners=Corners
+dimensium.ui.fill.direction=Direction
+dimensium.ui.fill.limit=Limit
+
+dimensium.ui.freehand.include_air=Include Air
+dimensium.ui.freehand.mask_surface=Mask Surface
+dimensium.ui.freehand.replace_solid=Replace Solid
+
+dimensium.ui.gradient.clamp_edge=Clamp Edge
+dimensium.ui.gradient.interp=Interpolation
+dimensium.ui.gradient.mask_surface=Mask Surface
+dimensium.ui.gradient.randomize_seed=Randomize Seed
+dimensium.ui.gradient.shape=Shape
+
+dimensium.ui.lasso.depth=Depth
+dimensium.ui.lasso.non_solid=Non-Solid
+
+dimensium.ui.magic.compare=Compare
+dimensium.ui.magic.corners=Corners
+dimensium.ui.magic.direction=Direction
+dimensium.ui.magic.limit=Limit
+dimensium.ui.magic.range=Range
+dimensium.ui.magic.surface=Surface
+
+dimensium.ui.melt.smooth_strength=Smooth Strength
+dimensium.ui.melt.threshold=Threshold
+
+dimensium.ui.modelling.mode=Mode
+dimensium.ui.modelling.offset_target=Offset Target
+dimensium.ui.modelling.paste_mode=Paste Mode
+dimensium.ui.modelling.remove_selected=Remove Selected
+dimensium.ui.modelling.selected_point=Selected Point
+
+dimensium.ui.move.hint=Drag gizmo to move selection.
+
+dimensium.ui.noise.3d=3D
+dimensium.ui.noise.gain=Gain
+dimensium.ui.noise.jitter=Jitter
+dimensium.ui.noise.lacunarity=Lacunarity
+dimensium.ui.noise.metaball_range=Metaball Range
+dimensium.ui.noise.octaves=Octaves
+dimensium.ui.noise.randomize_seed=Randomize Seed
+dimensium.ui.noise.preview=Preview
+dimensium.ui.noise.scale=Scale
+dimensium.ui.noise.surface_only=Surface Only
+dimensium.ui.noise.type=Type
+
+dimensium.ui.painter.mask_surface=Mask Surface
+
+dimensium.ui.palette.add=+ Add block
+
+dimensium.ui.path.catenary_slack=Catenary Slack
+dimensium.ui.path.clear_point_block=Clear Block
+dimensium.ui.path.curve_type=Curve Type
+dimensium.ui.path.interp=Interpolation
+dimensium.ui.path.looped=Looped
+dimensium.ui.path.point_radius=Radius
+dimensium.ui.path.randomize_seed=Randomize Seed
+dimensium.ui.path.remove_point=Remove
+dimensium.ui.path.selected_point=Selected Point
+dimensium.ui.path.use_active_block=(active block)
+
+dimensium.ui.rock.meld=Meld Strength
+dimensium.ui.rock.noise_radius=Noise Radius
+dimensium.ui.rock.noisiness=Noisiness
+dimensium.ui.rock.randomize_seed=Randomize Seed
+dimensium.ui.rock.smoothing=Smoothing
+
+dimensium.ui.roughen.faces=Faces
+dimensium.ui.roughen.ratio=Ratio
+
+dimensium.ui.ruler.distance=Distance
+dimensium.ui.ruler.hint=RMB to place a point.
+dimensium.ui.ruler.mode=Mode
+
+dimensium.ui.sculpt.denoise=Denoise
+dimensium.ui.sculpt.invert=Invert
+dimensium.ui.sculpt.mask_y=Mask Y
+dimensium.ui.sculpt.strength=Strength
+
+dimensium.ui.section.distort=Distort
+dimensium.ui.section.elevation=Elevation
+dimensium.ui.section.extrude=Extrude
+dimensium.ui.section.fill=Fill
+dimensium.ui.section.gradient=Gradient
+dimensium.ui.section.lasso=Lasso
+dimensium.ui.section.magic_select=Magic Select
+dimensium.ui.section.melt=Melt
+dimensium.ui.section.modelling=Modelling
+dimensium.ui.section.move=Move
+dimensium.ui.section.noise=Noise
+dimensium.ui.section.palette=Palette
+dimensium.ui.section.path=Path
+dimensium.ui.section.rock=Rock
+dimensium.ui.section.roughen=Roughen
+dimensium.ui.section.ruler=Ruler
+dimensium.ui.section.sculpt=Sculpt
+dimensium.ui.section.crack=Crack
+dimensium.ui.section.shatter=Shatter
+dimensium.ui.section.smooth=Smooth
+dimensium.ui.section.weld=Weld
+
+dimensium.ui.shape.cat.2d=2D
+dimensium.ui.shape.cat.3d=3D
+dimensium.ui.shape.category=Category
+dimensium.ui.shape.depth=Depth
+dimensium.ui.shape.exponent=Exponent
+dimensium.ui.shape.height=Height
+dimensium.ui.shape.hollow=Hollow
+dimensium.ui.shape.keep_existing=Keep Existing
+dimensium.ui.shape.polygon_sides=Polygon Sides
+dimensium.ui.shape.separate_axes=Separate Axes
+dimensium.ui.shape.spiral_spacing=Spiral Spacing
+dimensium.ui.shape.spiral_turns=Spiral Turns
+dimensium.ui.shape.torus_ring=Torus Ring Rad
+dimensium.ui.shape.torus_ring_z=Torus Ring Z
+dimensium.ui.shape.torus_sep_axes=Torus Sep. Axes
+dimensium.ui.shape.torus_tube=Torus Tube Rad
+dimensium.ui.shape.type=Type
+dimensium.ui.shape.wall_thickness=Wall Thickness
+dimensium.ui.shape.width=Width
+
+dimensium.ui.shatter.axis_mode=Axis Mode
+dimensium.ui.shatter.crack_width=Crack Width
+dimensium.ui.shatter.fill_mode=Fill Mode
+dimensium.ui.shatter.jitter=Jitter
+dimensium.ui.shatter.noise_scale=Noise Scale
+dimensium.ui.shatter.randomize_seed=Randomize Seed
+
+dimensium.ui.smooth.block_ratio=Block Ratio
+dimensium.ui.smooth.fix_edges=Fix Edges
+dimensium.ui.smooth.modifier=Modifier
+dimensium.ui.smooth.strength=Strength
+
+dimensium.ui.weld.replace_solid=Replace Solid
+dimensium.ui.weld.smooth_strength=Smooth Strength
+dimensium.ui.weld.threshold=Threshold
+
+# Operations menu
+dimensium.op.fill=Fill...
+dimensium.op.fill_nearest=Fill Nearest
+dimensium.op.replace=Replace...
+dimensium.op.type_replace=Type Replace...
+dimensium.op.autoshade=Autoshade...
+dimensium.op.drain=Drain
+dimensium.op.simulate_gravity=Simulate Gravity
+dimensium.op.trigger_updates=Trigger Updates
+dimensium.op.hollow=Hollow
+dimensium.op.fill_gaps=Fill Gaps
+dimensium.op.generate_colour_field=Generate Colour Field...
+dimensium.op.analyze=Analyze...
+
+# Operations action names (history)
+dimensium.action.op.drain=Drain
+dimensium.action.op.fill_nearest=Fill Nearest
+dimensium.action.op.hollow=Hollow
+dimensium.action.op.fill_gaps=Fill Gaps
+dimensium.action.op.simulate_gravity=Simulate Gravity
+dimensium.action.op.trigger_updates=Trigger Updates
+
+# Select menu
+dimensium.select.clear=Clear
+dimensium.select.move=Move Selection...
+dimensium.select.filter=Filter...
+dimensium.select.expand=Expand
+dimensium.select.shrink=Shrink
+dimensium.select.distort=Distort...
+dimensium.select.smooth=Smooth...
+dimensium.select.bounding_box=Bounding Box
+dimensium.select.convex_hull=Convex Hull
+
+# Select menu modals (shared)
+dimensium.select.apply=Apply
+dimensium.select.cancel=Cancel
+
+# Filter modal
+dimensium.select.filter.title=Filter Selection
+dimensium.select.filter.no_block=No block selected
+dimensium.select.filter.keep=Keep matching
+dimensium.select.filter.remove=Remove matching
+dimensium.select.filter.exact_meta=Exact block state
+
+# Distort modal
+dimensium.select.distort.title=Distort Selection
+
+# Smooth modal
+dimensium.select.smooth.title=Smooth Selection
+dimensium.select.smooth.threshold=Threshold
+
+# View menu
+dimensium.menu.view.new_view=New View
+dimensium.menu.view.show_selection=Show Selection
+dimensium.menu.view.show_key_presses=Show Key Presses
+dimensium.menu.view.flip_canvas=Flip Canvas
+dimensium.menu.view.ui_scale=UI Scale
+dimensium.menu.view.not_bound=Not Bound
+
+# Settings modal
+dimensium.settings.title=Settings
+dimensium.settings.apply=Apply
+dimensium.settings.close=Close
+dimensium.settings.category.general=General
+dimensium.settings.general.ui_scale=UI Scale
+dimensium.settings.general.scroll_speed=Scroll Speed
+dimensium.settings.category.keybinds=Keybinds
+
+# Keybind labels
+dimensium.settings.keybind.press_key=Press a key to bind... (Escape to cancel)
+dimensium.settings.keybind.press_key_short=Press a key...
+dimensium.settings.keybind.tool_select=Select Tool
+dimensium.settings.keybind.tool_draw=Draw Tool
+dimensium.settings.keybind.tool_noise=Noise Tool
+dimensium.settings.keybind.tool_smooth=Smooth Tool
+dimensium.settings.keybind.tool_extrude=Extrude Tool
+dimensium.settings.keybind.undo=Undo
+dimensium.settings.keybind.redo=Redo
+dimensium.settings.keybind.copy=Copy
+dimensium.settings.keybind.cut=Cut
+dimensium.settings.keybind.paste=Paste
+dimensium.settings.keybind.fill=Fill
+dimensium.settings.keybind.erase=Erase
+dimensium.settings.keybind.confirm=Confirm
+dimensium.settings.keybind.save_blueprint=Save Blueprint
+dimensium.settings.keybind.blueprint_browser=Blueprint Browser
+dimensium.settings.keybind.settings=Open Settings
+
+# Operations modals / windows
+dimensium.op.fill.title=Fill
+dimensium.op.fill.mode.fill=Fill
+dimensium.op.fill.mode.outline=Fill Outline
+dimensium.op.fill.mode.walls=Fill Walls
+dimensium.op.fill.mode.top=Fill Top
+dimensium.op.fill.mode.bottom=Fill Bottom
+dimensium.op.replace.title=Replace
+dimensium.op.type_replace.title=Type Replace
+dimensium.op.analyze.title=Analyze
+dimensium.op.autoshade.title=Autoshade
+dimensium.op.apply=Apply
+dimensium.op.cancel=Cancel
+dimensium.op.autoshade.do=Autoshade
+dimensium.op.autoshade.add_block=Add Block
+dimensium.op.autoshade.sun=Sun
+dimensium.op.autoshade.light_from=From
+dimensium.op.autoshade.player_pos=Player Position
+dimensium.op.autoshade.sun_angle=Sun Angle
+dimensium.op.autoshade.ao=Ambient Occlusion
+dimensium.op.autoshade.gi=Global Illumination
+dimensium.op.autoshade.dither=Dither
+dimensium.op.autoshade.palette=Palette
+dimensium.op.autoshade.presets=Presets
+dimensium.op.autoshade.save_preset=Save
+dimensium.op.analyze.block=Block
+dimensium.op.analyze.count=Count
+dimensium.op.analyze.percent=Percent
+dimensium.op.analyze.total=Total
+dimensium.op.analyze.no_selection=No active selection.
+dimensium.op.replace.find=Find
+dimensium.op.replace.replace_with=Replace With
+dimensium.op.replace.exact_meta=Exact block state
+dimensium.op.replace.no_block=No block selected
+dimensium.op.type_replace.source=Block Type
+dimensium.op.type_replace.target=Replace With
+dimensium.op.type_replace.preserve=Preserve Properties
+dimensium.action.op.fill=Fill (%s)
+dimensium.action.op.replace=Replace
+dimensium.action.op.type_replace=Type Replace
+dimensium.action.op.colour_field=Colour Field
+dimensium.op.colour_field.title=Generate Colour Field
+dimensium.op.colour_field.include=Include block categories:
+dimensium.op.colour_field.solid=Solid blocks
+dimensium.op.colour_field.translucent=Translucent blocks
+dimensium.op.colour_field.tile_entities=Tile entities
+
+# Tool Masks
+dimensium.menu.window.tool_mask_list=Tool Mask List
+dimensium.menu.window.tool_mask_editor=Tool Mask Editor
+dimensium.mask.list.title=Tool Masks
+dimensium.mask.list.none=(None)
+dimensium.mask.list.new_mask=New Mask
+dimensium.mask.list.new_folder=New Folder
+dimensium.mask.list.default_name=New Mask
+dimensium.mask.list.default_folder=New Folder
+dimensium.mask.list.rename=Rename
+dimensium.mask.list.delete=Delete
+dimensium.mask.editor.title=Mask Editor
+dimensium.mask.editor.select_prompt=-- Select mask --
+dimensium.mask.editor.new=New...
+dimensium.mask.editor.new_name=Mask name:
+dimensium.mask.editor.create=Create
+dimensium.mask.editor.add_logic=Add Logic Node
+dimensium.mask.editor.add_mask=Add Mask
+dimensium.mask.editor.delete_node=Delete Node
+dimensium.mask.editor.clear_tree=Clear Tree
+dimensium.mask.editor.search_hint=Search masks...
+dimensium.menu.tool_masks=Tool Masks
+dimensium.menu.file=File
+dimensium.menu.file.placeholder=(placeholder)
+dimensium.menu.edit=Edit
+dimensium.menu.select=Select
+dimensium.menu.view=View
+dimensium.menu.operations=Operations
+dimensium.menu.window=Window
+dimensium.menu.help=Help
+dimensium.menu.help.settings=Settings
+dimensium.ui.noise.w1=W1
+dimensium.ui.noise.w2=W2
+dimensium.ui.noise.w3=W3
+
+dimensium.mask.editor.palette_logic=Logic
+dimensium.mask.editor.palette_masks=Masks
+
+dimensium.palette.window.title=Palette
+dimensium.palette.recent=Recent
+dimensium.palette.active_block=Pick Active Block...
+dimensium.palette.add_category=+ Add Category
+dimensium.palette.add_category.confirm=OK
+dimensium.palette.add_category.cancel=Cancel
+dimensium.palette.new_category_name=New Category
+dimensium.palette.rename_category=Rename
+dimensium.palette.delete_category=Delete Category
+dimensium.palette.move_up=Move Up
+dimensium.palette.move_down=Move Down
+dimensium.palette.add_block=+ Add Block
+dimensium.palette.remove_block=Remove Block
+dimensium.palette.replace_block=Replace Block...
+dimensium.palette.context.set_active=Set as Active Block
+dimensium.palette.context.add_to=Add to Category
+dimensium.palette.editor.title=Palette Editor
+dimensium.palette.editor.open=Edit Palette...
+dimensium.palette.editor.close=Close
+dimensium.palette.editor.no_category_selected=Select a category on the left.
+dimensium.menu.window.palette=Palette
+dimensium.menu.window.palette_editor=Palette Editor...
+dimensium.menu.window.operations=Operations
+dimensium.menu.window.analyze=Analyze
+dimensium.menu.window.autoshade=Autoshade
+dimensium.menu.window.tool_panel=Tools
+dimensium.menu.window.properties=Properties
+dimensium.menu.window.block_info=Block Info
+dimensium.menu.window.selection=Selection
+dimensium.menu.window.clipboard=Clipboard
+dimensium.menu.window.operations_panel=Operations Panel
+dimensium.ui.window.selection=Selection
+dimensium.ui.window.operations=Operations
+dimensium.ui.window.clipboard=Clipboard
+
+# Block Info window
+dimensium.block_info.title=Block Info
+dimensium.block_info.meta=Meta:
+dimensium.block_info.pos=Pos:
+dimensium.block_info.distance=Distance:
+dimensium.block_info.air=Air
+dimensium.block_info.no_target=No block targeted
+
+# Stamp tool
+dimensium.ui.section.stamp.blueprints=Blueprints
+dimensium.ui.section.stamp.options=Options
+dimensium.stamp.unnamed=Unnamed
+dimensium.stamp.remove=X
+dimensium.stamp.entry.chance=Chance
+dimensium.stamp.entry.offset_y=Y Offset
+dimensium.stamp.add_blueprint=Add Blueprint
+dimensium.stamp.add_clipboard=Add Clipboard
+dimensium.stamp.base_chance=Base Chance
+dimensium.stamp.min_spacing=Min Spacing (x size)
+dimensium.stamp.random_yaw=Random Yaw
+dimensium.stamp.random_x_flip=Random X Flip
+dimensium.stamp.random_z_flip=Random Z Flip
+dimensium.stamp.keep_existing=Keep Existing
+dimensium.stamp.clipboard_name=Clipboard
+
+# Status bar
+dimensium.status.no_selection=No selection
+dimensium.status.clipboard=Clipboard
+dimensium.status.no_clipboard=No clipboard
+dimensium.status.mask=Mask:
+dimensium.status.no_mask=No mask
+dimensium.status.undo=Undo:
+dimensium.status.no_undo=Nothing to undo
+dimensium.menu.window.fill=Fill...
+dimensium.menu.window.replace=Replace...
+dimensium.menu.window.type_replace=Type Replace...
+dimensium.menu.window.colour_field=Colour Field...
+dimensium.menu.window.filter=Filter Selection...
+dimensium.menu.window.distort=Distort Selection...
+dimensium.menu.window.smooth=Smooth Selection...
+
+# Colour Picker
+itemGroup.dimensium.colour_picker=Colour Picker
+dimensium.colour_picker.filter.full_cube=Full Cube
+dimensium.colour_picker.filter.solid=Solid
+dimensium.colour_picker.filter.opaque=Opaque
+dimensium.colour_picker.filter.same_texture=Same Texture
+
+# Gradient Helper
+dimensium.gui.gradient_helper=Gradient Helper
+dimensium.gui.gradient.inputs=Inputs
+dimensium.gui.gradient.outputs=Outputs
+dimensium.gui.gradient.copy_hotbar=Copy to Hotbar

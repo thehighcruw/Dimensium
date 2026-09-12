@@ -1,0 +1,325 @@
+package github.thehighcruw.dimensium.handler;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.util.MovingObjectPosition;
+
+import org.lwjgl.input.Keyboard;
+
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.InputEvent;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import github.thehighcruw.dimensium.Dimensium;
+import github.thehighcruw.dimensium.freecam.FreecamState;
+import github.thehighcruw.dimensium.render.GuiDimensiumOverlay;
+import github.thehighcruw.dimensium.render.OverlayRenderer;
+import github.thehighcruw.dimensium.render.imgui.ImGuiManager;
+import github.thehighcruw.dimensium.render.panel.PanelSlider;
+import github.thehighcruw.dimensium.render.popup.BlueprintBrowserPopup;
+import github.thehighcruw.dimensium.render.popup.ConflictPopup;
+import github.thehighcruw.dimensium.render.popup.CreateBlueprintPopup;
+import github.thehighcruw.dimensium.render.popup.EditingModeScreen;
+import github.thehighcruw.dimensium.render.popup.SettingsModal;
+import github.thehighcruw.dimensium.tool.ActiveDragState;
+import github.thehighcruw.dimensium.tool.BuilderToolState;
+import github.thehighcruw.dimensium.tool.BuilderToolState.Phase;
+import github.thehighcruw.dimensium.tool.ChangeProposal;
+import github.thehighcruw.dimensium.tool.DimensiumMode;
+import github.thehighcruw.dimensium.tool.Tool;
+import github.thehighcruw.dimensium.tool.state.ClipboardPlacementState;
+import github.thehighcruw.dimensium.tool.state.ModellingToolState;
+import github.thehighcruw.dimensium.tool.state.PathToolState;
+import github.thehighcruw.dimensium.tool.state.SelectToolState;
+import github.thehighcruw.dimensium.tool.state.SelectedBlockState;
+import github.thehighcruw.dimensium.tool.state.SelectionState;
+import github.thehighcruw.dimensium.tool.state.ShapePlacementState;
+
+@SideOnly(Side.CLIENT)
+public class KeyHandler {
+
+    @SubscribeEvent
+    public void onKeyInput(InputEvent.KeyInputEvent event) {
+        int key = Keyboard.getEventKey();
+        boolean down = Keyboard.getEventKeyState();
+        char ch = Keyboard.getEventCharacter();
+
+        // Feed all key events to ImGui before any early-return.
+        ImGuiManager.INSTANCE.addKeyEvent(key, down);
+        if (down && ch >= 32 && ch != 127) {
+            ImGuiManager.INSTANCE.addChar(ch);
+        }
+
+        if (down && SettingsModal.INSTANCE.captureKeybind(key)) return;
+
+        // ImGui owns the keyboard when any modal/popup is focused — don't process game keys.
+        if (ImGuiManager.INSTANCE.wantCaptureKeyboard()) return;
+
+        if (!down) return;
+
+        // Log key presses for the "Show Key Presses" overlay.
+        if (DimensiumMode.INSTANCE.isActive()
+            && github.thehighcruw.dimensium.render.ViewState.INSTANCE.showKeyPresses) {
+            StringBuilder keyLabel = new StringBuilder();
+            if (Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) || Keyboard.isKeyDown(Keyboard.KEY_RCONTROL))
+                keyLabel.append("Ctrl+");
+            if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT))
+                keyLabel.append("Shift+");
+            if (Keyboard.isKeyDown(Keyboard.KEY_LMENU) || Keyboard.isKeyDown(Keyboard.KEY_RMENU))
+                keyLabel.append("Alt+");
+            keyLabel.append(Keyboard.getKeyName(key));
+            github.thehighcruw.dimensium.render.ViewState.INSTANCE.logKey(keyLabel.toString());
+        }
+
+        Minecraft mc = Minecraft.getMinecraft();
+
+        // ── Toggle overlay (RShift) — requires creative mode ─────────────────
+        if (key == Dimensium.toggleDimensium.getKeyCode() && !OverlayRenderer.picker.isOpen()
+            && !CreateBlueprintPopup.INSTANCE.isOpen()
+            && !BlueprintBrowserPopup.INSTANCE.isOpen()) {
+            if (!OverlayRenderer.cheatsAllowed()) return;
+            OverlayRenderer.picker.close();
+            if (DimensiumMode.INSTANCE.isActive()) {
+                FreecamState.INSTANCE.deactivate();
+                ShapePlacementState.INSTANCE.cancel();
+                ClipboardPlacementState.INSTANCE.cancel();
+                DimensiumMode.INSTANCE.toggle();
+                if (mc.thePlayer != null) mc.thePlayer.setInvisible(false);
+                mc.displayGuiScreen(null);
+            } else {
+                DimensiumMode.INSTANCE.toggle();
+                FreecamState.INSTANCE.activate();
+                if (mc.thePlayer != null) mc.thePlayer.setInvisible(true);
+                mc.displayGuiScreen(new EditingModeScreen());
+            }
+            return;
+        }
+
+        // ── Slider text-edit input ────────────────────────────────────────────
+        if (PanelSlider.handleKey(key, ch)) return;
+
+        // Popups use ImGui for keyboard input; wantCaptureKeyboard() above handles blocking.
+
+        // ── Overlay-only bindings ─────────────────────────────────────────────
+        if (DimensiumMode.INSTANCE.isActive()) {
+            int mods = currentMods();
+
+            // Confirm — box selection gizmo phase, shape placement, clipboard paste, path, or modelling.
+            if (matches(key, mods, Dimensium.actionConfirm, Dimensium.actionConfirmMods)
+                || key == Keyboard.KEY_NUMPADENTER) {
+                SelectionState bxConfSel = SelectionState.INSTANCE;
+                if (bxConfSel.boxConfirmed && DimensiumMode.INSTANCE.selectedTool == Tool.SELECT) {
+                    GuiDimensiumOverlay.commitBoxSelection(bxConfSel, SelectToolState.INSTANCE);
+                    return;
+                }
+                if (ShapePlacementState.INSTANCE.active) {
+                    GuiDimensiumOverlay.confirmPlacement();
+                    return;
+                }
+                if (ClipboardPlacementState.INSTANCE.active) {
+                    GuiDimensiumOverlay.confirmClipboardPlacement();
+                    return;
+                }
+                if (DimensiumMode.INSTANCE.selectedTool == Tool.PATH) {
+                    GuiDimensiumOverlay.applyPath();
+                    return;
+                }
+                if (DimensiumMode.INSTANCE.selectedTool == Tool.MODELLING) {
+                    GuiDimensiumOverlay.applyModelling();
+                    return;
+                }
+            }
+
+            // Escape — close conflict popup first if open.
+            if (key == Keyboard.KEY_ESCAPE && ConflictPopup.INSTANCE.isOpen()) {
+                ConflictPopup.INSTANCE.close();
+                return;
+            }
+
+            // Escape — cancel any active proposal, then placement (keep overlay open).
+            if (key == Keyboard.KEY_ESCAPE) {
+                if (ActiveDragState.INSTANCE.activeDrag != null) {
+                    ChangeProposal.cancel();
+                    return;
+                }
+                if (BuilderToolState.INSTANCE.fillPreview != null) {
+                    BuilderToolState.INSTANCE.fillPreview = null;
+                    return;
+                }
+                if (ShapePlacementState.INSTANCE.active) {
+                    ShapePlacementState.INSTANCE.cancel();
+                    return;
+                }
+                if (ClipboardPlacementState.INSTANCE.active) {
+                    ClipboardPlacementState.INSTANCE.cancel();
+                    return;
+                }
+                DimensiumMode.INSTANCE.selectedTool = Tool.POINTER;
+                return;
+            }
+
+            // Undo.
+            if (matches(key, mods, Dimensium.actionUndo, Dimensium.actionUndoMods)) {
+                EditorActions.undo();
+                return;
+            }
+
+            // Redo.
+            if (matches(key, mods, Dimensium.actionRedo, Dimensium.actionRedoMods)) {
+                EditorActions.redo();
+                return;
+            }
+
+            // Tool shortcuts.
+            Tool switched = toolForKey(key, mods);
+            if (switched != null) {
+                DimensiumMode.INSTANCE.selectedTool = switched;
+                return;
+            }
+
+            SelectionState sel = SelectionState.INSTANCE;
+
+            // Copy.
+            if (matches(key, mods, Dimensium.actionCopy, Dimensium.actionCopyMods)) {
+                EditorActions.copy();
+                return;
+            }
+
+            // Cut.
+            if (matches(key, mods, Dimensium.actionCut, Dimensium.actionCutMods)) {
+                EditorActions.cut();
+                return;
+            }
+
+            // Erase — also accepts Backspace as an alias.
+            if (matches(key, mods, Dimensium.actionErase, Dimensium.actionEraseMods) || key == Keyboard.KEY_BACK) {
+                PathToolState pts = PathToolState.INSTANCE;
+                if (DimensiumMode.INSTANCE.selectedTool == Tool.PATH && pts.selectedIndex >= 0
+                    && !pts.points.isEmpty()) {
+                    int idx = pts.selectedIndex;
+                    pts.points.remove(idx);
+                    pts.selectedIndex = pts.points.isEmpty() ? -1 : Math.min(idx, pts.points.size() - 1);
+                    pts.gizmo.reset();
+                    pts.invalidatePath();
+                    return;
+                }
+                ModellingToolState mts = ModellingToolState.INSTANCE;
+                if (DimensiumMode.INSTANCE.selectedTool == Tool.MODELLING && mts.selectedPointObj() != null) {
+                    mts.removeSelectedPoint();
+                    return;
+                }
+                if (sel.hasSelection()) {
+                    BlockSender.sendChunked(SelectionOps.selectionToAirOps(sel), I18n.format("dimensium.action.erase"));
+                    sel.clearSelection();
+                }
+                return;
+            }
+
+            // Paste.
+            if (matches(key, mods, Dimensium.actionPaste, Dimensium.actionPasteMods)) {
+                ClipboardPlacementState cps = ClipboardPlacementState.INSTANCE;
+                if (cps.active) {
+                    GuiDimensiumOverlay.confirmClipboardPlacement();
+                } else if (sel.clipboard != null) {
+                    FreecamState fs = FreecamState.INSTANCE;
+                    net.minecraft.client.gui.ScaledResolution sr = new net.minecraft.client.gui.ScaledResolution(
+                        mc,
+                        mc.displayWidth,
+                        mc.displayHeight);
+                    MovingObjectPosition mop = GuiDimensiumOverlay.raycastFromMouse(
+                        (int) fs.cursorX,
+                        (int) fs.cursorY,
+                        sr.getScaledWidth(),
+                        sr.getScaledHeight());
+                    if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+                        cps.start(sel, mop.blockX, mop.blockY, mop.blockZ);
+                    }
+                }
+                return;
+            }
+
+            // Save blueprint.
+            if (matches(key, mods, Dimensium.actionSaveBlueprint, Dimensium.actionSaveBlueprintMods)) {
+                EditorActions.saveBlueprint();
+                return;
+            }
+
+            // Blueprint browser.
+            if (matches(key, mods, Dimensium.actionBlueprintBrowser, Dimensium.actionBlueprintBrowserMods)) {
+                BlueprintBrowserPopup.INSTANCE.open();
+                return;
+            }
+
+            // Open settings.
+            if (matches(key, mods, Dimensium.actionSettings, Dimensium.actionSettingsMods)) {
+                SettingsModal.INSTANCE.toggle();
+                return;
+            }
+
+            // Fill.
+            if (matches(key, mods, Dimensium.actionFill, Dimensium.actionFillMods)) {
+                if (sel.hasSelection()) {
+                    Block paint = SelectedBlockState.INSTANCE.getPaintBlock();
+                    int meta = SelectedBlockState.INSTANCE.getPaintMeta();
+                    int id = Block.getIdFromBlock(paint);
+                    List<int[]> ops = new ArrayList<>(sel.size());
+                    for (long packed : sel.getSelectedBlocks()) {
+                        ops.add(
+                            new int[] { SelectionState.unpackX(packed), SelectionState.unpackY(packed),
+                                SelectionState.unpackZ(packed), id, meta });
+                    }
+                    BlockSender.sendChunked(ops, I18n.format("dimensium.action.fill"));
+                }
+                return;
+            }
+        }
+
+        if (!DimensiumMode.INSTANCE.isBuilderToolsActive()) return;
+
+        // ── Number keys 1-9: exit builder tools, switch slot ─────────────────
+        if (key >= Keyboard.KEY_1 && key <= Keyboard.KEY_9) {
+            DimensiumMode.INSTANCE.exitBuilderTools();
+            return;
+        }
+
+        // ── Escape: cancel current phase or exit mode ─────────────────────────
+        if (key == Keyboard.KEY_ESCAPE) {
+            BuilderToolState bts = BuilderToolState.INSTANCE;
+            if (bts.phase != Phase.IDLE) {
+                bts.resetPhase();
+                SelectionState.INSTANCE.clearSelection();
+            } else {
+                if (mc.thePlayer != null) mc.thePlayer.inventory.currentItem = 8;
+                DimensiumMode.INSTANCE.exitBuilderTools();
+            }
+        }
+    }
+
+    private Tool toolForKey(int key, int mods) {
+        if (matches(key, mods, Dimensium.toolSelect, Dimensium.toolSelectMods)) return Tool.SELECT;
+        if (matches(key, mods, Dimensium.toolDraw, Dimensium.toolDrawMods)) return Tool.FREEHAND_DRAW;
+        if (matches(key, mods, Dimensium.toolNoise, Dimensium.toolNoiseMods)) return Tool.NOISE;
+        if (matches(key, mods, Dimensium.toolSmooth, Dimensium.toolSmoothMods)) return Tool.SMOOTH;
+        if (matches(key, mods, Dimensium.toolExtrude, Dimensium.toolExtrudeMods)) return Tool.EXTRUDE;
+        return null;
+    }
+
+    private static int currentMods() {
+        int m = 0;
+        if (Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) || Keyboard.isKeyDown(Keyboard.KEY_RCONTROL))
+            m |= Dimensium.MOD_CTRL;
+        if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT))
+            m |= Dimensium.MOD_SHIFT;
+        if (Keyboard.isKeyDown(Keyboard.KEY_LMENU) || Keyboard.isKeyDown(Keyboard.KEY_RMENU)) m |= Dimensium.MOD_ALT;
+        return m;
+    }
+
+    private static boolean matches(int key, int mods, KeyBinding binding, int requiredMods) {
+        return key == binding.getKeyCode() && mods == requiredMods;
+    }
+}

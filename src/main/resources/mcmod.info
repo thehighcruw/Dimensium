@@ -1,0 +1,10 @@
+[{
+    "modid": "${modId}",
+    "name": "${modName}",
+    "description": "Dimensium world editing tools for Minecraft 1.7.10.",
+    "version": "${modVersion}",
+    "mcversion": "${minecraftVersion}",
+    "url": "",
+    "authorList": [],
+    "dependencies": []
+}]

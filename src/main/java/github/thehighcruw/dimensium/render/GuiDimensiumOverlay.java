@@ -1,0 +1,411 @@
+package github.thehighcruw.dimensium.render;
+
+import java.util.List;
+
+import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.init.Blocks;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.util.Vec3;
+
+import github.thehighcruw.dimensium.freecam.FreecamState;
+import github.thehighcruw.dimensium.handler.BlockSender;
+import github.thehighcruw.dimensium.handler.KeyConstants;
+import github.thehighcruw.dimensium.handler.SelectionOps;
+import github.thehighcruw.dimensium.handler.brushes.BrushInput;
+import github.thehighcruw.dimensium.handler.brushes.BrushInputRegistry;
+import github.thehighcruw.dimensium.network.PacketHandler;
+import github.thehighcruw.dimensium.network.PacketShapePlacement;
+import github.thehighcruw.dimensium.render.popup.BlueprintBrowserPopup;
+import github.thehighcruw.dimensium.render.popup.ConflictPopup;
+import github.thehighcruw.dimensium.render.popup.CreateBlueprintPopup;
+import github.thehighcruw.dimensium.render.popup.RecentBlockHistory;
+import github.thehighcruw.dimensium.render.world.RotationGizmo;
+import github.thehighcruw.dimensium.render.world.SelectionRenderer;
+import github.thehighcruw.dimensium.render.world.TranslationGizmo;
+import github.thehighcruw.dimensium.tool.BuilderToolState;
+import github.thehighcruw.dimensium.tool.ChangeProposal;
+import github.thehighcruw.dimensium.tool.DimensiumMode;
+import github.thehighcruw.dimensium.tool.Tool;
+import github.thehighcruw.dimensium.tool.state.BooleanOp;
+import github.thehighcruw.dimensium.tool.state.ClipboardPlacementState;
+import github.thehighcruw.dimensium.tool.state.ModellingToolState;
+import github.thehighcruw.dimensium.tool.state.MoveToolState;
+import github.thehighcruw.dimensium.tool.state.PathToolState;
+import github.thehighcruw.dimensium.tool.state.SelectToolState;
+import github.thehighcruw.dimensium.tool.state.SelectedBlockState;
+import github.thehighcruw.dimensium.tool.state.SelectionState;
+import github.thehighcruw.dimensium.tool.state.ShapePlacementState;
+import github.thehighcruw.dimensium.tool.state.ShapeToolState;
+
+/**
+ * Static helpers for overlay mouse interaction.
+ * No longer a GuiScreen — the overlay renders as a HUD so the game stays
+ * in in-game mode (mouse captured, WASD active, freecam works).
+ */
+public final class GuiDimensiumOverlay {
+
+    private GuiDimensiumOverlay() {}
+
+    // ── Raycast ───────────────────────────────────────────────────────────────
+
+    /**
+     * Cast a world ray from the 2D overlay mouse cursor.
+     * Uses mc.renderViewEntity so freecam perspective is respected.
+     */
+    public static MovingObjectPosition raycastFromMouse(int mouseX, int mouseY, int scaledW, int scaledH) {
+        Minecraft mc = Minecraft.getMinecraft();
+        EntityLivingBase eye = mc.renderViewEntity;
+        if (eye == null || mc.theWorld == null) return null;
+
+        ViewportState vp = ViewportRegistry.INSTANCE.active();
+        double ndcX = vp != null ? vp.cursorToNdcX(mouseX, scaledW) : 1.0 - (2.0 * mouseX / scaledW);
+        double ndcY = vp != null ? vp.cursorToNdcY(mouseY, scaledH) : 1.0 - (2.0 * mouseY / scaledH);
+
+        double tanHX = FreecamState.INSTANCE.projTanHX;
+        double tanHY = FreecamState.INSTANCE.projTanHY;
+
+        double yaw = Math.toRadians(eye.rotationYaw);
+        double pitch = Math.toRadians(eye.rotationPitch);
+
+        double lookX = -Math.sin(yaw) * Math.cos(pitch);
+        double lookY = -Math.sin(pitch);
+        double lookZ = Math.cos(yaw) * Math.cos(pitch);
+
+        double rightX = Math.cos(yaw);
+        double rightZ = Math.sin(yaw);
+
+        double upX = -Math.sin(yaw) * Math.sin(pitch);
+        double upY = Math.cos(pitch);
+        double upZ = Math.cos(yaw) * Math.sin(pitch);
+
+        double rdx = lookX + rightX * ndcX * tanHX + upX * ndcY * tanHY;
+        double rdy = lookY + upY * ndcY * tanHY;
+        double rdz = lookZ + rightZ * ndcX * tanHX + upZ * ndcY * tanHY;
+        double len = Math.sqrt(rdx * rdx + rdy * rdy + rdz * rdz);
+        rdx /= len;
+        rdy /= len;
+        rdz /= len;
+
+        double eyeX = eye.posX;
+        double eyeY = eye.posY + eye.getEyeHeight();
+        double eyeZ = eye.posZ;
+
+        // Offset start slightly forward so the ray doesn't immediately hit the block the camera is inside.
+        double near = github.thehighcruw.dimensium.DimensiumConfig.raycastNearClip;
+        double far = github.thehighcruw.dimensium.DimensiumConfig.raycastDistance;
+        Vec3 start = Vec3.createVectorHelper(eyeX + rdx * near, eyeY + rdy * near, eyeZ + rdz * near);
+        Vec3 end = Vec3.createVectorHelper(eyeX + rdx * far, eyeY + rdy * far, eyeZ + rdz * far);
+        return mc.theWorld.rayTraceBlocks(start, end);
+    }
+
+    // ── Click dispatch ────────────────────────────────────────────────────────
+
+    public static void handleClick(int mouseX, int mouseY, int scaledW, int scaledH, int button) {
+        // ImGui-based popups handle their own clicks via ImGui input routing.
+        if (ConflictPopup.INSTANCE.isOpen() || CreateBlueprintPopup.INSTANCE.isOpen()
+            || BlueprintBrowserPopup.INSTANCE.isOpen()
+            || OverlayRenderer.picker.isOpen()) {
+            return;
+        }
+        // mouseX/mouseY are in scaled GUI pixels; panel widths are physical pixels — convert.
+        Minecraft _mc = Minecraft.getMinecraft();
+        int _sf = new net.minecraft.client.gui.ScaledResolution(_mc, _mc.displayWidth, _mc.displayHeight)
+            .getScaleFactor();
+        int physX = mouseX * _sf;
+        float _uiScale = github.thehighcruw.dimensium.render.imgui.ImGuiManager.INSTANCE.getUIScale();
+        if (physX < OverlayRenderer.toolPanel.currentW * _uiScale) {
+            // Left panel is now ImGui — clicks handled by ImGui input routing.
+        } else {
+            if (button == 2) {
+                MovingObjectPosition mop = raycastFromMouse(
+                    (int) FreecamState.INSTANCE.cursorX,
+                    (int) FreecamState.INSTANCE.cursorY,
+                    scaledW,
+                    scaledH);
+                if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+                    Minecraft mc = Minecraft.getMinecraft();
+                    Block b = mc.theWorld.getBlock(mop.blockX, mop.blockY, mop.blockZ);
+                    int meta = mc.theWorld.getBlockMetadata(mop.blockX, mop.blockY, mop.blockZ);
+                    if (b != null && b != Blocks.air) {
+                        ItemStack picked = new ItemStack(b, 1, meta);
+                        RecentBlockHistory.add(picked);
+                        SelectedBlockState.INSTANCE.selectedBlock = picked;
+                    }
+                }
+                return;
+            }
+            ClipboardPlacementState _cps = ClipboardPlacementState.INSTANCE;
+            if (_cps.active) {
+                if (button == KeyConstants.LMB) {
+                    net.minecraft.entity.EntityLivingBase _eye = _mc.renderViewEntity;
+                    double ccx = _cps.centerX(), ccy = _cps.centerY(), ccz = _cps.centerZ();
+                    if (_eye != null && _cps.gizmo.hoveredAxis != TranslationGizmo.Axis.NONE) {
+                        _cps.gizmo.startDrag(
+                            mouseX,
+                            mouseY,
+                            scaledW,
+                            scaledH,
+                            _eye,
+                            ccx,
+                            ccy,
+                            ccz,
+                            _cps.anchorFX,
+                            _cps.anchorFY,
+                            _cps.anchorFZ,
+                            0,
+                            0,
+                            0);
+                    } else if (_eye != null && _cps.rotGizmo.hoveredAxis != RotationGizmo.Axis.NONE) {
+                        _cps.rotDragBaseX = _cps.rotX;
+                        _cps.rotDragBaseY = _cps.rotY;
+                        _cps.rotDragBaseZ = _cps.rotZ;
+                        _cps.rotGizmo.startDrag(
+                            mouseX,
+                            mouseY,
+                            scaledW,
+                            scaledH,
+                            _eye,
+                            ccx,
+                            ccy,
+                            ccz,
+                            _cps.rotX,
+                            _cps.rotY,
+                            _cps.rotZ);
+                    } else {
+                        confirmClipboardPlacement();
+                    }
+                } else if (button == KeyConstants.RMB) {
+                    _cps.cancel();
+                }
+                return;
+            }
+
+            Tool tool = DimensiumMode.INSTANCE.selectedTool;
+            BrushInput brushInput = BrushInputRegistry.get(tool);
+            if (brushInput != null) {
+                brushInput.onMouseClick(button, Minecraft.getMinecraft(), null);
+            }
+            // Brush tools are applied while held — see TickHandler.applyPaintIfHeld
+        }
+    }
+
+    public static void handleRelease(int mouseX, int mouseY, int button) {
+        if (button == KeyConstants.LMB) {
+            ShapePlacementState ps = ShapePlacementState.INSTANCE;
+            if (ps.active) {
+                if (ps.gizmo.isDragging()) ps.gizmo.endDrag();
+                if (ps.rotGizmo.isDragging()) ps.rotGizmo.endDrag();
+                if (ps.scaleGizmo.isDragging()) ps.scaleGizmo.endDrag();
+                if (ps.viewPlaneGizmo.isDragging()) ps.viewPlaneGizmo.endDrag();
+            }
+            ClipboardPlacementState cps = ClipboardPlacementState.INSTANCE;
+            if (cps.active) {
+                if (cps.gizmo.isDragging()) cps.gizmo.endDrag();
+                if (cps.rotGizmo.isDragging()) cps.rotGizmo.endDrag();
+            }
+            MoveToolState ms = MoveToolState.INSTANCE;
+            if (ms.active) {
+                if (ms.gizmo.isDragging()) ms.gizmo.endDrag();
+                if (ms.rotGizmo.isDragging()) ms.rotGizmo.endDrag();
+            }
+            SelectionState sel = SelectionState.INSTANCE;
+            if (sel.boxConfirmed) {
+                if (SelectionRenderer.boxPos1Gizmo.isDragging()) SelectionRenderer.boxPos1Gizmo.endDrag();
+                if (SelectionRenderer.boxPos2Gizmo.isDragging()) SelectionRenderer.boxPos2Gizmo.endDrag();
+                if (SelectionRenderer.boxCenterViewPlaneGizmo.isDragging())
+                    SelectionRenderer.boxCenterViewPlaneGizmo.endDrag();
+                if (SelectionRenderer.boxCenterGizmo.isDragging()) SelectionRenderer.boxCenterGizmo.endDrag();
+            }
+            PathToolState pts = PathToolState.INSTANCE;
+            if (pts.gizmo.isDragging()) pts.gizmo.endDrag();
+            ModellingToolState mtsDrag = ModellingToolState.INSTANCE;
+            if (mtsDrag.gizmo.isDragging()) mtsDrag.gizmo.endDrag();
+        } else if (button == KeyConstants.RMB) {
+            Tool tool = DimensiumMode.INSTANCE.selectedTool;
+            if (tool == Tool.SELECT) {
+                SelectionState sel = SelectionState.INSTANCE;
+                if (sel.pendingPos1) {
+                    Minecraft mc = Minecraft.getMinecraft();
+                    net.minecraft.client.gui.ScaledResolution sr = new net.minecraft.client.gui.ScaledResolution(
+                        mc,
+                        mc.displayWidth,
+                        mc.displayHeight);
+                    MovingObjectPosition mop = raycastFromMouse(
+                        (int) FreecamState.INSTANCE.cursorX,
+                        (int) FreecamState.INSTANCE.cursorY,
+                        sr.getScaledWidth(),
+                        sr.getScaledHeight());
+                    if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+                        sel.pendingX2 = mop.blockX;
+                        sel.pendingY2 = mop.blockY;
+                        sel.pendingZ2 = mop.blockZ;
+                        sel.pendingPos1 = false;
+                        sel.boxConfirmed = true;
+                        SelectionRenderer.boxPos1Gizmo.reset();
+                        SelectionRenderer.boxPos2Gizmo.reset();
+                        SelectionRenderer.boxCenterViewPlaneGizmo.reset();
+                        SelectionRenderer.boxCenterGizmo.reset();
+                    }
+                }
+            }
+        }
+    }
+
+    public static void handleScroll(int mouseX, int dwheel, int scaledW) {
+        // Scroll fully handled by ImGui — no custom dispatch needed.
+    }
+
+    public static void confirmMove() {
+        MoveToolState ms = MoveToolState.INSTANCE;
+        SelectionState sel = SelectionState.INSTANCE;
+        if (!ms.active || ms.ghostBlocks == null || ms.ghostBlocks.isEmpty() || !sel.hasSelection()) return;
+
+        // Erase originals and place at new positions as a single history entry
+        long _t0 = System.nanoTime();
+        java.util.List<int[]> moveOps = new java.util.ArrayList<>();
+        moveOps.addAll(SelectionOps.selectionToAirOps(sel));
+        moveOps.addAll(ms.ghostBlocks);
+        long _t1 = System.nanoTime();
+        BlockSender.sendChunked(moveOps, I18n.format("dimensium.action.move"));
+        long _t2 = System.nanoTime();
+        long _buildMs = (_t1 - _t0) / 1_000_000;
+        long _sendMs = (_t2 - _t1) / 1_000_000;
+        System.err.println(
+            "[DIMTIMER] confirmMove buildOps=" + _buildMs + "ms sendChunked=" + _sendMs + "ms ops=" + moveOps.size());
+
+        // Build new snapshot from the placed blocks (no world-read — avoids server-packet timing gap)
+        java.util.Map<Long, SelectionState.BlockData> newSnap = new java.util.HashMap<>(ms.ghostBlocks.size());
+        float ncx = 0, ncy = 0, ncz = 0;
+        for (int[] b : ms.ghostBlocks) {
+            Block blk = Block.getBlockById(b[3]);
+            if (blk != null && blk != net.minecraft.init.Blocks.air) {
+                newSnap.put(SelectionState.pack(b[0], b[1], b[2]), new SelectionState.BlockData(blk, b[4]));
+            }
+            ncx += b[0] + 0.5f;
+            ncy += b[1] + 0.5f;
+            ncz += b[2] + 0.5f;
+        }
+        ncx /= ms.ghostBlocks.size();
+        ncy /= ms.ghostBlocks.size();
+        ncz /= ms.ghostBlocks.size();
+
+        // Update selection to new positions
+        java.util.Set<Long> newSel = new java.util.HashSet<>(newSnap.keySet());
+        sel.applyOp(newSel, BooleanOp.REPLACE);
+
+        // Re-activate with known block data — selection renderVersion just changed via applyOp
+        ms.activateFromSnapshot(sel, newSnap, ncx, ncy, ncz);
+        MoveToolState.INSTANCE.preview = null;
+    }
+
+    public static void confirmPlacement() {
+        ShapePlacementState ps = ShapePlacementState.INSTANCE;
+        if (!ps.active) return;
+        ShapeToolState s = ShapeToolState.INSTANCE;
+        SelectedBlockState sbs = SelectedBlockState.INSTANCE;
+        if (sbs.selectedBlock != null) {
+            PacketHandler.CHANNEL.sendToServer(new PacketShapePlacement(ps, s, sbs));
+        }
+        ps.cancel();
+    }
+
+    public static void confirmClipboardPlacement() {
+        ClipboardPlacementState cps = ClipboardPlacementState.INSTANCE;
+        if (!cps.active) return;
+        BlockSender.sendChunked(cps.toOps(), net.minecraft.client.resources.I18n.format("dimensium.action.paste"));
+        cps.cancel();
+    }
+
+    /** Cancels any pending fill proposal (called on LMB or tool switch). */
+    public static void cancelFillPreview() {
+        BuilderToolState.INSTANCE.fillPreview = null;
+    }
+
+    /**
+     * Returns the index of the closest point (from {@code positions}) to the screen-space mouse
+     * cursor, or -1 if none is within {@code thresholdPx} pixels. Skips {@code skipIndex}.
+     * Each entry in {@code positions} is {worldX, worldY, worldZ}.
+     */
+    public static int findNearestPointOnScreen(List<int[]> positions, int skipIndex, int mouseX, int mouseY, int sw,
+        int sh, github.thehighcruw.dimensium.render.world.GizmoProjection proj, double thresholdPx) {
+        // GizmoProjection.project() already maps GL window coords to the viewport panel's
+        // GUI-space position, so projected coords compare directly to mouseX/mouseY.
+        int best = -1;
+        double bestD2 = thresholdPx * thresholdPx;
+        for (int i = 0; i < positions.size(); i++) {
+            if (i == skipIndex) continue;
+            int[] p = positions.get(i);
+            double[] s = proj.project(p[0] + 0.5, p[1] + 0.5, p[2] + 0.5, sw, sh);
+            if (s == null) continue;
+            double dx = s[0] - mouseX, dy = s[1] - mouseY;
+            double d2 = dx * dx + dy * dy;
+            if (d2 < bestD2) {
+                bestD2 = d2;
+                best = i;
+            }
+        }
+        return best;
+    }
+
+    public static void applyPath() {
+        ChangeProposal p = PathToolState.INSTANCE.preview;
+        if (p != null && !p.proposed.isEmpty()) {
+            List<int[]> ops = new java.util.ArrayList<>(p.proposed.size());
+            for (java.util.Map.Entry<Long, int[]> e : p.proposed.entrySet()) {
+                long key = e.getKey();
+                int[] bm = e.getValue();
+                ops.add(
+                    new int[] { ChangeProposal.unpackX(key), ChangeProposal.unpackY(key), ChangeProposal.unpackZ(key),
+                        bm[0], bm[1] });
+            }
+            String pathAction = I18n
+                .format("dimensium.action.path", I18n.format(PathToolState.INSTANCE.curveType.label));
+            BlockSender.sendChunked(ops, pathAction);
+        }
+        PathToolState.INSTANCE.clear();
+    }
+
+    public static void applyModelling() {
+        ModellingToolState mts = ModellingToolState.INSTANCE;
+        SelectedBlockState sbs = SelectedBlockState.INSTANCE;
+        mts.rebuildIfNeeded(sbs.selectedBlock);
+        if (mts.preview == null || mts.preview.proposed.isEmpty()) return;
+
+        boolean keepExisting = mts.pasteMode == ModellingToolState.PasteMode.KEEP_EXISTING;
+        List<int[]> ops = new java.util.ArrayList<>(mts.preview.proposed.size());
+        for (java.util.Map.Entry<Long, int[]> e : mts.preview.proposed.entrySet()) {
+            long key = e.getKey();
+            int[] bm = e.getValue();
+            if (keepExisting) {
+                int wx = ChangeProposal.unpackX(key), wy = ChangeProposal.unpackY(key),
+                    wz = ChangeProposal.unpackZ(key);
+                if (Minecraft.getMinecraft().theWorld.getBlock(wx, wy, wz) != Blocks.air) continue;
+            }
+            ops.add(
+                new int[] { ChangeProposal.unpackX(key), ChangeProposal.unpackY(key), ChangeProposal.unpackZ(key),
+                    bm[0], bm[1] });
+        }
+        if (!ops.isEmpty()) {
+            BlockSender.sendChunked(ops, I18n.format("dimensium.action.modelling"));
+        }
+        mts.clear();
+    }
+
+    /** Commits the pending box selection (boxConfirmed state) and clears gizmo state. */
+    public static void commitBoxSelection(SelectionState sel, SelectToolState ts) {
+        sel.applyOp(
+            SelectionState
+                .aabbBlocks(sel.pendingX, sel.pendingY, sel.pendingZ, sel.pendingX2, sel.pendingY2, sel.pendingZ2),
+            ts.booleanOp);
+        sel.boxConfirmed = false;
+        SelectionRenderer.boxPos1Gizmo.reset();
+        SelectionRenderer.boxPos2Gizmo.reset();
+        SelectionRenderer.boxCenterViewPlaneGizmo.reset();
+        SelectionRenderer.boxCenterGizmo.reset();
+    }
+
+}

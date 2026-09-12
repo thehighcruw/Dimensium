@@ -1,0 +1,94 @@
+package github.thehighcruw.dimensium.handler.brushes;
+
+import java.util.HashSet;
+import java.util.Set;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.init.Blocks;
+import net.minecraft.util.MovingObjectPosition;
+
+import org.lwjgl.input.Keyboard;
+
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import github.thehighcruw.dimensium.freecam.FreecamState;
+import github.thehighcruw.dimensium.handler.KeyConstants;
+import github.thehighcruw.dimensium.render.GuiDimensiumOverlay;
+import github.thehighcruw.dimensium.render.MenuBar;
+import github.thehighcruw.dimensium.render.OverlayRenderer;
+import github.thehighcruw.dimensium.tool.brushes.BrushUtil;
+import github.thehighcruw.dimensium.tool.mask.ToolMaskRegistry;
+import github.thehighcruw.dimensium.tool.state.BooleanOp;
+import github.thehighcruw.dimensium.tool.state.BrushState;
+import github.thehighcruw.dimensium.tool.state.FreehandToolState;
+import github.thehighcruw.dimensium.tool.state.SelectionState;
+
+@SideOnly(Side.CLIENT)
+public class FreehandSelectBrushInput implements BrushInput {
+
+    private int lastX = Integer.MIN_VALUE;
+    private int lastY = Integer.MIN_VALUE;
+    private int lastZ = Integer.MIN_VALUE;
+
+    @Override
+    public boolean onDragTick(Minecraft mc, int sw, int sh) {
+        FreecamState fs = FreecamState.INSTANCE;
+        boolean altDown = Keyboard.isKeyDown(Keyboard.KEY_LMENU) || Keyboard.isKeyDown(Keyboard.KEY_RMENU);
+        int heldButton = -1;
+        if (org.lwjgl.input.Mouse.isButtonDown(KeyConstants.RMB) && !fs.rmbDragging && !altDown) {
+            heldButton = KeyConstants.RMB;
+        }
+        if (heldButton >= 0) {
+            int sf = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight).getScaleFactor();
+            int mx = (int) fs.cursorX3d, my = (int) fs.cursorY;
+            if (mx * sf >= OverlayRenderer.toolPanel.currentW && my * sf >= (int) MenuBar.INSTANCE.height()) {
+                MovingObjectPosition mop = GuiDimensiumOverlay.raycastFromMouse(mx, my, sw, sh);
+                if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+                    if (mop.blockX != lastX || mop.blockY != lastY || mop.blockZ != lastZ) {
+                        lastX = mop.blockX;
+                        lastY = mop.blockY;
+                        lastZ = mop.blockZ;
+                        onMouseHeld(heldButton, mc, mop);
+                    }
+                }
+            }
+        } else {
+            lastX = Integer.MIN_VALUE;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean onMouseClick(int button, Minecraft mc, MovingObjectPosition ignored) {
+        if (button != KeyConstants.RMB) return false;
+        FreecamState fs = FreecamState.INSTANCE;
+        ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
+        MovingObjectPosition mop = GuiDimensiumOverlay
+            .raycastFromMouse((int) fs.cursorX, (int) fs.cursorY, sr.getScaledWidth(), sr.getScaledHeight());
+        if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return false;
+        applyBrush(mop);
+        return true;
+    }
+
+    @Override
+    public void onMouseHeld(int button, Minecraft mc, MovingObjectPosition mop) {
+        if (button != KeyConstants.RMB) return;
+        applyBrush(mop);
+    }
+
+    private static void applyBrush(MovingObjectPosition mop) {
+        BrushState bs = BrushState.INSTANCE;
+        boolean includeAir = FreehandToolState.INSTANCE.includeAir;
+        int cx = mop.blockX, cy = mop.blockY, cz = mop.blockZ;
+        net.minecraft.world.World world = Minecraft.getMinecraft().theWorld;
+        Set<Long> blocks = new HashSet<>();
+        BrushUtil.forBrush(bs, (dx, dy, dz) -> {
+            int wx = cx + dx, wy = cy + dy, wz = cz + dz;
+            if (includeAir || world.getBlock(wx, wy, wz) != Blocks.air) {
+                blocks.add(SelectionState.pack(wx, wy, wz));
+            }
+        });
+        SelectionState.INSTANCE.applyOp(ToolMaskRegistry.INSTANCE.filterSelection(blocks), BooleanOp.ADD);
+    }
+}

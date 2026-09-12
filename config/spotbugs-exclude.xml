@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+    <!-- ImGui generated code -->
+    <Match>
+        <Package name="~io\.imgui\..*"/>
+    </Match>
+
+    <!-- Minecraft mod state objects use public fields by design (Tenet 3) -->
+    <Match>
+        <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE"/>
+    </Match>
+
+    <!-- FML keybinding fields cannot be final (assigned post-init by Forge) -->
+    <Match>
+        <Bug pattern="MS_CANNOT_BE_FINAL"/>
+    </Match>
+    <Match>
+        <Bug pattern="MS_SHOULD_BE_FINAL"/>
+    </Match>
+    <Match>
+        <Bug pattern="MS_PKGPROTECT"/>
+    </Match>
+
+    <!-- Return value noise: these are intentional fire-and-forget calls -->
+    <Match>
+        <Bug pattern="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT"/>
+    </Match>
+
+    <!-- Mutable field exposure: acceptable for intra-mod render/state access -->
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- Unread fields: Forge/FML reads them via reflection -->
+    <Match>
+        <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD"/>
+    </Match>
+    <Match>
+        <Bug pattern="UWF_UNWRITTEN_PUBLIC_OR_PROTECTED_FIELD"/>
+    </Match>
+    <Match>
+        <Bug pattern="UUF_UNUSED_PUBLIC_OR_PROTECTED_FIELD"/>
+    </Match>
+
+    <!-- ST_WRITE_TO_STATIC: FML lifecycle writes logger/INSTANCE from @EventHandler/constructor -->
+    <Match>
+        <Class name="github.thehighcruw.dimensium.Dimensium"/>
+        <Bug pattern="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD"/>
+    </Match>
+    <Match>
+        <Class name="github.thehighcruw.dimensium.handler.TickHandler"/>
+        <Bug pattern="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD"/>
+    </Match>
+
+    <!-- ST_WRITE_TO_STATIC: ImGuiManager sets uiScale static field used by all renderers -->
+    <Match>
+        <Class name="github.thehighcruw.dimensium.render.imgui.ImGuiManager"/>
+        <Bug pattern="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD"/>
+    </Match>
+    <!-- DMI_RANDOM_USED_ONLY_ONCE: seeded Random is intentional (reproducible from seed) -->
+    <Match>
+        <Class name="github.thehighcruw.dimensium.tool.brushes.GradientBrush"/>
+        <Bug pattern="DMI_RANDOM_USED_ONLY_ONCE"/>
+    </Match>
+    <Match>
+        <Class name="github.thehighcruw.dimensium.tool.math.PathMath"/>
+        <Bug pattern="DMI_RANDOM_USED_ONLY_ONCE"/>
+    </Match>
+
+    <!-- FL_FLOATS_AS_LOOP_COUNTERS: RotationGizmo uses while-loops for angle normalization,
+         not float-stepped for-loops — false positive -->
+    <Match>
+        <Class name="github.thehighcruw.dimensium.render.world.RotationGizmo"/>
+        <Bug pattern="FL_FLOATS_AS_LOOP_COUNTERS"/>
+    </Match>
+
+    <!-- DE_MIGHT_IGNORE: render-path catches prevent game crash; logging every frame is unacceptable -->
+    <Match>
+        <Class name="github.thehighcruw.dimensium.render.HandRenderer"/>
+        <Bug pattern="DE_MIGHT_IGNORE"/>
+    </Match>
+    <Match>
+        <Class name="github.thehighcruw.dimensium.render.world.SelectionRenderer"/>
+        <Bug pattern="DE_MIGHT_IGNORE"/>
+    </Match>
+    <Match>
+        <Class name="github.thehighcruw.dimensium.render.world.GhostRenderer"/>
+        <Bug pattern="DE_MIGHT_IGNORE"/>
+    </Match>
+    <Match>
+        <Class name="github.thehighcruw.dimensium.render.imgui.DimensiumImGuiGlRenderer"/>
+        <Bug pattern="DE_MIGHT_IGNORE"/>
+    </Match>
+    <Match>
+        <Class name="github.thehighcruw.dimensium.render.popup.BlueprintBrowserPopup"/>
+        <Bug pattern="DE_MIGHT_IGNORE"/>
+    </Match>
+
+    <!-- DE_MIGHT_IGNORE + REC: MaskSerializer.deserializeNode YMask.Op.valueOf catch is intentional -->
+    <Match>
+        <Class name="github.thehighcruw.dimensium.tool.mask.MaskSerializer"/>
+        <Bug pattern="DE_MIGHT_IGNORE"/>
+    </Match>
+    <Match>
+        <Class name="github.thehighcruw.dimensium.tool.mask.MaskSerializer"/>
+        <Bug pattern="REC_CATCH_EXCEPTION"/>
+    </Match>
+
+    <!-- RV_RETURN_VALUE_IGNORED_BAD_PRACTICE: layout file delete is best-effort -->
+    <Match>
+        <Class name="github.thehighcruw.dimensium.render.OverlayRenderer"/>
+        <Bug pattern="RV_RETURN_VALUE_IGNORED_BAD_PRACTICE"/>
+    </Match>
+
+    <!-- DLS/UC: ClientProxy windows array is intentional — forces INSTANCE class-loading
+         so ImGuiWindowRegistry is populated before any mouse event fires -->
+    <Match>
+        <Class name="github.thehighcruw.dimensium.proxy.ClientProxy"/>
+        <Bug pattern="DLS_DEAD_LOCAL_STORE"/>
+    </Match>
+    <Match>
+        <Class name="github.thehighcruw.dimensium.proxy.ClientProxy"/>
+        <Bug pattern="UC_USELESS_OBJECT"/>
+    </Match>
+
+    <!-- Vendor code: patched Minecraft, Forge, and bundled libs — not our bugs to fix -->
+    <Match>
+        <Package name="~net\.minecraft\..*"/>
+    </Match>
+    <Match>
+        <Package name="~net\.minecraftforge\..*"/>
+    </Match>
+    <Match>
+        <Package name="~cpw\.mods\..*"/>
+    </Match>
+    <Match>
+        <Package name="~net\.minecraftforge\.gradle\..*"/>
+    </Match>
+    <Match>
+        <Package name="ibxm"/>
+    </Match>
+    <Match>
+        <Class name="GradleStart"/>
+    </Match>
+    <Match>
+        <Class name="GradleStartCommon"/>
+    </Match>
+</FindBugsFilter>
