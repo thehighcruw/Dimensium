@@ -32,19 +32,13 @@ public class ModellingBrushInput implements BrushInput {
     private ModellingBrushInput() {}
 
     @Override
-    public boolean requiresBlockTarget() {
-        return false;
-    }
-
-    @Override
-    public boolean onMouseClick(int button, Minecraft mc, MovingObjectPosition ignored) {
+    public boolean onMouseClick(int button, Minecraft mc, MovingObjectPosition mop) {
         FreecamState fs = FreecamState.INSTANCE;
         int sw = RenderUtils.scaledWidth(), sh = RenderUtils.scaledHeight();
         int mouseX = (int) fs.cursorX, mouseY = (int) fs.cursorY;
         ModellingToolState mts = ModellingToolState.INSTANCE;
 
         if (button == KeyConstants.RMB) {
-            MovingObjectPosition mop = GuiDimensiumOverlay.raycastFromMouse((int) fs.cursorX, (int) fs.cursorY, sw, sh);
             if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return false;
             int px = mop.blockX, py = mop.blockY, pz = mop.blockZ;
             if (mts.offsetTargetPoint) {

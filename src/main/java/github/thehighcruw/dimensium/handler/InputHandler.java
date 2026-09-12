@@ -6,7 +6,6 @@ package github.thehighcruw.dimensium.handler;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.MouseEvent;
 
@@ -134,19 +133,9 @@ public class InputHandler {
             && !ImGuiManager.INSTANCE.wantCaptureMouse()) {
             BrushInput input = BrushInputRegistry.get(DimensiumMode.INSTANCE.selectedTool);
             if (input != null) {
-                if (input.requiresBlockTarget()) {
-                    MovingObjectPosition mop = FreecamUtils.rayTrace(mc, FreecamUtils.REACH);
-                    if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-                        if (input.onMouseClick(event.button, mc, mop)) {
-                            event.setCanceled(true);
-                            return;
-                        }
-                    }
-                } else {
-                    if (input.onMouseClick(event.button, mc, null)) {
-                        event.setCanceled(true);
-                        return;
-                    }
+                if (input.onMouseClick(event.button, mc, RenderUtils.raycastAtCursor())) {
+                    event.setCanceled(true);
+                    return;
                 }
             }
         }

@@ -27,11 +27,6 @@ public class MoveBrushInput implements BrushInput {
     private MoveBrushInput() {}
 
     @Override
-    public boolean requiresBlockTarget() {
-        return false;
-    }
-
-    @Override
     public boolean onMouseClick(int button, Minecraft mc, MovingObjectPosition ignored) {
         MoveToolState ms = MoveToolState.INSTANCE;
         if (!ms.active) return false;

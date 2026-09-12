@@ -39,14 +39,6 @@ public interface BrushInput {
     }
 
     /**
-     * Whether InputHandler should require a block hit from FreecamUtils.rayTrace
-     * before calling onMouseClick. Return false to handle raycasting internally.
-     */
-    default boolean requiresBlockTarget() {
-        return true;
-    }
-
-    /**
      * Called each render tick inside TickHandler's drag loop, before standard processing.
      * Return true to signal the tool fully handled this tick (skips standard loop).
      * Used for screen-space drags (LASSO_SELECT) or tools that bypass block-dedup (ELEVATION).

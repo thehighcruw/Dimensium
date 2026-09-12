@@ -24,7 +24,6 @@ import github.thehighcruw.dimensium.tool.ChangeProposal;
 import github.thehighcruw.dimensium.tool.state.FloodfillToolState;
 import github.thehighcruw.dimensium.tool.state.SelectedBlockState;
 import github.thehighcruw.dimensium.tool.state.SelectionState;
-import github.thehighcruw.dimensium.util.RenderUtils;
 
 @SideOnly(Side.CLIENT)
 public class FillBrushInput implements BrushInput {
@@ -34,17 +33,12 @@ public class FillBrushInput implements BrushInput {
     private FillBrushInput() {}
 
     @Override
-    public boolean requiresBlockTarget() {
-        return false;
-    }
-
-    @Override
     public boolean usesDragLoop() {
         return true;
     }
 
     @Override
-    public boolean onMouseClick(int button, Minecraft mc, MovingObjectPosition ignored) {
+    public boolean onMouseClick(int button, Minecraft mc, MovingObjectPosition mop) {
         if (button == KeyConstants.LMB) {
             GuiDimensiumOverlay.cancelFillPreview();
             return true;
@@ -57,7 +51,6 @@ public class FillBrushInput implements BrushInput {
             return true;
         }
 
-        MovingObjectPosition mop = RenderUtils.raycastAtCursor();
         if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return false;
 
         int[] faceOffsets = ExtrudeHelper.sideToOutwardDir(mop.sideHit);

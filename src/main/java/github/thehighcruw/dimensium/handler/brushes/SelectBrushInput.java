@@ -24,12 +24,7 @@ import github.thehighcruw.dimensium.util.RenderUtils;
 public class SelectBrushInput implements BrushInput {
 
     @Override
-    public boolean requiresBlockTarget() {
-        return false;
-    }
-
-    @Override
-    public boolean onMouseClick(int button, Minecraft mc, MovingObjectPosition ignored) {
+    public boolean onMouseClick(int button, Minecraft mc, MovingObjectPosition mop) {
         FreecamState fs = FreecamState.INSTANCE;
         int sw = RenderUtils.scaledWidth(), sh = RenderUtils.scaledHeight();
         int mouseX = (int) fs.cursorX, mouseY = (int) fs.cursorY;
@@ -113,7 +108,6 @@ public class SelectBrushInput implements BrushInput {
             return true;
         }
 
-        MovingObjectPosition mop = GuiDimensiumOverlay.raycastFromMouse((int) fs.cursorX, (int) fs.cursorY, sw, sh);
         if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return false;
 
         if (button == KeyConstants.RMB) {

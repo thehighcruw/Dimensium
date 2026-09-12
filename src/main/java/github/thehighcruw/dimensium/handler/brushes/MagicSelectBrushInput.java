@@ -16,20 +16,13 @@ import github.thehighcruw.dimensium.tool.mask.ToolMaskRegistry;
 import github.thehighcruw.dimensium.tool.state.MagicSelectToolState;
 import github.thehighcruw.dimensium.tool.state.SelectToolState;
 import github.thehighcruw.dimensium.tool.state.SelectionState;
-import github.thehighcruw.dimensium.util.RenderUtils;
 
 @SideOnly(Side.CLIENT)
 public class MagicSelectBrushInput implements BrushInput {
 
     @Override
-    public boolean requiresBlockTarget() {
-        return false;
-    }
-
-    @Override
-    public boolean onMouseClick(int button, Minecraft mc, MovingObjectPosition ignored) {
+    public boolean onMouseClick(int button, Minecraft mc, MovingObjectPosition mop) {
         if (button != KeyConstants.RMB) return false;
-        MovingObjectPosition mop = RenderUtils.raycastAtCursor();
         if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return false;
         SelectionState sel = SelectionState.INSTANCE;
         MagicSelectToolState ts = MagicSelectToolState.INSTANCE;

@@ -32,19 +32,13 @@ public class PathBrushInput implements BrushInput {
     private PathBrushInput() {}
 
     @Override
-    public boolean requiresBlockTarget() {
-        return false;
-    }
-
-    @Override
-    public boolean onMouseClick(int button, Minecraft mc, MovingObjectPosition ignored) {
+    public boolean onMouseClick(int button, Minecraft mc, MovingObjectPosition mop) {
         FreecamState fs = FreecamState.INSTANCE;
         int sw = RenderUtils.scaledWidth(), sh = RenderUtils.scaledHeight();
         int mouseX = (int) fs.cursorX, mouseY = (int) fs.cursorY;
         PathToolState pts = PathToolState.INSTANCE;
 
         if (button == KeyConstants.RMB && !InputHandler.isCtrlDown()) {
-            MovingObjectPosition mop = GuiDimensiumOverlay.raycastFromMouse((int) fs.cursorX, (int) fs.cursorY, sw, sh);
             if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
                 int[] off = ExtrudeHelper.sideToOutwardDir(mop.sideHit);
                 int px = mop.blockX + off[0], py = mop.blockY + off[1], pz = mop.blockZ + off[2];

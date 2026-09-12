@@ -11,7 +11,6 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.handler.KeyConstants;
 import github.thehighcruw.dimensium.tool.state.GradientToolState;
-import github.thehighcruw.dimensium.util.RenderUtils;
 
 @SideOnly(Side.CLIENT)
 public class GradientBrushInput implements BrushInput {
@@ -26,14 +25,8 @@ public class GradientBrushInput implements BrushInput {
     }
 
     @Override
-    public boolean requiresBlockTarget() {
-        return false;
-    }
-
-    @Override
-    public boolean onMouseClick(int button, Minecraft mc, MovingObjectPosition ignored) {
+    public boolean onMouseClick(int button, Minecraft mc, MovingObjectPosition mop) {
         if (button != KeyConstants.LMB) return false;
-        MovingObjectPosition mop = RenderUtils.raycastAtCursor();
         if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return false;
         GradientToolState gs = GradientToolState.INSTANCE;
         gs.gradientHasPos1 = true;

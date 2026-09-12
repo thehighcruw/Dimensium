@@ -29,12 +29,7 @@ public class ShapeBrushInput implements BrushInput {
     private ShapeBrushInput() {}
 
     @Override
-    public boolean requiresBlockTarget() {
-        return false;
-    }
-
-    @Override
-    public boolean onMouseClick(int button, Minecraft mc, MovingObjectPosition ignored) {
+    public boolean onMouseClick(int button, Minecraft mc, MovingObjectPosition mop) {
         if (mc.thePlayer == null) return false;
         FreecamState fs = FreecamState.INSTANCE;
         int sw = RenderUtils.scaledWidth(), sh = RenderUtils.scaledHeight();
@@ -43,8 +38,6 @@ public class ShapeBrushInput implements BrushInput {
 
         if (!ps.active) {
             if (button == KeyConstants.RMB) {
-                MovingObjectPosition mop = GuiDimensiumOverlay
-                    .raycastFromMouse((int) fs.cursorX, (int) fs.cursorY, sw, sh);
                 if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
                     ps.start(mop.blockX, mop.blockY, mop.blockZ);
                 }
