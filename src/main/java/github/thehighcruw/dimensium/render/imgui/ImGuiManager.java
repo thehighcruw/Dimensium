@@ -283,6 +283,7 @@ public final class ImGuiManager {
 
     public void shutdown() {
         if (!initialized) return;
+        ImGui.saveIniSettingsToDisk("dimensium_layout.ini");
         glRenderer.shutdown();
         ImGui.destroyContext();
         initialized = false;
