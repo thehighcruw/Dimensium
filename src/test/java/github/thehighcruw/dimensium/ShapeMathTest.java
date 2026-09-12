@@ -37,7 +37,8 @@ public class ShapeMathTest {
             EXP,
             SIDES,
             SPIRAL_SPACING,
-            SPIRAL_TURNS);
+            SPIRAL_TURNS,
+            1f);
     }
 
     private static int count(ShapeType type, int w, int h, int d, boolean hollow) {

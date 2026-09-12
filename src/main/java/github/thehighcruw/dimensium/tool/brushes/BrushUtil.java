@@ -8,6 +8,7 @@ import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.world.World;
 
+import github.thehighcruw.dimensium.DimensiumConfig;
 import github.thehighcruw.dimensium.tool.state.BrushShape;
 import github.thehighcruw.dimensium.tool.state.BrushState;
 import github.thehighcruw.dimensium.tool.state.ReplaceMode;
@@ -71,38 +72,48 @@ public final class BrushUtil {
     private static final float GEOM_EPS = 1e-6f;
 
     public static boolean inShape(BrushShape shape, int dx, int dy, int dz, int sx, int sy, int sz) {
+        float thr = DimensiumConfig.shapeThreshold;
         switch (shape) {
-            case SPHERE: {
+            case SPHERE:
+            case ELLIPSOID: {
                 float ex = (float) dx / sx, ey = (float) dy / sy, ez = (float) dz / sz;
-                return ex * ex + ey * ey + ez * ez <= 1f + GEOM_EPS;
+                float dist = ex * ex + ey * ey + ez * ez;
+                float vR = 0.5f
+                    * (float) Math.sqrt(1f / ((float) sx * sx) + 1f / ((float) sy * sy) + 1f / ((float) sz * sz));
+                return (float) Math.sqrt(dist) <= 1f - vR * (1f - thr) + GEOM_EPS;
             }
             case CUBE:
                 return true;
             case CUBOID:
                 return true;
-            case CYLINDER:
-                return (float) dx * dx / (sx * sx) + (float) dz * dz / (sx * sx) <= 1f + GEOM_EPS;
+            case CYLINDER: {
+                float dist = (float) dx * dx / (sx * sx) + (float) dz * dz / (sx * sx);
+                float vR = 0.5f * (float) Math.sqrt(2f / ((float) sx * sx));
+                return (float) Math.sqrt(dist) <= 1f - vR * (1f - thr) + GEOM_EPS;
+            }
             case CAPSULE: {
                 int capH = Math.max(0, sy - sx);
-                float r2 = sx * sx;
+                float vR = 0.5f / sx;
+                float cutoff = 1f - vR * (1f - thr) + GEOM_EPS;
+                float r = sx * cutoff;
                 float xz2 = dx * dx + dz * dz;
-                if (Math.abs(dy) <= capH) return xz2 <= r2;
+                if (Math.abs(dy) <= capH) return xz2 <= r * r;
                 float oy = Math.abs(dy) - capH;
-                return xz2 + oy * oy <= r2;
+                return xz2 + oy * oy <= r * r;
             }
             case CONE: {
                 float level = (float) (dy + sy) / (2f * sy);
                 float r = sx * (1f - level);
                 if (r <= 0) return dx == 0 && dz == 0;
-                return (float) dx * dx / (r * r) + (float) dz * dz / (r * r) <= 1f + GEOM_EPS;
+                float dist = (float) dx * dx / (r * r) + (float) dz * dz / (r * r);
+                float vR = 0.5f * (float) Math.sqrt(2f / (r * r));
+                return (float) Math.sqrt(dist) <= 1f - vR * (1f - thr) + GEOM_EPS;
             }
-            case ELLIPSOID: {
-                float ex = (float) dx / sx, ey = (float) dy / sy, ez = (float) dz / sz;
-                return ex * ex + ey * ey + ez * ez <= 1f + GEOM_EPS;
+            case OCTAHEDRON: {
+                float norm = (float) Math.abs(dx) / sx + (float) Math.abs(dy) / sy + (float) Math.abs(dz) / sz;
+                float vR = 0.5f * (1f / sx + 1f / sy + 1f / sz);
+                return norm <= 1f - vR * (1f - thr) + GEOM_EPS;
             }
-            case OCTAHEDRON:
-                return (float) Math.abs(dx) / sx + (float) Math.abs(dy) / sy + (float) Math.abs(dz) / sz
-                    <= 1f + GEOM_EPS;
             default:
                 return true;
         }

@@ -19,6 +19,7 @@ import net.minecraft.world.World;
 import com.gtnewhorizon.gtnhlib.network.base.IPacket;
 
 import github.thehighcruw.dimensium.Dimensium;
+import github.thehighcruw.dimensium.DimensiumConfig;
 import github.thehighcruw.dimensium.history.EditHistory;
 import github.thehighcruw.dimensium.tool.math.ShapeMath;
 import github.thehighcruw.dimensium.tool.state.SelectedBlockState;
@@ -224,7 +225,8 @@ public class PacketShapePlacement implements IPacket {
                         supersphereExp,
                         polygonSides,
                         spiralSpacing,
-                        spiralTurns)) continue;
+                        spiralTurns,
+                        DimensiumConfig.shapeThreshold)) continue;
 
                     int bx = anchorX + ox, by = anchorY + oy, bz = anchorZ + oz;
                     if (by < 0 || by >= world.getHeight()) continue;

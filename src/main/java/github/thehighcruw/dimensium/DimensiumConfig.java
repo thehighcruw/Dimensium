@@ -50,6 +50,10 @@ public class DimensiumConfig {
     @Config.RangeFloat(min = 0.0f, max = 45.0f)
     public static float rotationSnapDegrees = 1.0f;
 
+    @Config.Comment("Surface inclusion threshold for curved shapes (sphere, cylinder, etc.). 1.0 = exact mathematical surface. Lower values crop voxels at the surface boundary.")
+    @Config.RangeFloat(min = 0.0f, max = 1.0f)
+    public static float shapeThreshold = 0.75f;
+
     @Config.Comment("Scroll speed multiplier applied to brush-radius scrolling and freecam zoom scrolling.")
     @Config.RangeFloat(min = 0.1f, max = 10.0f)
     public static float worldScrollSpeedModifier = 1.0f;
@@ -57,6 +61,11 @@ public class DimensiumConfig {
     @Config.Comment("Scroll speed multiplier applied to UI scrollbars.")
     @Config.RangeFloat(min = 0.1f, max = 10.0f)
     public static float uiScrollSpeedModifier = 1.0f;
+
+    public static void setShapeThreshold(float value) {
+        shapeThreshold = value;
+        save();
+    }
 
     public static void setWorldScrollSpeedModifier(float value) {
         worldScrollSpeedModifier = value;

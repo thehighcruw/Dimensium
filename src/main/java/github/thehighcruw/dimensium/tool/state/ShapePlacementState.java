@@ -238,7 +238,8 @@ public class ShapePlacementState {
                         s.shapeSupersphereExp,
                         s.shapePolygonSides,
                         s.shapeSpiralSpacing,
-                        s.shapeSpiralTurns)) continue;
+                        s.shapeSpiralTurns,
+                        DimensiumConfig.shapeThreshold)) continue;
 
                     if (blocks.size() >= maxGhost) return null;
                     blocks.add(new int[] { ox, oy, oz });
@@ -298,6 +299,8 @@ public class ShapePlacementState {
             + ","
             + Math.round(scaleY * 100)
             + ","
-            + Math.round(scaleZ * 100);
+            + Math.round(scaleZ * 100)
+            + ","
+            + Math.round(DimensiumConfig.shapeThreshold * 1000);
     }
 }

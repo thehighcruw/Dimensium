@@ -12,6 +12,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.World;
 
+import github.thehighcruw.dimensium.DimensiumConfig;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 import github.thehighcruw.dimensium.tool.math.ShapeMath;
 import github.thehighcruw.dimensium.tool.state.PaletteState;
@@ -83,6 +84,7 @@ public class ShapeBrush implements BrushStrategy {
             s.shapeSupersphereExp,
             s.shapePolygonSides,
             s.shapeSpiralSpacing,
-            s.shapeSpiralTurns);
+            s.shapeSpiralTurns,
+            DimensiumConfig.shapeThreshold);
     }
 }

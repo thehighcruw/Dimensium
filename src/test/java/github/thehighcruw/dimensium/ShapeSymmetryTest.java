@@ -54,7 +54,8 @@ public class ShapeSymmetryTest {
             EXP,
             SIDES,
             SPIRAL_SP,
-            SPIRAL_T);
+            SPIRAL_T,
+            1f);
     }
 
     private static boolean s(ShapeType type, int dx, int dy, int dz, int w, int h, int d, boolean hollow) {

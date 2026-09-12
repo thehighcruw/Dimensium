@@ -410,6 +410,7 @@ dimensium.ui.shape.torus_ring_z=Torus Ring Z
 dimensium.ui.shape.torus_sep_axes=Torus Sep. Axes
 dimensium.ui.shape.torus_tube=Torus Tube Rad
 dimensium.ui.shape.type=Type
+dimensium.ui.shape.threshold=Threshold
 dimensium.ui.shape.wall_thickness=Wall Thickness
 dimensium.ui.shape.width=Width
 
@@ -499,6 +500,7 @@ dimensium.settings.general.world_scroll_speed=World Scroll Speed
 dimensium.settings.general.ui_scroll_speed=UI Scroll Speed
 dimensium.settings.general.rotation_snap=Rotation Snap (degrees, 0 = off)
 dimensium.settings.general.movement_speed=Movement Speed (1.0x = normal walk speed)
+dimensium.settings.general.shape_threshold=Shape Surface Threshold (1.0 = exact, lower crops surface voxels)
 dimensium.settings.category.navigation=Navigation
 dimensium.settings.navigation.world_scroll_speed=World Scroll Speed
 dimensium.settings.navigation.movement_speed=Movement Speed (1.0x = normal walk speed)

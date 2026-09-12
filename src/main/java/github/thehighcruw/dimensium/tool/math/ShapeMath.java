@@ -14,7 +14,7 @@ public class ShapeMath {
 
     public static boolean inShapeGeom(ShapeToolState.ShapeType type, int dx, int dy, int dz, int w, int h, int d,
         boolean hollow, float exponent, int torusRingR, int torusRingRZ, int torusTubeR, int tubeWallThickness,
-        float supersphereExp, int polygonSides, float spiralSpacing, float spiralTurns) {
+        float supersphereExp, int polygonSides, float spiralSpacing, float spiralTurns, float threshold) {
         float cx = (w - 1) / 2f, cy = (h - 1) / 2f, cz = (d - 1) / 2f;
         float rx = w / 2f, ry = h / 2f, rz = d / 2f;
         switch (type) {
@@ -25,18 +25,22 @@ public class ShapeMath {
             case SPHERE: {
                 float ex = (dx - cx) / rx, ey = (dy - cy) / ry, ez = (dz - cz) / rz;
                 float dist = ex * ex + ey * ey + ez * ez;
-                if (!hollow) return dist <= 1f;
+                float vR = 0.5f * (float) Math.sqrt(1f / (rx * rx) + 1f / (ry * ry) + 1f / (rz * rz));
+                boolean outer = passL2(dist, vR, threshold);
+                if (!hollow) return outer;
                 float irx = Math.max(1, rx - 1), iry = Math.max(1, ry - 1), irz = Math.max(1, rz - 1);
                 float ix = (dx - cx) / irx, iy = (dy - cy) / iry, iz = (dz - cz) / irz;
-                return dist <= 1f && ix * ix + iy * iy + iz * iz > 1f;
+                return outer && ix * ix + iy * iy + iz * iz > 1f;
             }
             case CYLINDER: {
                 float ex = (dx - cx) / rx, ez = (dz - cz) / rz;
                 float dist = ex * ex + ez * ez;
-                if (!hollow) return dist <= 1f;
+                float vR = 0.5f * (float) Math.sqrt(1f / (rx * rx) + 1f / (rz * rz));
+                boolean outer = passL2(dist, vR, threshold);
+                if (!hollow) return outer;
                 float irx = Math.max(1, rx - 1), irz = Math.max(1, rz - 1);
                 float ix = (dx - cx) / irx, iz = (dz - cz) / irz;
-                return dist <= 1f && (ix * ix + iz * iz > 1f || dy == 0 || dy == h - 1);
+                return outer && (ix * ix + iz * iz > 1f || dy == 0 || dy == h - 1);
             }
             case PYRAMID: {
                 float level = (float) dy / Math.max(1, h - 1);
@@ -51,10 +55,12 @@ public class ShapeMath {
                 if (arx < 0.5f || arz < 0.5f) return Math.abs(dx - cx) < 0.5f && Math.abs(dz - cz) < 0.5f;
                 float ex = (dx - cx) / arx, ez = (dz - cz) / arz;
                 float dist = ex * ex + ez * ez;
-                if (!hollow) return dist <= 1f;
+                float vR = 0.5f * (float) Math.sqrt(1f / (arx * arx) + 1f / (arz * arz));
+                boolean outer = passL2(dist, vR, threshold);
+                if (!hollow) return outer;
                 float irx2 = Math.max(0.5f, arx - 1), irz2 = Math.max(0.5f, arz - 1);
                 float iex = (dx - cx) / irx2, iez = (dz - cz) / irz2;
-                return dist <= 1f && (iex * iex + iez * iez > 1f || dy == 0);
+                return outer && (iex * iex + iez * iez > 1f || dy == 0);
             }
             case TORUS: {
                 // Elliptic ring: find nearest point on the ring ellipse, then test tube radius
@@ -70,20 +76,24 @@ public class ShapeMath {
             }
             case OCTAHEDRON: {
                 float norm = Math.abs((dx - cx) / rx) + Math.abs((dy - cy) / ry) + Math.abs((dz - cz) / rz);
-                if (!hollow) return norm <= 1f;
+                float vR = 0.5f * (1f / rx + 1f / ry + 1f / rz);
+                boolean outer = passL1(norm, vR, threshold);
+                if (!hollow) return outer;
                 float irx2 = Math.max(0.5f, rx - 1), iry2 = Math.max(0.5f, ry - 1), irz2 = Math.max(0.5f, rz - 1);
                 float inner = Math.abs((dx - cx) / irx2) + Math.abs((dy - cy) / iry2) + Math.abs((dz - cz) / irz2);
-                return norm <= 1f && inner > 1f;
+                return outer && inner > 1f;
             }
             case DISK: {
                 int midY = (h - 1) / 2;
                 if (dy != midY) return false;
                 float ex = (dx - cx) / rx, ez = (dz - cz) / rz;
                 float dist = ex * ex + ez * ez;
-                if (!hollow) return dist <= 1f;
+                float vR = 0.5f * (float) Math.sqrt(1f / (rx * rx) + 1f / (rz * rz));
+                boolean outer = passL2(dist, vR, threshold);
+                if (!hollow) return outer;
                 float irx2 = Math.max(0.5f, rx - 1), irz2 = Math.max(0.5f, rz - 1);
                 float ix = (dx - cx) / irx2, iz = (dz - cz) / irz2;
-                return dist <= 1f && ix * ix + iz * iz > 1f;
+                return outer && ix * ix + iz * iz > 1f;
             }
             case PLANE: {
                 return dy == (h - 1) / 2;
@@ -95,11 +105,14 @@ public class ShapeMath {
                 float ex = (float) Math.pow(Math.abs((dx - cx) / rx), n);
                 float ez = (float) Math.pow(Math.abs((dz - cz) / rz), n);
                 float dist = ex + ez;
-                if (!hollow) return dist <= 1f;
+                float vR = 0.5f * (float) Math.sqrt(1f / (rx * rx) + 1f / (rz * rz));
+                float cutoffN = (float) Math.pow(1f - vR * (1f - threshold), n);
+                boolean outer = dist <= cutoffN;
+                if (!hollow) return outer;
                 float irx2 = Math.max(0.5f, rx - 1), irz2 = Math.max(0.5f, rz - 1);
                 float iex = (float) Math.pow(Math.abs((dx - cx) / irx2), n);
                 float iez = (float) Math.pow(Math.abs((dz - cz) / irz2), n);
-                return dist <= 1f && iex + iez > 1f;
+                return outer && iex + iez > 1f;
             }
             case SUPERSPHERE: {
                 float n = supersphereExp;
@@ -107,12 +120,15 @@ public class ShapeMath {
                 float ey = (float) Math.pow(Math.abs((dy - cy) / ry), n);
                 float ez = (float) Math.pow(Math.abs((dz - cz) / rz), n);
                 float dist = ex + ey + ez;
-                if (!hollow) return dist <= 1f;
+                float vR = 0.5f * (float) Math.sqrt(1f / (rx * rx) + 1f / (ry * ry) + 1f / (rz * rz));
+                float cutoffN = (float) Math.pow(1f - vR * (1f - threshold), n);
+                boolean outer = dist <= cutoffN;
+                if (!hollow) return outer;
                 float irx2 = Math.max(0.5f, rx - 1), iry2 = Math.max(0.5f, ry - 1), irz2 = Math.max(0.5f, rz - 1);
                 float iex = (float) Math.pow(Math.abs((dx - cx) / irx2), n);
                 float iey = (float) Math.pow(Math.abs((dy - cy) / iry2), n);
                 float iez = (float) Math.pow(Math.abs((dz - cz) / irz2), n);
-                return dist <= 1f && iex + iey + iez > 1f;
+                return outer && iex + iey + iez > 1f;
             }
             case TUBE: {
                 float ex = (dx - cx) / rx, ez = (dz - cz) / rz;
@@ -139,6 +155,20 @@ public class ShapeMath {
             default:
                 return true;
         }
+    }
+
+    /**
+     * Threshold test for L2-norm shapes. dist = squared normalised distance. voxelHalfR = 0.5*sqrt(1/rx²+...).
+     * At threshold=1: standard cutoff. At threshold=0: crops outermost voxel shell only.
+     */
+    private static boolean passL2(float dist, float voxelHalfR, float threshold) {
+        float cutoff = 1f - voxelHalfR * (1f - threshold);
+        return (float) Math.sqrt(dist) <= cutoff;
+    }
+
+    /** Threshold test for L1-norm shapes (octahedron). norm = unnormalised L1 distance. */
+    private static boolean passL1(float norm, float voxelHalfR, float threshold) {
+        return norm <= 1f - voxelHalfR * (1f - threshold);
     }
 
     private static boolean regularPolygonContains(float lpx, float lpz, float rx, float rz, int polygonSides,
@@ -242,7 +272,7 @@ public class ShapeMath {
      */
     public static boolean inShapeGeomF(ShapeToolState.ShapeType type, float dx, float dy, float dz, int w, int h, int d,
         boolean hollow, float exponent, int torusRingR, int torusRingRZ, int torusTubeR, int tubeWallThickness,
-        float supersphereExp, int polygonSides, float spiralSpacing, float spiralTurns) {
+        float supersphereExp, int polygonSides, float spiralSpacing, float spiralTurns, float threshold) {
         float ccx = w / 2f, ccy = h / 2f, ccz = d / 2f;
         float rx = w / 2f, ry = h / 2f, rz = d / 2f;
         switch (type) {
@@ -254,19 +284,22 @@ public class ShapeMath {
             case SPHERE: {
                 float ex = (dx - ccx) / rx, ey = (dy - ccy) / ry, ez = (dz - ccz) / rz;
                 float dist = ex * ex + ey * ey + ez * ez;
-                if (!hollow) return dist <= 1f;
+                float vR = 0.5f * (float) Math.sqrt(1f / (rx * rx) + 1f / (ry * ry) + 1f / (rz * rz));
+                boolean outer = passL2(dist, vR, threshold);
+                if (!hollow) return outer;
                 float irx2 = Math.max(0.5f, rx - 1), iry2 = Math.max(0.5f, ry - 1), irz2 = Math.max(0.5f, rz - 1);
-                return dist <= 1f
-                    && ((dx - ccx) / irx2) * ((dx - ccx) / irx2) + ((dy - ccy) / iry2) * ((dy - ccy) / iry2)
-                        + ((dz - ccz) / irz2) * ((dz - ccz) / irz2) > 1f;
+                return outer && ((dx - ccx) / irx2) * ((dx - ccx) / irx2) + ((dy - ccy) / iry2) * ((dy - ccy) / iry2)
+                    + ((dz - ccz) / irz2) * ((dz - ccz) / irz2) > 1f;
             }
             case CYLINDER: {
                 float ex = (dx - ccx) / rx, ez = (dz - ccz) / rz;
                 float dist = ex * ex + ez * ez;
-                if (!hollow) return dist <= 1f && dy >= 0 && dy < h;
+                float vR = 0.5f * (float) Math.sqrt(1f / (rx * rx) + 1f / (rz * rz));
+                boolean outer = passL2(dist, vR, threshold);
+                if (!hollow) return outer && dy >= 0 && dy < h;
                 float irx2 = Math.max(0.5f, rx - 1), irz2 = Math.max(0.5f, rz - 1);
                 boolean onCap = dy < 1f || dy > h - 2f;
-                return dist <= 1f && dy >= 0
+                return outer && dy >= 0
                     && dy < h
                     && (((dx - ccx) / irx2) * ((dx - ccx) / irx2) + ((dz - ccz) / irz2) * ((dz - ccz) / irz2) > 1f
                         || onCap);
@@ -285,10 +318,12 @@ public class ShapeMath {
                 if (arx < 0.5f || arz < 0.5f) return Math.abs(dx - ccx) < 0.5f && Math.abs(dz - ccz) < 0.5f;
                 float ex = (dx - ccx) / arx, ez = (dz - ccz) / arz;
                 float dist = ex * ex + ez * ez;
-                if (!hollow) return dist <= 1f;
+                float vR = 0.5f * (float) Math.sqrt(1f / (arx * arx) + 1f / (arz * arz));
+                boolean outer = passL2(dist, vR, threshold);
+                if (!hollow) return outer;
                 float irx2 = Math.max(0.5f, arx - 1), irz2 = Math.max(0.5f, arz - 1);
                 boolean onBase = dy < 1f;
-                return dist <= 1f
+                return outer
                     && (((dx - ccx) / irx2) * ((dx - ccx) / irx2) + ((dz - ccz) / irz2) * ((dz - ccz) / irz2) > 1f
                         || onBase);
             }
@@ -305,18 +340,22 @@ public class ShapeMath {
             }
             case OCTAHEDRON: {
                 float norm = Math.abs((dx - ccx) / rx) + Math.abs((dy - ccy) / ry) + Math.abs((dz - ccz) / rz);
-                if (!hollow) return norm <= 1f;
+                float vR = 0.5f * (1f / rx + 1f / ry + 1f / rz);
+                boolean outer = passL1(norm, vR, threshold);
+                if (!hollow) return outer;
                 float irx2 = Math.max(0.5f, rx - 1), iry2 = Math.max(0.5f, ry - 1), irz2 = Math.max(0.5f, rz - 1);
-                return norm <= 1f
+                return outer
                     && (Math.abs((dx - ccx) / irx2) + Math.abs((dy - ccy) / iry2) + Math.abs((dz - ccz) / irz2)) > 1f;
             }
             case DISK: {
                 if (Math.abs(dy - ccy) > 0.5f) return false;
                 float ex = (dx - ccx) / rx, ez = (dz - ccz) / rz;
                 float dist = ex * ex + ez * ez;
-                if (!hollow) return dist <= 1f;
+                float vR = 0.5f * (float) Math.sqrt(1f / (rx * rx) + 1f / (rz * rz));
+                boolean outer = passL2(dist, vR, threshold);
+                if (!hollow) return outer;
                 float irx2 = Math.max(0.5f, rx - 1), irz2 = Math.max(0.5f, rz - 1);
-                return dist <= 1f
+                return outer
                     && ((dx - ccx) / irx2) * ((dx - ccx) / irx2) + ((dz - ccz) / irz2) * ((dz - ccz) / irz2) > 1f;
             }
             case PLANE:
@@ -327,9 +366,12 @@ public class ShapeMath {
                 float ex = (float) Math.pow(Math.abs((dx - ccx) / rx), n);
                 float ez = (float) Math.pow(Math.abs((dz - ccz) / rz), n);
                 float dist = ex + ez;
-                if (!hollow) return dist <= 1f;
+                float vR = 0.5f * (float) Math.sqrt(1f / (rx * rx) + 1f / (rz * rz));
+                float cutoffN = (float) Math.pow(1f - vR * (1f - threshold), n);
+                boolean outer = dist <= cutoffN;
+                if (!hollow) return outer;
                 float irx2 = Math.max(0.5f, rx - 1), irz2 = Math.max(0.5f, rz - 1);
-                return dist <= 1f && ((float) Math.pow(Math.abs((dx - ccx) / irx2), n)
+                return outer && ((float) Math.pow(Math.abs((dx - ccx) / irx2), n)
                     + (float) Math.pow(Math.abs((dz - ccz) / irz2), n)) > 1f;
             }
             case SUPERSPHERE: {
@@ -338,9 +380,12 @@ public class ShapeMath {
                 float ey = (float) Math.pow(Math.abs((dy - ccy) / ry), n);
                 float ez = (float) Math.pow(Math.abs((dz - ccz) / rz), n);
                 float dist = ex + ey + ez;
-                if (!hollow) return dist <= 1f;
+                float vR = 0.5f * (float) Math.sqrt(1f / (rx * rx) + 1f / (ry * ry) + 1f / (rz * rz));
+                float cutoffN = (float) Math.pow(1f - vR * (1f - threshold), n);
+                boolean outer = dist <= cutoffN;
+                if (!hollow) return outer;
                 float irx2 = Math.max(0.5f, rx - 1), iry2 = Math.max(0.5f, ry - 1), irz2 = Math.max(0.5f, rz - 1);
-                return dist <= 1f && ((float) Math.pow(Math.abs((dx - ccx) / irx2), n)
+                return outer && ((float) Math.pow(Math.abs((dx - ccx) / irx2), n)
                     + (float) Math.pow(Math.abs((dy - ccy) / iry2), n)
                     + (float) Math.pow(Math.abs((dz - ccz) / irz2), n)) > 1f;
             }

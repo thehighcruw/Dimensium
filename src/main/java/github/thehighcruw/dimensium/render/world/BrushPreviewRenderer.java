@@ -9,7 +9,6 @@ import java.util.HashSet;
 import java.util.Map;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.util.MovingObjectPosition;
 
@@ -18,6 +17,7 @@ import org.lwjgl.opengl.GL11;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import github.thehighcruw.dimensium.DimensiumConfig;
 import github.thehighcruw.dimensium.handler.KeyConstants;
 import github.thehighcruw.dimensium.handler.TickHandler;
 import github.thehighcruw.dimensium.handler.brushes.BrushInputRegistry;
@@ -40,6 +40,7 @@ public class BrushPreviewRenderer {
     private int cachedBrushSize = -1;
     private int cachedBrushSizeY = -1;
     private int cachedBrushSizeZ = -1;
+    private float cachedThreshold = -1f;
     private float[] cachedBrushWire = null;
     private HashSet<Long> cachedBrushSet = null;
 
@@ -198,12 +199,16 @@ public class BrushPreviewRenderer {
     }
 
     private float[] getBrushWireframe(BrushShape shape, int sx, int sy, int sz) {
-        if (shape == cachedBrushShape && sx == cachedBrushSize && sy == cachedBrushSizeY && sz == cachedBrushSizeZ)
-            return cachedBrushWire;
+        float thr = DimensiumConfig.shapeThreshold;
+        if (shape == cachedBrushShape && sx == cachedBrushSize
+            && sy == cachedBrushSizeY
+            && sz == cachedBrushSizeZ
+            && thr == cachedThreshold) return cachedBrushWire;
         cachedBrushShape = shape;
         cachedBrushSize = sx;
         cachedBrushSizeY = sy;
         cachedBrushSizeZ = sz;
+        cachedThreshold = thr;
         cachedBrushSet = buildBrushSet(shape, sx, sy, sz);
         cachedBrushWire = cachedBrushSet != null ? creaseWireframeFromSet(cachedBrushSet) : null;
         return cachedBrushWire;
