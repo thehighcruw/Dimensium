@@ -39,6 +39,7 @@ import github.thehighcruw.dimensium.tool.DimensiumMode;
 import github.thehighcruw.dimensium.tool.Tool;
 import github.thehighcruw.dimensium.tool.state.ClipboardPlacementState;
 import github.thehighcruw.dimensium.tool.state.ModellingToolState;
+import github.thehighcruw.dimensium.tool.state.MoveToolState;
 import github.thehighcruw.dimensium.tool.state.PathToolState;
 import github.thehighcruw.dimensium.tool.state.SelectToolState;
 import github.thehighcruw.dimensium.tool.state.SelectedBlockState;
@@ -266,6 +267,9 @@ public class KeyHandler {
                 return;
             }
 
+            // Gizmo nudge.
+            if (handleGizmoNudge(key, mods)) return;
+
             // Fill.
             if (matches(key, mods, Dimensium.actionFill, Dimensium.actionFillMods)) {
                 if (sel.hasSelection()) {
@@ -325,5 +329,120 @@ public class KeyHandler {
 
     private static boolean matches(int key, int mods, KeyBinding binding, int requiredMods) {
         return key == binding.getKeyCode() && mods == requiredMods;
+    }
+
+    /**
+     * Nudges the active translation gizmo by 1 block if a nudge key is pressed.
+     * Direction is relative to the freecam's horizontal facing for XZ nudges.
+     * Returns true if a nudge key was consumed.
+     */
+    private boolean handleGizmoNudge(int key, int mods) {
+        int[] delta = nudgeDelta(key, mods);
+        if (delta == null) return false;
+
+        Tool tool = DimensiumMode.INSTANCE.selectedTool;
+
+        if (tool == Tool.SHAPE && ShapePlacementState.INSTANCE.active) {
+            ShapePlacementState sps = ShapePlacementState.INSTANCE;
+            sps.anchorX += delta[0];
+            sps.anchorY += delta[1];
+            sps.anchorZ += delta[2];
+            sps.anchorFX = sps.anchorX;
+            sps.anchorFY = sps.anchorY;
+            sps.anchorFZ = sps.anchorZ;
+            sps.invalidateGhost();
+            sps.rebuildIfNeeded();
+            return true;
+        }
+
+        if (ClipboardPlacementState.INSTANCE.active) {
+            ClipboardPlacementState cps = ClipboardPlacementState.INSTANCE;
+            cps.anchorX += delta[0];
+            cps.anchorY += delta[1];
+            cps.anchorZ += delta[2];
+            cps.anchorFX = cps.anchorX;
+            cps.anchorFY = cps.anchorY;
+            cps.anchorFZ = cps.anchorZ;
+            cps.rebuildPreview();
+            return true;
+        }
+
+        if (tool == Tool.MOVE && MoveToolState.INSTANCE.active) {
+            MoveToolState mts = MoveToolState.INSTANCE;
+            mts.deltaFX += delta[0];
+            mts.deltaFY += delta[1];
+            mts.deltaFZ += delta[2];
+            mts.invalidateGhost();
+            mts.rebuildIfNeeded();
+            return true;
+        }
+
+        if (tool == Tool.PATH) {
+            PathToolState pts = PathToolState.INSTANCE;
+            PathToolState.PathPoint pt = pts.selectedPoint();
+            if (pt != null) {
+                pt.x += delta[0];
+                pt.y += delta[1];
+                pt.z += delta[2];
+                pts.gizmo.reset();
+                pts.invalidatePath();
+                return true;
+            }
+        }
+
+        if (tool == Tool.MODELLING) {
+            ModellingToolState modts = ModellingToolState.INSTANCE;
+            ModellingToolState.ModelPoint pt = modts.selectedPointObj();
+            if (pt != null) {
+                pt.x += delta[0];
+                pt.y += delta[1];
+                pt.z += delta[2];
+                modts.gizmo.reset();
+                modts.invalidate();
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Returns [dx, dy, dz] for the nudge key, or null if key is not a nudge key.
+     * XZ directions are snapped to the cardinal axis closest to the camera's horizontal facing.
+     */
+    private static int[] nudgeDelta(int key, int mods) {
+        boolean fwd = matches(key, mods, Dimensium.gizmoNudgeForward, Dimensium.gizmoNudgeForwardMods);
+        boolean bwd = matches(key, mods, Dimensium.gizmoNudgeBackward, Dimensium.gizmoNudgeBackwardMods);
+        boolean rgt = matches(key, mods, Dimensium.gizmoNudgeRight, Dimensium.gizmoNudgeRightMods);
+        boolean lft = matches(key, mods, Dimensium.gizmoNudgeLeft, Dimensium.gizmoNudgeLeftMods);
+        boolean up = matches(key, mods, Dimensium.gizmoNudgeUp, Dimensium.gizmoNudgeUpMods);
+        boolean dwn = matches(key, mods, Dimensium.gizmoNudgeDown, Dimensium.gizmoNudgeDownMods);
+
+        if (!fwd && !bwd && !rgt && !lft && !up && !dwn) return null;
+
+        if (up) return new int[] { 0, 1, 0 };
+        if (dwn) return new int[] { 0, -1, 0 };
+
+        net.minecraft.entity.Entity cam = FreecamState.INSTANCE.cameraEntity;
+        float yaw = cam != null ? cam.rotationYaw : 0f;
+        // Snap yaw to nearest 90°: 0=south(+Z), 1=west(-X), 2=north(-Z), 3=east(+X)
+        int q = Math.round(yaw / 90f) & 3;
+        // Cardinal forward vectors per quadrant
+        int[] qfx = { 0, -1, 0, 1 };
+        int[] qfz = { 1, 0, -1, 0 };
+        // Cardinal right vectors: right = direction faced after turning right (yaw+90).
+        // Formula: (-cos(yaw), -sin(yaw)) in (x,z). Per quadrant:
+        // south→west, west→north, north→east, east→south
+        int[] qrx = { -1, 0, 1, 0 };
+        int[] qrz = { 0, -1, 0, 1 };
+
+        // Flip Canvas mirrors the horizontal screen axis, inverting the effective L/R direction.
+        int lrSign = github.thehighcruw.dimensium.render.ViewState.INSTANCE.flipCanvas ? -1 : 1;
+
+        if (fwd) return new int[] { qfx[q], 0, qfz[q] };
+        if (bwd) return new int[] { -qfx[q], 0, -qfz[q] };
+        if (rgt) return new int[] { lrSign * qrx[q], 0, lrSign * qrz[q] };
+        if (lft) return new int[] { -lrSign * qrx[q], 0, -lrSign * qrz[q] };
+        return null;
     }
 }

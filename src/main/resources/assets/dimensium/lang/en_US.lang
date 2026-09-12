@@ -521,6 +521,12 @@ dimensium.settings.keybind.confirm=Confirm
 dimensium.settings.keybind.save_blueprint=Save Blueprint
 dimensium.settings.keybind.blueprint_browser=Blueprint Browser
 dimensium.settings.keybind.settings=Open Settings
+dimensium.settings.keybind.gizmo_nudge_forward=Nudge Gizmo Forwards
+dimensium.settings.keybind.gizmo_nudge_backward=Nudge Gizmo Backwards
+dimensium.settings.keybind.gizmo_nudge_right=Nudge Gizmo Right
+dimensium.settings.keybind.gizmo_nudge_left=Nudge Gizmo Left
+dimensium.settings.keybind.gizmo_nudge_up=Nudge Gizmo Up (+Y)
+dimensium.settings.keybind.gizmo_nudge_down=Nudge Gizmo Down (-Y)
 
 # Operations modals / windows
 dimensium.op.fill.title=Fill

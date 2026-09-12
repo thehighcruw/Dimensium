@@ -257,6 +257,36 @@ public class DimensiumConfig {
     @Config.Comment("Editor: Open settings — modifier mask")
     public static int modsActionSettings = 1; // MOD_CTRL
 
+    @Config.Comment("Gizmo: Nudge forwards — key code")
+    public static int keyGizmoNudgeForward = org.lwjgl.input.Keyboard.KEY_UP;
+    @Config.Comment("Gizmo: Nudge forwards — modifier mask")
+    public static int modsGizmoNudgeForward = 0;
+
+    @Config.Comment("Gizmo: Nudge backwards — key code")
+    public static int keyGizmoNudgeBackward = org.lwjgl.input.Keyboard.KEY_DOWN;
+    @Config.Comment("Gizmo: Nudge backwards — modifier mask")
+    public static int modsGizmoNudgeBackward = 0;
+
+    @Config.Comment("Gizmo: Nudge right — key code")
+    public static int keyGizmoNudgeRight = org.lwjgl.input.Keyboard.KEY_RIGHT;
+    @Config.Comment("Gizmo: Nudge right — modifier mask")
+    public static int modsGizmoNudgeRight = 0;
+
+    @Config.Comment("Gizmo: Nudge left — key code")
+    public static int keyGizmoNudgeLeft = org.lwjgl.input.Keyboard.KEY_LEFT;
+    @Config.Comment("Gizmo: Nudge left — modifier mask")
+    public static int modsGizmoNudgeLeft = 0;
+
+    @Config.Comment("Gizmo: Nudge up (+Y) — key code")
+    public static int keyGizmoNudgeUp = org.lwjgl.input.Keyboard.KEY_PRIOR;
+    @Config.Comment("Gizmo: Nudge up (+Y) — modifier mask")
+    public static int modsGizmoNudgeUp = 0;
+
+    @Config.Comment("Gizmo: Nudge down (-Y) — key code")
+    public static int keyGizmoNudgeDown = org.lwjgl.input.Keyboard.KEY_NEXT;
+    @Config.Comment("Gizmo: Nudge down (-Y) — modifier mask")
+    public static int modsGizmoNudgeDown = 0;
+
     // ── Window open state — persisted across restarts ──
     @Config.Comment("History window open state.")
     public static boolean windowHistoryOpen = true;

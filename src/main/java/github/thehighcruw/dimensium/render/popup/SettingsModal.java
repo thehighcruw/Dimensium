@@ -46,7 +46,10 @@ public class SettingsModal {
         "dimensium.settings.keybind.redo", "dimensium.settings.keybind.copy", "dimensium.settings.keybind.cut",
         "dimensium.settings.keybind.paste", "dimensium.settings.keybind.fill", "dimensium.settings.keybind.erase",
         "dimensium.settings.keybind.confirm", "dimensium.settings.keybind.save_blueprint",
-        "dimensium.settings.keybind.blueprint_browser", "dimensium.settings.keybind.settings", };
+        "dimensium.settings.keybind.blueprint_browser", "dimensium.settings.keybind.settings",
+        "dimensium.settings.keybind.gizmo_nudge_forward", "dimensium.settings.keybind.gizmo_nudge_backward",
+        "dimensium.settings.keybind.gizmo_nudge_right", "dimensium.settings.keybind.gizmo_nudge_left",
+        "dimensium.settings.keybind.gizmo_nudge_up", "dimensium.settings.keybind.gizmo_nudge_down", };
 
     public void open() {
         open = true;
@@ -321,6 +324,42 @@ public class SettingsModal {
                 DimensiumConfig.keyActionSettings = key;
                 DimensiumConfig.modsActionSettings = mods;
                 break;
+            case 11:
+                Dimensium.gizmoNudgeForward.setKeyCode(key);
+                Dimensium.gizmoNudgeForwardMods = mods;
+                DimensiumConfig.keyGizmoNudgeForward = key;
+                DimensiumConfig.modsGizmoNudgeForward = mods;
+                break;
+            case 12:
+                Dimensium.gizmoNudgeBackward.setKeyCode(key);
+                Dimensium.gizmoNudgeBackwardMods = mods;
+                DimensiumConfig.keyGizmoNudgeBackward = key;
+                DimensiumConfig.modsGizmoNudgeBackward = mods;
+                break;
+            case 13:
+                Dimensium.gizmoNudgeRight.setKeyCode(key);
+                Dimensium.gizmoNudgeRightMods = mods;
+                DimensiumConfig.keyGizmoNudgeRight = key;
+                DimensiumConfig.modsGizmoNudgeRight = mods;
+                break;
+            case 14:
+                Dimensium.gizmoNudgeLeft.setKeyCode(key);
+                Dimensium.gizmoNudgeLeftMods = mods;
+                DimensiumConfig.keyGizmoNudgeLeft = key;
+                DimensiumConfig.modsGizmoNudgeLeft = mods;
+                break;
+            case 15:
+                Dimensium.gizmoNudgeUp.setKeyCode(key);
+                Dimensium.gizmoNudgeUpMods = mods;
+                DimensiumConfig.keyGizmoNudgeUp = key;
+                DimensiumConfig.modsGizmoNudgeUp = mods;
+                break;
+            case 16:
+                Dimensium.gizmoNudgeDown.setKeyCode(key);
+                Dimensium.gizmoNudgeDownMods = mods;
+                DimensiumConfig.keyGizmoNudgeDown = key;
+                DimensiumConfig.modsGizmoNudgeDown = mods;
+                break;
             default:
                 break;
         }
@@ -359,6 +398,18 @@ public class SettingsModal {
                 return Dimensium.actionBlueprintBrowser.getKeyCode();
             case 10:
                 return Dimensium.actionSettings.getKeyCode();
+            case 11:
+                return Dimensium.gizmoNudgeForward.getKeyCode();
+            case 12:
+                return Dimensium.gizmoNudgeBackward.getKeyCode();
+            case 13:
+                return Dimensium.gizmoNudgeRight.getKeyCode();
+            case 14:
+                return Dimensium.gizmoNudgeLeft.getKeyCode();
+            case 15:
+                return Dimensium.gizmoNudgeUp.getKeyCode();
+            case 16:
+                return Dimensium.gizmoNudgeDown.getKeyCode();
             default:
                 return Keyboard.KEY_NONE;
         }
@@ -388,6 +439,18 @@ public class SettingsModal {
                 return Dimensium.actionBlueprintBrowserMods;
             case 10:
                 return Dimensium.actionSettingsMods;
+            case 11:
+                return Dimensium.gizmoNudgeForwardMods;
+            case 12:
+                return Dimensium.gizmoNudgeBackwardMods;
+            case 13:
+                return Dimensium.gizmoNudgeRightMods;
+            case 14:
+                return Dimensium.gizmoNudgeLeftMods;
+            case 15:
+                return Dimensium.gizmoNudgeUpMods;
+            case 16:
+                return Dimensium.gizmoNudgeDownMods;
             default:
                 return 0;
         }

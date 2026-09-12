@@ -84,6 +84,30 @@ public class Dimensium {
         "key.dimensium.settings",
         Keyboard.KEY_PERIOD,
         "Dimensium");
+    public static KeyBinding gizmoNudgeForward = new KeyBinding(
+        "key.dimensium.gizmo.nudge_forward",
+        Keyboard.KEY_UP,
+        "Dimensium");
+    public static KeyBinding gizmoNudgeBackward = new KeyBinding(
+        "key.dimensium.gizmo.nudge_backward",
+        Keyboard.KEY_DOWN,
+        "Dimensium");
+    public static KeyBinding gizmoNudgeRight = new KeyBinding(
+        "key.dimensium.gizmo.nudge_right",
+        Keyboard.KEY_RIGHT,
+        "Dimensium");
+    public static KeyBinding gizmoNudgeLeft = new KeyBinding(
+        "key.dimensium.gizmo.nudge_left",
+        Keyboard.KEY_LEFT,
+        "Dimensium");
+    public static KeyBinding gizmoNudgeUp = new KeyBinding(
+        "key.dimensium.gizmo.nudge_up",
+        Keyboard.KEY_PRIOR,
+        "Dimensium");
+    public static KeyBinding gizmoNudgeDown = new KeyBinding(
+        "key.dimensium.gizmo.nudge_down",
+        Keyboard.KEY_NEXT,
+        "Dimensium");
 
     // Modifier masks for action keybinds.
     public static int actionUndoMods = MOD_CTRL;
@@ -97,6 +121,12 @@ public class Dimensium {
     public static int actionSaveBlueprintMods = MOD_CTRL;
     public static int actionBlueprintBrowserMods = MOD_CTRL;
     public static int actionSettingsMods = MOD_CTRL;
+    public static int gizmoNudgeForwardMods = 0;
+    public static int gizmoNudgeBackwardMods = 0;
+    public static int gizmoNudgeRightMods = 0;
+    public static int gizmoNudgeLeftMods = 0;
+    public static int gizmoNudgeUpMods = 0;
+    public static int gizmoNudgeDownMods = 0;
 
     private static EnumMap<Tool, KeyBinding> buildToolKeybinds() {
         EnumMap<Tool, KeyBinding> map = new EnumMap<>(Tool.class);
@@ -161,6 +191,18 @@ public class Dimensium {
         actionBlueprintBrowserMods = DimensiumConfig.modsActionBlueprintBrowser;
         actionSettings.setKeyCode(DimensiumConfig.keyActionSettings);
         actionSettingsMods = DimensiumConfig.modsActionSettings;
+        gizmoNudgeForward.setKeyCode(DimensiumConfig.keyGizmoNudgeForward);
+        gizmoNudgeForwardMods = DimensiumConfig.modsGizmoNudgeForward;
+        gizmoNudgeBackward.setKeyCode(DimensiumConfig.keyGizmoNudgeBackward);
+        gizmoNudgeBackwardMods = DimensiumConfig.modsGizmoNudgeBackward;
+        gizmoNudgeRight.setKeyCode(DimensiumConfig.keyGizmoNudgeRight);
+        gizmoNudgeRightMods = DimensiumConfig.modsGizmoNudgeRight;
+        gizmoNudgeLeft.setKeyCode(DimensiumConfig.keyGizmoNudgeLeft);
+        gizmoNudgeLeftMods = DimensiumConfig.modsGizmoNudgeLeft;
+        gizmoNudgeUp.setKeyCode(DimensiumConfig.keyGizmoNudgeUp);
+        gizmoNudgeUpMods = DimensiumConfig.modsGizmoNudgeUp;
+        gizmoNudgeDown.setKeyCode(DimensiumConfig.keyGizmoNudgeDown);
+        gizmoNudgeDownMods = DimensiumConfig.modsGizmoNudgeDown;
     }
 
     private static void setToolKey(Tool t, int key, int mods) {
