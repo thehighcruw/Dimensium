@@ -10,6 +10,7 @@ import java.util.Map;
 
 import net.minecraft.block.Block;
 
+import github.thehighcruw.dimensium.render.world.PlaneTranslationGizmo;
 import github.thehighcruw.dimensium.render.world.RotationGizmo;
 import github.thehighcruw.dimensium.render.world.TranslationGizmo;
 import github.thehighcruw.dimensium.render.world.ViewPlaneGizmo;
@@ -35,6 +36,7 @@ public class ClipboardPlacementState {
 
     public final ViewPlaneGizmo viewPlaneGizmo = new ViewPlaneGizmo();
     public final TranslationGizmo gizmo = new TranslationGizmo();
+    public final PlaneTranslationGizmo planeGizmo = new PlaneTranslationGizmo();
     public final RotationGizmo rotGizmo = new RotationGizmo();
 
     public double centerX() {
@@ -77,6 +79,7 @@ public class ClipboardPlacementState {
         }
         viewPlaneGizmo.reset();
         gizmo.reset();
+        planeGizmo.reset();
         rotGizmo.reset();
         rebuildPreview();
     }
@@ -87,6 +90,7 @@ public class ClipboardPlacementState {
         preview = null;
         viewPlaneGizmo.reset();
         gizmo.reset();
+        planeGizmo.reset();
         rotGizmo.reset();
     }
 

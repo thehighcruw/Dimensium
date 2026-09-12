@@ -9,6 +9,7 @@ import java.util.List;
 
 import net.minecraft.item.ItemStack;
 
+import github.thehighcruw.dimensium.render.world.PlaneTranslationGizmo;
 import github.thehighcruw.dimensium.render.world.TranslationGizmo;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 import github.thehighcruw.dimensium.tool.math.ModellingMath;
@@ -72,6 +73,7 @@ public class ModellingToolState {
     public int selectedPoint = -1;
 
     public final TranslationGizmo gizmo = new TranslationGizmo();
+    public final PlaneTranslationGizmo planeGizmo = new PlaneTranslationGizmo();
 
     public ChangeProposal preview = null;
     private String cachedKey = "";
@@ -145,6 +147,7 @@ public class ModellingToolState {
         selectedRow = -1;
         selectedPoint = -1;
         gizmo.reset();
+        planeGizmo.reset();
         invalidate();
     }
 

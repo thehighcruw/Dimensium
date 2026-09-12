@@ -163,23 +163,40 @@ public final class GuiDimensiumOverlay {
                             0,
                             0,
                             0);
-                    } else if (_eye != null && _cps.rotGizmo.hoveredAxis != RotationGizmo.Axis.NONE) {
-                        _cps.rotDragBaseX = _cps.rotX;
-                        _cps.rotDragBaseY = _cps.rotY;
-                        _cps.rotDragBaseZ = _cps.rotZ;
-                        _cps.rotGizmo.startDrag(
-                            mouseX,
-                            mouseY,
-                            scaledW,
-                            scaledH,
-                            _eye,
-                            ccx,
-                            ccy,
-                            ccz,
-                            _cps.rotX,
-                            _cps.rotY,
-                            _cps.rotZ);
-                    }
+                    } else if (_eye != null && _cps.planeGizmo.hoveredPlane
+                        != github.thehighcruw.dimensium.render.world.PlaneTranslationGizmo.Plane.NONE) {
+                            _cps.planeGizmo.startDrag(
+                                mouseX,
+                                mouseY,
+                                scaledW,
+                                scaledH,
+                                _eye,
+                                ccx,
+                                ccy,
+                                ccz,
+                                _cps.anchorFX,
+                                _cps.anchorFY,
+                                _cps.anchorFZ,
+                                _cps.rotX,
+                                _cps.rotY,
+                                _cps.rotZ);
+                        } else if (_eye != null && _cps.rotGizmo.hoveredAxis != RotationGizmo.Axis.NONE) {
+                            _cps.rotDragBaseX = _cps.rotX;
+                            _cps.rotDragBaseY = _cps.rotY;
+                            _cps.rotDragBaseZ = _cps.rotZ;
+                            _cps.rotGizmo.startDrag(
+                                mouseX,
+                                mouseY,
+                                scaledW,
+                                scaledH,
+                                _eye,
+                                ccx,
+                                ccy,
+                                ccz,
+                                _cps.rotX,
+                                _cps.rotY,
+                                _cps.rotZ);
+                        }
                 } else if (button == KeyConstants.RMB) {
                     _cps.cancel();
                 }
@@ -201,31 +218,42 @@ public final class GuiDimensiumOverlay {
             if (ps.active) {
                 if (ps.gizmo.isDragging()) ps.gizmo.endDrag();
                 if (ps.rotGizmo.isDragging()) ps.rotGizmo.endDrag();
-                if (ps.scaleGizmo.isDragging()) ps.scaleGizmo.endDrag();
+                if (ps.scaleGizmo.isDragging()) {
+                    // scaleX/Y/Z already reset to 1f each drag frame; ShapeToolState already updated
+                    ps.scaleGizmo.endDrag();
+                }
+                if (ps.planeGizmo.isDragging()) ps.planeGizmo.endDrag();
                 if (ps.viewPlaneGizmo.isDragging()) ps.viewPlaneGizmo.endDrag();
             }
             ClipboardPlacementState cps = ClipboardPlacementState.INSTANCE;
             if (cps.active) {
                 if (cps.gizmo.isDragging()) cps.gizmo.endDrag();
+                if (cps.planeGizmo.isDragging()) cps.planeGizmo.endDrag();
                 if (cps.rotGizmo.isDragging()) cps.rotGizmo.endDrag();
             }
             MoveToolState ms = MoveToolState.INSTANCE;
             if (ms.active) {
                 if (ms.gizmo.isDragging()) ms.gizmo.endDrag();
+                if (ms.planeGizmo.isDragging()) ms.planeGizmo.endDrag();
                 if (ms.rotGizmo.isDragging()) ms.rotGizmo.endDrag();
             }
             SelectionState sel = SelectionState.INSTANCE;
             if (sel.boxConfirmed) {
                 if (SelectionRenderer.boxPos1Gizmo.isDragging()) SelectionRenderer.boxPos1Gizmo.endDrag();
+                if (SelectionRenderer.boxPos1PlaneGizmo.isDragging()) SelectionRenderer.boxPos1PlaneGizmo.endDrag();
                 if (SelectionRenderer.boxPos2Gizmo.isDragging()) SelectionRenderer.boxPos2Gizmo.endDrag();
+                if (SelectionRenderer.boxPos2PlaneGizmo.isDragging()) SelectionRenderer.boxPos2PlaneGizmo.endDrag();
                 if (SelectionRenderer.boxCenterViewPlaneGizmo.isDragging())
                     SelectionRenderer.boxCenterViewPlaneGizmo.endDrag();
                 if (SelectionRenderer.boxCenterGizmo.isDragging()) SelectionRenderer.boxCenterGizmo.endDrag();
+                if (SelectionRenderer.boxCenterPlaneGizmo.isDragging()) SelectionRenderer.boxCenterPlaneGizmo.endDrag();
             }
             PathToolState pts = PathToolState.INSTANCE;
             if (pts.gizmo.isDragging()) pts.gizmo.endDrag();
+            if (pts.planeGizmo.isDragging()) pts.planeGizmo.endDrag();
             ModellingToolState mtsDrag = ModellingToolState.INSTANCE;
             if (mtsDrag.gizmo.isDragging()) mtsDrag.gizmo.endDrag();
+            if (mtsDrag.planeGizmo.isDragging()) mtsDrag.planeGizmo.endDrag();
         } else if (button == KeyConstants.RMB) {
             Tool tool = DimensiumMode.INSTANCE.selectedTool;
             if (tool == Tool.SELECT) {

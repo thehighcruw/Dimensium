@@ -44,10 +44,14 @@ public class TranslationGizmo {
     // Interaction state
     public Axis hoveredAxis = Axis.NONE;
     private Axis dragAxis = Axis.NONE;
-    private int dragStartMX, dragStartMY;
+    private int dragStartMX, dragStartMY, dragSW, dragSH;
     private double screenDx, screenDy, pixelsPerBlock;
     private double startAnchorX, startAnchorY, startAnchorZ;
     private float[] rotatedAxisDir = new float[3];
+    // Ray-based drag
+    private boolean useRayDrag;
+    private double dragGizmoX, dragGizmoY, dragGizmoZ;
+    private double dragStartT;
 
     /** Per-axis sign: 1 = arrow points in +axis direction, -1 = flipped. */
     public float[] axisFlip = { 1f, 1f, 1f };
@@ -196,29 +200,60 @@ public class TranslationGizmo {
         dragAxis = hoveredAxis;
         dragStartMX = mouseX;
         dragStartMY = mouseY;
+        dragSW = sw;
+        dragSH = sh;
         startAnchorX = anchorX;
         startAnchorY = anchorY;
         startAnchorZ = anchorZ;
+        dragGizmoX = gx;
+        dragGizmoY = gy;
+        dragGizmoZ = gz;
 
         float[] R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
         int a = dragAxis == Axis.X ? 0 : dragAxis == Axis.Y ? 1 : 2;
         float[] base = { AXIS_DIR[a][0] * axisFlip[a], AXIS_DIR[a][1] * axisFlip[a], AXIS_DIR[a][2] * axisFlip[a] };
         float[] dir = RotationGizmo.rotateVec(base, R);
         rotatedAxisDir = dir;
+
+        // Screen-based fallback (used when ray unprojection fails)
         double[] os = proj.project(gx, gy, gz, sw, sh);
         double[] ts = proj.project(gx + dir[0], gy + dir[1], gz + dir[2], sw, sh);
         if (os == null || ts == null) {
             screenDx = 1;
             screenDy = 0;
             pixelsPerBlock = 50;
-            return;
+        } else {
+            double ddx = ts[0] - os[0], ddy = ts[1] - os[1];
+            double len = Math.sqrt(ddx * ddx + ddy * ddy);
+            pixelsPerBlock = Math.max(1.0, len);
+            screenDx = len > 0.001 ? ddx / len : 1;
+            screenDy = len > 0.001 ? ddy / len : 0;
         }
 
-        double ddx = ts[0] - os[0], ddy = ts[1] - os[1];
-        double len = Math.sqrt(ddx * ddx + ddy * ddy);
-        pixelsPerBlock = Math.max(1.0, len);
-        screenDx = len > 0.001 ? ddx / len : 1;
-        screenDy = len > 0.001 ? ddy / len : 0;
+        // Ray-based drag: find initial parameter along axis
+        double[] ray = proj.unprojectRay(mouseX, mouseY, sw, sh);
+        if (ray != null) {
+            dragStartT = closestAxisT(ray, gx, gy, gz, dir);
+            useRayDrag = true;
+        } else {
+            dragStartT = 0;
+            useRayDrag = false;
+        }
+    }
+
+    /** Returns t such that gizmoCenter + t*axisDir is closest to the ray. */
+    private static double closestAxisT(double[] ray, double px, double py, double pz, float[] axisDir) {
+        double ox = ray[0], oy = ray[1], oz = ray[2];
+        double dx = ray[3], dy = ray[4], dz = ray[5];
+        double ax = axisDir[0], ay = axisDir[1], az = axisDir[2];
+        double dDotA = dx * ax + dy * ay + dz * az;
+        double aDoA = ax * ax + ay * ay + az * az;
+        double denom = aDoA - dDotA * dDotA; // = 1 - cos²θ = sin²θ
+        if (Math.abs(denom) < 1e-10) return 0; // ray parallel to axis
+        double ex = px - ox, ey = py - oy, ez = pz - oz;
+        double eDotA = ex * ax + ey * ay + ez * az;
+        double eDotD = ex * dx + ey * dy + ez * dz;
+        return (dDotA * eDotD - eDotA) / denom;
     }
 
     /**
@@ -228,8 +263,18 @@ public class TranslationGizmo {
     /** Returns new float anchor [x, y, z], or null if not dragging. */
     public double[] updateDrag(int mouseX, int mouseY) {
         if (dragAxis == Axis.NONE) return null;
-        double proj = (mouseX - dragStartMX) * screenDx + (mouseY - dragStartMY) * screenDy;
-        double delta = proj / pixelsPerBlock;
+        if (useRayDrag) {
+            double[] ray = proj.unprojectRay(mouseX, mouseY, dragSW, dragSH);
+            if (ray != null) {
+                double t = closestAxisT(ray, dragGizmoX, dragGizmoY, dragGizmoZ, rotatedAxisDir);
+                double delta = t - dragStartT;
+                return new double[] { startAnchorX + delta * rotatedAxisDir[0],
+                    startAnchorY + delta * rotatedAxisDir[1], startAnchorZ + delta * rotatedAxisDir[2] };
+            }
+        }
+        // Screen-based fallback
+        double screenProj = (mouseX - dragStartMX) * screenDx + (mouseY - dragStartMY) * screenDy;
+        double delta = screenProj / pixelsPerBlock;
         return new double[] { startAnchorX + delta * rotatedAxisDir[0], startAnchorY + delta * rotatedAxisDir[1],
             startAnchorZ + delta * rotatedAxisDir[2] };
     }

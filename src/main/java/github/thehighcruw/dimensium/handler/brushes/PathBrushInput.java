@@ -19,6 +19,7 @@ import github.thehighcruw.dimensium.handler.ExtrudeHelper;
 import github.thehighcruw.dimensium.handler.InputHandler;
 import github.thehighcruw.dimensium.handler.KeyConstants;
 import github.thehighcruw.dimensium.render.GuiDimensiumOverlay;
+import github.thehighcruw.dimensium.render.world.PlaneTranslationGizmo;
 import github.thehighcruw.dimensium.render.world.TranslationGizmo;
 import github.thehighcruw.dimensium.tool.state.PathToolState;
 import github.thehighcruw.dimensium.tool.state.SelectedBlockState;
@@ -80,7 +81,14 @@ public class PathBrushInput implements BrushInput {
                     PathToolState.PathPoint sel = pts.selectedPoint();
                     double pgx = sel.x + 0.5, pgy = sel.y + 0.5, pgz = sel.z + 0.5;
                     pts.gizmo.startDrag(mouseX, mouseY, sw, sh, eye, pgx, pgy, pgz, pgx, pgy, pgz, 0, 0, 0);
-                }
+                } else
+                    if (pts.planeGizmo.hoveredPlane != PlaneTranslationGizmo.Plane.NONE && pts.selectedPoint() != null
+                        && eye != null) {
+                            PathToolState.PathPoint sel = pts.selectedPoint();
+                            double pgx = sel.x + 0.5, pgy = sel.y + 0.5, pgz = sel.z + 0.5;
+                            pts.planeGizmo
+                                .startDrag(mouseX, mouseY, sw, sh, eye, pgx, pgy, pgz, pgx, pgy, pgz, 0, 0, 0);
+                        }
             return true;
         }
 

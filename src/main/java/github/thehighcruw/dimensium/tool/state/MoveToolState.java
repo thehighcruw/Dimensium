@@ -13,6 +13,7 @@ import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.world.World;
 
+import github.thehighcruw.dimensium.render.world.PlaneTranslationGizmo;
 import github.thehighcruw.dimensium.render.world.RotationGizmo;
 import github.thehighcruw.dimensium.render.world.ScaleGizmo;
 import github.thehighcruw.dimensium.render.world.TranslationGizmo;
@@ -59,6 +60,7 @@ public class MoveToolState {
     public ChangeProposal preview = null;
 
     public final ViewPlaneGizmo viewPlaneGizmo = new ViewPlaneGizmo();
+    public final PlaneTranslationGizmo planeGizmo = new PlaneTranslationGizmo();
     public final ScaleGizmo scaleGizmo = new ScaleGizmo();
     public final TranslationGizmo gizmo = new TranslationGizmo();
     public final RotationGizmo rotGizmo = new RotationGizmo();
@@ -99,6 +101,7 @@ public class MoveToolState {
         active = false;
         preview = null;
         viewPlaneGizmo.reset();
+        planeGizmo.reset();
         scaleGizmo.reset();
         gizmo.reset();
         rotGizmo.reset();
@@ -219,6 +222,7 @@ public class MoveToolState {
         rotY = 0f;
         rotZ = 0f;
         viewPlaneGizmo.reset();
+        planeGizmo.reset();
         scaleGizmo.reset();
         gizmo.reset();
         rotGizmo.reset();

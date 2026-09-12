@@ -14,6 +14,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.freecam.FreecamState;
 import github.thehighcruw.dimensium.handler.KeyConstants;
 import github.thehighcruw.dimensium.render.GuiDimensiumOverlay;
+import github.thehighcruw.dimensium.render.world.PlaneTranslationGizmo;
 import github.thehighcruw.dimensium.render.world.RotationGizmo;
 import github.thehighcruw.dimensium.render.world.TranslationGizmo;
 import github.thehighcruw.dimensium.tool.state.MoveToolState;
@@ -45,6 +46,8 @@ public class MoveBrushInput implements BrushInput {
             double gx = ms.gizmoX(), gy = ms.gizmoY(), gz = ms.gizmoZ();
             if (ms.gizmo.hoveredAxis != TranslationGizmo.Axis.NONE) {
                 ms.gizmo.startDrag(mouseX, mouseY, sw, sh, eye, gx, gy, gz, gx, gy, gz, ms.rotX, ms.rotY, ms.rotZ);
+            } else if (ms.planeGizmo.hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
+                ms.planeGizmo.startDrag(mouseX, mouseY, sw, sh, eye, gx, gy, gz, gx, gy, gz, ms.rotX, ms.rotY, ms.rotZ);
             } else if (ms.rotGizmo.hoveredAxis != RotationGizmo.Axis.NONE) {
                 ms.rotDragBaseX = ms.rotX;
                 ms.rotDragBaseY = ms.rotY;

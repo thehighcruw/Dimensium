@@ -11,64 +11,51 @@ import org.lwjgl.opengl.GL11;
 import github.thehighcruw.dimensium.tool.math.ShapeMath;
 
 /**
- * Plane-scale gizmo — 3 small colored squares between axis arrow pairs.
- * Each square lets the user stretch a shape on 2 axes simultaneously.
- * XY = yellow, XZ = magenta, YZ = cyan.
+ * Single-axis scale gizmo — a colored box at the tip of each axis arrow.
+ * Dragging along the axis scales the shape on that axis.
+ * X = red, Y = green, Z = blue (matching TranslationGizmo colors).
  */
 public class ScaleGizmo {
 
-    public enum Plane {
+    public enum Axis {
         NONE,
-        XY,
-        XZ,
-        YZ
+        X,
+        Y,
+        Z
     }
 
-    private static final float SQ_POS = 0.50f;
-    private static final float SQ_HALF = 0.09f;
-    private static final double HIT_PX = 4.0;
+    /** Distance from gizmo origin to box center, in gizmo-local units. Must exceed ARC_R (1.5). */
+    private static final float BOX_CENTER = 1.85f;
+    /** Scale units per world-unit of projected drag distance. Lower = less sensitive. */
+    private static final float SCALE_SENSITIVITY = 0.25f;
+    private static final float BOX_HALF = 0.10f;
+    private static final double HIT_PX = 6.0;
 
-    // Center of each plane-square in local (pre-rotation) gizmo space
-    private static final float[][] CENTERS = { { SQ_POS, SQ_POS, 0 }, // XY
-        { SQ_POS, 0, SQ_POS }, // XZ
-        { 0, SQ_POS, SQ_POS }, // YZ
-    };
-
-    // In-plane basis vectors for quad rendering
-    private static final float[][] PLANE_A = { { 1, 0, 0 }, // XY: A = X
-        { 1, 0, 0 }, // XZ: A = X
-        { 0, 1, 0 }, // YZ: A = Y
-    };
-    private static final float[][] PLANE_B = { { 0, 1, 0 }, // XY: B = Y
-        { 0, 0, 1 }, // XZ: B = Z
-        { 0, 0, 1 }, // YZ: B = Z
-    };
-
-    private static final float[][] PLANE_COL = { { 1.0f, 1.0f, 0.2f }, // XY: yellow
-        { 1.0f, 0.25f, 1.0f }, // XZ: magenta
-        { 0.25f, 1.0f, 1.0f }, // YZ: cyan
+    private static final float[][] AXIS_DIR = { { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 } };
+    private static final float[][] AXIS_COL = { { 1.0f, 0.25f, 0.25f }, // X: red
+        { 0.25f, 1.0f, 0.25f }, // Y: green
+        { 0.25f, 0.45f, 1.0f }, // Z: blue
     };
 
     private final GizmoProjection proj = new GizmoProjection();
 
-    public Plane hoveredPlane = Plane.NONE;
-    private Plane dragPlane = Plane.NONE;
+    public Axis hoveredAxis = Axis.NONE;
+    private Axis dragAxis = Axis.NONE;
     private int dragStartMX, dragStartMY;
-    private float startScaleA, startScaleB;
-    private double screenAxisAX, screenAxisAY, pixelsPerUnitA;
-    private double screenAxisBX, screenAxisBY, pixelsPerUnitB;
+    private float startScale;
+    private double screenDx, screenDy, pixelsPerUnit;
 
     public boolean isDragging() {
-        return dragPlane != Plane.NONE;
+        return dragAxis != Axis.NONE;
     }
 
-    public Plane getDragPlane() {
-        return dragPlane;
+    public Axis getDragAxis() {
+        return dragAxis;
     }
 
     public void reset() {
-        hoveredPlane = Plane.NONE;
-        dragPlane = Plane.NONE;
+        hoveredAxis = Axis.NONE;
+        dragAxis = Axis.NONE;
     }
 
     // ── Rendering ─────────────────────────────────────────────────────────────
@@ -79,56 +66,110 @@ public class ScaleGizmo {
         float scale = RotationGizmo.computeScale(gx - rx, gy - ry, gz - rz);
         RotationGizmo.setupGizmoMatrix(gx, gy, gz, rx, ry, rz, rotX, rotY, rotZ, scale);
 
-        for (int p = 0; p < 3; p++) {
-            Plane plane = p == 0 ? Plane.XY : p == 1 ? Plane.XZ : Plane.YZ;
-            boolean hot = hoveredPlane == plane;
-            float[] col = PLANE_COL[p];
-            float cx = CENTERS[p][0], cy = CENTERS[p][1], cz = CENTERS[p][2];
-            float[] a = PLANE_A[p], b = PLANE_B[p];
+        for (int a = 0; a < 3; a++) {
+            Axis axis = a == 0 ? Axis.X : a == 1 ? Axis.Y : Axis.Z;
+            boolean hot = hoveredAxis == axis;
+            float[] col = AXIS_COL[a];
+            float[] dir = AXIS_DIR[a];
 
-            float alpha = hot ? 0.85f : 0.45f;
+            // Box center along this axis
+            float bcx = dir[0] * BOX_CENTER, bcy = dir[1] * BOX_CENTER, bcz = dir[2] * BOX_CENTER;
+            float h = BOX_HALF;
+
+            // Per-axis perpendicular half-extents: for X axis, box extends in Y and Z, etc.
+            // Compute two perpendicular half-extents
+            float p1x, p1y, p1z, p2x, p2y, p2z;
+            if (a == 0) { // X axis: perp = Y, Z
+                p1x = 0;
+                p1y = h;
+                p1z = 0;
+                p2x = 0;
+                p2y = 0;
+                p2z = h;
+            } else if (a == 1) { // Y axis: perp = X, Z
+                p1x = h;
+                p1y = 0;
+                p1z = 0;
+                p2x = 0;
+                p2y = 0;
+                p2z = h;
+            } else { // Z axis: perp = X, Y
+                p1x = h;
+                p1y = 0;
+                p1z = 0;
+                p2x = 0;
+                p2y = h;
+                p2z = 0;
+            }
+            // Along-axis half extent
+            float p3x = dir[0] * h, p3y = dir[1] * h, p3z = dir[2] * h;
+
+            float alpha = hot ? 0.95f : 0.6f;
             GL11.glColor4f(col[0], col[1], col[2], alpha);
-            GL11.glBegin(GL11.GL_QUADS);
-            GL11.glVertex3f(
-                cx - SQ_HALF * a[0] - SQ_HALF * b[0],
-                cy - SQ_HALF * a[1] - SQ_HALF * b[1],
-                cz - SQ_HALF * a[2] - SQ_HALF * b[2]);
-            GL11.glVertex3f(
-                cx + SQ_HALF * a[0] - SQ_HALF * b[0],
-                cy + SQ_HALF * a[1] - SQ_HALF * b[1],
-                cz + SQ_HALF * a[2] - SQ_HALF * b[2]);
-            GL11.glVertex3f(
-                cx + SQ_HALF * a[0] + SQ_HALF * b[0],
-                cy + SQ_HALF * a[1] + SQ_HALF * b[1],
-                cz + SQ_HALF * a[2] + SQ_HALF * b[2]);
-            GL11.glVertex3f(
-                cx - SQ_HALF * a[0] + SQ_HALF * b[0],
-                cy - SQ_HALF * a[1] + SQ_HALF * b[1],
-                cz - SQ_HALF * a[2] + SQ_HALF * b[2]);
-            GL11.glEnd();
 
-            GL11.glColor4f(hot ? 1f : col[0], hot ? 1f : col[1], hot ? 1f : col[2], 0.9f);
-            GL11.glBegin(GL11.GL_LINE_LOOP);
-            GL11.glVertex3f(
-                cx - SQ_HALF * a[0] - SQ_HALF * b[0],
-                cy - SQ_HALF * a[1] - SQ_HALF * b[1],
-                cz - SQ_HALF * a[2] - SQ_HALF * b[2]);
-            GL11.glVertex3f(
-                cx + SQ_HALF * a[0] - SQ_HALF * b[0],
-                cy + SQ_HALF * a[1] - SQ_HALF * b[1],
-                cz + SQ_HALF * a[2] - SQ_HALF * b[2]);
-            GL11.glVertex3f(
-                cx + SQ_HALF * a[0] + SQ_HALF * b[0],
-                cy + SQ_HALF * a[1] + SQ_HALF * b[1],
-                cz + SQ_HALF * a[2] + SQ_HALF * b[2]);
-            GL11.glVertex3f(
-                cx - SQ_HALF * a[0] + SQ_HALF * b[0],
-                cy - SQ_HALF * a[1] + SQ_HALF * b[1],
-                cz - SQ_HALF * a[2] + SQ_HALF * b[2]);
-            GL11.glEnd();
+            // 6 faces of the box
+            renderBoxFace(bcx - p3x, bcy - p3y, bcz - p3z, p1x, p1y, p1z, p2x, p2y, p2z); // back face
+            renderBoxFace(bcx + p3x, bcy + p3y, bcz + p3z, p2x, p2y, p2z, p1x, p1y, p1z); // front face
+            renderBoxFace(bcx - p1x, bcy - p1y, bcz - p1z, p3x, p3y, p3z, p2x, p2y, p2z); // left face
+            renderBoxFace(bcx + p1x, bcy + p1y, bcz + p1z, p2x, p2y, p2z, p3x, p3y, p3z); // right face
+            renderBoxFace(bcx - p2x, bcy - p2y, bcz - p2z, p1x, p1y, p1z, p3x, p3y, p3z); // bottom face
+            renderBoxFace(bcx + p2x, bcy + p2y, bcz + p2z, p3x, p3y, p3z, p1x, p1y, p1z); // top face
+
+            // Outline
+            if (hot) {
+                GL11.glColor4f(1f, 1f, 1f, 0.9f);
+            } else {
+                GL11.glColor4f(col[0] * 0.7f, col[1] * 0.7f, col[2] * 0.7f, 0.9f);
+            }
+            renderBoxEdges(bcx, bcy, bcz, p1x, p1y, p1z, p2x, p2y, p2z, p3x, p3y, p3z);
         }
 
         GL11.glPopMatrix();
+    }
+
+    private static void renderBoxFace(float cx, float cy, float cz, float ax, float ay, float az, float bx, float by,
+        float bz) {
+        GL11.glBegin(GL11.GL_QUADS);
+        GL11.glVertex3f(cx - ax - bx, cy - ay - by, cz - az - bz);
+        GL11.glVertex3f(cx + ax - bx, cy + ay - by, cz + az - bz);
+        GL11.glVertex3f(cx + ax + bx, cy + ay + by, cz + az + bz);
+        GL11.glVertex3f(cx - ax + bx, cy - ay + by, cz - az + bz);
+        GL11.glEnd();
+    }
+
+    private static void renderBoxEdges(float cx, float cy, float cz, float p1x, float p1y, float p1z, float p2x,
+        float p2y, float p2z, float p3x, float p3y, float p3z) {
+        // 8 corners
+        float[][] v = { { cx - p1x - p2x - p3x, cy - p1y - p2y - p3y, cz - p1z - p2z - p3z },
+            { cx + p1x - p2x - p3x, cy + p1y - p2y - p3y, cz + p1z - p2z - p3z },
+            { cx + p1x + p2x - p3x, cy + p1y + p2y - p3y, cz + p1z + p2z - p3z },
+            { cx - p1x + p2x - p3x, cy - p1y + p2y - p3y, cz - p1z + p2z - p3z },
+            { cx - p1x - p2x + p3x, cy - p1y - p2y + p3y, cz - p1z - p2z + p3z },
+            { cx + p1x - p2x + p3x, cy + p1y - p2y + p3y, cz + p1z - p2z + p3z },
+            { cx + p1x + p2x + p3x, cy + p1y + p2y + p3y, cz + p1z + p2z + p3z },
+            { cx - p1x + p2x + p3x, cy - p1y + p2y + p3y, cz - p1z + p2z + p3z } };
+        GL11.glBegin(GL11.GL_LINES);
+        // Bottom ring
+        edge(v, 0, 1);
+        edge(v, 1, 2);
+        edge(v, 2, 3);
+        edge(v, 3, 0);
+        // Top ring
+        edge(v, 4, 5);
+        edge(v, 5, 6);
+        edge(v, 6, 7);
+        edge(v, 7, 4);
+        // Pillars
+        edge(v, 0, 4);
+        edge(v, 1, 5);
+        edge(v, 2, 6);
+        edge(v, 3, 7);
+        GL11.glEnd();
+    }
+
+    private static void edge(float[][] v, int i, int j) {
+        GL11.glVertex3f(v[i][0], v[i][1], v[i][2]);
+        GL11.glVertex3f(v[j][0], v[j][1], v[j][2]);
     }
 
     // ── Hover ──────────────────────────────────────────────────────────────────
@@ -139,125 +180,69 @@ public class ScaleGizmo {
         float scale = RotationGizmo.computeScale(gx - eyeX, gy - eyeY, gz - eyeZ);
         float[] R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
 
-        Plane best = Plane.NONE;
+        Axis best = Axis.NONE;
         double bestDist = HIT_PX;
 
-        for (int p = 0; p < 3; p++) {
-            float cx = CENTERS[p][0], cy = CENTERS[p][1], cz = CENTERS[p][2];
-            float[] a = PLANE_A[p], b = PLANE_B[p];
-            // Project all 4 corners of the square.
-            float[] ha = RotationGizmo.rotateVec(new float[] { a[0] * SQ_HALF, a[1] * SQ_HALF, a[2] * SQ_HALF }, R);
-            float[] hb = RotationGizmo.rotateVec(new float[] { b[0] * SQ_HALF, b[1] * SQ_HALF, b[2] * SQ_HALF }, R);
-            float[] cRot = RotationGizmo.rotateVec(new float[] { cx, cy, cz }, R);
-            double wcx = gx + cRot[0] * scale, wcy = gy + cRot[1] * scale, wcz = gz + cRot[2] * scale;
-            double s = scale;
-            double[][] corners = new double[4][];
-            corners[0] = proj
-                .project(wcx + (-ha[0] - hb[0]) * s, wcy + (-ha[1] - hb[1]) * s, wcz + (-ha[2] - hb[2]) * s, sw, sh);
-            corners[1] = proj
-                .project(wcx + (ha[0] - hb[0]) * s, wcy + (ha[1] - hb[1]) * s, wcz + (ha[2] - hb[2]) * s, sw, sh);
-            corners[2] = proj
-                .project(wcx + (ha[0] + hb[0]) * s, wcy + (ha[1] + hb[1]) * s, wcz + (ha[2] + hb[2]) * s, sw, sh);
-            corners[3] = proj
-                .project(wcx + (-ha[0] + hb[0]) * s, wcy + (-ha[1] + hb[1]) * s, wcz + (-ha[2] + hb[2]) * s, sw, sh);
-            boolean anyNull = false;
-            for (double[] c : corners) if (c == null) {
-                anyNull = true;
-                break;
-            }
-            if (anyNull) continue;
-            // Test: inside quad or within HIT_PX of any edge.
-            double dist = quadDist(corners, mouseX, mouseY);
+        for (int a = 0; a < 3; a++) {
+            float[] dirRot = RotationGizmo.rotateVec(AXIS_DIR[a], R);
+            double wcx = gx + dirRot[0] * BOX_CENTER * scale;
+            double wcy = gy + dirRot[1] * BOX_CENTER * scale;
+            double wcz = gz + dirRot[2] * BOX_CENTER * scale;
+            double[] sc = proj.project(wcx, wcy, wcz, sw, sh);
+            if (sc == null) continue;
+            double dx = sc[0] - mouseX, dy = sc[1] - mouseY;
+            double dist = Math.sqrt(dx * dx + dy * dy);
             if (dist < bestDist) {
                 bestDist = dist;
-                best = p == 0 ? Plane.XY : p == 1 ? Plane.XZ : Plane.YZ;
+                best = a == 0 ? Axis.X : a == 1 ? Axis.Y : Axis.Z;
             }
         }
-        hoveredPlane = best;
+        hoveredAxis = best;
     }
 
     // ── Drag ──────────────────────────────────────────────────────────────────
 
     /**
-     * scaleA and scaleB are the current scales for the two axes of the hovered plane.
-     * For XY: scaleA=scaleX, scaleB=scaleY. For XZ: scaleA=scaleX, scaleB=scaleZ. For YZ: scaleA=scaleY, scaleB=scaleZ.
+     * startScale is the current scale value for the hovered axis.
      */
     public void startDrag(int mouseX, int mouseY, int sw, int sh, EntityLivingBase player, double gx, double gy,
-        double gz, float scaleA, float scaleB, float rotX, float rotY, float rotZ) {
-        if (hoveredPlane == Plane.NONE) return;
-        dragPlane = hoveredPlane;
+        double gz, float scale, float rotX, float rotY, float rotZ) {
+        if (hoveredAxis == Axis.NONE) return;
+        dragAxis = hoveredAxis;
         dragStartMX = mouseX;
         dragStartMY = mouseY;
-        startScaleA = scaleA;
-        startScaleB = scaleB;
+        startScale = scale;
 
-        int p = dragPlane == Plane.XY ? 0 : dragPlane == Plane.XZ ? 1 : 2;
+        int a = dragAxis == Axis.X ? 0 : dragAxis == Axis.Y ? 1 : 2;
         float[] R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
-        float[] axisAWorld = RotationGizmo.rotateVec(PLANE_A[p], R);
-        float[] axisBWorld = RotationGizmo.rotateVec(PLANE_B[p], R);
+        float[] dir = RotationGizmo.rotateVec(AXIS_DIR[a], R);
 
         double[] os = proj.project(gx, gy, gz, sw, sh);
-        double[] tsA = proj.project(gx + axisAWorld[0], gy + axisAWorld[1], gz + axisAWorld[2], sw, sh);
-        double[] tsB = proj.project(gx + axisBWorld[0], gy + axisBWorld[1], gz + axisBWorld[2], sw, sh);
-        if (os == null || tsA == null || tsB == null) {
-            screenAxisAX = 1;
-            screenAxisAY = 0;
-            pixelsPerUnitA = 50;
-            screenAxisBX = 0;
-            screenAxisBY = 1;
-            pixelsPerUnitB = 50;
+        double[] ts = proj.project(gx + dir[0], gy + dir[1], gz + dir[2], sw, sh);
+        if (os == null || ts == null) {
+            screenDx = 1;
+            screenDy = 0;
+            pixelsPerUnit = 50;
             return;
         }
-        double dax = tsA[0] - os[0], day = tsA[1] - os[1];
-        double lenA = Math.sqrt(dax * dax + day * day);
-        pixelsPerUnitA = Math.max(1.0, lenA);
-        screenAxisAX = lenA > 0.001 ? dax / lenA : 1;
-        screenAxisAY = lenA > 0.001 ? day / lenA : 0;
-
-        double dbx = tsB[0] - os[0], dby = tsB[1] - os[1];
-        double lenB = Math.sqrt(dbx * dbx + dby * dby);
-        pixelsPerUnitB = Math.max(1.0, lenB);
-        screenAxisBX = lenB > 0.001 ? dbx / lenB : 0;
-        screenAxisBY = lenB > 0.001 ? dby / lenB : 1;
+        double ddx = ts[0] - os[0], ddy = ts[1] - os[1];
+        double len = Math.sqrt(ddx * ddx + ddy * ddy);
+        pixelsPerUnit = Math.max(1.0, len);
+        screenDx = len > 0.001 ? ddx / len : 1;
+        screenDy = len > 0.001 ? ddy / len : 0;
     }
 
     /**
-     * Returns float[2] {newScaleA, newScaleB} or null if not dragging.
+     * Returns float[1] {newScale} or null if not dragging.
      */
     public float[] updateDrag(int mouseX, int mouseY) {
-        if (dragPlane == Plane.NONE) return null;
-        double dx = mouseX - dragStartMX, dy = mouseY - dragStartMY;
-        float newScaleA = Math
-            .max(0.1f, startScaleA + (float) ((dx * screenAxisAX + dy * screenAxisAY) / pixelsPerUnitA));
-        float newScaleB = Math
-            .max(0.1f, startScaleB + (float) ((dx * screenAxisBX + dy * screenAxisBY) / pixelsPerUnitB));
-        return new float[] { newScaleA, newScaleB };
+        if (dragAxis == Axis.NONE) return null;
+        double proj = (mouseX - dragStartMX) * screenDx + (mouseY - dragStartMY) * screenDy;
+        float newScale = Math.max(0.1f, startScale + (float) (proj / pixelsPerUnit) * SCALE_SENSITIVITY);
+        return new float[] { newScale };
     }
 
     public void endDrag() {
-        dragPlane = Plane.NONE;
-    }
-
-    /**
-     * Returns 0 if (px,py) is inside the convex quad defined by 4 projected corners (in order),
-     * otherwise returns the minimum distance to any of the 4 edges.
-     */
-    private static double quadDist(double[][] corners, double px, double py) {
-        // Point-in-convex-quad: all cross products same sign (works for either winding).
-        int pos = 0, neg = 0;
-        for (int i = 0; i < 4; i++) {
-            double[] a = corners[i], b = corners[(i + 1) % 4];
-            double cross = (b[0] - a[0]) * (py - a[1]) - (b[1] - a[1]) * (px - a[0]);
-            if (cross > 0) pos++;
-            else if (cross < 0) neg++;
-        }
-        boolean inside = pos == 4 || neg == 4;
-        if (inside) return 0;
-        double min = Double.MAX_VALUE;
-        for (int i = 0; i < 4; i++) {
-            double[] a = corners[i], b = corners[(i + 1) % 4];
-            min = Math.min(min, RotationGizmo.segDist(a[0], a[1], b[0], b[1], px, py));
-        }
-        return min;
+        dragAxis = Axis.NONE;
     }
 }

@@ -12,6 +12,7 @@ import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 
 import github.thehighcruw.dimensium.DimensiumConfig;
+import github.thehighcruw.dimensium.render.world.PlaneTranslationGizmo;
 import github.thehighcruw.dimensium.render.world.RotationGizmo;
 import github.thehighcruw.dimensium.render.world.ScaleGizmo;
 import github.thehighcruw.dimensium.render.world.TranslationGizmo;
@@ -49,9 +50,12 @@ public class ShapePlacementState {
 
     /** Per-axis scale multipliers applied on top of the tool-state dimensions. */
     public float scaleX = 1f, scaleY = 1f, scaleZ = 1f;
+    /** ShapeToolState dimensions captured at scale-drag start; used to avoid per-frame runaway. */
+    public int scaleDragBaseW, scaleDragBaseH, scaleDragBaseD;
 
     public final TranslationGizmo gizmo = new TranslationGizmo();
     public final RotationGizmo rotGizmo = new RotationGizmo();
+    public final PlaneTranslationGizmo planeGizmo = new PlaneTranslationGizmo();
     public final ScaleGizmo scaleGizmo = new ScaleGizmo();
     public final ViewPlaneGizmo viewPlaneGizmo = new ViewPlaneGizmo();
 
@@ -73,6 +77,7 @@ public class ShapePlacementState {
         scaleZ = 1f;
         gizmo.reset();
         rotGizmo.reset();
+        planeGizmo.reset();
         scaleGizmo.reset();
         viewPlaneGizmo.reset();
         shapeKey = "";
@@ -85,6 +90,7 @@ public class ShapePlacementState {
         preview = null;
         gizmo.reset();
         rotGizmo.reset();
+        planeGizmo.reset();
         scaleGizmo.reset();
         viewPlaneGizmo.reset();
     }

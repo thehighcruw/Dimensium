@@ -20,6 +20,7 @@ import github.thehighcruw.dimensium.freecam.FreecamState;
 import github.thehighcruw.dimensium.handler.ExtrudeHelper;
 import github.thehighcruw.dimensium.handler.KeyConstants;
 import github.thehighcruw.dimensium.render.GuiDimensiumOverlay;
+import github.thehighcruw.dimensium.render.world.PlaneTranslationGizmo;
 import github.thehighcruw.dimensium.render.world.TranslationGizmo;
 import github.thehighcruw.dimensium.tool.state.ModellingToolState;
 
@@ -98,7 +99,13 @@ public class ModellingBrushInput implements BrushInput {
                     ModellingToolState.ModelPoint mSelPt = mts.selectedPointObj();
                     double mgx = mSelPt.x + 0.5, mgy = mSelPt.y + 0.5, mgz = mSelPt.z + 0.5;
                     mts.gizmo.startDrag(mouseX, mouseY, sw, sh, eye, mgx, mgy, mgz, mgx, mgy, mgz, 0, 0, 0);
-                }
+                } else
+                if (mts.planeGizmo.hoveredPlane != PlaneTranslationGizmo.Plane.NONE && mts.selectedPointObj() != null
+                    && eye != null) {
+                        ModellingToolState.ModelPoint mSelPt = mts.selectedPointObj();
+                        double mgx = mSelPt.x + 0.5, mgy = mSelPt.y + 0.5, mgz = mSelPt.z + 0.5;
+                        mts.planeGizmo.startDrag(mouseX, mouseY, sw, sh, eye, mgx, mgy, mgz, mgx, mgy, mgz, 0, 0, 0);
+                    }
             return true;
         }
 

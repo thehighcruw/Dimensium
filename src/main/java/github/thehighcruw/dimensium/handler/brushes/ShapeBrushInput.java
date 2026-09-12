@@ -14,10 +14,12 @@ import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.freecam.FreecamState;
 import github.thehighcruw.dimensium.handler.KeyConstants;
 import github.thehighcruw.dimensium.render.GuiDimensiumOverlay;
+import github.thehighcruw.dimensium.render.world.PlaneTranslationGizmo;
 import github.thehighcruw.dimensium.render.world.RotationGizmo;
 import github.thehighcruw.dimensium.render.world.ScaleGizmo;
 import github.thehighcruw.dimensium.render.world.TranslationGizmo;
 import github.thehighcruw.dimensium.tool.state.ShapePlacementState;
+import github.thehighcruw.dimensium.tool.state.ShapeToolState;
 
 @SideOnly(Side.CLIENT)
 public class ShapeBrushInput implements BrushInput {
@@ -78,11 +80,31 @@ public class ShapeBrushInput implements BrushInput {
                 ps.rotDragBaseY = ps.rotY;
                 ps.rotDragBaseZ = ps.rotZ;
                 ps.rotGizmo.startDrag(mouseX, mouseY, sw, sh, eye, cx, cy, cz, ps.rotX, ps.rotY, ps.rotZ);
-            } else if (ps.scaleGizmo.hoveredPlane != ScaleGizmo.Plane.NONE) {
-                ScaleGizmo.Plane plane = ps.scaleGizmo.hoveredPlane;
-                float sa = plane == ScaleGizmo.Plane.YZ ? ps.scaleY : ps.scaleX;
-                float sb = plane == ScaleGizmo.Plane.XY ? ps.scaleY : ps.scaleZ;
-                ps.scaleGizmo.startDrag(mouseX, mouseY, sw, sh, eye, cx, cy, cz, sa, sb, ps.rotX, ps.rotY, ps.rotZ);
+            } else if (ps.scaleGizmo.hoveredAxis != ScaleGizmo.Axis.NONE) {
+                float currentScale = ps.scaleGizmo.hoveredAxis == ScaleGizmo.Axis.X ? ps.scaleX
+                    : ps.scaleGizmo.hoveredAxis == ScaleGizmo.Axis.Y ? ps.scaleY : ps.scaleZ;
+                ShapeToolState sts = ShapeToolState.INSTANCE;
+                ps.scaleDragBaseW = sts.shapeWidth;
+                ps.scaleDragBaseH = sts.shapeHeight;
+                ps.scaleDragBaseD = sts.shapeDepth;
+                ps.scaleGizmo
+                    .startDrag(mouseX, mouseY, sw, sh, eye, cx, cy, cz, currentScale, ps.rotX, ps.rotY, ps.rotZ);
+            } else if (ps.planeGizmo.hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
+                ps.planeGizmo.startDrag(
+                    mouseX,
+                    mouseY,
+                    sw,
+                    sh,
+                    eye,
+                    cx,
+                    cy,
+                    cz,
+                    ps.anchorFX,
+                    ps.anchorFY,
+                    ps.anchorFZ,
+                    ps.rotX,
+                    ps.rotY,
+                    ps.rotZ);
             }
         } else if (button == KeyConstants.RMB) {
             GuiDimensiumOverlay.confirmPlacement();

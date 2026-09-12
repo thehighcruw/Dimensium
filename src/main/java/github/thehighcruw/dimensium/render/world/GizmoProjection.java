@@ -38,6 +38,7 @@ public final class GizmoProjection {
     private final FloatBuffer projection = BufferUtils.createFloatBuffer(16);
     private final IntBuffer viewport = BufferUtils.createIntBuffer(16);
     private final FloatBuffer win = BufferUtils.createFloatBuffer(3);
+    private final FloatBuffer unprojectResult = BufferUtils.createFloatBuffer(3);
 
     private double renderOffsetX, renderOffsetY, renderOffsetZ;
 
@@ -98,5 +99,59 @@ public final class GizmoProjection {
             return new double[] { guiX, guiY };
         }
         return new double[] { winX / sf, (displayH - winY) / sf };
+    }
+
+    /**
+     * Unprojects a GUI mouse position to a world-space ray.
+     * Returns double[6]: {originX, originY, originZ, dirX, dirY, dirZ}.
+     * Origin and direction are in absolute world space.
+     * Returns null on failure.
+     *
+     * @param mouseX/mouseY GUI screen coordinates (same space as cursor3d)
+     * @param sw/sh         scaled GUI screen dimensions
+     */
+    public double[] unprojectRay(int mouseX, int mouseY, int sw, int sh) {
+        Minecraft mc = Minecraft.getMinecraft();
+        int sf = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight).getScaleFactor();
+        int displayW = mc.displayWidth;
+        int displayH = mc.displayHeight;
+
+        // Convert GUI coords back to GL window coords (physical pixels, origin bottom-left).
+        float winX, winY;
+        ViewportState vp = ViewportRegistry.INSTANCE.active();
+        if (vp != null && vp.contentW > 1 && vp.contentH > 1) {
+            winX = (float) ((mouseX * sf - vp.contentX) + displayW / 2.0 - vp.contentW / 2.0);
+            winY = (float) (displayH / 2.0 + vp.contentH / 2.0 - vp.contentY - mouseY * sf);
+        } else {
+            winX = mouseX * sf;
+            winY = displayH - mouseY * sf;
+        }
+
+        // Unproject at near plane (winZ=0) and far plane (winZ=1) to get ray endpoints.
+        modelview.rewind();
+        projection.rewind();
+        viewport.rewind();
+
+        unprojectResult.rewind();
+        boolean okNear = GLU.gluUnProject(winX, winY, 0f, modelview, projection, viewport, unprojectResult);
+        if (!okNear) return null;
+        double nx = (double) unprojectResult.get(0) + renderOffsetX;
+        double ny = (double) unprojectResult.get(1) + renderOffsetY;
+        double nz = (double) unprojectResult.get(2) + renderOffsetZ;
+
+        modelview.rewind();
+        projection.rewind();
+        viewport.rewind();
+        unprojectResult.rewind();
+        boolean okFar = GLU.gluUnProject(winX, winY, 1f, modelview, projection, viewport, unprojectResult);
+        if (!okFar) return null;
+        double fx = (double) unprojectResult.get(0) + renderOffsetX;
+        double fy = (double) unprojectResult.get(1) + renderOffsetY;
+        double fz = (double) unprojectResult.get(2) + renderOffsetZ;
+
+        double dx = fx - nx, dy = fy - ny, dz = fz - nz;
+        double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        if (len < 1e-10) return null;
+        return new double[] { nx, ny, nz, dx / len, dy / len, dz / len };
     }
 }

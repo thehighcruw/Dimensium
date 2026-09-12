@@ -10,6 +10,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import net.minecraft.item.ItemStack;
 
+import github.thehighcruw.dimensium.render.world.PlaneTranslationGizmo;
 import github.thehighcruw.dimensium.render.world.TranslationGizmo;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 import github.thehighcruw.dimensium.tool.math.PathMath;
@@ -73,6 +74,7 @@ public class PathToolState {
     public ChangeProposal preview = null;
 
     public final TranslationGizmo gizmo = new TranslationGizmo();
+    public final PlaneTranslationGizmo planeGizmo = new PlaneTranslationGizmo();
 
     private String cachedKey = "";
 
@@ -106,6 +108,7 @@ public class PathToolState {
         points.clear();
         selectedIndex = -1;
         gizmo.reset();
+        planeGizmo.reset();
         invalidatePath();
     }
 

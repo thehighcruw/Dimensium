@@ -72,10 +72,13 @@ public class SelectionRenderer {
     public static final ViewPlaneGizmo boxPos2ViewPlaneGizmo = new ViewPlaneGizmo();
     public static final TranslationGizmo boxPos1Gizmo = new TranslationGizmo();
     public static final TranslationGizmo boxPos2Gizmo = new TranslationGizmo();
+    public static final PlaneTranslationGizmo boxPos1PlaneGizmo = new PlaneTranslationGizmo();
+    public static final PlaneTranslationGizmo boxPos2PlaneGizmo = new PlaneTranslationGizmo();
 
     // Center gizmos — move the entire box (both corners) together.
     public static final ViewPlaneGizmo boxCenterViewPlaneGizmo = new ViewPlaneGizmo();
     public static final TranslationGizmo boxCenterGizmo = new TranslationGizmo();
+    public static final PlaneTranslationGizmo boxCenterPlaneGizmo = new PlaneTranslationGizmo();
     // Corner positions captured at the start of a center-gizmo drag.
     public int boxCenterDragP1X, boxCenterDragP1Y, boxCenterDragP1Z;
     public int boxCenterDragP2X, boxCenterDragP2Y, boxCenterDragP2Z;
@@ -475,12 +478,16 @@ public class SelectionRenderer {
                 .render(sel.pendingX + 0.5, sel.pendingY + 0.5, sel.pendingZ + 0.5, rx, ry, rz, 0, 0, 0);
             boxPos2ViewPlaneGizmo
                 .render(sel.pendingX2 + 0.5, sel.pendingY2 + 0.5, sel.pendingZ2 + 0.5, rx, ry, rz, 0, 0, 0);
+            boxPos1PlaneGizmo.render(sel.pendingX + 0.5, sel.pendingY + 0.5, sel.pendingZ + 0.5, rx, ry, rz, 0, 0, 0);
             boxPos1Gizmo.render(sel.pendingX + 0.5, sel.pendingY + 0.5, sel.pendingZ + 0.5, rx, ry, rz, 0, 0, 0);
+            boxPos2PlaneGizmo
+                .render(sel.pendingX2 + 0.5, sel.pendingY2 + 0.5, sel.pendingZ2 + 0.5, rx, ry, rz, 0, 0, 0);
             boxPos2Gizmo.render(sel.pendingX2 + 0.5, sel.pendingY2 + 0.5, sel.pendingZ2 + 0.5, rx, ry, rz, 0, 0, 0);
             double cxWorld = (sel.pendingX + sel.pendingX2) / 2.0 + 0.5;
             double cyWorld = (sel.pendingY + sel.pendingY2) / 2.0 + 0.5;
             double czWorld = (sel.pendingZ + sel.pendingZ2) / 2.0 + 0.5;
             boxCenterViewPlaneGizmo.render(cxWorld, cyWorld, czWorld, rx, ry, rz, 0, 0, 0);
+            boxCenterPlaneGizmo.render(cxWorld, cyWorld, czWorld, rx, ry, rz, 0, 0, 0);
             boxCenterGizmo.render(cxWorld, cyWorld, czWorld, rx, ry, rz, 0, 0, 0);
         }
 
@@ -522,8 +529,9 @@ public class SelectionRenderer {
                 ps.rebuildIfNeeded();
                 ps.viewPlaneGizmo
                     .render(ps.centerX(), ps.centerY(), ps.centerZ(), rx, ry, rz, ps.rotX, ps.rotY, ps.rotZ);
-                ps.scaleGizmo.render(ps.centerX(), ps.centerY(), ps.centerZ(), rx, ry, rz, ps.rotX, ps.rotY, ps.rotZ);
+                ps.planeGizmo.render(ps.centerX(), ps.centerY(), ps.centerZ(), rx, ry, rz, ps.rotX, ps.rotY, ps.rotZ);
                 ps.gizmo.render(ps.centerX(), ps.centerY(), ps.centerZ(), rx, ry, rz, ps.rotX, ps.rotY, ps.rotZ);
+                ps.scaleGizmo.render(ps.centerX(), ps.centerY(), ps.centerZ(), rx, ry, rz, ps.rotX, ps.rotY, ps.rotZ);
                 ps.rotGizmo.render(ps.centerX(), ps.centerY(), ps.centerZ(), rx, ry, rz, ps.rotX, ps.rotY, ps.rotZ);
             }
         }
@@ -533,6 +541,8 @@ public class SelectionRenderer {
         if (cps.active) {
             if (cps.preview != null) renderProposalPreview(mc, rx, ry, rz, cps.preview);
             cps.viewPlaneGizmo
+                .render(cps.centerX(), cps.centerY(), cps.centerZ(), rx, ry, rz, cps.rotX, cps.rotY, cps.rotZ);
+            cps.planeGizmo
                 .render(cps.centerX(), cps.centerY(), cps.centerZ(), rx, ry, rz, cps.rotX, cps.rotY, cps.rotZ);
             cps.gizmo.render(cps.centerX(), cps.centerY(), cps.centerZ(), rx, ry, rz, 0, 0, 0);
             cps.rotGizmo.render(cps.centerX(), cps.centerY(), cps.centerZ(), rx, ry, rz, cps.rotX, cps.rotY, cps.rotZ);
@@ -556,8 +566,9 @@ public class SelectionRenderer {
                     renderProposalPreview(mc, rx, ry, rz, ms.preview);
                 }
                 ms.viewPlaneGizmo.render(ms.gizmoX(), ms.gizmoY(), ms.gizmoZ(), rx, ry, rz, ms.rotX, ms.rotY, ms.rotZ);
-                ms.scaleGizmo.render(ms.gizmoX(), ms.gizmoY(), ms.gizmoZ(), rx, ry, rz, ms.rotX, ms.rotY, ms.rotZ);
+                ms.planeGizmo.render(ms.gizmoX(), ms.gizmoY(), ms.gizmoZ(), rx, ry, rz, ms.rotX, ms.rotY, ms.rotZ);
                 ms.gizmo.render(ms.gizmoX(), ms.gizmoY(), ms.gizmoZ(), rx, ry, rz, ms.rotX, ms.rotY, ms.rotZ);
+                ms.scaleGizmo.render(ms.gizmoX(), ms.gizmoY(), ms.gizmoZ(), rx, ry, rz, ms.rotX, ms.rotY, ms.rotZ);
                 ms.rotGizmo.render(ms.gizmoX(), ms.gizmoY(), ms.gizmoZ(), rx, ry, rz, ms.rotX, ms.rotY, ms.rotZ);
             } else if (ms.active) {
                 ms.cancel();
@@ -596,6 +607,7 @@ public class SelectionRenderer {
             // Gizmo on selected point
             github.thehighcruw.dimensium.tool.state.ModellingToolState.ModelPoint mSelPt = mts.selectedPointObj();
             if (mSelPt != null) {
+                mts.planeGizmo.render(mSelPt.x + 0.5, mSelPt.y + 0.5, mSelPt.z + 0.5, rx, ry, rz, 0, 0, 0);
                 mts.gizmo.render(mSelPt.x + 0.5, mSelPt.y + 0.5, mSelPt.z + 0.5, rx, ry, rz, 0, 0, 0);
             }
             // Lines between adjacent rows (column-matched)
@@ -646,6 +658,7 @@ public class SelectionRenderer {
             if (pathState.selectedIndex >= 0 && !pathState.points.isEmpty()) {
                 PathToolState.PathPoint selPt = pathState.selectedPoint();
                 if (selPt != null) {
+                    pathState.planeGizmo.render(selPt.x + 0.5, selPt.y + 0.5, selPt.z + 0.5, rx, ry, rz, 0, 0, 0);
                     pathState.gizmo.render(selPt.x + 0.5, selPt.y + 0.5, selPt.z + 0.5, rx, ry, rz, 0, 0, 0);
                 }
             }
