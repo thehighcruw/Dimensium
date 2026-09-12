@@ -20,6 +20,7 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.freecam.FreecamState;
+import github.thehighcruw.dimensium.render.brushes.ToolRenderer;
 import github.thehighcruw.dimensium.render.imgui.ImGuiManager;
 import github.thehighcruw.dimensium.render.panel.PanelDraw;
 import github.thehighcruw.dimensium.render.panel.ToolOptionsPanel;
@@ -51,19 +52,16 @@ import github.thehighcruw.dimensium.render.sidebar.HistoryWindow;
 import github.thehighcruw.dimensium.render.world.PlaneTranslationGizmo;
 import github.thehighcruw.dimensium.render.world.RotationGizmo;
 import github.thehighcruw.dimensium.render.world.ScaleGizmo;
-import github.thehighcruw.dimensium.render.world.SelectionRenderer;
 import github.thehighcruw.dimensium.render.world.TranslationGizmo;
 import github.thehighcruw.dimensium.tool.BuilderTool;
 import github.thehighcruw.dimensium.tool.BuilderToolState;
 import github.thehighcruw.dimensium.tool.BuilderToolState.Phase;
 import github.thehighcruw.dimensium.tool.DimensiumMode;
 import github.thehighcruw.dimensium.tool.Tool;
+import github.thehighcruw.dimensium.tool.ToolRegistry;
 import github.thehighcruw.dimensium.tool.math.ShapeMath;
 import github.thehighcruw.dimensium.tool.state.ClipboardPlacementState;
-import github.thehighcruw.dimensium.tool.state.LassoSelectToolState;
-import github.thehighcruw.dimensium.tool.state.ModellingToolState;
 import github.thehighcruw.dimensium.tool.state.MoveToolState;
-import github.thehighcruw.dimensium.tool.state.PathToolState;
 import github.thehighcruw.dimensium.tool.state.SelectToolState;
 import github.thehighcruw.dimensium.tool.state.SelectionState;
 import github.thehighcruw.dimensium.tool.state.ShapePlacementState;
@@ -391,260 +389,16 @@ public class OverlayRenderer {
                 }
             }
 
-            // ── Path tool gizmo hover + drag ─────────────────────────────────
-            PathToolState pathState = PathToolState.INSTANCE;
-            if (DimensiumMode.INSTANCE.selectedTool == Tool.PATH && pathState.selectedIndex >= 0
-                && !pathState.points.isEmpty()) {
-                PathToolState.PathPoint selPt = pathState.selectedPoint();
-                if (selPt != null) {
-                    double pgx = selPt.x + 0.5, pgy = selPt.y + 0.5, pgz = selPt.z + 0.5;
-                    if (pathState.gizmo.isDragging()) {
-                        double[] anchor = pathState.gizmo.updateDrag(mx, my);
-                        if (anchor != null) {
-                            boolean snap = org.lwjgl.input.Keyboard.isKeyDown(org.lwjgl.input.Keyboard.KEY_LSHIFT);
-                            selPt.x = (int) Math.floor(snap ? Math.floor(anchor[0] + 0.5) : anchor[0]);
-                            selPt.y = (int) Math.floor(snap ? Math.floor(anchor[1] + 0.5) : anchor[1]);
-                            selPt.z = (int) Math.floor(snap ? Math.floor(anchor[2] + 0.5) : anchor[2]);
-                            pathState.invalidatePath();
-                        }
-                    } else if (pathState.planeGizmo.isDragging()) {
-                        double[] anchor = pathState.planeGizmo.updateDrag(mx, my);
-                        if (anchor != null) {
-                            boolean snap = org.lwjgl.input.Keyboard.isKeyDown(org.lwjgl.input.Keyboard.KEY_LSHIFT);
-                            selPt.x = (int) Math.floor(snap ? Math.floor(anchor[0] + 0.5) : anchor[0]);
-                            selPt.y = (int) Math.floor(snap ? Math.floor(anchor[1] + 0.5) : anchor[1]);
-                            selPt.z = (int) Math.floor(snap ? Math.floor(anchor[2] + 0.5) : anchor[2]);
-                            pathState.invalidatePath();
-                        }
-                    } else if (mc.renderViewEntity != null) {
-                        net.minecraft.entity.EntityLivingBase pathEye = mc.renderViewEntity;
-                        pathState.gizmo.updateHover(mx, my, sw, sh, pathEye, pgx, pgy, pgz, 0, 0, 0);
-                        if (pathState.gizmo.hoveredAxis == TranslationGizmo.Axis.NONE) {
-                            pathState.planeGizmo.updateHover(mx, my, sw, sh, pathEye, pgx, pgy, pgz, 0, 0, 0);
-                        } else {
-                            pathState.planeGizmo.hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
-                        }
-                    }
-                }
-            }
-
-            // ── Modelling tool gizmo hover + drag ────────────────────────────
-            ModellingToolState mts = ModellingToolState.INSTANCE;
-            if (DimensiumMode.INSTANCE.selectedTool == Tool.MODELLING) {
-                ModellingToolState.ModelPoint mSelPt = mts.selectedPointObj();
-                if (mSelPt != null) {
-                    double mgx = mSelPt.x + 0.5, mgy = mSelPt.y + 0.5, mgz = mSelPt.z + 0.5;
-                    if (mts.gizmo.isDragging()) {
-                        double[] anchor = mts.gizmo.updateDrag(mx, my);
-                        if (anchor != null) {
-                            boolean snap = org.lwjgl.input.Keyboard.isKeyDown(org.lwjgl.input.Keyboard.KEY_LSHIFT);
-                            mSelPt.x = (int) Math.floor(snap ? Math.floor(anchor[0] + 0.5) : anchor[0]);
-                            mSelPt.y = (int) Math.floor(snap ? Math.floor(anchor[1] + 0.5) : anchor[1]);
-                            mSelPt.z = (int) Math.floor(snap ? Math.floor(anchor[2] + 0.5) : anchor[2]);
-                            mts.invalidate();
-                        }
-                    } else if (mts.planeGizmo.isDragging()) {
-                        double[] anchor = mts.planeGizmo.updateDrag(mx, my);
-                        if (anchor != null) {
-                            boolean snap = org.lwjgl.input.Keyboard.isKeyDown(org.lwjgl.input.Keyboard.KEY_LSHIFT);
-                            mSelPt.x = (int) Math.floor(snap ? Math.floor(anchor[0] + 0.5) : anchor[0]);
-                            mSelPt.y = (int) Math.floor(snap ? Math.floor(anchor[1] + 0.5) : anchor[1]);
-                            mSelPt.z = (int) Math.floor(snap ? Math.floor(anchor[2] + 0.5) : anchor[2]);
-                            mts.invalidate();
-                        }
-                    } else if (mc.renderViewEntity != null) {
-                        net.minecraft.entity.EntityLivingBase mtsEye = mc.renderViewEntity;
-                        mts.gizmo.updateHover(mx, my, sw, sh, mtsEye, mgx, mgy, mgz, 0, 0, 0);
-                        if (mts.gizmo.hoveredAxis == TranslationGizmo.Axis.NONE) {
-                            mts.planeGizmo.updateHover(mx, my, sw, sh, mtsEye, mgx, mgy, mgz, 0, 0, 0);
-                        } else {
-                            mts.planeGizmo.hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
-                        }
-                    }
-                }
-            }
-
-            // ── Box-select gizmos hover + drag ────────────────────────────────
+            // ── Box-select commit on tool change ─────────────────────────────
             SelectionState bxSel = SelectionState.INSTANCE;
             if (bxSel.boxConfirmed && DimensiumMode.INSTANCE.selectedTool != Tool.SELECT) {
                 GuiDimensiumOverlay.commitBoxSelection(bxSel, SelectToolState.INSTANCE);
             }
-            if (bxSel.boxConfirmed && DimensiumMode.INSTANCE.selectedTool == Tool.SELECT
-                && mc.renderViewEntity != null) {
-                net.minecraft.entity.EntityLivingBase bxEye = mc.renderViewEntity;
-                boolean snap = org.lwjgl.input.Keyboard.isKeyDown(org.lwjgl.input.Keyboard.KEY_LSHIFT);
-                if (SelectionRenderer.boxPos1Gizmo.isDragging()) {
-                    double[] anchor = SelectionRenderer.boxPos1Gizmo.updateDrag(mx, my);
-                    if (anchor != null) {
-                        bxSel.pendingX = (int) Math.floor(snap ? Math.floor(anchor[0] + 0.5) : anchor[0]);
-                        bxSel.pendingY = (int) Math.floor(snap ? Math.floor(anchor[1] + 0.5) : anchor[1]);
-                        bxSel.pendingZ = (int) Math.floor(snap ? Math.floor(anchor[2] + 0.5) : anchor[2]);
-                    }
-                } else if (SelectionRenderer.boxPos1PlaneGizmo.isDragging()) {
-                    double[] anchor = SelectionRenderer.boxPos1PlaneGizmo.updateDrag(mx, my);
-                    if (anchor != null) {
-                        bxSel.pendingX = (int) Math.floor(snap ? Math.floor(anchor[0] + 0.5) : anchor[0]);
-                        bxSel.pendingY = (int) Math.floor(snap ? Math.floor(anchor[1] + 0.5) : anchor[1]);
-                        bxSel.pendingZ = (int) Math.floor(snap ? Math.floor(anchor[2] + 0.5) : anchor[2]);
-                    }
-                } else if (SelectionRenderer.boxPos2Gizmo.isDragging()) {
-                    double[] anchor = SelectionRenderer.boxPos2Gizmo.updateDrag(mx, my);
-                    if (anchor != null) {
-                        bxSel.pendingX2 = (int) Math.floor(snap ? Math.floor(anchor[0] + 0.5) : anchor[0]);
-                        bxSel.pendingY2 = (int) Math.floor(snap ? Math.floor(anchor[1] + 0.5) : anchor[1]);
-                        bxSel.pendingZ2 = (int) Math.floor(snap ? Math.floor(anchor[2] + 0.5) : anchor[2]);
-                    }
-                } else if (SelectionRenderer.boxPos2PlaneGizmo.isDragging()) {
-                    double[] anchor = SelectionRenderer.boxPos2PlaneGizmo.updateDrag(mx, my);
-                    if (anchor != null) {
-                        bxSel.pendingX2 = (int) Math.floor(snap ? Math.floor(anchor[0] + 0.5) : anchor[0]);
-                        bxSel.pendingY2 = (int) Math.floor(snap ? Math.floor(anchor[1] + 0.5) : anchor[1]);
-                        bxSel.pendingZ2 = (int) Math.floor(snap ? Math.floor(anchor[2] + 0.5) : anchor[2]);
-                    }
-                } else if (SelectionRenderer.boxCenterViewPlaneGizmo.isDragging()) {
-                    double[] anchor = SelectionRenderer.boxCenterViewPlaneGizmo.updateDrag(mx, my);
-                    if (anchor != null) {
-                        double cx0 = (SelectionRenderer.INSTANCE.boxCenterDragP1X
-                            + SelectionRenderer.INSTANCE.boxCenterDragP2X) / 2.0 + 0.5;
-                        double cy0 = (SelectionRenderer.INSTANCE.boxCenterDragP1Y
-                            + SelectionRenderer.INSTANCE.boxCenterDragP2Y) / 2.0 + 0.5;
-                        double cz0 = (SelectionRenderer.INSTANCE.boxCenterDragP1Z
-                            + SelectionRenderer.INSTANCE.boxCenterDragP2Z) / 2.0 + 0.5;
-                        int dx = (int) Math.floor(snap ? Math.floor(anchor[0] - cx0 + 0.5) : anchor[0] - cx0);
-                        int dy = (int) Math.floor(snap ? Math.floor(anchor[1] - cy0 + 0.5) : anchor[1] - cy0);
-                        int dz = (int) Math.floor(snap ? Math.floor(anchor[2] - cz0 + 0.5) : anchor[2] - cz0);
-                        bxSel.pendingX = SelectionRenderer.INSTANCE.boxCenterDragP1X + dx;
-                        bxSel.pendingY = SelectionRenderer.INSTANCE.boxCenterDragP1Y + dy;
-                        bxSel.pendingZ = SelectionRenderer.INSTANCE.boxCenterDragP1Z + dz;
-                        bxSel.pendingX2 = SelectionRenderer.INSTANCE.boxCenterDragP2X + dx;
-                        bxSel.pendingY2 = SelectionRenderer.INSTANCE.boxCenterDragP2Y + dy;
-                        bxSel.pendingZ2 = SelectionRenderer.INSTANCE.boxCenterDragP2Z + dz;
-                    }
-                } else if (SelectionRenderer.boxCenterGizmo.isDragging()) {
-                    double[] anchor = SelectionRenderer.boxCenterGizmo.updateDrag(mx, my);
-                    if (anchor != null) {
-                        double cx0 = (SelectionRenderer.INSTANCE.boxCenterDragP1X
-                            + SelectionRenderer.INSTANCE.boxCenterDragP2X) / 2.0 + 0.5;
-                        double cy0 = (SelectionRenderer.INSTANCE.boxCenterDragP1Y
-                            + SelectionRenderer.INSTANCE.boxCenterDragP2Y) / 2.0 + 0.5;
-                        double cz0 = (SelectionRenderer.INSTANCE.boxCenterDragP1Z
-                            + SelectionRenderer.INSTANCE.boxCenterDragP2Z) / 2.0 + 0.5;
-                        int dx = (int) Math.floor(snap ? Math.floor(anchor[0] - cx0 + 0.5) : anchor[0] - cx0);
-                        int dy = (int) Math.floor(snap ? Math.floor(anchor[1] - cy0 + 0.5) : anchor[1] - cy0);
-                        int dz = (int) Math.floor(snap ? Math.floor(anchor[2] - cz0 + 0.5) : anchor[2] - cz0);
-                        bxSel.pendingX = SelectionRenderer.INSTANCE.boxCenterDragP1X + dx;
-                        bxSel.pendingY = SelectionRenderer.INSTANCE.boxCenterDragP1Y + dy;
-                        bxSel.pendingZ = SelectionRenderer.INSTANCE.boxCenterDragP1Z + dz;
-                        bxSel.pendingX2 = SelectionRenderer.INSTANCE.boxCenterDragP2X + dx;
-                        bxSel.pendingY2 = SelectionRenderer.INSTANCE.boxCenterDragP2Y + dy;
-                        bxSel.pendingZ2 = SelectionRenderer.INSTANCE.boxCenterDragP2Z + dz;
-                    }
-                } else if (SelectionRenderer.boxCenterPlaneGizmo.isDragging()) {
-                    double[] anchor = SelectionRenderer.boxCenterPlaneGizmo.updateDrag(mx, my);
-                    if (anchor != null) {
-                        double cx0 = (SelectionRenderer.INSTANCE.boxCenterDragP1X
-                            + SelectionRenderer.INSTANCE.boxCenterDragP2X) / 2.0 + 0.5;
-                        double cy0 = (SelectionRenderer.INSTANCE.boxCenterDragP1Y
-                            + SelectionRenderer.INSTANCE.boxCenterDragP2Y) / 2.0 + 0.5;
-                        double cz0 = (SelectionRenderer.INSTANCE.boxCenterDragP1Z
-                            + SelectionRenderer.INSTANCE.boxCenterDragP2Z) / 2.0 + 0.5;
-                        int dx = (int) Math.floor(snap ? Math.floor(anchor[0] - cx0 + 0.5) : anchor[0] - cx0);
-                        int dy = (int) Math.floor(snap ? Math.floor(anchor[1] - cy0 + 0.5) : anchor[1] - cy0);
-                        int dz = (int) Math.floor(snap ? Math.floor(anchor[2] - cz0 + 0.5) : anchor[2] - cz0);
-                        bxSel.pendingX = SelectionRenderer.INSTANCE.boxCenterDragP1X + dx;
-                        bxSel.pendingY = SelectionRenderer.INSTANCE.boxCenterDragP1Y + dy;
-                        bxSel.pendingZ = SelectionRenderer.INSTANCE.boxCenterDragP1Z + dz;
-                        bxSel.pendingX2 = SelectionRenderer.INSTANCE.boxCenterDragP2X + dx;
-                        bxSel.pendingY2 = SelectionRenderer.INSTANCE.boxCenterDragP2Y + dy;
-                        bxSel.pendingZ2 = SelectionRenderer.INSTANCE.boxCenterDragP2Z + dz;
-                    }
-                } else {
-                    SelectionRenderer.boxPos1Gizmo.updateHover(
-                        mx,
-                        my,
-                        sw,
-                        sh,
-                        bxEye,
-                        bxSel.pendingX + 0.5,
-                        bxSel.pendingY + 0.5,
-                        bxSel.pendingZ + 0.5,
-                        0,
-                        0,
-                        0);
-                    if (SelectionRenderer.boxPos1Gizmo.hoveredAxis == TranslationGizmo.Axis.NONE) {
-                        SelectionRenderer.boxPos1PlaneGizmo.updateHover(
-                            mx,
-                            my,
-                            sw,
-                            sh,
-                            bxEye,
-                            bxSel.pendingX + 0.5,
-                            bxSel.pendingY + 0.5,
-                            bxSel.pendingZ + 0.5,
-                            0,
-                            0,
-                            0);
-                    } else {
-                        SelectionRenderer.boxPos1PlaneGizmo.hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
-                    }
-                    if (SelectionRenderer.boxPos1Gizmo.hoveredAxis == TranslationGizmo.Axis.NONE
-                        && SelectionRenderer.boxPos1PlaneGizmo.hoveredPlane == PlaneTranslationGizmo.Plane.NONE) {
-                        SelectionRenderer.boxPos2Gizmo.updateHover(
-                            mx,
-                            my,
-                            sw,
-                            sh,
-                            bxEye,
-                            bxSel.pendingX2 + 0.5,
-                            bxSel.pendingY2 + 0.5,
-                            bxSel.pendingZ2 + 0.5,
-                            0,
-                            0,
-                            0);
-                        if (SelectionRenderer.boxPos2Gizmo.hoveredAxis == TranslationGizmo.Axis.NONE) {
-                            SelectionRenderer.boxPos2PlaneGizmo.updateHover(
-                                mx,
-                                my,
-                                sw,
-                                sh,
-                                bxEye,
-                                bxSel.pendingX2 + 0.5,
-                                bxSel.pendingY2 + 0.5,
-                                bxSel.pendingZ2 + 0.5,
-                                0,
-                                0,
-                                0);
-                        } else {
-                            SelectionRenderer.boxPos2PlaneGizmo.hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
-                        }
-                    } else {
-                        SelectionRenderer.boxPos2Gizmo.hoveredAxis = TranslationGizmo.Axis.NONE;
-                        SelectionRenderer.boxPos2PlaneGizmo.hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
-                    }
-                    if (SelectionRenderer.boxPos1Gizmo.hoveredAxis == TranslationGizmo.Axis.NONE
-                        && SelectionRenderer.boxPos1PlaneGizmo.hoveredPlane == PlaneTranslationGizmo.Plane.NONE
-                        && SelectionRenderer.boxPos2Gizmo.hoveredAxis == TranslationGizmo.Axis.NONE
-                        && SelectionRenderer.boxPos2PlaneGizmo.hoveredPlane == PlaneTranslationGizmo.Plane.NONE) {
-                        double cxW = (bxSel.pendingX + bxSel.pendingX2) / 2.0 + 0.5;
-                        double cyW = (bxSel.pendingY + bxSel.pendingY2) / 2.0 + 0.5;
-                        double czW = (bxSel.pendingZ + bxSel.pendingZ2) / 2.0 + 0.5;
-                        SelectionRenderer.boxCenterViewPlaneGizmo
-                            .updateHover(mx, my, sw, sh, bxEye, cxW, cyW, czW, 0, 0, 0);
-                        SelectionRenderer.boxCenterGizmo.updateHover(mx, my, sw, sh, bxEye, cxW, cyW, czW, 0, 0, 0);
-                        if (SelectionRenderer.boxCenterGizmo.hoveredAxis == TranslationGizmo.Axis.NONE
-                            && !SelectionRenderer.boxCenterViewPlaneGizmo.hovered) {
-                            SelectionRenderer.boxCenterPlaneGizmo
-                                .updateHover(mx, my, sw, sh, bxEye, cxW, cyW, czW, 0, 0, 0);
-                        } else {
-                            SelectionRenderer.boxCenterPlaneGizmo.hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
-                        }
-                    } else {
-                        SelectionRenderer.boxCenterViewPlaneGizmo.hovered = false;
-                        SelectionRenderer.boxCenterGizmo.hoveredAxis = TranslationGizmo.Axis.NONE;
-                        SelectionRenderer.boxCenterPlaneGizmo.hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
-                    }
-                }
-            }
+
+            // ── Per-tool overlay (gizmos, 2D overlays) ────────────────────────
+            Tool activeTool = DimensiumMode.INSTANCE.selectedTool;
+            ToolRenderer toolRenderer = ToolRegistry.toolRenderer(activeTool);
+            toolRenderer.renderOverlay(mc, mx, my, mx, my, sw, sh);
 
             ViewportRegistry.INSTANCE.flushPendingDeletions();
 
@@ -695,13 +449,6 @@ public class OverlayRenderer {
             // Running before endFrame() risks corrupting GL state that renderDrawData() needs.
             ClipboardWindow.INSTANCE.prebake();
 
-            // Non-ImGui GL overlays
-            if (DimensiumMode.INSTANCE.selectedTool == Tool.LASSO_SELECT) {
-                LassoSelectToolState lasso = LassoSelectToolState.INSTANCE;
-                if (lasso.dragging && lasso.polygonPoints.size() >= 2) {
-                    renderLassoPolygon(lasso);
-                }
-            }
             renderCursor(mx, my);
         }
 
@@ -819,45 +566,6 @@ public class OverlayRenderer {
             case ERASE -> new ItemStack(Items.flint_and_steel);
             case SETUP_SYMMETRY -> new ItemStack(Items.ender_pearl);
         };
-    }
-
-    private void renderLassoPolygon(LassoSelectToolState lasso) {
-        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
-        GL11.glDisable(GL11.GL_DEPTH_TEST);
-        GL11.glDisable(GL11.GL_TEXTURE_2D);
-        GL11.glEnable(GL11.GL_BLEND);
-        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        GL11.glLineWidth(1.5f);
-
-        Tessellator t = Tessellator.instance;
-
-        // Drop shadow
-        GL11.glColor4f(0f, 0f, 0f, 0.5f);
-        t.startDrawing(GL11.GL_LINE_LOOP);
-        for (float[] p : lasso.polygonPoints) t.addVertex(p[0] + 1, p[1] + 1, 0);
-        t.draw();
-
-        // Lasso outline in cyan-white
-        GL11.glColor4f(0.4f, 0.9f, 0.8f, 0.9f);
-        t.startDrawing(GL11.GL_LINE_LOOP);
-        for (float[] p : lasso.polygonPoints) t.addVertex(p[0], p[1], 0);
-        t.draw();
-
-        // Fill tint
-        GL11.glColor4f(0.4f, 0.9f, 0.8f, 0.07f);
-        t.startDrawingQuads();
-        float[] first = lasso.polygonPoints.get(0);
-        for (int i = 1; i < lasso.polygonPoints.size() - 1; i++) {
-            float[] a = lasso.polygonPoints.get(i);
-            float[] b = lasso.polygonPoints.get(i + 1);
-            t.addVertex(first[0], first[1], 0);
-            t.addVertex(a[0], a[1], 0);
-            t.addVertex(b[0], b[1], 0);
-            t.addVertex(b[0], b[1], 0);
-        }
-        t.draw();
-
-        GL11.glPopAttrib();
     }
 
     private void renderCursor(int cx, int cy) {

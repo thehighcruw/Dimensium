@@ -20,8 +20,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.handler.KeyConstants;
 import github.thehighcruw.dimensium.handler.TickHandler;
 import github.thehighcruw.dimensium.handler.brushes.BrushInputRegistry;
-import github.thehighcruw.dimensium.render.brushes.BrushView;
-import github.thehighcruw.dimensium.render.brushes.BrushViewRegistry;
+import github.thehighcruw.dimensium.render.brushes.ToolRenderer;
 import github.thehighcruw.dimensium.tool.DimensiumMode;
 import github.thehighcruw.dimensium.tool.Tool;
 import github.thehighcruw.dimensium.tool.brushes.BrushUtil;
@@ -30,7 +29,9 @@ import github.thehighcruw.dimensium.tool.state.BrushState;
 import github.thehighcruw.dimensium.util.RenderUtils;
 
 @SideOnly(Side.CLIENT)
-class BrushPreviewRenderer {
+public class BrushPreviewRenderer {
+
+    public static final BrushPreviewRenderer INSTANCE = new BrushPreviewRenderer();
 
     private static final int BRUSH_VOXEL_MAX = 100_000;
 
@@ -41,7 +42,7 @@ class BrushPreviewRenderer {
     private float[] cachedBrushWire = null;
     private HashSet<Long> cachedBrushSet = null;
 
-    void render(Minecraft mc, double rx, double ry, double rz) {
+    public void render(ToolRenderer renderer, Minecraft mc, double rx, double ry, double rz) {
         MovingObjectPosition mop = RenderUtils.raycastAtCursor();
         if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return;
 
@@ -51,10 +52,7 @@ class BrushPreviewRenderer {
         int sx = bs.brushRadius, sy = bs.brushShape.hasHeight ? bs.brushHeight : bs.brushRadius, sz = sx;
         BrushShape shape = bs.brushShape;
 
-        BrushView view = BrushViewRegistry.get(activeTool);
-        if (view == null) return;
-
-        if (view.renderCustomHover(mc, mop, rx, ry, rz)) return;
+        if (renderer.renderHover(mc, mop, rx, ry, rz)) return;
 
         boolean buttonHeld = BrushInputRegistry.usesDragLoop(activeTool) && Mouse.isButtonDown(KeyConstants.RMB);
 
@@ -86,7 +84,7 @@ class BrushPreviewRenderer {
                 for (int dx = -sx; dx <= sx; dx++)
                     for (int dy = -sy; dy <= sy; dy++) for (int dz = -sz; dz <= sz; dz++) {
                         if (!inBrushShape(shape, dx, dy, dz, sx, sy, sz)) continue;
-                        if (view.isBlockAffected(mc, bx + dx, by + dy, bz + dz))
+                        if (renderer.isBlockAffected(mc, bx + dx, by + dy, bz + dz))
                             affectedSet.add(SelectionRenderer.lPack(dx + sx, dy + sy, dz + sz));
                     }
 

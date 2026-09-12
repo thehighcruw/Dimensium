@@ -7,7 +7,7 @@ package github.thehighcruw.dimensium.tool;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.handler.brushes.BrushInput;
-import github.thehighcruw.dimensium.render.brushes.BrushView;
+import github.thehighcruw.dimensium.render.brushes.ToolRenderer;
 import github.thehighcruw.dimensium.render.panel.ToolSection;
 import github.thehighcruw.dimensium.render.panel.ToolStates;
 
@@ -31,6 +31,6 @@ public interface ToolDescriptor {
     /** Mouse/click input handler; null if this tool has no brush input. */
     BrushInput brushInput();
 
-    /** World-space brush preview; null if this tool has no preview. */
-    BrushView brushView();
+    /** World-space rendering for this tool. Never null — use {@link ToolRenderer#NONE} for tools with no preview. */
+    ToolRenderer toolRenderer();
 }

@@ -36,7 +36,6 @@ import github.thehighcruw.dimensium.render.MenuBar;
 import github.thehighcruw.dimensium.render.OverlayRenderer;
 import github.thehighcruw.dimensium.render.ViewState;
 import github.thehighcruw.dimensium.render.ViewportPanel;
-import github.thehighcruw.dimensium.render.brushes.BrushViewRegistry;
 import github.thehighcruw.dimensium.render.imgui.ImGuiManager;
 import github.thehighcruw.dimensium.tool.ActiveDragState;
 import github.thehighcruw.dimensium.tool.BlockColorCache;
@@ -46,6 +45,7 @@ import github.thehighcruw.dimensium.tool.BuilderToolState.Phase;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 import github.thehighcruw.dimensium.tool.DimensiumMode;
 import github.thehighcruw.dimensium.tool.Tool;
+import github.thehighcruw.dimensium.tool.ToolRegistry;
 import github.thehighcruw.dimensium.tool.brushes.ElevationBrush;
 import github.thehighcruw.dimensium.tool.state.ClipboardPlacementState;
 import github.thehighcruw.dimensium.tool.state.ElevationToolState;
@@ -83,7 +83,6 @@ public class SelectionRenderer {
     public int boxCenterDragP1X, boxCenterDragP1Y, boxCenterDragP1Z;
     public int boxCenterDragP2X, boxCenterDragP2Y, boxCenterDragP2Z;
 
-    private final BrushPreviewRenderer brushPreview = new BrushPreviewRenderer();
     private final HologramRenderer hologram = new HologramRenderer();
 
     private long cachedSelVersion = -1;
@@ -143,9 +142,9 @@ public class SelectionRenderer {
             && (!ImGuiManager.INSTANCE.wantCaptureMouse() || ViewportPanel.INSTANCE.isHovered());
         if (DimensiumMode.INSTANCE.isActive() && !_anyModal
             && _cursorOnViewport
-            && (!TickHandler.INSTANCE.isPaintDragging() || _previewTool == Tool.SMOOTH)
-            && BrushViewRegistry.hasBrushPreview(_previewTool)) {
-            brushPreview.render(mc, rx, ry, rz);
+            && (!TickHandler.INSTANCE.isPaintDragging() || _previewTool == Tool.SMOOTH)) {
+            ToolRegistry.toolRenderer(_previewTool)
+                .renderWorldPreview(mc, rx, ry, rz);
         }
         if (DimensiumMode.INSTANCE.isActive() && !_anyModal
             && _cursorOnViewport

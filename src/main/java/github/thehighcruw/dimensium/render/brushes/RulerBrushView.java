@@ -13,10 +13,11 @@ import org.lwjgl.opengl.GL11;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import github.thehighcruw.dimensium.render.world.BrushPreviewRenderer;
 import github.thehighcruw.dimensium.tool.state.RulerToolState;
 
 @SideOnly(Side.CLIENT)
-public class RulerBrushView implements BrushView {
+public class RulerBrushView implements ToolRenderer {
 
     @Override
     public boolean isBlockAffected(Minecraft mc, int wx, int wy, int wz) {
@@ -24,7 +25,12 @@ public class RulerBrushView implements BrushView {
     }
 
     @Override
-    public boolean renderCustomHover(Minecraft mc, MovingObjectPosition mop, double rx, double ry, double rz) {
+    public void renderWorldPreview(Minecraft mc, double rx, double ry, double rz) {
+        BrushPreviewRenderer.INSTANCE.render(this, mc, rx, ry, rz);
+    }
+
+    @Override
+    public boolean renderHover(Minecraft mc, MovingObjectPosition mop, double rx, double ry, double rz) {
         List<int[]> points = RulerToolState.INSTANCE.points;
         int hx = mop.blockX, hy = mop.blockY, hz = mop.blockZ;
 
