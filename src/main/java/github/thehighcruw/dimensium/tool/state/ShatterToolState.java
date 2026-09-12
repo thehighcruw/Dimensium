@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 TheHighcruw
+ * SPDX-License-Identifier: MIT
+ */
 package github.thehighcruw.dimensium.tool.state;
 
 public class ShatterToolState {

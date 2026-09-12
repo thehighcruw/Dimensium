@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 TheHighcruw
+ * SPDX-License-Identifier: MIT
+ */
 package github.thehighcruw.dimensium;
 
 import net.minecraft.client.settings.KeyBinding;

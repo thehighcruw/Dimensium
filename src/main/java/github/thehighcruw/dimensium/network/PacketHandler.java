@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 TheHighcruw
+ * SPDX-License-Identifier: MIT
+ */
 package github.thehighcruw.dimensium.network;
 
 import com.gtnewhorizon.gtnhlib.network.base.NetworkChannel;

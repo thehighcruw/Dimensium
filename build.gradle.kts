@@ -35,6 +35,7 @@ plugins {
     id("com.gtnewhorizons.gtnhconvention")
     id("com.gtnewhorizons.retrofuturagradle")
     id("com.github.spotbugs") version "6.1.11"
+    id("com.diffplug.spotless") version "6.25.0"
 }
 
 group = "github.thehighcruw.dimensium"
@@ -116,6 +117,13 @@ tasks.register<JavaExec>("cpdCheck") {
     isIgnoreExitValue = true
     doLast {
         println("CPD report: ${reportDir.get().asFile.absolutePath}")
+    }
+}
+
+spotless {
+    java {
+        licenseHeaderFile(file("config/license-header.txt"))
+        target("src/main/java/**/*.java", "src/test/java/**/*.java")
     }
 }
 
