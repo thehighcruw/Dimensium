@@ -179,8 +179,6 @@ public final class GuiDimensiumOverlay {
                             _cps.rotX,
                             _cps.rotY,
                             _cps.rotZ);
-                    } else {
-                        confirmClipboardPlacement();
                     }
                 } else if (button == KeyConstants.RMB) {
                     _cps.cancel();
