@@ -1,6 +1,6 @@
 # Dimensium — Development Guide
 
-Minecraft 1.7.10 builder-wand mod. Java 8. RetroFuturaGradle. Main package: `github.thehighcruw.dimensium`.
+Minecraft 1.7.10 building mod. Java 8. RetroFuturaGradle. Main package: `github.thehighcruw.dimensium`.
 
 ---
 
@@ -8,16 +8,29 @@ Minecraft 1.7.10 builder-wand mod. Java 8. RetroFuturaGradle. Main package: `git
 
 | Path | Purpose |
 |------|---------|
-| `src/main/java/.../tool/` | Core state: selection, clipboard, tool enum, shape math |
+| `src/main/java/.../tool/` | Tool enum, selection, clipboard, core tool logic |
 | `src/main/java/.../tool/state/` | Per-tool state singletons |
+| `src/main/java/.../tool/brushes/` | Brush strategy implementations (sculpt, noise, smooth, …) |
+| `src/main/java/.../tool/builder/` | `BuilderTool` placement strategies (clone, erase, move, smear, …) |
+| `src/main/java/.../tool/mask/` | Mask nodes, serializer, and registry |
+| `src/main/java/.../tool/math/` | Geometry math: `ShapeMath`, `ModellingMath`, `NoiseSampler`, `PathMath` |
 | `src/main/java/.../network/` | Client↔server packets (FML SimpleImpl) |
 | `src/main/java/.../render/` | Client-only renderers and overlay GUI |
+| `src/main/java/.../render/imgui/` | ImGui core: `ImGuiWindow`, `ImGuiWindowRegistry`, `ImGuiManager`, GL renderer, icon/item caches |
+| `src/main/java/.../render/panel/` | `ToolOptionsPanel`, `ToolPanel`, shared panel widgets |
 | `src/main/java/.../render/panel/sections/` | Per-tool panel UI sections |
 | `src/main/java/.../render/brushes/` | Brush preview views per tool |
+| `src/main/java/.../render/gui/` | Legacy Minecraft GUI screens (colour picker, gradient helper) |
+| `src/main/java/.../render/popup/` | ImGui popup/modal windows (block picker, blueprint browser, create blueprint, conflict, …) |
+| `src/main/java/.../render/sidebar/` | ImGui sidebar/tool windows (palette, clipboard, selection, operations, autoshade, fill, filter, replace, …) |
+| `src/main/java/.../render/world/` | World-space renderers: selection, hologram, ghost, clipboard, gizmos, brush preview |
 | `src/main/java/.../handler/` | FML event handlers (key input, tick, item) |
 | `src/main/java/.../handler/brushes/` | Brush input handlers per tool |
-| `src/main/java/.../item/` | BuilderWand item |
+| `src/main/java/.../history/` | Undo/redo: `EditHistory`, `ClientEditHistory`, server capture/edit queues |
+| `src/main/java/.../blueprint/` | Blueprint save/load, registry, thumbnail cache |
+| `src/main/java/.../freecam/` | Freecam entity, state, and utilities |
 | `src/main/java/.../proxy/` | Client / server proxy split |
+| `src/main/java/.../util/` | `PerfTrace` and other shared utilities |
 
 ---
 

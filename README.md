@@ -1,8 +1,16 @@
+> **Disclaimer**: Dimensium is currently in early Alpha.
+> You may use it, but prepare yourself for bugs, unexpected or underdefined behavior, and lost progress.
+> For people using it, please report issues in the GitHub issue-tracker.
+
 # Dimensium
 
-A builder-wand mod for Minecraft 1.7.10, inspired by [Axiom](https://modrinth.com/mod/axiom). Dimensium brings powerful in-game world editing tools — selection, clipboard, shape placement, brush operations — to the GTNH modpack ecosystem.
+A building mod for Minecraft 1.7.10, inspired by [Axiom](https://modrinth.com/mod/axiom).
+Dimensium brings powerful in-game world editing tools — selection, clipboard, shape placement, brush operations to 1.7.10 Minecraft.
 
-> **Warning:** Dimensium can place or destroy thousands of blocks at once. Use it **only in creative mode** and keep **frequent backups** of your world. One misclick can cause irreversible terrain damage. The authors are not responsible for lost progress.
+> **Warning:** Dimensium can place or destroy thousands of blocks at once.
+> Use it **only in creative mode** and keep **frequent backups** of your world.
+> One misclick can cause massive changes, which Undo may not always be able to reverse.
+> The authors are not responsible for lost progress.
 
 ---
 
@@ -25,7 +33,8 @@ A builder-wand mod for Minecraft 1.7.10, inspired by [Axiom](https://modrinth.co
 | [GTNHLib](https://github.com/GTNewHorizons/GTNHLib) | 0.11.35+ |
 | [NotEnoughItems (GTNH fork)](https://github.com/GTNewHorizons/NotEnoughItems) | 2.8.118-GTNH+ |
 
-GTNHLib and NEI are required at runtime. If you are running a GT: New Horizons modpack, both are already included.
+GTNHLib and NEI are required at runtime.
+If you are playing GT:NH, both are already included.
 
 ---
 
@@ -45,8 +54,6 @@ GTNHLib and NEI are required at runtime. If you are running a GT: New Horizons m
 ./gradlew runClient    # launch the game
 ./gradlew jar          # build distributable jar
 ```
-
-Requires JDK 8 (Azul Zulu recommended). The build will automatically download ImGui natives on first run.
 
 ---
 
