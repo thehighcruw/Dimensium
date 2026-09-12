@@ -105,7 +105,9 @@ public final class LayoutPresetRegistry {
                 .append('\n');
         }
 
-        try (OutputStreamWriter fw = new OutputStreamWriter(new FileOutputStream(new File(dir, name + EXT)), StandardCharsets.UTF_8)) {
+        try (OutputStreamWriter fw = new OutputStreamWriter(
+            new FileOutputStream(new File(dir, name + EXT)),
+            StandardCharsets.UTF_8)) {
             fw.write(sb.toString());
         } catch (IOException e) {
             Dimensium.logger.error("Failed to save layout preset '{}'", name, e);
