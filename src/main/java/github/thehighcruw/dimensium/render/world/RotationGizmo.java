@@ -8,6 +8,7 @@ import net.minecraft.entity.EntityLivingBase;
 
 import org.lwjgl.opengl.GL11;
 
+import github.thehighcruw.dimensium.DimensiumConfig;
 import github.thehighcruw.dimensium.tool.math.ShapeMath;
 
 /**
@@ -219,7 +220,10 @@ public class RotationGizmo {
         double delta = currentAngle - startAngle;
         while (delta > Math.PI) delta -= 2 * Math.PI;
         while (delta < -Math.PI) delta += 2 * Math.PI;
-        return (float) (dragSign * Math.toDegrees(delta));
+        double degrees = dragSign * Math.toDegrees(delta);
+        float snap = DimensiumConfig.rotationSnapDegrees;
+        if (snap > 0f) degrees = Math.round(degrees / snap) * snap;
+        return (float) degrees;
     }
 
     public void endDrag() {

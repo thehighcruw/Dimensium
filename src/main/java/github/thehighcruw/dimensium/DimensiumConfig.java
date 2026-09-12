@@ -46,6 +46,10 @@ public class DimensiumConfig {
     @Config.RangeFloat(min = 0.5f, max = 3.0f)
     public static float uiScale = 1.0f;
 
+    @Config.Comment("Rotation gizmo snap increment in degrees. Set to 0 to disable snapping.")
+    @Config.RangeFloat(min = 0.0f, max = 45.0f)
+    public static float rotationSnapDegrees = 1.0f;
+
     @Config.Comment("Scroll speed multiplier applied to brush-radius scrolling and freecam zoom scrolling.")
     @Config.RangeFloat(min = 0.1f, max = 10.0f)
     public static float worldScrollSpeedModifier = 1.0f;
@@ -60,6 +64,11 @@ public class DimensiumConfig {
 
     public static void setUiScrollSpeedModifier(float value) {
         uiScrollSpeedModifier = value;
+    }
+
+    public static void setRotationSnapDegrees(float value) {
+        rotationSnapDegrees = value;
+        save();
     }
 
     // ── Editor view keybinds — key codes (LWJGL) and modifier masks (MOD_CTRL=1, MOD_SHIFT=2, MOD_ALT=4) ──

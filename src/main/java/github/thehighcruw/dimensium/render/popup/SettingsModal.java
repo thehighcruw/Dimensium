@@ -35,6 +35,7 @@ public class SettingsModal {
     private final float[] pendingScale = { 1.0f };
     private final float[] pendingWorldScrollSpeed = { 1.0f };
     private final float[] pendingUiScrollSpeed = { 1.0f };
+    private final float[] pendingRotationSnap = { 1.0f };
 
     // Tool keybind capture: which Tool is being re-bound, null = not capturing a tool bind.
     private Tool capturingTool = null;
@@ -53,6 +54,7 @@ public class SettingsModal {
         pendingScale[0] = ImGuiManager.INSTANCE.getUIScale();
         pendingWorldScrollSpeed[0] = DimensiumConfig.worldScrollSpeedModifier;
         pendingUiScrollSpeed[0] = DimensiumConfig.uiScrollSpeedModifier;
+        pendingRotationSnap[0] = DimensiumConfig.rotationSnapDegrees;
         capturingTool = null;
         capturingActionIndex = -1;
     }
@@ -477,7 +479,8 @@ public class SettingsModal {
             float gap = 6f * scale;
             boolean hasChanges = pendingScale[0] != ImGuiManager.INSTANCE.getUIScale()
                 || pendingWorldScrollSpeed[0] != DimensiumConfig.worldScrollSpeedModifier
-                || pendingUiScrollSpeed[0] != DimensiumConfig.uiScrollSpeedModifier;
+                || pendingUiScrollSpeed[0] != DimensiumConfig.uiScrollSpeedModifier
+                || pendingRotationSnap[0] != DimensiumConfig.rotationSnapDegrees;
             ImGui.setCursorPosX(modalW - applyW - closeW - gap - 16f * scale);
             if (hasChanges) {
                 ImGui.pushStyleColor(ImGuiCol.Button, 0.18f, 0.42f, 0.90f, 1.00f);
@@ -488,6 +491,7 @@ public class SettingsModal {
                 ImGuiManager.INSTANCE.setUIScale(pendingScale[0]);
                 DimensiumConfig.setWorldScrollSpeedModifier(pendingWorldScrollSpeed[0]);
                 DimensiumConfig.setUiScrollSpeedModifier(pendingUiScrollSpeed[0]);
+                DimensiumConfig.setRotationSnapDegrees(pendingRotationSnap[0]);
                 try {
                     ConfigurationManager.save(DimensiumConfig.class);
                 } catch (Exception e) {
@@ -525,6 +529,11 @@ public class SettingsModal {
         ImGui.text(I18n.format("dimensium.settings.general.ui_scroll_speed"));
         ImGui.setNextItemWidth(width - 4f);
         ImGui.sliderFloat("##ui_scroll_speed_slider", pendingUiScrollSpeed, 0.1f, 10.0f, "%.1f");
+
+        ImGui.spacing();
+        ImGui.text(I18n.format("dimensium.settings.general.rotation_snap"));
+        ImGui.setNextItemWidth(width - 4f);
+        ImGui.sliderFloat("##rotation_snap_slider", pendingRotationSnap, 0.0f, 45.0f, "%.1f°");
     }
 
     private void renderKeybindSettings(float width) {
