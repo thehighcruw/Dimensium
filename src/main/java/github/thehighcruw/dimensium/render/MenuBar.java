@@ -88,57 +88,71 @@ public final class MenuBar {
             ImGui.endMenu();
         }
         if (ImGui.beginMenu(I18n.format("dimensium.menu.window"))) {
-            if (ImGui
-                .menuItem(I18n.format("dimensium.menu.window.tool_panel"), null, OverlayRenderer.toolPanel.isOpen())) {
-                OverlayRenderer.toolPanel.setOpen(!OverlayRenderer.toolPanel.isOpen());
-            }
-            ImGui.separator();
-            if (ImGui.menuItem(
-                I18n.format("dimensium.menu.window.tool_mask_list"),
-                null,
-                ToolMaskListWindow.INSTANCE.isOpen())) {
-                ToolMaskListWindow.INSTANCE.setOpen(!ToolMaskListWindow.INSTANCE.isOpen());
-            }
-            if (ImGui.menuItem(
-                I18n.format("dimensium.menu.window.tool_mask_editor"),
-                null,
-                ToolMaskEditorWindow.INSTANCE.isOpen())) {
-                ToolMaskEditorWindow.INSTANCE.setOpen(!ToolMaskEditorWindow.INSTANCE.isOpen());
-            }
-            if (ImGui.menuItem(I18n.format("dimensium.menu.window.history"), null, HistoryWindow.INSTANCE.isOpen())) {
-                HistoryWindow.INSTANCE.setOpen(!HistoryWindow.INSTANCE.isOpen());
-            }
-            if (ImGui.menuItem(I18n.format("dimensium.menu.window.palette"), null, PaletteWindow.INSTANCE.isOpen())) {
-                PaletteWindow.INSTANCE.setOpen(!PaletteWindow.INSTANCE.isOpen());
-            }
-            if (ImGui.menuItem(
-                I18n.format("dimensium.menu.window.palette_editor"),
-                null,
-                PaletteEditorWindow.INSTANCE.isOpen())) {
-                PaletteEditorWindow.INSTANCE.setOpen(!PaletteEditorWindow.INSTANCE.isOpen());
-            }
-            if (ImGui
-                .menuItem(I18n.format("dimensium.menu.window.block_info"), null, BlockInfoWindow.INSTANCE.isOpen())) {
-                BlockInfoWindow.INSTANCE.setOpen(!BlockInfoWindow.INSTANCE.isOpen());
-            }
-            if (ImGui
-                .menuItem(I18n.format("dimensium.menu.window.selection"), null, SelectionWindow.INSTANCE.isOpen())) {
-                SelectionWindow.INSTANCE.setOpen(!SelectionWindow.INSTANCE.isOpen());
-            }
-            if (ImGui
-                .menuItem(I18n.format("dimensium.menu.window.clipboard"), null, ClipboardWindow.INSTANCE.isOpen())) {
-                ClipboardWindow.INSTANCE.setOpen(!ClipboardWindow.INSTANCE.isOpen());
-            }
-            ImGui.separator();
-            if (ImGui.beginMenu(I18n.format("dimensium.menu.window.operations"))) {
+            if (ImGui.beginMenu(I18n.format("dimensium.menu.window.panels"))) {
+                if (ImGui.menuItem(
+                    I18n.format("dimensium.menu.window.tool_panel"),
+                    null,
+                    OverlayRenderer.toolPanel.isOpen())) {
+                    OverlayRenderer.toolPanel.setOpen(!OverlayRenderer.toolPanel.isOpen());
+                }
+                if (ImGui.menuItem(
+                    I18n.format("dimensium.menu.window.tool_mask_list"),
+                    null,
+                    ToolMaskListWindow.INSTANCE.isOpen())) {
+                    ToolMaskListWindow.INSTANCE.setOpen(!ToolMaskListWindow.INSTANCE.isOpen());
+                }
+                if (ImGui.menuItem(
+                    I18n.format("dimensium.menu.window.tool_mask_editor"),
+                    null,
+                    ToolMaskEditorWindow.INSTANCE.isOpen())) {
+                    ToolMaskEditorWindow.INSTANCE.setOpen(!ToolMaskEditorWindow.INSTANCE.isOpen());
+                }
+                if (ImGui.menuItem(
+                    I18n.format("dimensium.menu.window.history"),
+                    null,
+                    HistoryWindow.INSTANCE.isOpen())) {
+                    HistoryWindow.INSTANCE.setOpen(!HistoryWindow.INSTANCE.isOpen());
+                }
+                if (ImGui.menuItem(
+                    I18n.format("dimensium.menu.window.palette"),
+                    null,
+                    PaletteWindow.INSTANCE.isOpen())) {
+                    PaletteWindow.INSTANCE.setOpen(!PaletteWindow.INSTANCE.isOpen());
+                }
+                if (ImGui.menuItem(
+                    I18n.format("dimensium.menu.window.palette_editor"),
+                    null,
+                    PaletteEditorWindow.INSTANCE.isOpen())) {
+                    PaletteEditorWindow.INSTANCE.setOpen(!PaletteEditorWindow.INSTANCE.isOpen());
+                }
+                if (ImGui.menuItem(
+                    I18n.format("dimensium.menu.window.block_info"),
+                    null,
+                    BlockInfoWindow.INSTANCE.isOpen())) {
+                    BlockInfoWindow.INSTANCE.setOpen(!BlockInfoWindow.INSTANCE.isOpen());
+                }
+                if (ImGui.menuItem(
+                    I18n.format("dimensium.menu.window.selection"),
+                    null,
+                    SelectionWindow.INSTANCE.isOpen())) {
+                    SelectionWindow.INSTANCE.setOpen(!SelectionWindow.INSTANCE.isOpen());
+                }
+                if (ImGui.menuItem(
+                    I18n.format("dimensium.menu.window.clipboard"),
+                    null,
+                    ClipboardWindow.INSTANCE.isOpen())) {
+                    ClipboardWindow.INSTANCE.setOpen(!ClipboardWindow.INSTANCE.isOpen());
+                }
                 if (ImGui.menuItem(
                     I18n.format("dimensium.menu.window.operations_panel"),
                     null,
                     OperationsWindow.INSTANCE.isOpen())) {
                     OperationsWindow.INSTANCE.setOpen(!OperationsWindow.INSTANCE.isOpen());
                 }
-                if (ImGui
-                    .menuItem(I18n.format("dimensium.menu.window.analyze"), null, AnalyzeWindow.INSTANCE.isOpen())) {
+                if (ImGui.menuItem(
+                    I18n.format("dimensium.menu.window.analyze"),
+                    null,
+                    AnalyzeWindow.INSTANCE.isOpen())) {
                     AnalyzeWindow.INSTANCE.setOpen(!AnalyzeWindow.INSTANCE.isOpen());
                 }
                 if (ImGui.menuItem(
@@ -147,9 +161,10 @@ public final class MenuBar {
                     AutoshadeWindow.INSTANCE.isOpen())) {
                     AutoshadeWindow.INSTANCE.setOpen(!AutoshadeWindow.INSTANCE.isOpen());
                 }
-                ImGui.separator();
-                if (ImGui
-                    .menuItem(I18n.format("dimensium.menu.window.fill"), null, FillSelectionWindow.INSTANCE.isOpen())) {
+                if (ImGui.menuItem(
+                    I18n.format("dimensium.menu.window.fill"),
+                    null,
+                    FillSelectionWindow.INSTANCE.isOpen())) {
                     if (FillSelectionWindow.INSTANCE.isOpen()) FillSelectionWindow.INSTANCE.close();
                     else FillSelectionWindow.INSTANCE.open();
                 }

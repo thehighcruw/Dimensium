@@ -175,7 +175,7 @@ public class DimensiumConfig {
     public static boolean windowRightPanelOpen = true;
 
     @Config.Comment("Block info window open state.")
-    public static boolean windowBlockInfoOpen = false;
+    public static boolean windowBlockInfoOpen = true;
 
     @Config.Comment("Selection window open state.")
     public static boolean windowSelectionOpen = false;

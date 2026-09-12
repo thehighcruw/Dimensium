@@ -591,6 +591,7 @@ dimensium.menu.select=Select
 dimensium.menu.view=View
 dimensium.menu.operations=Operations
 dimensium.menu.window=Window
+dimensium.menu.window.panels=Panels
 dimensium.menu.help=Help
 dimensium.menu.help.settings=Settings
 dimensium.ui.noise.w1=W1
