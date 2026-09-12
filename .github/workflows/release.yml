@@ -20,7 +20,7 @@ jobs:
           distribution: zulu
           java-version: 8
 
-      - name: Set up Azul Zulu JDK 21 (Gradle runtime)
+      - name: Set up Azul Zulu JDK 25 (Gradle runtime)
         uses: actions/setup-java@v6
         with:
           distribution: zulu
