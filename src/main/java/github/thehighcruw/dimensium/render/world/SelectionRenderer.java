@@ -1076,12 +1076,12 @@ public class SelectionRenderer {
                     if (bm[0] != 0) return y;
                     continue;
                 }
-                if (mc.theWorld.getBlock(wx, y, wz) != net.minecraft.init.Blocks.air) return y;
+                if (mc.theWorld.getBlock(wx, y, wz) != Blocks.air) return y;
             }
             return 0;
         }
         for (int y = 255; y >= 0; y--) {
-            if (mc.theWorld.getBlock(wx, y, wz) != net.minecraft.init.Blocks.air) return y;
+            if (mc.theWorld.getBlock(wx, y, wz) != Blocks.air) return y;
         }
         return 0;
     }

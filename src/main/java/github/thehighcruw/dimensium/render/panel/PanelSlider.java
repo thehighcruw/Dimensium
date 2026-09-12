@@ -4,8 +4,6 @@
  */
 package github.thehighcruw.dimensium.render.panel;
 
-import static github.thehighcruw.dimensium.render.panel.PanelDraw.*;
-
 import java.util.function.Consumer;
 
 import net.minecraft.client.gui.FontRenderer;
@@ -112,7 +110,7 @@ public class PanelSlider {
     }
 
     private static int barW(int cx) {
-        return (PROPS_W - PAD) - barX(cx) - VAL_W - GAP;
+        return (PanelDraw.PROPS_W - PanelDraw.PAD) - barX(cx) - VAL_W - GAP;
     }
 
     private static int barTop(int cy) {
@@ -135,42 +133,42 @@ public class PanelSlider {
         int by = barTop(cy);
         boolean hov = mx >= bx && mx < bx + bw && my >= cy && my < cy + ROW_H;
 
-        drawSmall(fr, label, cx, cy + 3, SharedState.INSTANCE.activeEdit == this ? 0xFFFFFF : 0x888899);
+        PanelDraw.drawSmall(fr, label, cx, cy + 3, SharedState.INSTANCE.activeEdit == this ? 0xFFFFFF : 0x888899);
 
         if (SharedState.INSTANCE.activeEdit == this) {
             // Text input: bright distinct background, thick border, white text
             GL11.glDisable(GL11.GL_TEXTURE_2D);
             // Background: dark teal, covers bar+value area
             GL11.glColor4f(0.05f, 0.20f, 0.25f, 0.98f);
-            rect(t, bx, cy, bx + bw + GAP + VAL_W, cy + ROW_H);
+            PanelDraw.rect(t, bx, cy, bx + bw + GAP + VAL_W, cy + ROW_H);
             // 2px accent border top + bottom
-            color(t, C_ACCENT);
-            rect(t, bx, cy, bx + bw + GAP + VAL_W, cy + 2);
-            rect(t, bx, cy + ROW_H - 2, bx + bw + GAP + VAL_W, cy + ROW_H);
+            PanelDraw.color(t, PanelDraw.C_ACCENT);
+            PanelDraw.rect(t, bx, cy, bx + bw + GAP + VAL_W, cy + 2);
+            PanelDraw.rect(t, bx, cy + ROW_H - 2, bx + bw + GAP + VAL_W, cy + ROW_H);
             // Typed text + blinking cursor
             boolean cursorOn = (System.currentTimeMillis() / 500) % 2 == 0;
             String display = SharedState.INSTANCE.editBuffer + (cursorOn ? "|" : " ");
-            drawSmall(fr, display, bx + 3, cy + 4, 0xFFFFFF);
+            PanelDraw.drawSmall(fr, display, bx + 3, cy + 4, 0xFFFFFF);
         } else {
             // Bar
             GL11.glDisable(GL11.GL_TEXTURE_2D);
-            color(t, C_SLIDER_BG);
-            rect(t, bx, by, bx + bw, by + BAR_H);
+            PanelDraw.color(t, PanelDraw.C_SLIDER_BG);
+            PanelDraw.rect(t, bx, by, bx + bw, by + BAR_H);
 
             float tv = valueToT(value, min, max, scale);
             int fill = Math.round(tv * bw);
             if (fill > 0) {
-                color(t, hov ? C_ACCENT : C_SLIDER_FG);
-                rect(t, bx, by, bx + fill, by + BAR_H);
+                PanelDraw.color(t, hov ? PanelDraw.C_ACCENT : PanelDraw.C_SLIDER_FG);
+                PanelDraw.rect(t, bx, by, bx + fill, by + BAR_H);
             }
             // Handle marker
             int hx = bx + Math.max(0, Math.min(bw - 2, fill - 1));
             GL11.glColor4f(1f, 1f, 1f, 0.45f);
-            rect(t, hx, by, hx + 2, by + BAR_H);
+            PanelDraw.rect(t, hx, by, hx + 2, by + BAR_H);
 
             // Value text
             String valStr = displayText != null ? displayText : formatValue(value);
-            drawSmall(fr, valStr, bx + bw + GAP, cy + 3, hov ? 0xFFFFFF : 0xBBBBCC);
+            PanelDraw.drawSmall(fr, valStr, bx + bw + GAP, cy + 3, hov ? 0xFFFFFF : 0xBBBBCC);
         }
 
         return cy + ROW_H + 2;

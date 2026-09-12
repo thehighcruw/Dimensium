@@ -715,11 +715,11 @@ public class OverlayRenderer {
         ImGui.setNextWindowSize(winW, winH);
         ImGui.setNextWindowBgAlpha(0.55f);
 
-        int winFlags = imgui.flag.ImGuiWindowFlags.NoDecoration | imgui.flag.ImGuiWindowFlags.NoInputs
-            | imgui.flag.ImGuiWindowFlags.NoNav
-            | imgui.flag.ImGuiWindowFlags.NoMove
-            | imgui.flag.ImGuiWindowFlags.NoBringToFrontOnFocus
-            | imgui.flag.ImGuiWindowFlags.NoFocusOnAppearing;
+        int winFlags = ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoInputs
+            | ImGuiWindowFlags.NoNav
+            | ImGuiWindowFlags.NoMove
+            | ImGuiWindowFlags.NoBringToFrontOnFocus
+            | ImGuiWindowFlags.NoFocusOnAppearing;
 
         ImGui.begin("##key_press_log", winFlags);
         for (ViewState.KeyPressEntry entry : log) {

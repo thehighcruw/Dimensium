@@ -284,7 +284,7 @@ public class SelectionState {
     }
 
     private static int[][] buildDirs26() {
-        java.util.List<int[]> list = new java.util.ArrayList<>();
+        List<int[]> list = new ArrayList<>();
         for (int dx = -1; dx <= 1; dx++) for (int dy = -1; dy <= 1; dy++)
             for (int dz = -1; dz <= 1; dz++) if (dx != 0 || dy != 0 || dz != 0) list.add(new int[] { dx, dy, dz });
         return list.toArray(new int[0][]);

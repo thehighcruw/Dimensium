@@ -36,6 +36,7 @@ plugins {
     id("com.gtnewhorizons.retrofuturagradle")
     id("com.github.spotbugs") version "6.1.11"
     id("com.diffplug.spotless") version "6.25.0"
+    id("pmd")
 }
 
 group = "github.thehighcruw.dimensium"
@@ -120,30 +121,18 @@ tasks.register<JavaExec>("cpdCheck") {
     }
 }
 
-tasks.named("check") { dependsOn("pmdCheck") }
+pmd {
+    toolVersion = "6.55.0"
+    ruleSets = listOf()
+    ruleSetFiles = files("config/pmd-rules.xml")
+    isConsoleOutput = true
+    isIgnoreFailures = false
+    rulesMinimumPriority = 2
+}
 
-tasks.register<JavaExec>("pmdCheck") {
-    group = "verification"
-    description = "Run PMD static analysis on main sources"
-    classpath = cpdConfiguration
-    mainClass.set("net.sourceforge.pmd.PMD")
-    val reportDir = layout.buildDirectory.dir("reports/pmd")
-    doFirst {
-        reportDir.get().asFile.mkdirs()
-    }
-    args = listOf(
-        "--dir", "src/main/java",
-        "--rulesets", "config/pmd-rules.xml",
-        "--format", "text",
-        "--report-file", reportDir.get().file("main.txt").asFile.absolutePath
-    )
-    isIgnoreExitValue = true
-    doLast {
-        val report = reportDir.get().file("main.txt").asFile
-        if (report.exists() && report.length() > 0) {
-            println(report.readText())
-        }
-        println("PMD report: ${reportDir.get().asFile.absolutePath}")
+tasks.withType<Pmd>().configureEach {
+    if (name != "pmdMain") {
+        isEnabled = false
     }
 }
 

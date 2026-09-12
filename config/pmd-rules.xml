@@ -29,13 +29,19 @@
         </properties>
     </rule>
 
-    <!-- Fully-qualified names in code (should use imports) -->
-    <rule ref="category/java/codestyle.xml/UnnecessaryFullyQualifiedName"/>
+    <!-- Fully-qualified names in code (should use imports) — priority 1: build error -->
+    <rule ref="category/java/codestyle.xml/UnnecessaryFullyQualifiedName">
+        <priority>1</priority>
+    </rule>
 
-    <!-- Duplicate imports -->
-    <rule ref="category/java/codestyle.xml/DuplicateImports"/>
+    <!-- Duplicate imports — priority 1: build error -->
+    <rule ref="category/java/codestyle.xml/DuplicateImports">
+        <priority>1</priority>
+    </rule>
 
-    <!-- Unused imports -->
-    <rule ref="category/java/bestpractices.xml/UnusedImports"/>
+    <!-- Unused imports — priority 1: build error -->
+    <rule ref="category/java/bestpractices.xml/UnusedImports">
+        <priority>1</priority>
+    </rule>
 
 </ruleset>

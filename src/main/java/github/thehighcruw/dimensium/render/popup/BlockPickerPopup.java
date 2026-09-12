@@ -329,7 +329,7 @@ public class BlockPickerPopup {
     private static void addGT5Machines(List<ItemStack> out) {
         try {
             gregtech.api.interfaces.metatileentity.IMetaTileEntity[] mtes = gregtech.api.GregTechAPI.METATILEENTITIES;
-            net.minecraft.block.Block blockMachines = gregtech.api.GregTechAPI.sBlockMachines;
+            Block blockMachines = gregtech.api.GregTechAPI.sBlockMachines;
             if (blockMachines == null) return;
             Item blockItem = Item.getItemFromBlock(blockMachines);
             if (blockItem == null) return;

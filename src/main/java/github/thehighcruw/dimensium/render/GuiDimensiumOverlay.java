@@ -4,7 +4,12 @@
  */
 package github.thehighcruw.dimensium.render;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
@@ -23,10 +28,13 @@ import github.thehighcruw.dimensium.handler.brushes.BrushInput;
 import github.thehighcruw.dimensium.handler.brushes.BrushInputRegistry;
 import github.thehighcruw.dimensium.network.PacketHandler;
 import github.thehighcruw.dimensium.network.PacketShapePlacement;
+import github.thehighcruw.dimensium.render.imgui.ImGuiManager;
 import github.thehighcruw.dimensium.render.popup.BlueprintBrowserPopup;
 import github.thehighcruw.dimensium.render.popup.ConflictPopup;
 import github.thehighcruw.dimensium.render.popup.CreateBlueprintPopup;
 import github.thehighcruw.dimensium.render.popup.RecentBlockHistory;
+import github.thehighcruw.dimensium.render.world.GizmoProjection;
+import github.thehighcruw.dimensium.render.world.PlaneTranslationGizmo;
 import github.thehighcruw.dimensium.render.world.RotationGizmo;
 import github.thehighcruw.dimensium.render.world.SelectionRenderer;
 import github.thehighcruw.dimensium.render.world.TranslationGizmo;
@@ -119,7 +127,7 @@ public final class GuiDimensiumOverlay {
         Minecraft _mc = Minecraft.getMinecraft();
         int _sf = github.thehighcruw.dimensium.util.RenderUtils.scaleFactor();
         int physX = mouseX * _sf;
-        float _uiScale = github.thehighcruw.dimensium.render.imgui.ImGuiManager.INSTANCE.getUIScale();
+        float _uiScale = ImGuiManager.INSTANCE.getUIScale();
         if (physX < OverlayRenderer.toolPanel.currentW * _uiScale) {
             // Left panel is now ImGui — clicks handled by ImGui input routing.
         } else {
@@ -144,7 +152,7 @@ public final class GuiDimensiumOverlay {
             ClipboardPlacementState _cps = ClipboardPlacementState.INSTANCE;
             if (_cps.active) {
                 if (button == KeyConstants.LMB) {
-                    net.minecraft.entity.EntityLivingBase _eye = _mc.renderViewEntity;
+                    EntityLivingBase _eye = _mc.renderViewEntity;
                     double ccx = _cps.centerX(), ccy = _cps.centerY(), ccz = _cps.centerZ();
                     if (_eye != null && _cps.gizmo.hoveredAxis != TranslationGizmo.Axis.NONE) {
                         _cps.gizmo.startDrag(
@@ -162,40 +170,39 @@ public final class GuiDimensiumOverlay {
                             0,
                             0,
                             0);
-                    } else if (_eye != null && _cps.planeGizmo.hoveredPlane
-                        != github.thehighcruw.dimensium.render.world.PlaneTranslationGizmo.Plane.NONE) {
-                            _cps.planeGizmo.startDrag(
-                                mouseX,
-                                mouseY,
-                                scaledW,
-                                scaledH,
-                                _eye,
-                                ccx,
-                                ccy,
-                                ccz,
-                                _cps.anchorFX,
-                                _cps.anchorFY,
-                                _cps.anchorFZ,
-                                _cps.rotX,
-                                _cps.rotY,
-                                _cps.rotZ);
-                        } else if (_eye != null && _cps.rotGizmo.hoveredAxis != RotationGizmo.Axis.NONE) {
-                            _cps.rotDragBaseX = _cps.rotX;
-                            _cps.rotDragBaseY = _cps.rotY;
-                            _cps.rotDragBaseZ = _cps.rotZ;
-                            _cps.rotGizmo.startDrag(
-                                mouseX,
-                                mouseY,
-                                scaledW,
-                                scaledH,
-                                _eye,
-                                ccx,
-                                ccy,
-                                ccz,
-                                _cps.rotX,
-                                _cps.rotY,
-                                _cps.rotZ);
-                        }
+                    } else if (_eye != null && _cps.planeGizmo.hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
+                        _cps.planeGizmo.startDrag(
+                            mouseX,
+                            mouseY,
+                            scaledW,
+                            scaledH,
+                            _eye,
+                            ccx,
+                            ccy,
+                            ccz,
+                            _cps.anchorFX,
+                            _cps.anchorFY,
+                            _cps.anchorFZ,
+                            _cps.rotX,
+                            _cps.rotY,
+                            _cps.rotZ);
+                    } else if (_eye != null && _cps.rotGizmo.hoveredAxis != RotationGizmo.Axis.NONE) {
+                        _cps.rotDragBaseX = _cps.rotX;
+                        _cps.rotDragBaseY = _cps.rotY;
+                        _cps.rotDragBaseZ = _cps.rotZ;
+                        _cps.rotGizmo.startDrag(
+                            mouseX,
+                            mouseY,
+                            scaledW,
+                            scaledH,
+                            _eye,
+                            ccx,
+                            ccy,
+                            ccz,
+                            _cps.rotX,
+                            _cps.rotY,
+                            _cps.rotZ);
+                    }
                 } else if (button == KeyConstants.RMB) {
                     _cps.cancel();
                 }
@@ -286,7 +293,7 @@ public final class GuiDimensiumOverlay {
 
         // Erase originals and place at new positions as a single history entry
         long _t0 = System.nanoTime();
-        java.util.List<int[]> moveOps = new java.util.ArrayList<>();
+        List<int[]> moveOps = new ArrayList<>();
         moveOps.addAll(SelectionOps.selectionToAirOps(sel));
         moveOps.addAll(ms.ghostBlocks);
         long _t1 = System.nanoTime();
@@ -298,11 +305,11 @@ public final class GuiDimensiumOverlay {
             "[DIMTIMER] confirmMove buildOps=" + _buildMs + "ms sendChunked=" + _sendMs + "ms ops=" + moveOps.size());
 
         // Build new snapshot from the placed blocks (no world-read — avoids server-packet timing gap)
-        java.util.Map<Long, SelectionState.BlockData> newSnap = new java.util.HashMap<>(ms.ghostBlocks.size());
+        Map<Long, SelectionState.BlockData> newSnap = new HashMap<>(ms.ghostBlocks.size());
         float ncx = 0, ncy = 0, ncz = 0;
         for (int[] b : ms.ghostBlocks) {
             Block blk = Block.getBlockById(b[3]);
-            if (blk != null && blk != net.minecraft.init.Blocks.air) {
+            if (blk != null && blk != Blocks.air) {
                 newSnap.put(SelectionState.pack(b[0], b[1], b[2]), new SelectionState.BlockData(blk, b[4]));
             }
             ncx += b[0] + 0.5f;
@@ -314,7 +321,7 @@ public final class GuiDimensiumOverlay {
         ncz /= ms.ghostBlocks.size();
 
         // Update selection to new positions
-        java.util.Set<Long> newSel = new java.util.HashSet<>(newSnap.keySet());
+        Set<Long> newSel = new HashSet<>(newSnap.keySet());
         sel.applyOp(newSel, BooleanOp.REPLACE);
 
         // Re-activate with known block data — selection renderVersion just changed via applyOp
@@ -336,7 +343,7 @@ public final class GuiDimensiumOverlay {
     public static void confirmClipboardPlacement() {
         ClipboardPlacementState cps = ClipboardPlacementState.INSTANCE;
         if (!cps.active) return;
-        BlockSender.sendChunked(cps.toOps(), net.minecraft.client.resources.I18n.format("dimensium.action.paste"));
+        BlockSender.sendChunked(cps.toOps(), I18n.format("dimensium.action.paste"));
         cps.cancel();
     }
 
@@ -351,7 +358,7 @@ public final class GuiDimensiumOverlay {
      * Each entry in {@code positions} is {worldX, worldY, worldZ}.
      */
     public static int findNearestPointOnScreen(List<int[]> positions, int skipIndex, int mouseX, int mouseY, int sw,
-        int sh, github.thehighcruw.dimensium.render.world.GizmoProjection proj, double thresholdPx) {
+        int sh, GizmoProjection proj, double thresholdPx) {
         // GizmoProjection.project() already maps GL window coords to the viewport panel's
         // GUI-space position, so projected coords compare directly to mouseX/mouseY.
         int best = -1;
@@ -374,8 +381,8 @@ public final class GuiDimensiumOverlay {
     public static void applyPath() {
         ChangeProposal p = PathToolState.INSTANCE.preview;
         if (p != null && !p.proposed.isEmpty()) {
-            List<int[]> ops = new java.util.ArrayList<>(p.proposed.size());
-            for (java.util.Map.Entry<Long, int[]> e : p.proposed.entrySet()) {
+            List<int[]> ops = new ArrayList<>(p.proposed.size());
+            for (Map.Entry<Long, int[]> e : p.proposed.entrySet()) {
                 long key = e.getKey();
                 int[] bm = e.getValue();
                 ops.add(
@@ -396,8 +403,8 @@ public final class GuiDimensiumOverlay {
         if (mts.preview == null || mts.preview.proposed.isEmpty()) return;
 
         boolean keepExisting = mts.pasteMode == ModellingToolState.PasteMode.KEEP_EXISTING;
-        List<int[]> ops = new java.util.ArrayList<>(mts.preview.proposed.size());
-        for (java.util.Map.Entry<Long, int[]> e : mts.preview.proposed.entrySet()) {
+        List<int[]> ops = new ArrayList<>(mts.preview.proposed.size());
+        for (Map.Entry<Long, int[]> e : mts.preview.proposed.entrySet()) {
             long key = e.getKey();
             int[] bm = e.getValue();
             if (keepExisting) {

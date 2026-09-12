@@ -68,7 +68,7 @@ public class FillBrushInput implements BrushInput {
 
         ItemStack picked = SelectedBlockState.INSTANCE.selectedBlock;
         if (picked == null) return false;
-        Block paintBlock = net.minecraft.block.Block.getBlockFromItem(picked.getItem());
+        Block paintBlock = Block.getBlockFromItem(picked.getItem());
         if (paintBlock == null || paintBlock == Blocks.air) return false;
         int paintMeta = picked.getItemDamage();
         int paintId = Block.getIdFromBlock(paintBlock);

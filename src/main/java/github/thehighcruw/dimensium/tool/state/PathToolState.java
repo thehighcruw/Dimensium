@@ -122,7 +122,7 @@ public class PathToolState {
         if (key.equals(cachedKey) && preview != null) return;
         cachedKey = key;
 
-        java.util.List<int[]> blocks = PathMath.computePathBlocks(this, activeBlock);
+        List<int[]> blocks = PathMath.computePathBlocks(this, activeBlock);
         if (blocks.isEmpty()) {
             preview = null;
             return;

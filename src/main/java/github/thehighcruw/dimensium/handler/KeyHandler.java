@@ -302,7 +302,7 @@ public class KeyHandler {
     }
 
     private Tool toolForKey(int key, int mods) {
-        for (Map.Entry<Tool, net.minecraft.client.settings.KeyBinding> entry : Dimensium.toolKeybinds.entrySet()) {
+        for (Map.Entry<Tool, KeyBinding> entry : Dimensium.toolKeybinds.entrySet()) {
             int requiredMods = Dimensium.toolKeybindMods.getOrDefault(entry.getKey(), 0);
             if (matches(key, mods, entry.getValue(), requiredMods)) return entry.getKey();
         }

@@ -226,7 +226,7 @@ public class ToolMaskEditorWindow extends ImGuiWindow {
 
     private MaskNode createNodeForType(byte[] payload) {
         String type = new String(payload, java.nio.charset.StandardCharsets.UTF_8);
-        int airId = net.minecraft.block.Block.getIdFromBlock(Blocks.air);
+        int airId = Block.getIdFromBlock(Blocks.air);
         switch (type) {
             case "OR":
                 return new OrNode();
