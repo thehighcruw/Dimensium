@@ -23,7 +23,6 @@ import github.thehighcruw.dimensium.editor.window.viewport.world.PlaneTranslatio
 import github.thehighcruw.dimensium.editor.window.viewport.world.TranslationGizmo;
 import github.thehighcruw.dimensium.shared.InputHandler;
 import github.thehighcruw.dimensium.shared.KeyConstants;
-import github.thehighcruw.dimensium.shared.util.RenderUtils;
 
 @SideOnly(Side.CLIENT)
 public class PathBrushInput implements BrushInput {
@@ -35,7 +34,6 @@ public class PathBrushInput implements BrushInput {
     @Override
     public boolean onMouseClick(int button, Minecraft mc, MovingObjectPosition mop) {
         FreecamState fs = FreecamState.INSTANCE;
-        int sw = RenderUtils.scaledWidth(), sh = RenderUtils.scaledHeight();
         int mouseX = (int) fs.cursorX, mouseY = (int) fs.cursorY;
         PathToolState pts = PathToolState.INSTANCE;
 
@@ -72,13 +70,13 @@ public class PathBrushInput implements BrushInput {
                 if (pts.gizmo.hoveredAxis != TranslationGizmo.Axis.NONE && pts.selectedPoint() != null && eye != null) {
                     PathToolState.PathPoint sel = pts.selectedPoint();
                     double pgx = sel.x + 0.5, pgy = sel.y + 0.5, pgz = sel.z + 0.5;
-                    pts.gizmo.startDrag(mouseX, mouseY, sw, sh, pgx, pgy, pgz, pgx, pgy, pgz, 0, 0, 0);
+                    pts.gizmo.startDrag(mouseX, mouseY, pgx, pgy, pgz, pgx, pgy, pgz, 0, 0, 0);
                 } else
                     if (pts.planeGizmo.hoveredPlane != PlaneTranslationGizmo.Plane.NONE && pts.selectedPoint() != null
                         && eye != null) {
                             PathToolState.PathPoint sel = pts.selectedPoint();
                             double pgx = sel.x + 0.5, pgy = sel.y + 0.5, pgz = sel.z + 0.5;
-                            pts.planeGizmo.startDrag(mouseX, mouseY, sw, sh, pgx, pgy, pgz, pgx, pgy, pgz, 0, 0, 0);
+                            pts.planeGizmo.startDrag(mouseX, mouseY, pgx, pgy, pgz, pgx, pgy, pgz, 0, 0, 0);
                         }
             return true;
         }

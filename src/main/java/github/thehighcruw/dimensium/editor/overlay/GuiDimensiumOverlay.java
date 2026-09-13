@@ -161,8 +161,6 @@ public final class GuiDimensiumOverlay {
                         _cps.gizmo.startDrag(
                             mouseX,
                             mouseY,
-                            scaledW,
-                            scaledH,
                             ccx,
                             ccy,
                             ccz,
@@ -176,8 +174,6 @@ public final class GuiDimensiumOverlay {
                         _cps.planeGizmo.startDrag(
                             mouseX,
                             mouseY,
-                            scaledW,
-                            scaledH,
                             ccx,
                             ccy,
                             ccz,

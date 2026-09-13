@@ -46,10 +46,6 @@ public class GhostRenderer {
 
     public static final GhostRenderer INSTANCE = new GhostRenderer();
 
-    // Wireframe cache for ghost shape (invalidated when block list reference changes)
-    private List<int[]> wireCachedBlocks = null;
-    private float[] wireCache = null; // x1,y1,z1,x2,y2,z2,...
-
     // ── Exterior wireframe for ghost block list ────────────────────────────────
 
     float[] computeLocalWireframe(List<int[]> blocks) {

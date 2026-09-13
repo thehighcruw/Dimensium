@@ -33,7 +33,7 @@ public class BoxSelectToolRenderer implements ToolRenderer {
     }
 
     @Override
-    public void renderOverlay(Minecraft mc, int mx, int my, int mx3d, int my3d, int sw, int sh) {
+    public void renderOverlay(Minecraft mc, int mx, int my, int mx3d, int my3d) {
         SelectionState bxSel = SelectionState.INSTANCE;
         if (!bxSel.boxConfirmed || mc.renderViewEntity == null) return;
         EntityLivingBase bxEye = mc.renderViewEntity;

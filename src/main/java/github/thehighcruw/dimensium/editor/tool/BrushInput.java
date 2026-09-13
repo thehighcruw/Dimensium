@@ -22,12 +22,6 @@ public interface BrushInput {
         return false;
     }
 
-    /**
-     * Called each render tick while {@code button} is held, after block-position dedup.
-     * Only invoked when the tool has a registered BrushInput and a block is under the cursor.
-     */
-    default void onMouseHeld(int button, MovingObjectPosition mop) {}
-
     /** Whether this tool uses the RMB drag-paint loop in TickHandler. */
     default boolean usesDragLoop() {
         return false;

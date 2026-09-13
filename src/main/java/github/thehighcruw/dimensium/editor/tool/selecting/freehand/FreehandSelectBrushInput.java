@@ -64,7 +64,6 @@ public class FreehandSelectBrushInput implements BrushInput {
         return true;
     }
 
-    @Override
     public void onMouseHeld(int button, MovingObjectPosition mop) {
         if (button != KeyConstants.RMB) return;
         applyBrush(mop);

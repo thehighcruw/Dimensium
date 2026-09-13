@@ -22,7 +22,6 @@ import github.thehighcruw.dimensium.editor.tool.BrushInput;
 import github.thehighcruw.dimensium.editor.window.viewport.world.PlaneTranslationGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.TranslationGizmo;
 import github.thehighcruw.dimensium.shared.KeyConstants;
-import github.thehighcruw.dimensium.shared.util.RenderUtils;
 
 @SideOnly(Side.CLIENT)
 public class ModellingBrushInput implements BrushInput {
@@ -34,7 +33,6 @@ public class ModellingBrushInput implements BrushInput {
     @Override
     public boolean onMouseClick(int button, Minecraft mc, MovingObjectPosition mop) {
         FreecamState fs = FreecamState.INSTANCE;
-        int sw = RenderUtils.scaledWidth(), sh = RenderUtils.scaledHeight();
         int mouseX = (int) fs.cursorX, mouseY = (int) fs.cursorY;
         ModellingToolState mts = ModellingToolState.INSTANCE;
 
@@ -91,13 +89,13 @@ public class ModellingBrushInput implements BrushInput {
                 && eye != null) {
                     ModellingToolState.ModelPoint mSelPt = mts.selectedPointObj();
                     double mgx = mSelPt.x + 0.5, mgy = mSelPt.y + 0.5, mgz = mSelPt.z + 0.5;
-                    mts.gizmo.startDrag(mouseX, mouseY, sw, sh, mgx, mgy, mgz, mgx, mgy, mgz, 0, 0, 0);
+                    mts.gizmo.startDrag(mouseX, mouseY, mgx, mgy, mgz, mgx, mgy, mgz, 0, 0, 0);
                 } else
                 if (mts.planeGizmo.hoveredPlane != PlaneTranslationGizmo.Plane.NONE && mts.selectedPointObj() != null
                     && eye != null) {
                         ModellingToolState.ModelPoint mSelPt = mts.selectedPointObj();
                         double mgx = mSelPt.x + 0.5, mgy = mSelPt.y + 0.5, mgz = mSelPt.z + 0.5;
-                        mts.planeGizmo.startDrag(mouseX, mouseY, sw, sh, mgx, mgy, mgz, mgx, mgy, mgz, 0, 0, 0);
+                        mts.planeGizmo.startDrag(mouseX, mouseY, mgx, mgy, mgz, mgx, mgy, mgz, 0, 0, 0);
                     }
             return true;
         }

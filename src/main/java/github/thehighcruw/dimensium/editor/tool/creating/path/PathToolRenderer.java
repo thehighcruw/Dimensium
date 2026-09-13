@@ -30,7 +30,7 @@ public class PathToolRenderer implements ToolRenderer {
     }
 
     @Override
-    public void renderOverlay(Minecraft mc, int mx, int my, int mx3d, int my3d, int sw, int sh) {
+    public void renderOverlay(Minecraft mc, int mx, int my, int mx3d, int my3d) {
         PathToolState pathState = PathToolState.INSTANCE;
         if (pathState.selectedIndex < 0 || pathState.points.isEmpty()) return;
         PathToolState.PathPoint selPt = pathState.selectedPoint();

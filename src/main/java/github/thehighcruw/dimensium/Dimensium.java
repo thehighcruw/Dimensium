@@ -42,6 +42,7 @@ public class Dimensium {
     public static final String VERSION = "1.0.0";
 
     @Instance(MODID)
+    @SuppressWarnings("unused")
     public static Dimensium instance;
 
     public static Logger logger;
@@ -49,6 +50,7 @@ public class Dimensium {
     @SidedProxy(
         clientSide = "github.thehighcruw.dimensium.proxy.ClientProxy",
         serverSide = "github.thehighcruw.dimensium.proxy.ServerProxy")
+    @SuppressWarnings("unused")
     public static IProxy proxy;
 
     // Modifier flag constants (bitmask).
@@ -221,7 +223,7 @@ public class Dimensium {
             throw new RuntimeException("Failed to register Dimensium config", e);
         }
 
-        proxy.preInit(event);
+        proxy.preInit();
     }
 
     @EventHandler
@@ -235,17 +237,17 @@ public class Dimensium {
         FMLCommonHandler.instance()
             .bus()
             .register(ServerCaptureQueue.INSTANCE);
-        proxy.init(event);
+        proxy.init();
     }
 
     @EventHandler
     public void postInit(FMLPostInitializationEvent event) {
-        proxy.postInit(event);
+        proxy.postInit();
     }
 
     @EventHandler
     public void loadComplete(FMLLoadCompleteEvent event) {
-        proxy.loadComplete(event);
+        proxy.loadComplete();
     }
 
 }

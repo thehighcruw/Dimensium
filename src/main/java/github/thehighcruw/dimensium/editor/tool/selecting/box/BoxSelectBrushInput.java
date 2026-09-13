@@ -18,7 +18,6 @@ import github.thehighcruw.dimensium.editor.window.viewport.world.SelectionRender
 import github.thehighcruw.dimensium.editor.window.viewport.world.TranslationGizmo;
 import github.thehighcruw.dimensium.shared.KeyConstants;
 import github.thehighcruw.dimensium.shared.SelectionState;
-import github.thehighcruw.dimensium.shared.util.RenderUtils;
 
 @SideOnly(Side.CLIENT)
 public class BoxSelectBrushInput implements BrushInput {
@@ -26,7 +25,6 @@ public class BoxSelectBrushInput implements BrushInput {
     @Override
     public boolean onMouseClick(int button, Minecraft mc, MovingObjectPosition mop) {
         FreecamState fs = FreecamState.INSTANCE;
-        int sw = RenderUtils.scaledWidth(), sh = RenderUtils.scaledHeight();
         int mouseX = (int) fs.cursorX, mouseY = (int) fs.cursorY;
 
         SelectionState sel = SelectionState.INSTANCE;
@@ -38,26 +36,22 @@ public class BoxSelectBrushInput implements BrushInput {
                 if (eye != null) {
                     if (SelectionRenderer.boxPos1Gizmo.hoveredAxis != TranslationGizmo.Axis.NONE) {
                         double gx = sel.pendingX + 0.5, gy = sel.pendingY + 0.5, gz = sel.pendingZ + 0.5;
-                        SelectionRenderer.boxPos1Gizmo
-                            .startDrag(mouseX, mouseY, sw, sh, gx, gy, gz, gx, gy, gz, 0, 0, 0);
+                        SelectionRenderer.boxPos1Gizmo.startDrag(mouseX, mouseY, gx, gy, gz, gx, gy, gz, 0, 0, 0);
                         return true;
                     }
                     if (SelectionRenderer.boxPos1PlaneGizmo.hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
                         double gx = sel.pendingX + 0.5, gy = sel.pendingY + 0.5, gz = sel.pendingZ + 0.5;
-                        SelectionRenderer.boxPos1PlaneGizmo
-                            .startDrag(mouseX, mouseY, sw, sh, gx, gy, gz, gx, gy, gz, 0, 0, 0);
+                        SelectionRenderer.boxPos1PlaneGizmo.startDrag(mouseX, mouseY, gx, gy, gz, gx, gy, gz, 0, 0, 0);
                         return true;
                     }
                     if (SelectionRenderer.boxPos2Gizmo.hoveredAxis != TranslationGizmo.Axis.NONE) {
                         double gx = sel.pendingX2 + 0.5, gy = sel.pendingY2 + 0.5, gz = sel.pendingZ2 + 0.5;
-                        SelectionRenderer.boxPos2Gizmo
-                            .startDrag(mouseX, mouseY, sw, sh, gx, gy, gz, gx, gy, gz, 0, 0, 0);
+                        SelectionRenderer.boxPos2Gizmo.startDrag(mouseX, mouseY, gx, gy, gz, gx, gy, gz, 0, 0, 0);
                         return true;
                     }
                     if (SelectionRenderer.boxPos2PlaneGizmo.hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
                         double gx = sel.pendingX2 + 0.5, gy = sel.pendingY2 + 0.5, gz = sel.pendingZ2 + 0.5;
-                        SelectionRenderer.boxPos2PlaneGizmo
-                            .startDrag(mouseX, mouseY, sw, sh, gx, gy, gz, gx, gy, gz, 0, 0, 0);
+                        SelectionRenderer.boxPos2PlaneGizmo.startDrag(mouseX, mouseY, gx, gy, gz, gx, gy, gz, 0, 0, 0);
                         return true;
                     }
                     if (SelectionRenderer.boxCenterViewPlaneGizmo.hovered) {
@@ -85,7 +79,7 @@ public class BoxSelectBrushInput implements BrushInput {
                         SelectionRenderer.INSTANCE.boxCenterDragP2Y = sel.pendingY2;
                         SelectionRenderer.INSTANCE.boxCenterDragP2Z = sel.pendingZ2;
                         SelectionRenderer.boxCenterGizmo
-                            .startDrag(mouseX, mouseY, sw, sh, cxW, cyW, czW, cxW, cyW, czW, 0, 0, 0);
+                            .startDrag(mouseX, mouseY, cxW, cyW, czW, cxW, cyW, czW, 0, 0, 0);
                         return true;
                     }
                     if (SelectionRenderer.boxCenterPlaneGizmo.hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
@@ -99,7 +93,7 @@ public class BoxSelectBrushInput implements BrushInput {
                         SelectionRenderer.INSTANCE.boxCenterDragP2Y = sel.pendingY2;
                         SelectionRenderer.INSTANCE.boxCenterDragP2Z = sel.pendingZ2;
                         SelectionRenderer.boxCenterPlaneGizmo
-                            .startDrag(mouseX, mouseY, sw, sh, cxW, cyW, czW, cxW, cyW, czW, 0, 0, 0);
+                            .startDrag(mouseX, mouseY, cxW, cyW, czW, cxW, cyW, czW, 0, 0, 0);
                         return true;
                     }
                 }

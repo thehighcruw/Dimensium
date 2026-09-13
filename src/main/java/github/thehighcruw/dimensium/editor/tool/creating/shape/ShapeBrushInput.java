@@ -18,7 +18,6 @@ import github.thehighcruw.dimensium.editor.window.viewport.world.RotationGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.ScaleGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.TranslationGizmo;
 import github.thehighcruw.dimensium.shared.KeyConstants;
-import github.thehighcruw.dimensium.shared.util.RenderUtils;
 
 @SideOnly(Side.CLIENT)
 public class ShapeBrushInput implements BrushInput {
@@ -31,7 +30,6 @@ public class ShapeBrushInput implements BrushInput {
     public boolean onMouseClick(int button, Minecraft mc, MovingObjectPosition mop) {
         if (mc.thePlayer == null) return false;
         FreecamState fs = FreecamState.INSTANCE;
-        int sw = RenderUtils.scaledWidth(), sh = RenderUtils.scaledHeight();
         int mouseX = (int) fs.cursorX, mouseY = (int) fs.cursorY;
         ShapePlacementState ps = ShapePlacementState.INSTANCE;
 
@@ -53,8 +51,6 @@ public class ShapeBrushInput implements BrushInput {
                 ps.gizmo.startDrag(
                     mouseX,
                     mouseY,
-                    sw,
-                    sh,
                     cx,
                     cy,
                     cz,
@@ -81,8 +77,6 @@ public class ShapeBrushInput implements BrushInput {
                 ps.planeGizmo.startDrag(
                     mouseX,
                     mouseY,
-                    sw,
-                    sh,
                     cx,
                     cy,
                     cz,

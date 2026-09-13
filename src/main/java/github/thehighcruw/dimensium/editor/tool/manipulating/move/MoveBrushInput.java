@@ -17,7 +17,6 @@ import github.thehighcruw.dimensium.editor.window.viewport.world.PlaneTranslatio
 import github.thehighcruw.dimensium.editor.window.viewport.world.RotationGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.TranslationGizmo;
 import github.thehighcruw.dimensium.shared.KeyConstants;
-import github.thehighcruw.dimensium.shared.util.RenderUtils;
 
 @SideOnly(Side.CLIENT)
 public class MoveBrushInput implements BrushInput {
@@ -33,15 +32,14 @@ public class MoveBrushInput implements BrushInput {
         EntityLivingBase eye = mc.renderViewEntity;
         if (eye == null) return false;
         FreecamState fs = FreecamState.INSTANCE;
-        int sw = RenderUtils.scaledWidth(), sh = RenderUtils.scaledHeight();
         int mouseX = (int) fs.cursorX, mouseY = (int) fs.cursorY;
 
         if (button == KeyConstants.LMB) {
             double gx = ms.gizmoX(), gy = ms.gizmoY(), gz = ms.gizmoZ();
             if (ms.gizmo.hoveredAxis != TranslationGizmo.Axis.NONE) {
-                ms.gizmo.startDrag(mouseX, mouseY, sw, sh, gx, gy, gz, gx, gy, gz, ms.rotX, ms.rotY, ms.rotZ);
+                ms.gizmo.startDrag(mouseX, mouseY, gx, gy, gz, gx, gy, gz, ms.rotX, ms.rotY, ms.rotZ);
             } else if (ms.planeGizmo.hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
-                ms.planeGizmo.startDrag(mouseX, mouseY, sw, sh, gx, gy, gz, gx, gy, gz, ms.rotX, ms.rotY, ms.rotZ);
+                ms.planeGizmo.startDrag(mouseX, mouseY, gx, gy, gz, gx, gy, gz, ms.rotX, ms.rotY, ms.rotZ);
             } else if (ms.rotGizmo.hoveredAxis != RotationGizmo.Axis.NONE) {
                 ms.rotDragBaseX = ms.rotX;
                 ms.rotDragBaseY = ms.rotY;

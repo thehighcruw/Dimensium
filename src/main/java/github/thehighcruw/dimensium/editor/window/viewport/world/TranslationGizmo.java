@@ -44,7 +44,8 @@ public class TranslationGizmo {
     // Interaction state
     public Axis hoveredAxis = Axis.NONE;
     private Axis dragAxis = Axis.NONE;
-    private int dragStartMX, dragStartMY, dragSW, dragSH;
+    private int dragStartMX;
+    private int dragStartMY;
     private double screenDx, screenDy, pixelsPerBlock;
     private double startAnchorX, startAnchorY, startAnchorZ;
     private float[] rotatedAxisDir = new float[3];
@@ -193,14 +194,12 @@ public class TranslationGizmo {
      * Begin dragging along the currently hovered axis.
      * anchorX/Y/Z is the shape anchor (not center).
      */
-    public void startDrag(int mouseX, int mouseY, int sw, int sh, double gx, double gy, double gz, double anchorX,
-        double anchorY, double anchorZ, float rotX, float rotY, float rotZ) {
+    public void startDrag(int mouseX, int mouseY, double gx, double gy, double gz, double anchorX, double anchorY,
+        double anchorZ, float rotX, float rotY, float rotZ) {
         if (hoveredAxis == Axis.NONE) return;
         dragAxis = hoveredAxis;
         dragStartMX = mouseX;
         dragStartMY = mouseY;
-        dragSW = sw;
-        dragSH = sh;
         startAnchorX = anchorX;
         startAnchorY = anchorY;
         startAnchorZ = anchorZ;

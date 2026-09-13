@@ -328,34 +328,4 @@ public class DimensiumImGuiGlRenderer {
         GL11.glDisable(GL11.GL_SCISSOR_TEST);
     }
 
-    public void shutdown() {
-        if (fontTexture != 0) {
-            GL11.glDeleteTextures(fontTexture);
-            fontTexture = 0;
-        }
-        if (vboHandle != 0) {
-            GL15.glDeleteBuffers(vboHandle);
-            vboHandle = 0;
-        }
-        if (iboHandle != 0) {
-            GL15.glDeleteBuffers(iboHandle);
-            iboHandle = 0;
-        }
-        if (useVao && vaoHandle != 0) {
-            try {
-                ARBVertexArrayObject.glDeleteVertexArrays(vaoHandle);
-            } catch (Exception | Error e1) {
-                try {
-                    APPLEVertexArrayObject.glDeleteVertexArraysAPPLE(vaoHandle);
-                } catch (Exception | Error e2) {
-                    GL30.glDeleteVertexArrays(vaoHandle);
-                }
-            }
-            vaoHandle = 0;
-        }
-        if (program != 0) {
-            GL20.glDeleteProgram(program);
-            program = 0;
-        }
-    }
 }

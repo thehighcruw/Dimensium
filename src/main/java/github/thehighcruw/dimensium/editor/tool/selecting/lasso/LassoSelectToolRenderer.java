@@ -32,7 +32,7 @@ public class LassoSelectToolRenderer implements ToolRenderer {
     }
 
     @Override
-    public void renderOverlay(Minecraft mc, int mx, int my, int mx3d, int my3d, int sw, int sh) {
+    public void renderOverlay(Minecraft mc, int mx, int my, int mx3d, int my3d) {
         LassoSelectToolState lasso = LassoSelectToolState.INSTANCE;
         if (!lasso.dragging || lasso.polygonPoints.size() < 2) return;
 

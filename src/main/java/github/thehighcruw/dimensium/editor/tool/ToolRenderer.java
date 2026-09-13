@@ -74,5 +74,5 @@ public interface ToolRenderer {
      * tick while this tool is active. Handles gizmo hover/drag state and 2D screen overlays (e.g. lasso polygon).
      * Default is a no-op — only tools that need per-frame overlay work override this.
      */
-    default void renderOverlay(Minecraft mc, int mx, int my, int mx3d, int my3d, int sw, int sh) {}
+    default void renderOverlay(Minecraft mc, int mx, int my, int mx3d, int my3d) {}
 }

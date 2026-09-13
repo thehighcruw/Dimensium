@@ -244,7 +244,7 @@ public class OverlayRenderer {
             // ── Per-tool overlay (gizmos, 2D overlays) ────────────────────────
             Tool activeTool = DimensiumEditorMode.INSTANCE.selectedTool;
             ToolRenderer toolRenderer = ToolRegistry.toolRenderer(activeTool);
-            toolRenderer.renderOverlay(mc, mx, my, mx, my, sw, sh);
+            toolRenderer.renderOverlay(mc, mx, my, mx, my);
 
             ViewportRegistry.INSTANCE.flushPendingDeletions();
 

@@ -51,7 +51,8 @@ public class PlaneTranslationGizmo {
 
     public Plane hoveredPlane = Plane.NONE;
     private Plane dragPlane = Plane.NONE;
-    private int dragStartMX, dragStartMY, dragSW, dragSH;
+    private int dragStartMX;
+    private int dragStartMY;
     private double startAnchorX, startAnchorY, startAnchorZ;
     private float[] worldAxisA = new float[3];
     private float[] worldAxisB = new float[3];
@@ -179,14 +180,12 @@ public class PlaneTranslationGizmo {
      * anchorX/Y/Z is the current shape anchor position in world space.
      * Drag moves the anchor along the two axes of the hovered plane.
      */
-    public void startDrag(int mouseX, int mouseY, int sw, int sh, double gx, double gy, double gz, double anchorX,
-        double anchorY, double anchorZ, float rotX, float rotY, float rotZ) {
+    public void startDrag(int mouseX, int mouseY, double gx, double gy, double gz, double anchorX, double anchorY,
+        double anchorZ, float rotX, float rotY, float rotZ) {
         if (hoveredPlane == Plane.NONE) return;
         dragPlane = hoveredPlane;
         dragStartMX = mouseX;
         dragStartMY = mouseY;
-        dragSW = sw;
-        dragSH = sh;
         startAnchorX = anchorX;
         startAnchorY = anchorY;
         startAnchorZ = anchorZ;

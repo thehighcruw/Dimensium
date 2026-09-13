@@ -8,9 +8,6 @@ import net.minecraftforge.common.MinecraftForge;
 
 import cpw.mods.fml.client.registry.ClientRegistry;
 import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.common.event.FMLInitializationEvent;
-import cpw.mods.fml.common.event.FMLPostInitializationEvent;
-import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.Dimensium;
@@ -50,7 +47,7 @@ import github.thehighcruw.dimensium.world.inventory.CreativeGuiHandler;
 public class ClientProxy implements IProxy {
 
     @Override
-    public void preInit(FMLPreInitializationEvent event) {
+    public void preInit() {
         // toggleDimensium is a global keybind — lives in the MC controls menu.
         ClientRegistry.registerKeyBinding(Dimensium.toggleDimensium);
         // Editor-view keybinds are configured in Settings > Keybinds, not registered with MC.
@@ -58,7 +55,7 @@ public class ClientProxy implements IProxy {
     }
 
     @Override
-    public void init(FMLInitializationEvent event) {
+    public void init() {
         MinecraftForge.EVENT_BUS.register(SelectionRenderer.INSTANCE);
         MinecraftForge.EVENT_BUS.register(new OverlayRenderer());
         MinecraftForge.EVENT_BUS.register(new InputHandler());
@@ -73,7 +70,7 @@ public class ClientProxy implements IProxy {
     }
 
     @Override
-    public void postInit(FMLPostInitializationEvent event) {
+    public void postInit() {
         BlueprintRegistry.INSTANCE.init();
         ToolMaskRegistry.INSTANCE.load();
         PaletteRegistry.INSTANCE.load();
@@ -137,7 +134,7 @@ public class ClientProxy implements IProxy {
     }
 
     @Override
-    public void loadComplete(cpw.mods.fml.common.event.FMLLoadCompleteEvent event) {
+    public void loadComplete() {
         // Nothing — BlockColorCache initializes lazily on first render frame via TextureStitchEvent.
     }
 }
