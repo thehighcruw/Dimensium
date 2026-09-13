@@ -31,11 +31,11 @@ public final class BrushUtil {
         void run(int dx, int dy, int dz);
     }
 
-    public static boolean hasAirNeighbor(World world, int wx, int wy, int wz) {
+    public static boolean hasSolidNeighbor(World world, int wx, int wy, int wz) {
         for (int[] n : FACE_DIRS) {
-            if (world.getBlock(wx + n[0], wy + n[1], wz + n[2]) == Blocks.air) return true;
+            if (world.getBlock(wx + n[0], wy + n[1], wz + n[2]) == Blocks.air) return false;
         }
-        return false;
+        return true;
     }
 
     public static void forBrush(BrushState s, VoxelAction action) {
@@ -71,7 +71,6 @@ public final class BrushUtil {
                 return (float) Math.sqrt(dist) <= 1f - vR * (1f - thr) + GEOM_EPS;
             }
             case CUBE:
-                return true;
             case CUBOID:
                 return true;
             case CYLINDER: {
@@ -110,12 +109,12 @@ public final class BrushUtil {
     public static boolean isInterior(BrushShape shape, int dx, int dy, int dz, int sx, int sy, int sz) {
         int isx = Math.max(1, sx - 1), isy = Math.max(1, sy - 1), isz = Math.max(1, sz - 1);
         switch (shape) {
-            case SPHERE: {
+            case SPHERE:
+            case ELLIPSOID: {
                 float ex = (float) dx / isx, ey = (float) dy / isy, ez = (float) dz / isz;
                 return ex * ex + ey * ey + ez * ez < 1f;
             }
             case CUBE:
-                return Math.abs(dx) < sx && Math.abs(dy) < sy && Math.abs(dz) < sz;
             case CUBOID:
                 return Math.abs(dx) < sx && Math.abs(dy) < sy && Math.abs(dz) < sz;
             case CYLINDER:
@@ -134,10 +133,6 @@ public final class BrushUtil {
                 if (r <= 0) return false;
                 return (float) dx * dx / (r * r) + (float) dz * dz / (r * r) < 1f;
             }
-            case ELLIPSOID: {
-                float ex = (float) dx / isx, ey = (float) dy / isy, ez = (float) dz / isz;
-                return ex * ex + ey * ey + ez * ez < 1f;
-            }
             case OCTAHEDRON:
                 return (float) Math.abs(dx) / isx + (float) Math.abs(dy) / isy + (float) Math.abs(dz) / isz < 1f;
             default:
@@ -149,14 +144,14 @@ public final class BrushUtil {
         int dimX = 2 * (sx + margin) + 1;
         int dimY = 2 * (sy + margin) + 1;
         int dimZ = 2 * (sz + margin) + 1;
-        int snStY = dimZ, snStX = dimY * dimZ;
+        int snStX = dimY * dimZ;
         int[] snap = new int[dimX * dimY * dimZ];
         int worldMinY = 0, worldMaxY = world.getHeight() - 1;
         for (int dx = -(sx + margin); dx <= sx + margin; dx++) {
             int ix = dx + sx + margin;
             for (int dy = -(sy + margin); dy <= sy + margin; dy++) {
                 int wy = oy + dy;
-                int idx0 = ix * snStX + (dy + sy + margin) * snStY;
+                int idx0 = ix * snStX + (dy + sy + margin) * dimZ;
                 for (int dz = -(sz + margin); dz <= sz + margin; dz++) {
                     int idx = idx0 + (dz + sz + margin);
                     if (wy < worldMinY) snap[idx] = -1;

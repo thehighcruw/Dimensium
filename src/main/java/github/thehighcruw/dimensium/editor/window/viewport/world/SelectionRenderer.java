@@ -5,9 +5,13 @@
 package github.thehighcruw.dimensium.editor.window.viewport.world;
 
 import java.nio.FloatBuffer;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import javax.annotation.Nonnull;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
@@ -381,7 +385,7 @@ public class SelectionRenderer {
                 GL11.glTranslated(sel.minX() - rx, sel.minY() - ry, sel.minZ() - rz);
                 WorldLines.setEyeForTranslation(sel.minX() - rx, sel.minY() - ry, sel.minZ() - rz);
                 GL11.glColor4f(1.0f, 1.0f, 1.0f, 0.06f + pulse * 0.04f);
-                drawFilledBox(0, 0, 0, sel.width(), sel.height(), sel.depth());
+                drawFilledBox(sel.width(), sel.height(), sel.depth());
                 GL11.glColor4f(1.0f, 1.0f, 1.0f, 0.85f);
                 drawBox(0, 0, 0, sel.width(), sel.height(), sel.depth());
                 GL11.glPopMatrix();
@@ -557,11 +561,11 @@ public class SelectionRenderer {
             ModellingToolState mts = ModellingToolState.INSTANCE;
             GL11.glDisable(GL11.GL_TEXTURE_2D);
             for (int r = 0; r < mts.rows.size(); r++) {
-                java.util.List<ModellingToolState.ModelPoint> row = mts.rows.get(r);
+                List<ModellingToolState.ModelPoint> row = mts.rows.get(r);
                 // Lines within row
-                java.util.List<int[]> rowXyz = new java.util.ArrayList<>(row.size());
+                List<int[]> rowXyz = new ArrayList<>(row.size());
                 for (ModellingToolState.ModelPoint p : row) rowXyz.add(new int[] { p.x, p.y, p.z });
-                renderLineStrip(rowXyz, 0.55f, 0.70f, 0.90f, 0.6f, 1.5f, rx, ry, rz);
+                renderLineStrip(rowXyz, rx, ry, rz);
                 // Point boxes
                 for (int c = 0; c < row.size(); c++) {
                     ModellingToolState.ModelPoint mpt = row.get(c);
@@ -570,7 +574,7 @@ public class SelectionRenderer {
                     float pr = ptSel ? 1.0f : activeRow ? 0.80f : 0.55f;
                     float pg = ptSel ? 0.80f : activeRow ? 0.55f : 0.50f;
                     float pb = ptSel ? 0.20f : activeRow ? 0.90f : 0.65f;
-                    renderPointBox(mpt.x, mpt.y, mpt.z, pr, pg, pb, 1.0f, rx, ry, rz);
+                    renderPointBox(mpt.x, mpt.y, mpt.z, pr, pg, pb, rx, ry, rz);
                 }
             }
             // Capture GL matrices unconditionally so GizmoProjection is valid for findNearestPointOnScreen
@@ -589,8 +593,8 @@ public class SelectionRenderer {
                 GL11.glBegin(GL11.GL_LINES);
                 GL11.glColor4f(0.70f, 0.55f, 0.90f, 0.4f);
                 for (int r = 0; r + 1 < mts.rows.size(); r++) {
-                    java.util.List<ModellingToolState.ModelPoint> rowA = mts.rows.get(r);
-                    java.util.List<ModellingToolState.ModelPoint> rowB = mts.rows.get(r + 1);
+                    List<ModellingToolState.ModelPoint> rowA = mts.rows.get(r);
+                    List<ModellingToolState.ModelPoint> rowB = mts.rows.get(r + 1);
                     int maxC = Math.min(rowA.size(), rowB.size());
                     for (int c = 0; c < maxC; c++) {
                         ModellingToolState.ModelPoint a = rowA.get(c);
@@ -621,7 +625,6 @@ public class SelectionRenderer {
                     ptSel ? 1.0f : 0.55f,
                     ptSel ? 0.85f : 0.70f,
                     1.0f,
-                    1.0f,
                     rx,
                     ry,
                     rz);
@@ -640,22 +643,21 @@ public class SelectionRenderer {
         PerfTrace.end(16);
     }
 
-    private static void renderPointBox(int wx, int wy, int wz, float r, float g, float b, float a, double rx, double ry,
+    private static void renderPointBox(int wx, int wy, int wz, float r, float g, float b, double rx, double ry,
         double rz) {
         GL11.glPushMatrix();
         GL11.glTranslated(wx - rx, wy - ry, wz - rz);
         WorldLines.setEyeForTranslation(wx - rx, wy - ry, wz - rz);
-        GL11.glColor4f(r, g, b, a);
+        GL11.glColor4f(r, g, b, (float) 1.0);
         drawBox(0, 0, 0, 1, 1, 1);
         GL11.glPopMatrix();
     }
 
-    private static void renderLineStrip(java.util.List<int[]> xyzList, float r, float g, float b, float a, float width,
-        double rx, double ry, double rz) {
+    private static void renderLineStrip(List<int[]> xyzList, double rx, double ry, double rz) {
         if (xyzList.size() < 2) return;
-        GL11.glLineWidth(width);
+        GL11.glLineWidth((float) 1.5);
         GL11.glBegin(GL11.GL_LINE_STRIP);
-        GL11.glColor4f(r, g, b, a);
+        GL11.glColor4f((float) 0.55, (float) 0.7, (float) 0.9, (float) 0.6);
         for (int[] p : xyzList) GL11.glVertex3d(p[0] + 0.5 - rx, p[1] + 0.5 - ry, p[2] + 0.5 - rz);
         GL11.glEnd();
     }
@@ -782,28 +784,11 @@ public class SelectionRenderer {
         if (cachedSelWire == null || cachedSelWire.length == 0) return;
         // Vertices are world-space ints; offset by rx/ry/rz → camera-relative. Eye = origin.
         WorldLines.setEye(0, 0, 0);
-        WorldLines.drawIntWireframeCache(Tessellator.instance, cachedSelWire, rx, ry, rz, WorldLines.W_THIN);
+        WorldLines.drawIntWireframeCache(cachedSelWire, rx, ry, rz);
     }
 
     private static int[] computeSelWireframe(Set<Long> blockSet) {
-        HashMap<Long, Integer> edgeMask = new HashMap<>(blockSet.size() * 4);
-        for (long packed : blockSet) {
-            int bx = SelectionState.unpackX(packed);
-            int by = SelectionState.unpackY(packed);
-            int bz = SelectionState.unpackZ(packed);
-            for (int face = 0; face < 6; face++) {
-                if (blockSet.contains(
-                    SelectionState
-                        .pack(bx + GhostRenderer.NX[face], by + GhostRenderer.NY[face], bz + GhostRenderer.NZ[face])))
-                    continue;
-                int axisBit = GhostRenderer.FACE_AXIS_BIT[face];
-                for (int[] e : GhostRenderer.FACE_EDGES[face]) {
-                    long ek = ((long) e[0] << 60) | SelectionState.pack(bx + e[1], by + e[2], bz + e[3]);
-                    Integer prev = edgeMask.get(ek);
-                    edgeMask.put(ek, prev == null ? axisBit : prev | axisBit);
-                }
-            }
-        }
+        HashMap<Long, Integer> edgeMask = getEdgeMask(blockSet);
         int creaseCount = 0;
         for (int mask : edgeMask.values()) if (Integer.bitCount(mask) > 1) creaseCount++;
         int[] verts = new int[creaseCount * 6];
@@ -825,6 +810,28 @@ public class SelectionRenderer {
         return verts;
     }
 
+    @Nonnull
+    private static HashMap<Long, Integer> getEdgeMask(Set<Long> blockSet) {
+        HashMap<Long, Integer> edgeMask = new HashMap<>(blockSet.size() * 4);
+        for (long packed : blockSet) {
+            int bx = SelectionState.unpackX(packed);
+            int by = SelectionState.unpackY(packed);
+            int bz = SelectionState.unpackZ(packed);
+            for (int face = 0; face < 6; face++) {
+                if (blockSet.contains(
+                    SelectionState
+                        .pack(bx + GhostRenderer.NX[face], by + GhostRenderer.NY[face], bz + GhostRenderer.NZ[face])))
+                    continue;
+                int axisBit = GhostRenderer.FACE_AXIS_BIT[face];
+                for (int[] e : GhostRenderer.FACE_EDGES[face]) {
+                    long ek = ((long) e[0] << 60) | SelectionState.pack(bx + e[1], by + e[2], bz + e[3]);
+                    edgeMask.compute(ek, (k, prev) -> prev == null ? axisBit : prev | axisBit);
+                }
+            }
+        }
+        return edgeMask;
+    }
+
     // ── Package-private draw helpers (used by BrushPreviewRenderer, HologramRenderer) ──
 
     static long lPack(int x, int y, int z) {
@@ -832,7 +839,7 @@ public class SelectionRenderer {
     }
 
     static void drawBox(float x1, float y1, float z1, float x2, float y2, float z2) {
-        WorldLines.drawBox(x1, y1, z1, x2, y2, z2, WorldLines.W_SEL);
+        WorldLines.drawBox(x1, y1, z1, x2, y2, z2);
     }
 
     private static void renderProposalPreview(Minecraft mc, double rx, double ry, double rz, ChangeProposal drag) {
@@ -953,7 +960,7 @@ public class SelectionRenderer {
         drag.wireOrigin[1] = minY;
         drag.wireOrigin[2] = minZ;
 
-        java.util.List<int[]> local = new java.util.ArrayList<>(drag.proposed.size());
+        List<int[]> local = new ArrayList<>(drag.proposed.size());
         for (long key : drag.proposed.keySet()) {
             local.add(
                 new int[] { ChangeProposal.unpackX(key) - minX, ChangeProposal.unpackY(key) - minY,
@@ -1079,10 +1086,10 @@ public class SelectionRenderer {
         return 0;
     }
 
-    static void drawFilledBox(float x1, float y1, float z1, float x2, float y2, float z2) {
+    static void drawFilledBox(float x2, float y2, float z2) {
         Tessellator t = Tessellator.instance;
         t.startDrawingQuads();
-        GhostRenderer.addBoxFaces(t, x1, y1, z1, x2, y2, z2);
+        GhostRenderer.addBoxFaces(t, x2, y2, z2);
         t.draw();
     }
 }

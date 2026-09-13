@@ -21,6 +21,7 @@ import github.thehighcruw.dimensium.DimensiumConfig;
 import github.thehighcruw.dimensium.DimensiumEditorMode;
 import github.thehighcruw.dimensium.editor.freecam.FreecamEntity;
 import github.thehighcruw.dimensium.editor.freecam.FreecamState;
+import github.thehighcruw.dimensium.editor.freecam.FreecamUtils;
 import github.thehighcruw.dimensium.editor.overlay.GuiDimensiumOverlay;
 import github.thehighcruw.dimensium.editor.overlay.HandRenderer;
 import github.thehighcruw.dimensium.editor.overlay.MenuBar;
@@ -31,7 +32,6 @@ import github.thehighcruw.dimensium.editor.tool.BrushInput;
 import github.thehighcruw.dimensium.editor.tool.BrushInputRegistry;
 import github.thehighcruw.dimensium.editor.tool.Tool;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushState;
-import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeMath;
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapePlacementState;
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeToolState;
 import github.thehighcruw.dimensium.editor.tool.manipulating.elevation.ElevationBrushInput;
@@ -43,7 +43,6 @@ import github.thehighcruw.dimensium.editor.tool.painting.gradient.GradientToolSt
 import github.thehighcruw.dimensium.editor.tool.painting.noise.NoiseToolState;
 import github.thehighcruw.dimensium.editor.tool.state.ClipboardPlacementState;
 import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
-import github.thehighcruw.dimensium.editor.window.viewport.world.RotationGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.ScaleGizmo;
 import github.thehighcruw.dimensium.shared.BlockSender;
 import github.thehighcruw.dimensium.shared.KeyConstants;
@@ -295,7 +294,7 @@ public class TickHandler {
             lastFreehandX = Integer.MIN_VALUE;
             return;
         }
-        if (mx * sf < OverlayRenderer.TOOL_WINDOW.currentW || my * sf < (int) MenuBar.INSTANCE.height()) return;
+        if (mx * sf < OverlayRenderer.TOOL_WINDOW.getWidth() || my * sf < (int) MenuBar.INSTANCE.height()) return;
 
         MovingObjectPosition mop = GuiDimensiumOverlay.raycastFromMouse(mx, my, sw, sh);
         if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return;
@@ -327,25 +326,21 @@ public class TickHandler {
     private void updatePlacementGizmos(int mx, int my, boolean snap) {
         ShapePlacementState ps = ShapePlacementState.INSTANCE;
         if (ps.active) {
-            if (ps.gizmo.isDragging()) {
-                double[] anchor = ps.gizmo.updateDrag(mx, my);
+            if (ps.gizmo.isDragging() || ps.planeGizmo.isDragging() || ps.viewPlaneGizmo.isDragging()) {
+                double[] anchor = ps.gizmo.isDragging() ? ps.gizmo.updateDrag(mx, my)
+                    : ps.planeGizmo.isDragging() ? ps.planeGizmo.updateDrag(mx, my)
+                        : ps.viewPlaneGizmo.updateDrag(mx, my);
                 if (anchor != null) {
-                    ps.anchorFX = snap ? (float) Math.floor(anchor[0] + 0.5) : (float) anchor[0];
-                    ps.anchorFY = snap ? (float) Math.floor(anchor[1] + 0.5) : (float) anchor[1];
-                    ps.anchorFZ = snap ? (float) Math.floor(anchor[2] + 0.5) : (float) anchor[2];
+                    ps.anchorFX = AnchorSnap.toFloat(anchor[0], snap);
+                    ps.anchorFY = AnchorSnap.toFloat(anchor[1], snap);
+                    ps.anchorFZ = AnchorSnap.toFloat(anchor[2], snap);
                     ps.anchorX = (int) Math.floor(ps.anchorFX);
                     ps.anchorY = (int) Math.floor(ps.anchorFY);
                     ps.anchorZ = (int) Math.floor(ps.anchorFZ);
                 }
             } else if (ps.rotGizmo.isDragging()) {
-                float delta = ps.rotGizmo.updateDrag(mx, my);
-                RotationGizmo.Axis axis = ps.rotGizmo.getDragAxis();
-                float[] Rbase = ShapeMath.buildRotationMatrix(ps.rotDragBaseX, ps.rotDragBaseY, ps.rotDragBaseZ);
-                float[] dR = axis == RotationGizmo.Axis.X ? ShapeMath.buildRotationMatrix(delta, 0, 0)
-                    : axis == RotationGizmo.Axis.Y ? ShapeMath.buildRotationMatrix(0, delta, 0)
-                        : ShapeMath.buildRotationMatrix(0, 0, delta);
-                float[] Rnew = ShapeMath.multiplyRotationMatrices(Rbase, dR);
-                float[] angles = ShapeMath.decomposeRotationMatrix(Rnew);
+                float[] angles = AnchorSnap
+                    .applyRotGizmo(ps.rotGizmo, ps.rotDragBaseX, ps.rotDragBaseY, ps.rotDragBaseZ, mx, my);
                 if (Math.abs(angles[0] - ps.rotX) >= 0.5f || Math.abs(angles[1] - ps.rotY) >= 0.5f
                     || Math.abs(angles[2] - ps.rotZ) >= 0.5f) {
                     ps.rotX = angles[0];
@@ -373,53 +368,18 @@ public class TickHandler {
                     }
                     ps.invalidateGhost();
                 }
-            } else if (ps.planeGizmo.isDragging()) {
-                double[] anchor = ps.planeGizmo.updateDrag(mx, my);
-                if (anchor != null) {
-                    ps.anchorFX = snap ? (float) Math.floor(anchor[0] + 0.5) : (float) anchor[0];
-                    ps.anchorFY = snap ? (float) Math.floor(anchor[1] + 0.5) : (float) anchor[1];
-                    ps.anchorFZ = snap ? (float) Math.floor(anchor[2] + 0.5) : (float) anchor[2];
-                    ps.anchorX = (int) Math.floor(ps.anchorFX);
-                    ps.anchorY = (int) Math.floor(ps.anchorFY);
-                    ps.anchorZ = (int) Math.floor(ps.anchorFZ);
-                }
-            } else if (ps.viewPlaneGizmo.isDragging()) {
-                double[] anchor = ps.viewPlaneGizmo.updateDrag(mx, my);
-                if (anchor != null) {
-                    ps.anchorFX = snap ? (float) Math.floor(anchor[0] + 0.5) : (float) anchor[0];
-                    ps.anchorFY = snap ? (float) Math.floor(anchor[1] + 0.5) : (float) anchor[1];
-                    ps.anchorFZ = snap ? (float) Math.floor(anchor[2] + 0.5) : (float) anchor[2];
-                    ps.anchorX = (int) Math.floor(ps.anchorFX);
-                    ps.anchorY = (int) Math.floor(ps.anchorFY);
-                    ps.anchorZ = (int) Math.floor(ps.anchorFZ);
-                }
             }
         }
 
         ClipboardPlacementState cps = ClipboardPlacementState.INSTANCE;
         if (cps.active) {
-            if (cps.gizmo.isDragging()) {
-                double[] anchor = cps.gizmo.updateDrag(mx, my);
+            if (cps.gizmo.isDragging() || cps.planeGizmo.isDragging()) {
+                double[] anchor = cps.gizmo.isDragging() ? cps.gizmo.updateDrag(mx, my)
+                    : cps.planeGizmo.updateDrag(mx, my);
                 if (anchor != null) {
-                    cps.anchorFX = snap ? (float) Math.floor(anchor[0] + 0.5) : (float) anchor[0];
-                    cps.anchorFY = snap ? (float) Math.floor(anchor[1] + 0.5) : (float) anchor[1];
-                    cps.anchorFZ = snap ? (float) Math.floor(anchor[2] + 0.5) : (float) anchor[2];
-                    int newAX = (int) Math.floor(cps.anchorFX);
-                    int newAY = (int) Math.floor(cps.anchorFY);
-                    int newAZ = (int) Math.floor(cps.anchorFZ);
-                    if (newAX != cps.anchorX || newAY != cps.anchorY || newAZ != cps.anchorZ) {
-                        cps.anchorX = newAX;
-                        cps.anchorY = newAY;
-                        cps.anchorZ = newAZ;
-                        cps.rebuildPreview();
-                    }
-                }
-            } else if (cps.planeGizmo.isDragging()) {
-                double[] anchor = cps.planeGizmo.updateDrag(mx, my);
-                if (anchor != null) {
-                    cps.anchorFX = snap ? (float) Math.floor(anchor[0] + 0.5) : (float) anchor[0];
-                    cps.anchorFY = snap ? (float) Math.floor(anchor[1] + 0.5) : (float) anchor[1];
-                    cps.anchorFZ = snap ? (float) Math.floor(anchor[2] + 0.5) : (float) anchor[2];
+                    cps.anchorFX = AnchorSnap.toFloat(anchor[0], snap);
+                    cps.anchorFY = AnchorSnap.toFloat(anchor[1], snap);
+                    cps.anchorFZ = AnchorSnap.toFloat(anchor[2], snap);
                     int newAX = (int) Math.floor(cps.anchorFX);
                     int newAY = (int) Math.floor(cps.anchorFY);
                     int newAZ = (int) Math.floor(cps.anchorFZ);
@@ -431,14 +391,8 @@ public class TickHandler {
                     }
                 }
             } else if (cps.rotGizmo.isDragging()) {
-                float delta = cps.rotGizmo.updateDrag(mx, my);
-                RotationGizmo.Axis axis = cps.rotGizmo.getDragAxis();
-                float[] Rbase = ShapeMath.buildRotationMatrix(cps.rotDragBaseX, cps.rotDragBaseY, cps.rotDragBaseZ);
-                float[] dR = axis == RotationGizmo.Axis.X ? ShapeMath.buildRotationMatrix(delta, 0, 0)
-                    : axis == RotationGizmo.Axis.Y ? ShapeMath.buildRotationMatrix(0, delta, 0)
-                        : ShapeMath.buildRotationMatrix(0, 0, delta);
-                float[] Rnew = ShapeMath.multiplyRotationMatrices(Rbase, dR);
-                float[] angles = ShapeMath.decomposeRotationMatrix(Rnew);
+                float[] angles = AnchorSnap
+                    .applyRotGizmo(cps.rotGizmo, cps.rotDragBaseX, cps.rotDragBaseY, cps.rotDragBaseZ, mx, my);
                 cps.rotX = angles[0];
                 cps.rotY = angles[1];
                 cps.rotZ = angles[2];
@@ -448,37 +402,18 @@ public class TickHandler {
 
         MoveToolState ms = MoveToolState.INSTANCE;
         if (ms.active) {
-            if (ms.gizmo.isDragging()) {
-                double[] anchor = ms.gizmo.updateDrag(mx, my);
+            if (ms.gizmo.isDragging() || ms.planeGizmo.isDragging()) {
+                double[] anchor = ms.gizmo.isDragging() ? ms.gizmo.updateDrag(mx, my)
+                    : ms.planeGizmo.updateDrag(mx, my);
                 if (anchor != null) {
-                    float nx = snap ? (float) Math.floor(anchor[0] + 0.5) : (float) anchor[0];
-                    float ny = snap ? (float) Math.floor(anchor[1] + 0.5) : (float) anchor[1];
-                    float nz = snap ? (float) Math.floor(anchor[2] + 0.5) : (float) anchor[2];
-                    ms.deltaFX = nx - ms.cmX;
-                    ms.deltaFY = ny - ms.cmY;
-                    ms.deltaFZ = nz - ms.cmZ;
-                    ms.invalidateGhost();
-                }
-            } else if (ms.planeGizmo.isDragging()) {
-                double[] anchor = ms.planeGizmo.updateDrag(mx, my);
-                if (anchor != null) {
-                    float nx = snap ? (float) Math.floor(anchor[0] + 0.5) : (float) anchor[0];
-                    float ny = snap ? (float) Math.floor(anchor[1] + 0.5) : (float) anchor[1];
-                    float nz = snap ? (float) Math.floor(anchor[2] + 0.5) : (float) anchor[2];
-                    ms.deltaFX = nx - ms.cmX;
-                    ms.deltaFY = ny - ms.cmY;
-                    ms.deltaFZ = nz - ms.cmZ;
+                    ms.deltaFX = AnchorSnap.toFloat(anchor[0], snap) - ms.cmX;
+                    ms.deltaFY = AnchorSnap.toFloat(anchor[1], snap) - ms.cmY;
+                    ms.deltaFZ = AnchorSnap.toFloat(anchor[2], snap) - ms.cmZ;
                     ms.invalidateGhost();
                 }
             } else if (ms.rotGizmo.isDragging()) {
-                float delta = ms.rotGizmo.updateDrag(mx, my);
-                RotationGizmo.Axis axis = ms.rotGizmo.getDragAxis();
-                float[] Rbase = ShapeMath.buildRotationMatrix(ms.rotDragBaseX, ms.rotDragBaseY, ms.rotDragBaseZ);
-                float[] dR = axis == RotationGizmo.Axis.X ? ShapeMath.buildRotationMatrix(delta, 0, 0)
-                    : axis == RotationGizmo.Axis.Y ? ShapeMath.buildRotationMatrix(0, delta, 0)
-                        : ShapeMath.buildRotationMatrix(0, 0, delta);
-                float[] Rnew = ShapeMath.multiplyRotationMatrices(Rbase, dR);
-                float[] angles = ShapeMath.decomposeRotationMatrix(Rnew);
+                float[] angles = AnchorSnap
+                    .applyRotGizmo(ms.rotGizmo, ms.rotDragBaseX, ms.rotDragBaseY, ms.rotDragBaseZ, mx, my);
                 if (Math.abs(angles[0] - ms.rotX) >= 0.5f || Math.abs(angles[1] - ms.rotY) >= 0.5f
                     || Math.abs(angles[2] - ms.rotZ) >= 0.5f) {
                     ms.rotX = angles[0];
@@ -499,22 +434,12 @@ public class TickHandler {
     }
 
     private void applyPan(FreecamEntity cam, float rawDX, float rawDY) {
-        double yaw = Math.toRadians(cam.rotationYaw);
-        double pitch = Math.toRadians(cam.rotationPitch);
-
-        // Right vector (flat, perpendicular to yaw).
-        double rgtX = Math.cos(yaw);
-        double rgtZ = Math.sin(yaw);
-
-        // Up vector = fwd × right (right-handed camera frame).
-        double upX = -Math.sin(yaw) * Math.sin(pitch);
-        double upY = Math.cos(pitch);
-        double upZ = Math.cos(yaw) * Math.sin(pitch);
-
+        double[][] basis = FreecamUtils.cameraBasis(cam.rotationYaw, cam.rotationPitch);
+        double[] rgt = basis[1], up = basis[2];
         float panScale = 0.05f;
-        cam.posX += rgtX * rawDX * panScale - upX * rawDY * panScale;
-        cam.posY += -upY * rawDY * panScale;
-        cam.posZ += rgtZ * rawDX * panScale - upZ * rawDY * panScale;
+        cam.posX += rgt[0] * rawDX * panScale - up[0] * rawDY * panScale;
+        cam.posY += -up[1] * rawDY * panScale;
+        cam.posZ += rgt[2] * rawDX * panScale - up[2] * rawDY * panScale;
     }
 
     private void startOrbit(FreecamState fs, FreecamEntity cam, Minecraft mc, boolean useCursor) {
@@ -524,20 +449,12 @@ public class TickHandler {
             double ndcX = UICoords.guiToNdcX(fs.cursorX);
             double ndcY = UICoords.guiToNdcY(fs.cursorY);
 
-            double yaw = Math.toRadians(cam.rotationYaw);
-            double pitch = Math.toRadians(cam.rotationPitch);
-            double fwdX = -Math.sin(yaw) * Math.cos(pitch);
-            double fwdY = -Math.sin(pitch);
-            double fwdZ = Math.cos(yaw) * Math.cos(pitch);
-            double rgtX = Math.cos(yaw);
-            double rgtZ = Math.sin(yaw);
-            double upX = -Math.sin(yaw) * Math.sin(pitch);
-            double upY = Math.cos(pitch);
-            double upZ = Math.cos(yaw) * Math.sin(pitch);
+            double[][] basis = FreecamUtils.cameraBasis(cam.rotationYaw, cam.rotationPitch);
+            double[] fwd = basis[0], rgt = basis[1], up = basis[2];
 
-            rdx = fwdX + ndcX * fs.projTanHX * rgtX + ndcY * fs.projTanHY * upX;
-            rdy = fwdY + ndcY * fs.projTanHY * upY;
-            rdz = fwdZ + ndcX * fs.projTanHX * rgtZ + ndcY * fs.projTanHY * upZ;
+            rdx = fwd[0] + ndcX * fs.projTanHX * rgt[0] + ndcY * fs.projTanHY * up[0];
+            rdy = fwd[1] + ndcY * fs.projTanHY * up[1];
+            rdz = fwd[2] + ndcX * fs.projTanHX * rgt[2] + ndcY * fs.projTanHY * up[2];
             double len = Math.sqrt(rdx * rdx + rdy * rdy + rdz * rdz);
             rdx /= len;
             rdy /= len;
@@ -556,11 +473,10 @@ public class TickHandler {
                 fs.pivotZ = cam.posZ + rdz * 20;
             }
         } else {
-            double yaw = Math.toRadians(cam.rotationYaw);
-            double pitch = Math.toRadians(cam.rotationPitch);
-            rdx = -Math.sin(yaw) * Math.cos(pitch);
-            rdy = -Math.sin(pitch);
-            rdz = Math.cos(yaw) * Math.cos(pitch);
+            double[] fwd = FreecamUtils.cameraBasis(cam.rotationYaw, cam.rotationPitch)[0];
+            rdx = fwd[0];
+            rdy = fwd[1];
+            rdz = fwd[2];
 
             Vec3 start = Vec3.createVectorHelper(cam.posX, cam.posY, cam.posZ);
             Vec3 end = Vec3.createVectorHelper(cam.posX + rdx * 512, cam.posY + rdy * 512, cam.posZ + rdz * 512);

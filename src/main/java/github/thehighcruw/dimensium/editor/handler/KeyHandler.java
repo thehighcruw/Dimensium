@@ -89,7 +89,7 @@ public class KeyHandler {
         if (key == Dimensium.toggleDimensium.getKeyCode() && !OverlayRenderer.picker.isOpen()
             && !CreateBlueprintPopup.INSTANCE.isOpen()
             && !BlueprintBrowserPopup.INSTANCE.isOpen()) {
-            if (!OverlayRenderer.cheatsAllowed()) return;
+            if (OverlayRenderer.isNotCreative()) return;
             OverlayRenderer.picker.close();
             if (DimensiumEditorMode.INSTANCE.isActive()) {
                 FreecamState.INSTANCE.deactivate();
@@ -307,13 +307,7 @@ public class KeyHandler {
     }
 
     private static int currentMods() {
-        int m = 0;
-        if (Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) || Keyboard.isKeyDown(Keyboard.KEY_RCONTROL))
-            m |= Dimensium.MOD_CTRL;
-        if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT))
-            m |= Dimensium.MOD_SHIFT;
-        if (Keyboard.isKeyDown(Keyboard.KEY_LMENU) || Keyboard.isKeyDown(Keyboard.KEY_RMENU)) m |= Dimensium.MOD_ALT;
-        return m;
+        return InputState.currentMods();
     }
 
     private static boolean matches(int key, int mods, KeyBinding binding, int requiredMods) {
@@ -431,7 +425,6 @@ public class KeyHandler {
         if (fwd) return new int[] { qfx[q], 0, qfz[q] };
         if (bwd) return new int[] { -qfx[q], 0, -qfz[q] };
         if (rgt) return new int[] { lrSign * qrx[q], 0, lrSign * qrz[q] };
-        if (lft) return new int[] { -lrSign * qrx[q], 0, -lrSign * qrz[q] };
-        return null;
+        return new int[] { -lrSign * qrx[q], 0, -lrSign * qrz[q] };
     }
 }

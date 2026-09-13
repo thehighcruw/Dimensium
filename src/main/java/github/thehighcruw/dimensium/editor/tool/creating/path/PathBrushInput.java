@@ -18,6 +18,7 @@ import github.thehighcruw.dimensium.editor.handler.ExtrudeHelper;
 import github.thehighcruw.dimensium.editor.overlay.GuiDimensiumOverlay;
 import github.thehighcruw.dimensium.editor.tool.BrushInput;
 import github.thehighcruw.dimensium.editor.tool.creating.rock.PathToolState;
+import github.thehighcruw.dimensium.editor.handler.AnchorSnap;
 import github.thehighcruw.dimensium.editor.tool.selecting.SelectedBlockState;
 import github.thehighcruw.dimensium.editor.window.viewport.world.PlaneTranslationGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.TranslationGizmo;
@@ -32,7 +33,7 @@ public class PathBrushInput implements BrushInput {
     private PathBrushInput() {}
 
     @Override
-    public boolean onMouseClick(int button, Minecraft mc, MovingObjectPosition mop) {
+    public void onMouseClick(int button, Minecraft mc, MovingObjectPosition mop) {
         FreecamState fs = FreecamState.INSTANCE;
         int mouseX = (int) fs.cursorX, mouseY = (int) fs.cursorY;
         PathToolState pts = PathToolState.INSTANCE;
@@ -49,7 +50,7 @@ public class PathBrushInput implements BrushInput {
                 pts.gizmo.reset();
                 pts.invalidatePath();
             }
-            return true;
+            return;
         }
 
         if (button == KeyConstants.LMB) {
@@ -78,10 +79,8 @@ public class PathBrushInput implements BrushInput {
                             double pgx = sel.x + 0.5, pgy = sel.y + 0.5, pgz = sel.z + 0.5;
                             pts.planeGizmo.startDrag(mouseX, mouseY, pgx, pgy, pgz, pgx, pgy, pgz, 0, 0, 0);
                         }
-            return true;
         }
 
-        return false;
     }
 
     @Override
@@ -89,20 +88,13 @@ public class PathBrushInput implements BrushInput {
         PathToolState pts = PathToolState.INSTANCE;
         PathToolState.PathPoint selPt = pts.selectedPoint();
         if (selPt == null) return;
-        if (pts.gizmo.isDragging()) {
-            double[] anchor = pts.gizmo.updateDrag(mx, my);
+        if (pts.gizmo.isDragging() || pts.planeGizmo.isDragging()) {
+            double[] anchor = pts.gizmo.isDragging() ? pts.gizmo.updateDrag(mx, my)
+                : pts.planeGizmo.updateDrag(mx, my);
             if (anchor != null) {
-                selPt.x = (int) Math.floor(snap ? Math.floor(anchor[0] + 0.5) : anchor[0]);
-                selPt.y = (int) Math.floor(snap ? Math.floor(anchor[1] + 0.5) : anchor[1]);
-                selPt.z = (int) Math.floor(snap ? Math.floor(anchor[2] + 0.5) : anchor[2]);
-                pts.invalidatePath();
-            }
-        } else if (pts.planeGizmo.isDragging()) {
-            double[] anchor = pts.planeGizmo.updateDrag(mx, my);
-            if (anchor != null) {
-                selPt.x = (int) Math.floor(snap ? Math.floor(anchor[0] + 0.5) : anchor[0]);
-                selPt.y = (int) Math.floor(snap ? Math.floor(anchor[1] + 0.5) : anchor[1]);
-                selPt.z = (int) Math.floor(snap ? Math.floor(anchor[2] + 0.5) : anchor[2]);
+                selPt.x = AnchorSnap.toInt(anchor[0], snap);
+                selPt.y = AnchorSnap.toInt(anchor[1], snap);
+                selPt.z = AnchorSnap.toInt(anchor[2], snap);
                 pts.invalidatePath();
             }
         }

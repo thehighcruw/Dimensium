@@ -17,6 +17,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.freecam.FreecamState;
 import github.thehighcruw.dimensium.editor.handler.ExtrudeHelper;
+import github.thehighcruw.dimensium.editor.handler.AnchorSnap;
 import github.thehighcruw.dimensium.editor.overlay.GuiDimensiumOverlay;
 import github.thehighcruw.dimensium.editor.tool.BrushInput;
 import github.thehighcruw.dimensium.editor.window.viewport.world.PlaneTranslationGizmo;
@@ -31,13 +32,13 @@ public class ModellingBrushInput implements BrushInput {
     private ModellingBrushInput() {}
 
     @Override
-    public boolean onMouseClick(int button, Minecraft mc, MovingObjectPosition mop) {
+    public void onMouseClick(int button, Minecraft mc, MovingObjectPosition mop) {
         FreecamState fs = FreecamState.INSTANCE;
         int mouseX = (int) fs.cursorX, mouseY = (int) fs.cursorY;
         ModellingToolState mts = ModellingToolState.INSTANCE;
 
         if (button == KeyConstants.RMB) {
-            if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return false;
+            if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return;
             int px = mop.blockX, py = mop.blockY, pz = mop.blockZ;
             if (mts.offsetTargetPoint) {
                 int[] off = ExtrudeHelper.sideToOutwardDir(mop.sideHit);
@@ -54,7 +55,7 @@ public class ModellingBrushInput implements BrushInput {
                 .size() - 1;
             mts.gizmo.reset();
             mts.invalidate();
-            return true;
+            return;
         }
 
         if (button == KeyConstants.LMB) {
@@ -97,10 +98,8 @@ public class ModellingBrushInput implements BrushInput {
                         double mgx = mSelPt.x + 0.5, mgy = mSelPt.y + 0.5, mgz = mSelPt.z + 0.5;
                         mts.planeGizmo.startDrag(mouseX, mouseY, mgx, mgy, mgz, mgx, mgy, mgz, 0, 0, 0);
                     }
-            return true;
         }
 
-        return false;
     }
 
     @Override
@@ -108,20 +107,13 @@ public class ModellingBrushInput implements BrushInput {
         ModellingToolState mts = ModellingToolState.INSTANCE;
         ModellingToolState.ModelPoint mSelPt = mts.selectedPointObj();
         if (mSelPt == null) return;
-        if (mts.gizmo.isDragging()) {
-            double[] anchor = mts.gizmo.updateDrag(mx, my);
+        if (mts.gizmo.isDragging() || mts.planeGizmo.isDragging()) {
+            double[] anchor = mts.gizmo.isDragging() ? mts.gizmo.updateDrag(mx, my)
+                : mts.planeGizmo.updateDrag(mx, my);
             if (anchor != null) {
-                mSelPt.x = (int) Math.floor(snap ? Math.floor(anchor[0] + 0.5) : anchor[0]);
-                mSelPt.y = (int) Math.floor(snap ? Math.floor(anchor[1] + 0.5) : anchor[1]);
-                mSelPt.z = (int) Math.floor(snap ? Math.floor(anchor[2] + 0.5) : anchor[2]);
-                mts.invalidate();
-            }
-        } else if (mts.planeGizmo.isDragging()) {
-            double[] anchor = mts.planeGizmo.updateDrag(mx, my);
-            if (anchor != null) {
-                mSelPt.x = (int) Math.floor(snap ? Math.floor(anchor[0] + 0.5) : anchor[0]);
-                mSelPt.y = (int) Math.floor(snap ? Math.floor(anchor[1] + 0.5) : anchor[1]);
-                mSelPt.z = (int) Math.floor(snap ? Math.floor(anchor[2] + 0.5) : anchor[2]);
+                mSelPt.x = AnchorSnap.toInt(anchor[0], snap);
+                mSelPt.y = AnchorSnap.toInt(anchor[1], snap);
+                mSelPt.z = AnchorSnap.toInt(anchor[2], snap);
                 mts.invalidate();
             }
         }

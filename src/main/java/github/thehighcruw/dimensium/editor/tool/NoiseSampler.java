@@ -302,93 +302,72 @@ public final class NoiseSampler {
 
     private static float worley2(float x, float y, long seed, float jitter, float w1, float w2, float w3) {
         int ix = fastFloor(x), iy = fastFloor(y);
-        float f1 = Float.MAX_VALUE, f2 = Float.MAX_VALUE, f3 = Float.MAX_VALUE;
+        float[] f = { Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE };
         // Search 2-cell radius to reliably find F2/F3
         for (int dy = -2; dy <= 2; dy++) for (int dx = -2; dx <= 2; dx++) {
             int cx = ix + dx, cy = iy + dy;
             long h = hash(cx, cy, seed);
             float px = cx + jitter * ((h & 0xFFFF) / 65535f - 0.5f) * 2f;
             float py = cy + jitter * (((h >> 16) & 0xFFFF) / 65535f - 0.5f) * 2f;
-            float d = (float) Math.sqrt(dist2(x - px, y - py));
-            if (d < f1) {
-                f3 = f2;
-                f2 = f1;
-                f1 = d;
-            } else if (d < f2) {
-                f3 = f2;
-                f2 = d;
-            } else if (d < f3) {
-                f3 = d;
-            }
+            updateWorleyF3(f, (float) Math.sqrt(dist2(x - px, y - py)));
         }
-        float v = w1 * f1 + w2 * f2 + w3 * f3;
-        return saturate(v * 0.5f); // scale so typical F1 (~0.5) maps to mid-range
+        return saturate((w1 * f[0] + w2 * f[1] + w3 * f[2]) * 0.5f);
     }
 
     private static float worley3(float x, float y, float z, long seed, float jitter, float w1, float w2, float w3) {
         int ix = fastFloor(x), iy = fastFloor(y), iz = fastFloor(z);
-        float f1 = Float.MAX_VALUE, f2 = Float.MAX_VALUE, f3 = Float.MAX_VALUE;
+        float[] f = { Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE };
         for (int dz = -2; dz <= 2; dz++) for (int dy = -2; dy <= 2; dy++) for (int dx = -2; dx <= 2; dx++) {
             int cx = ix + dx, cy = iy + dy, cz = iz + dz;
             long h = hash3(cx, cy, cz, seed);
             float px = cx + jitter * ((h & 0xFFFF) / 65535f - 0.5f) * 2f;
             float py = cy + jitter * (((h >> 16) & 0xFFFF) / 65535f - 0.5f) * 2f;
             float pz = cz + jitter * (((h >> 32) & 0xFFFF) / 65535f - 0.5f) * 2f;
-            float d = (float) Math.sqrt(dist2(x - px, y - py) + dist2(z - pz, 0));
-            if (d < f1) {
-                f3 = f2;
-                f2 = f1;
-                f1 = d;
-            } else if (d < f2) {
-                f3 = f2;
-                f2 = d;
-            } else if (d < f3) {
-                f3 = d;
-            }
+            updateWorleyF3(f, (float) Math.sqrt(dist2(x - px, y - py) + dist2(z - pz, 0)));
         }
-        float v = w1 * f1 + w2 * f2 + w3 * f3;
-        return saturate(v * 0.5f);
+        return saturate((w1 * f[0] + w2 * f[1] + w3 * f[2]) * 0.5f);
+    }
+
+    /** Updates f[0]=F1, f[1]=F2, f[2]=F3 with a new candidate distance d. */
+    private static void updateWorleyF3(float[] f, float d) {
+        if (d < f[0]) { f[2] = f[1]; f[1] = f[0]; f[0] = d; }
+        else if (d < f[1]) { f[2] = f[1]; f[1] = d; }
+        else if (d < f[2]) { f[2] = d; }
     }
 
     // ── Voronoi edges (F2 - F1) ───────────────────────────────────────────────
 
     private static float voronoiEdge2(float x, float y, long seed, float jitter) {
         int ix = fastFloor(x), iy = fastFloor(y);
-        float f1 = Float.MAX_VALUE, f2 = Float.MAX_VALUE;
+        float[] f = { Float.MAX_VALUE, Float.MAX_VALUE };
         for (int dy = -2; dy <= 2; dy++) for (int dx = -2; dx <= 2; dx++) {
             int cx = ix + dx, cy = iy + dy;
             long h = hash(cx, cy, seed);
             float px = cx + jitter * ((h & 0xFFFF) / 65535f - 0.5f) * 2f;
             float py = cy + jitter * (((h >> 16) & 0xFFFF) / 65535f - 0.5f) * 2f;
-            float d = (float) Math.sqrt(dist2(x - px, y - py));
-            if (d < f1) {
-                f2 = f1;
-                f1 = d;
-            } else if (d < f2) {
-                f2 = d;
-            }
+            updateF2(f, (float) Math.sqrt(dist2(x - px, y - py)));
         }
-        return saturate((f2 - f1) * 2f);
+        return saturate((f[1] - f[0]) * 2f);
     }
 
     private static float voronoiEdge3(float x, float y, float z, long seed, float jitter) {
         int ix = fastFloor(x), iy = fastFloor(y), iz = fastFloor(z);
-        float f1 = Float.MAX_VALUE, f2 = Float.MAX_VALUE;
+        float[] f = { Float.MAX_VALUE, Float.MAX_VALUE };
         for (int dz = -2; dz <= 2; dz++) for (int dy = -2; dy <= 2; dy++) for (int dx = -2; dx <= 2; dx++) {
             int cx = ix + dx, cy = iy + dy, cz = iz + dz;
             long h = hash3(cx, cy, cz, seed);
             float px = cx + jitter * ((h & 0xFFFF) / 65535f - 0.5f) * 2f;
             float py = cy + jitter * (((h >> 16) & 0xFFFF) / 65535f - 0.5f) * 2f;
             float pz = cz + jitter * (((h >> 32) & 0xFFFF) / 65535f - 0.5f) * 2f;
-            float d = (float) Math.sqrt(dist2(x - px, y - py) + dist2(z - pz, 0));
-            if (d < f1) {
-                f2 = f1;
-                f1 = d;
-            } else if (d < f2) {
-                f2 = d;
-            }
+            updateF2(f, (float) Math.sqrt(dist2(x - px, y - py) + dist2(z - pz, 0)));
         }
-        return saturate((f2 - f1) * 2f);
+        return saturate((f[1] - f[0]) * 2f);
+    }
+
+    /** Updates f[0]=F1, f[1]=F2 with a new candidate distance d. */
+    private static void updateF2(float[] f, float d) {
+        if (d < f[0]) { f[1] = f[0]; f[0] = d; }
+        else if (d < f[1]) { f[1] = d; }
     }
 
     // ── Metaball ──────────────────────────────────────────────────────────────
@@ -491,9 +470,9 @@ public final class NoiseSampler {
         return Math.max(0f, Math.min(1f, v));
     }
 
-    private static int fastFloor(float x) {
-        int i = (int) x;
-        return x < i ? i - 1 : i;
+    private static int fastFloor(float number) {
+        int i = (int) number;
+        return number < i ? i - 1 : i;
     }
 
     private static long hash(long x, long y, long seed) {
@@ -507,11 +486,11 @@ public final class NoiseSampler {
     }
 
     private static long hash(int x, int y, long seed) {
-        return hash((long) x, (long) y, seed);
+        return hash(x, (long) y, seed);
     }
 
     private static long hash3(int x, int y, int z, long seed) {
-        return hash((long) x ^ ((long) z * 0x6C62272E07BB0142L), (long) y, seed ^ z);
+        return hash((long) x ^ ((long) z * 0x6C62272E07BB0142L), y, seed ^ z);
     }
 
     private static int perm(int x, int y, long seed) {

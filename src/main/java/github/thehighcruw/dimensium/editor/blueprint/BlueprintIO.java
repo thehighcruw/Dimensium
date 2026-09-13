@@ -89,8 +89,7 @@ public class BlueprintIO {
 
     /** Reads only name/tags/dims. O(header size), not O(block count). Migrates old-format files on first read. */
     public static Blueprint loadHeader(File file) throws IOException {
-        DataInputStream in = new DataInputStream(new FileInputStream(file));
-        try {
+        try (DataInputStream in = new DataInputStream(new FileInputStream(file))) {
             int magic = in.readInt();
             if (magic != MAGIC) {
                 in.close();
@@ -100,17 +99,12 @@ public class BlueprintIO {
             byte[] headerBytes = new byte[headerLen];
             readFully(in, headerBytes);
             return parseHeader(new DataInputStream(new ByteArrayInputStream(headerBytes)));
-        } finally {
-            try {
-                in.close();
-            } catch (IOException ignored) {}
         }
     }
 
     /** Reads full blueprint including block offsets. */
     public static Blueprint load(File file) throws IOException {
-        DataInputStream in = new DataInputStream(new FileInputStream(file));
-        try {
+        try (DataInputStream in = new DataInputStream(new FileInputStream(file))) {
             int magic = in.readInt();
             if (magic != MAGIC) {
                 in.close();
@@ -121,16 +115,8 @@ public class BlueprintIO {
             readFully(in, headerBytes);
             Blueprint bp = parseHeader(new DataInputStream(new ByteArrayInputStream(headerBytes)));
             NBTTagCompound bodyTag = CompressedStreamTools.readCompressed(in);
-            int[] flat = bodyTag.getIntArray("offsets");
-            bp.offsets = new ArrayList<>(flat.length / 5);
-            for (int i = 0; i + 4 < flat.length; i += 5) {
-                bp.offsets.add(new int[] { flat[i], flat[i + 1], flat[i + 2], flat[i + 3], flat[i + 4] });
-            }
+            bp.offsets = decodeOffsets(bodyTag.getIntArray("offsets"));
             return bp;
-        } finally {
-            try {
-                in.close();
-            } catch (IOException ignored) {}
         }
     }
 
@@ -170,7 +156,10 @@ public class BlueprintIO {
     // ── Internals ─────────────────────────────────────────────────────────────
 
     private static Blueprint parseHeader(DataInputStream in) throws IOException {
-        NBTTagCompound tag = CompressedStreamTools.read(in);
+        return fromHeaderTag(CompressedStreamTools.read(in));
+    }
+
+    private static Blueprint fromHeaderTag(NBTTagCompound tag) {
         Blueprint bp = new Blueprint();
         bp.name = tag.getString("name");
         NBTTagList tagList = tag.getTagList("tags", 8);
@@ -181,21 +170,19 @@ public class BlueprintIO {
         return bp;
     }
 
+    private static List<int[]> decodeOffsets(int[] flat) {
+        List<int[]> offsets = new ArrayList<>(flat.length / 5);
+        for (int i = 0; i + 4 < flat.length; i += 5) {
+            offsets.add(new int[] { flat[i], flat[i + 1], flat[i + 2], flat[i + 3], flat[i + 4] });
+        }
+        return offsets;
+    }
+
     /** Reads an old gzip-NBT file, rewrites it in the new format, returns the header. */
     private static Blueprint migrateLegacy(File file) throws IOException {
         NBTTagCompound tag = CompressedStreamTools.read(file);
-        Blueprint bp = new Blueprint();
-        bp.name = tag.getString("name");
-        NBTTagList tagList = tag.getTagList("tags", 8);
-        for (int i = 0; i < tagList.tagCount(); i++) bp.tags.add(tagList.getStringTagAt(i));
-        bp.clipW = tag.getInteger("clipW");
-        bp.clipH = tag.getInteger("clipH");
-        bp.clipD = tag.getInteger("clipD");
-        int[] flat = tag.getIntArray("offsets");
-        bp.offsets = new ArrayList<>(flat.length / 5);
-        for (int i = 0; i + 4 < flat.length; i += 5) {
-            bp.offsets.add(new int[] { flat[i], flat[i + 1], flat[i + 2], flat[i + 3], flat[i + 4] });
-        }
+        Blueprint bp = fromHeaderTag(tag);
+        bp.offsets = decodeOffsets(tag.getIntArray("offsets"));
         // Extract legacy embedded thumbnail to sidecar before rewriting
         File sidecar = sidecarFor(file);
         if (!sidecar.exists() && tag.hasKey("thumbnail")) {

@@ -62,15 +62,16 @@ public class ShapeMath {
             }
             case TORUS: {
                 // Elliptic ring: find nearest point on the ring ellipse, then test tube radius
-                float Rx = torusRingR, Rz = torusRingRZ, r = torusTubeR;
                 float lx = dx - cx, lz = dz - cz;
-                float angle = (float) Math.atan2(Rx > 0 ? lz / Rz : lz, Rz > 0 ? lx / Rx : lx);
-                float nearX = Rx * (float) Math.cos(angle);
-                float nearZ = Rz * (float) Math.sin(angle);
+                float angle = (float) Math.atan2(
+                    (float) torusRingR > 0 ? lz / (float) torusRingRZ : lz,
+                    (float) torusRingRZ > 0 ? lx / (float) torusRingR : lx);
+                float nearX = (float) torusRingR * (float) Math.cos(angle);
+                float nearZ = (float) torusRingRZ * (float) Math.sin(angle);
                 float tubeDist2 = (lx - nearX) * (lx - nearX) + (dy - cy) * (dy - cy) + (lz - nearZ) * (lz - nearZ);
-                if (!hollow) return tubeDist2 <= r * r;
-                float ir = Math.max(0.5f, r - 1);
-                return tubeDist2 <= r * r && tubeDist2 > ir * ir;
+                if (!hollow) return tubeDist2 <= (float) torusTubeR * (float) torusTubeR;
+                float ir = Math.max(0.5f, (float) torusTubeR - 1);
+                return tubeDist2 <= (float) torusTubeR * (float) torusTubeR && tubeDist2 > ir * ir;
             }
             case OCTAHEDRON: {
                 float norm = Math.abs((dx - cx) / rx) + Math.abs((dy - cy) / ry) + Math.abs((dz - cz) / rz);
@@ -99,33 +100,31 @@ public class ShapeMath {
             case SUPERELLIPSE: {
                 int midY = (h - 1) / 2;
                 if (dy != midY) return false;
-                float n = exponent;
-                float ex = (float) Math.pow(Math.abs((dx - cx) / rx), n);
-                float ez = (float) Math.pow(Math.abs((dz - cz) / rz), n);
+                float ex = (float) Math.pow(Math.abs((dx - cx) / rx), exponent);
+                float ez = (float) Math.pow(Math.abs((dz - cz) / rz), exponent);
                 float dist = ex + ez;
                 float vR = 0.5f * (float) Math.sqrt(1f / (rx * rx) + 1f / (rz * rz));
-                float cutoffN = (float) Math.pow(1f - vR * (1f - threshold), n);
+                float cutoffN = (float) Math.pow(1f - vR * (1f - threshold), exponent);
                 boolean outer = dist <= cutoffN;
                 if (!hollow) return outer;
                 float irx2 = Math.max(0.5f, rx - 1), irz2 = Math.max(0.5f, rz - 1);
-                float iex = (float) Math.pow(Math.abs((dx - cx) / irx2), n);
-                float iez = (float) Math.pow(Math.abs((dz - cz) / irz2), n);
+                float iex = (float) Math.pow(Math.abs((dx - cx) / irx2), exponent);
+                float iez = (float) Math.pow(Math.abs((dz - cz) / irz2), exponent);
                 return outer && iex + iez > 1f;
             }
             case SUPERSPHERE: {
-                float n = supersphereExp;
-                float ex = (float) Math.pow(Math.abs((dx - cx) / rx), n);
-                float ey = (float) Math.pow(Math.abs((dy - cy) / ry), n);
-                float ez = (float) Math.pow(Math.abs((dz - cz) / rz), n);
+                float ex = (float) Math.pow(Math.abs((dx - cx) / rx), supersphereExp);
+                float ey = (float) Math.pow(Math.abs((dy - cy) / ry), supersphereExp);
+                float ez = (float) Math.pow(Math.abs((dz - cz) / rz), supersphereExp);
                 float dist = ex + ey + ez;
                 float vR = 0.5f * (float) Math.sqrt(1f / (rx * rx) + 1f / (ry * ry) + 1f / (rz * rz));
-                float cutoffN = (float) Math.pow(1f - vR * (1f - threshold), n);
+                float cutoffN = (float) Math.pow(1f - vR * (1f - threshold), supersphereExp);
                 boolean outer = dist <= cutoffN;
                 if (!hollow) return outer;
                 float irx2 = Math.max(0.5f, rx - 1), iry2 = Math.max(0.5f, ry - 1), irz2 = Math.max(0.5f, rz - 1);
-                float iex = (float) Math.pow(Math.abs((dx - cx) / irx2), n);
-                float iey = (float) Math.pow(Math.abs((dy - cy) / iry2), n);
-                float iez = (float) Math.pow(Math.abs((dz - cz) / irz2), n);
+                float iex = (float) Math.pow(Math.abs((dx - cx) / irx2), supersphereExp);
+                float iey = (float) Math.pow(Math.abs((dy - cy) / iry2), supersphereExp);
+                float iez = (float) Math.pow(Math.abs((dz - cz) / irz2), supersphereExp);
                 return outer && iex + iey + iez > 1f;
             }
             case TUBE: {
@@ -173,23 +172,20 @@ public class ShapeMath {
         boolean hollow) {
         int nsides = Math.max(3, polygonSides);
         float inr = (float) Math.cos(Math.PI / nsides);
-        float px = lpx / rx, pz = lpz / rz;
+        float maxDot = maxPolygonProjection(lpx / rx, lpz / rz, nsides);
+        if (!hollow) return maxDot <= inr;
+        float irx = Math.max(0.5f, rx - 1), irz = Math.max(0.5f, rz - 1);
+        return maxDot <= inr && maxPolygonProjection(lpx / irx, lpz / irz, nsides) > inr;
+    }
+
+    private static float maxPolygonProjection(float px, float pz, int nsides) {
         float maxDot = Float.NEGATIVE_INFINITY;
         for (int k = 0; k < nsides; k++) {
             float fa = (float) ((2.0 * Math.PI * (k + 0.5)) / nsides);
-            float d2 = (float) Math.cos(fa) * px + (float) Math.sin(fa) * pz;
-            if (d2 > maxDot) maxDot = d2;
+            float d = (float) Math.cos(fa) * px + (float) Math.sin(fa) * pz;
+            if (d > maxDot) maxDot = d;
         }
-        if (!hollow) return maxDot <= inr;
-        float irx2 = Math.max(0.5f, rx - 1), irz2 = Math.max(0.5f, rz - 1);
-        float ipx = lpx / irx2, ipz = lpz / irz2;
-        float imaxDot = Float.NEGATIVE_INFINITY;
-        for (int k = 0; k < nsides; k++) {
-            float fa = (float) ((2.0 * Math.PI * (k + 0.5)) / nsides);
-            float d2 = (float) Math.cos(fa) * ipx + (float) Math.sin(fa) * ipz;
-            if (d2 > imaxDot) imaxDot = d2;
-        }
-        return maxDot <= inr && imaxDot > inr;
+        return maxDot;
     }
 
     private static boolean spiralHit(float localX, float localZ, float spacing, float turns) {
@@ -326,15 +322,16 @@ public class ShapeMath {
                         || onBase);
             }
             case TORUS: {
-                float Rx = torusRingR, Rz = torusRingRZ, r = torusTubeR;
                 float lx = dx - ccx, lz = dz - ccz;
-                float angle = (float) Math.atan2(Rx > 0 ? lz / Rz : lz, Rz > 0 ? lx / Rx : lx);
-                float nearX = Rx * (float) Math.cos(angle);
-                float nearZ = Rz * (float) Math.sin(angle);
+                float angle = (float) Math.atan2(
+                    (float) torusRingR > 0 ? lz / (float) torusRingRZ : lz,
+                    (float) torusRingRZ > 0 ? lx / (float) torusRingR : lx);
+                float nearX = (float) torusRingR * (float) Math.cos(angle);
+                float nearZ = (float) torusRingRZ * (float) Math.sin(angle);
                 float tubeDist2 = (lx - nearX) * (lx - nearX) + (dy - ccy) * (dy - ccy) + (lz - nearZ) * (lz - nearZ);
-                if (!hollow) return tubeDist2 <= r * r;
-                float ir = Math.max(0.5f, r - 1f);
-                return tubeDist2 <= r * r && tubeDist2 > ir * ir;
+                if (!hollow) return tubeDist2 <= (float) torusTubeR * (float) torusTubeR;
+                float ir = Math.max(0.5f, (float) torusTubeR - 1f);
+                return tubeDist2 <= (float) torusTubeR * (float) torusTubeR && tubeDist2 > ir * ir;
             }
             case OCTAHEDRON: {
                 float norm = Math.abs((dx - ccx) / rx) + Math.abs((dy - ccy) / ry) + Math.abs((dz - ccz) / rz);
@@ -360,32 +357,30 @@ public class ShapeMath {
                 return Math.abs(dy - ccy) <= 0.5f;
             case SUPERELLIPSE: {
                 if (Math.abs(dy - ccy) > 0.5f) return false;
-                float n = exponent;
-                float ex = (float) Math.pow(Math.abs((dx - ccx) / rx), n);
-                float ez = (float) Math.pow(Math.abs((dz - ccz) / rz), n);
+                float ex = (float) Math.pow(Math.abs((dx - ccx) / rx), exponent);
+                float ez = (float) Math.pow(Math.abs((dz - ccz) / rz), exponent);
                 float dist = ex + ez;
                 float vR = 0.5f * (float) Math.sqrt(1f / (rx * rx) + 1f / (rz * rz));
-                float cutoffN = (float) Math.pow(1f - vR * (1f - threshold), n);
+                float cutoffN = (float) Math.pow(1f - vR * (1f - threshold), exponent);
                 boolean outer = dist <= cutoffN;
                 if (!hollow) return outer;
                 float irx2 = Math.max(0.5f, rx - 1), irz2 = Math.max(0.5f, rz - 1);
-                return outer && ((float) Math.pow(Math.abs((dx - ccx) / irx2), n)
-                    + (float) Math.pow(Math.abs((dz - ccz) / irz2), n)) > 1f;
+                return outer && ((float) Math.pow(Math.abs((dx - ccx) / irx2), exponent)
+                    + (float) Math.pow(Math.abs((dz - ccz) / irz2), exponent)) > 1f;
             }
             case SUPERSPHERE: {
-                float n = supersphereExp;
-                float ex = (float) Math.pow(Math.abs((dx - ccx) / rx), n);
-                float ey = (float) Math.pow(Math.abs((dy - ccy) / ry), n);
-                float ez = (float) Math.pow(Math.abs((dz - ccz) / rz), n);
+                float ex = (float) Math.pow(Math.abs((dx - ccx) / rx), supersphereExp);
+                float ey = (float) Math.pow(Math.abs((dy - ccy) / ry), supersphereExp);
+                float ez = (float) Math.pow(Math.abs((dz - ccz) / rz), supersphereExp);
                 float dist = ex + ey + ez;
                 float vR = 0.5f * (float) Math.sqrt(1f / (rx * rx) + 1f / (ry * ry) + 1f / (rz * rz));
-                float cutoffN = (float) Math.pow(1f - vR * (1f - threshold), n);
+                float cutoffN = (float) Math.pow(1f - vR * (1f - threshold), supersphereExp);
                 boolean outer = dist <= cutoffN;
                 if (!hollow) return outer;
                 float irx2 = Math.max(0.5f, rx - 1), iry2 = Math.max(0.5f, ry - 1), irz2 = Math.max(0.5f, rz - 1);
-                return outer && ((float) Math.pow(Math.abs((dx - ccx) / irx2), n)
-                    + (float) Math.pow(Math.abs((dy - ccy) / iry2), n)
-                    + (float) Math.pow(Math.abs((dz - ccz) / irz2), n)) > 1f;
+                return outer && ((float) Math.pow(Math.abs((dx - ccx) / irx2), supersphereExp)
+                    + (float) Math.pow(Math.abs((dy - ccy) / iry2), supersphereExp)
+                    + (float) Math.pow(Math.abs((dz - ccz) / irz2), supersphereExp)) > 1f;
             }
             case TUBE: {
                 float ex = (dx - ccx) / rx, ez = (dz - ccz) / rz;

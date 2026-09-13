@@ -148,7 +148,6 @@ public class ModellingMath {
             double maxOff = Math.abs(m[0][1]);
             if (Math.abs(m[0][2]) > maxOff) {
                 maxOff = Math.abs(m[0][2]);
-                p = 0;
                 q = 2;
             }
             if (Math.abs(m[1][2]) > maxOff) {
@@ -378,8 +377,8 @@ public class ModellingMath {
     private static double[] sampleGridCatmullRom(double[][][] grid, int R, int C, double u, double v) {
         u = Math.max(0, Math.min(R - 1, u));
         v = Math.max(0, Math.min(C - 1, v));
-        int ri = (int) Math.min((int) u, R - 2);
-        int ci = (int) Math.min((int) v, C - 2);
+        int ri = Math.min((int) u, R - 2);
+        int ci = Math.min((int) v, C - 2);
         double ut = u - ri;
         double vt = v - ci;
 
@@ -470,7 +469,7 @@ public class ModellingMath {
         }
         double totalLen = arc[m - 1];
         for (int k = 0; k < n; k++) {
-            double t = (n <= 1) ? 0 : (double) k / (n - 1) * totalLen;
+            double t = (n == 1) ? 0 : (double) k / (n - 1) * totalLen;
             // Binary search for segment
             int seg = m - 2;
             for (int i = 0; i < m - 1; i++) {
@@ -604,12 +603,19 @@ public class ModellingMath {
         return new int[] { p0, p1, p2, p3 };
     }
 
+    /** Returns the cross product (B-A) × (C-A). */
+    private static double[] triNormal(double[] A, double[] B, double[] C) {
+        return new double[] {
+            (B[1] - A[1]) * (C[2] - A[2]) - (B[2] - A[2]) * (C[1] - A[1]),
+            (B[2] - A[2]) * (C[0] - A[0]) - (B[0] - A[0]) * (C[2] - A[2]),
+            (B[0] - A[0]) * (C[1] - A[1]) - (B[1] - A[1]) * (C[0] - A[0])
+        };
+    }
+
     private static void addFaceOutward(List<int[]> faces, double[][] P, int a, int b, int c, double[] inside) {
         double[] A = P[a], B = P[b], C = P[c];
-        double nx = (B[1] - A[1]) * (C[2] - A[2]) - (B[2] - A[2]) * (C[1] - A[1]);
-        double ny = (B[2] - A[2]) * (C[0] - A[0]) - (B[0] - A[0]) * (C[2] - A[2]);
-        double nz = (B[0] - A[0]) * (C[1] - A[1]) - (B[1] - A[1]) * (C[0] - A[0]);
-        if (nx * (A[0] - inside[0]) + ny * (A[1] - inside[1]) + nz * (A[2] - inside[2]) >= 0) {
+        double[] n = triNormal(A, B, C);
+        if (n[0] * (A[0] - inside[0]) + n[1] * (A[1] - inside[1]) + n[2] * (A[2] - inside[2]) >= 0) {
             faces.add(new int[] { a, b, c });
         } else {
             faces.add(new int[] { a, c, b });
@@ -618,10 +624,8 @@ public class ModellingMath {
 
     private static boolean faceVisible(double[][] P, int[] face, double[] p) {
         double[] A = P[face[0]], B = P[face[1]], C = P[face[2]];
-        double nx = (B[1] - A[1]) * (C[2] - A[2]) - (B[2] - A[2]) * (C[1] - A[1]);
-        double ny = (B[2] - A[2]) * (C[0] - A[0]) - (B[0] - A[0]) * (C[2] - A[2]);
-        double nz = (B[0] - A[0]) * (C[1] - A[1]) - (B[1] - A[1]) * (C[0] - A[0]);
-        return nx * (p[0] - A[0]) + ny * (p[1] - A[1]) + nz * (p[2] - A[2]) > 1e-9;
+        double[] n = triNormal(A, B, C);
+        return n[0] * (p[0] - A[0]) + n[1] * (p[1] - A[1]) + n[2] * (p[2] - A[2]) > 1e-9;
     }
 
     private static double[] computeCentroid(double[][] P, List<int[]> faces) {
@@ -686,54 +690,37 @@ public class ModellingMath {
         int dx = Math.abs(x1 - x), dy = Math.abs(y1 - y), dz = Math.abs(z1 - z);
         int sx = x < x1 ? 1 : -1, sy = y < y1 ? 1 : -1, sz = z < z1 ? 1 : -1;
         addPoint(out, x, y, z, bm);
+        int[] pos = { x, y, z };
+        int[] step = { sx, sy, sz };
+        int[] deltas = { dx, dy, dz };
         if (dx >= dy && dx >= dz) {
-            int err1 = 2 * dy - dx, err2 = 2 * dz - dx;
-            for (int i = 0; i < dx; i++) {
-                x += sx;
-                if (err1 > 0) {
-                    y += sy;
-                    err1 -= 2 * dx;
-                }
-                if (err2 > 0) {
-                    z += sz;
-                    err2 -= 2 * dx;
-                }
-                err1 += 2 * dy;
-                err2 += 2 * dz;
-                addPoint(out, x, y, z, bm);
-            }
+            bresenhamMajor(out, pos, step, deltas, 0, bm);
         } else if (dy >= dx && dy >= dz) {
-            int err1 = 2 * dx - dy, err2 = 2 * dz - dy;
-            for (int i = 0; i < dy; i++) {
-                y += sy;
-                if (err1 > 0) {
-                    x += sx;
-                    err1 -= 2 * dy;
-                }
-                if (err2 > 0) {
-                    z += sz;
-                    err2 -= 2 * dy;
-                }
-                err1 += 2 * dx;
-                err2 += 2 * dz;
-                addPoint(out, x, y, z, bm);
-            }
+            bresenhamMajor(out, pos, step, deltas, 1, bm);
         } else {
-            int err1 = 2 * dx - dz, err2 = 2 * dy - dz;
-            for (int i = 0; i < dz; i++) {
-                z += sz;
-                if (err1 > 0) {
-                    x += sx;
-                    err1 -= 2 * dz;
-                }
-                if (err2 > 0) {
-                    y += sy;
-                    err2 -= 2 * dz;
-                }
-                err1 += 2 * dx;
-                err2 += 2 * dy;
-                addPoint(out, x, y, z, bm);
+            bresenhamMajor(out, pos, step, deltas, 2, bm);
+        }
+    }
+
+    private static void bresenhamMajor(Map<Long, int[]> out, int[] pos, int[] step, int[] deltas, int major,
+        int[] bm) {
+        int a = major == 0 ? 1 : 0;
+        int b = major == 2 ? 1 : 2;
+        int dm = deltas[major], da = deltas[a], db = deltas[b];
+        int err1 = 2 * da - dm, err2 = 2 * db - dm;
+        for (int i = 0; i < dm; i++) {
+            pos[major] += step[major];
+            if (err1 > 0) {
+                pos[a] += step[a];
+                err1 -= 2 * dm;
             }
+            if (err2 > 0) {
+                pos[b] += step[b];
+                err2 -= 2 * dm;
+            }
+            err1 += 2 * da;
+            err2 += 2 * db;
+            addPoint(out, pos[0], pos[1], pos[2], bm);
         }
     }
 
@@ -759,12 +746,10 @@ public class ModellingMath {
     }
 
     private static double distToPlane(double[] P, double[] A, double[] B, double[] C) {
-        double nx = (B[1] - A[1]) * (C[2] - A[2]) - (B[2] - A[2]) * (C[1] - A[1]);
-        double ny = (B[2] - A[2]) * (C[0] - A[0]) - (B[0] - A[0]) * (C[2] - A[2]);
-        double nz = (B[0] - A[0]) * (C[1] - A[1]) - (B[1] - A[1]) * (C[0] - A[0]);
-        double len = Math.sqrt(nx * nx + ny * ny + nz * nz);
+        double[] n = triNormal(A, B, C);
+        double len = Math.sqrt(n[0] * n[0] + n[1] * n[1] + n[2] * n[2]);
         if (len < 1e-12) return 0;
-        return (nx * (P[0] - A[0]) + ny * (P[1] - A[1]) + nz * (P[2] - A[2])) / len;
+        return (n[0] * (P[0] - A[0]) + n[1] * (P[1] - A[1]) + n[2] * (P[2] - A[2])) / len;
     }
 
     static int[] blockToIdMeta(ItemStack stack) {

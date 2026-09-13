@@ -19,29 +19,47 @@ public class FreecamUtils {
 
     public static Vec3 lookVec(EntityPlayer player) {
         FreecamEntity cam = FreecamState.INSTANCE.cameraEntity;
-        if (cam != null) {
-            double yaw = Math.toRadians(cam.rotationYaw);
-            double pitch = Math.toRadians(cam.rotationPitch);
-            return Vec3.createVectorHelper(
-                -Math.sin(yaw) * Math.cos(pitch),
-                -Math.sin(pitch),
-                Math.cos(yaw) * Math.cos(pitch));
-        }
+        if (cam != null) return camForward(cam);
         return player.getLookVec();
     }
 
     public static MovingObjectPosition rayTrace(Minecraft mc, double reach) {
         FreecamEntity cam = FreecamState.INSTANCE.cameraEntity;
         if (cam != null) {
-            double yaw = Math.toRadians(cam.rotationYaw);
-            double pitch = Math.toRadians(cam.rotationPitch);
-            double dx = -Math.sin(yaw) * Math.cos(pitch);
-            double dy = -Math.sin(pitch);
-            double dz = Math.cos(yaw) * Math.cos(pitch);
+            Vec3 dir = camForward(cam);
             Vec3 start = Vec3.createVectorHelper(cam.posX, cam.posY, cam.posZ);
-            Vec3 end = Vec3.createVectorHelper(cam.posX + dx * reach, cam.posY + dy * reach, cam.posZ + dz * reach);
+            Vec3 end = Vec3.createVectorHelper(
+                cam.posX + dir.xCoord * reach,
+                cam.posY + dir.yCoord * reach,
+                cam.posZ + dir.zCoord * reach);
             return mc.theWorld.rayTraceBlocks(start, end, false);
         }
         return mc.thePlayer.rayTrace(reach, 1.0f);
+    }
+
+    /** Forward unit vector from yaw/pitch of the given camera entity. */
+    public static Vec3 camForward(FreecamEntity cam) {
+        double yaw = Math.toRadians(cam.rotationYaw);
+        double pitch = Math.toRadians(cam.rotationPitch);
+        return Vec3.createVectorHelper(
+            -Math.sin(yaw) * Math.cos(pitch),
+            -Math.sin(pitch),
+            Math.cos(yaw) * Math.cos(pitch));
+    }
+
+    /**
+     * Orthonormal camera basis from yaw/pitch angles in degrees.
+     * Returns {{fwdX,fwdY,fwdZ}, {rgtX,0,rgtZ}, {upX,upY,upZ}}.
+     */
+    public static double[][] cameraBasis(float yawDeg, float pitchDeg) {
+        double yaw = Math.toRadians(yawDeg);
+        double pitch = Math.toRadians(pitchDeg);
+        double cp = Math.cos(pitch), sp = Math.sin(pitch);
+        double cy = Math.cos(yaw), sy = Math.sin(yaw);
+        return new double[][] {
+            { -sy * cp, -sp, cy * cp },
+            { cy, 0, sy },
+            { -sy * sp, cp, cy * sp }
+        };
     }
 }

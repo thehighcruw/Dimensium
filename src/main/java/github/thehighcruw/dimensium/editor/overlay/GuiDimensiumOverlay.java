@@ -22,6 +22,7 @@ import net.minecraft.util.Vec3;
 
 import github.thehighcruw.dimensium.DimensiumEditorMode;
 import github.thehighcruw.dimensium.editor.freecam.FreecamState;
+import github.thehighcruw.dimensium.editor.freecam.FreecamUtils;
 import github.thehighcruw.dimensium.editor.handler.SelectionOps;
 import github.thehighcruw.dimensium.editor.tool.BrushInput;
 import github.thehighcruw.dimensium.editor.tool.BrushInputRegistry;
@@ -36,7 +37,6 @@ import github.thehighcruw.dimensium.editor.tool.selecting.SelectedBlockState;
 import github.thehighcruw.dimensium.editor.tool.selecting.box.BoxSelectToolState;
 import github.thehighcruw.dimensium.editor.tool.state.ClipboardPlacementState;
 import github.thehighcruw.dimensium.editor.window.RecentBlockHistory;
-import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
 import github.thehighcruw.dimensium.editor.window.popup.BlueprintBrowserPopup;
 import github.thehighcruw.dimensium.editor.window.popup.ConflictPopup;
 import github.thehighcruw.dimensium.editor.window.popup.CreateBlueprintPopup;
@@ -83,23 +83,12 @@ public final class GuiDimensiumOverlay {
         double tanHX = FreecamState.INSTANCE.projTanHX;
         double tanHY = FreecamState.INSTANCE.projTanHY;
 
-        double yaw = Math.toRadians(eye.rotationYaw);
-        double pitch = Math.toRadians(eye.rotationPitch);
+        double[][] basis = FreecamUtils.cameraBasis(eye.rotationYaw, eye.rotationPitch);
+        double[] fwd = basis[0], rgt = basis[1], up = basis[2];
 
-        double lookX = -Math.sin(yaw) * Math.cos(pitch);
-        double lookY = -Math.sin(pitch);
-        double lookZ = Math.cos(yaw) * Math.cos(pitch);
-
-        double rightX = Math.cos(yaw);
-        double rightZ = Math.sin(yaw);
-
-        double upX = -Math.sin(yaw) * Math.sin(pitch);
-        double upY = Math.cos(pitch);
-        double upZ = Math.cos(yaw) * Math.sin(pitch);
-
-        double rdx = lookX + rightX * ndcX * tanHX + upX * ndcY * tanHY;
-        double rdy = lookY + upY * ndcY * tanHY;
-        double rdz = lookZ + rightZ * ndcX * tanHX + upZ * ndcY * tanHY;
+        double rdx = fwd[0] + rgt[0] * ndcX * tanHX + up[0] * ndcY * tanHY;
+        double rdy = fwd[1] + up[1] * ndcY * tanHY;
+        double rdz = fwd[2] + rgt[2] * ndcX * tanHX + up[2] * ndcY * tanHY;
         double len = Math.sqrt(rdx * rdx + rdy * rdy + rdz * rdz);
         rdx /= len;
         rdy /= len;
@@ -130,10 +119,7 @@ public final class GuiDimensiumOverlay {
         Minecraft _mc = Minecraft.getMinecraft();
         int _sf = RenderUtils.scaleFactor();
         int physX = mouseX * _sf;
-        float _uiScale = ImGuiManager.INSTANCE.getUIScale();
-        if (physX < OverlayRenderer.TOOL_WINDOW.currentW * _uiScale) {
-            // Left panel is now ImGui — clicks handled by ImGui input routing.
-        } else {
+        if (physX >= OverlayRenderer.TOOL_WINDOW.getWidth()) {
             if (button == 2) {
                 MovingObjectPosition mop = raycastFromMouse(
                     (int) FreecamState.INSTANCE.cursorX,
@@ -424,8 +410,7 @@ public final class GuiDimensiumOverlay {
                 || SelectionRenderer.boxCenterGizmo.isDragging()))
             return true;
         if (PathToolState.INSTANCE.gizmo.isDragging()) return true;
-        if (ModellingToolState.INSTANCE.gizmo.isDragging()) return true;
-        return false;
+        return ModellingToolState.INSTANCE.gizmo.isDragging();
     }
 
     /** Commits the pending box selection (boxConfirmed state) and clears gizmo state. */

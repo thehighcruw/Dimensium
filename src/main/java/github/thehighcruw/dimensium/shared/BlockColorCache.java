@@ -51,7 +51,6 @@ public class BlockColorCache {
     // Populated during init(): blockId*16+meta → avgRgb
     private final Map<Integer, Integer> colorByKey = new HashMap<>();
     private final Map<Integer, String> nameByBlock = new HashMap<>();
-    private final List<int[]> allEntries = new ArrayList<>();
     private final List<int[]> colourFieldCandidates = new ArrayList<>();
     // All placeable blocks with colour data: int[] { blockId, meta, avgRgb, catBits }
     private final List<int[]> allEntriesWithCat = new ArrayList<>();
@@ -75,7 +74,7 @@ public class BlockColorCache {
     @SubscribeEvent
     public void onTextureStitchPost(TextureStitchEvent.Post event) {
         if (event.map.getTextureType() != 0) return; // only block atlas
-        pendingAtlas = (TextureMap) event.map;
+        pendingAtlas = event.map;
         // Reset so we re-scan on resource reload (F3+T).
         initialized = false;
         spriteRgbByName.clear();
@@ -83,7 +82,6 @@ public class BlockColorCache {
         spriteAnimated.clear();
         colorByKey.clear();
         nameByBlock.clear();
-        allEntries.clear();
         colourFieldCandidates.clear();
         allEntriesWithCat.clear();
         LOG.info("BlockColorCache: block atlas stitched, will scan on next init() call");
@@ -149,7 +147,7 @@ public class BlockColorCache {
                 if (opaque && (e[3] & CAT_TRANSLUCENT) != 0) return false;
                 if (fullCube) {
                     Block b = Block.getBlockById(e[0]);
-                    if (b == null || !b.renderAsNormalBlock()) return false;
+                    return b != null && b.renderAsNormalBlock();
                 }
                 return true;
             })
@@ -175,7 +173,6 @@ public class BlockColorCache {
 
     // ── Phase 1: read atlas pixels from GL ───────────────────────────────────
 
-    @SuppressWarnings("unchecked")
     private void readAtlasFromGL(TextureMap atlas) {
         // Bind the atlas texture and read all pixels.
         Minecraft.getMinecraft()
@@ -285,7 +282,7 @@ public class BlockColorCache {
             seenMetas.set(meta);
 
             if (!nameByBlock.containsKey(blockId)) {
-                String regName = (String) Block.blockRegistry.getNameForObject(block);
+                String regName = Block.blockRegistry.getNameForObject(block);
                 nameByBlock.put(blockId, formatName(regName));
             }
 
@@ -330,7 +327,6 @@ public class BlockColorCache {
 
                 int key = blockId * 16 + meta;
                 colorByKey.put(key, avgRgb);
-                allEntries.add(new int[] { key, avgRgb });
 
                 double[] avgLab = rgbToLab(avgRgb);
                 int catBits = categoryOf(block, meta);
@@ -370,13 +366,13 @@ public class BlockColorCache {
         LOG.info("  colorByKey.size={} candidates={}", colorByKey.size(), colourFieldCandidates.size());
     }
 
+    @SuppressWarnings("unchecked")
     private List<ItemStack> collectPlaceableBlocks() {
         List<ItemStack> result = new ArrayList<>();
         for (Item item : (Iterable<Item>) Item.itemRegistry) {
-            if (item == null || !(item instanceof ItemBlock)) continue;
+            if (!(item instanceof ItemBlock)) continue;
 
-            List<ItemStack> permutations = new ArrayList<>();
-            permutations.addAll(ItemInfo.itemOverrides.get(item));
+            List<ItemStack> permutations = new ArrayList<>(ItemInfo.itemOverrides.get(item));
             if (permutations.isEmpty()) {
                 item.getSubItems(item, null, permutations);
             }
@@ -403,7 +399,6 @@ public class BlockColorCache {
             for (ItemStack s : out) {
                 if (s != null && s.getItem() == blockItem) covered.set(s.getItemDamage());
             }
-            if (mtes == null) return;
             for (int i = 0; i < mtes.length; i++) {
                 if (mtes[i] == null || covered.get(i)) continue;
                 out.add(new ItemStack(blockItem, 1, i));
@@ -419,8 +414,7 @@ public class BlockColorCache {
                 java.lang.reflect.Field f = TextureMap.class.getDeclaredField(fieldName);
                 f.setAccessible(true);
                 Object val = f.get(atlas);
-                if (val instanceof Map) {
-                    Map<?, ?> raw = (Map<?, ?>) val;
+                if (val instanceof Map<?, ?>raw) {
                     if (!raw.isEmpty()) return (Map<String, TextureAtlasSprite>) raw;
                 }
             } catch (Throwable ignored) {}
@@ -432,8 +426,7 @@ public class BlockColorCache {
             try {
                 f.setAccessible(true);
                 Object val = f.get(atlas);
-                if (!(val instanceof Map)) continue;
-                Map<?, ?> raw = (Map<?, ?>) val;
+                if (!(val instanceof Map<?, ?>raw)) continue;
                 if (raw.isEmpty()) continue;
                 Object firstVal = raw.values()
                     .iterator()
@@ -470,7 +463,7 @@ public class BlockColorCache {
         double x = 0.4124564 * r + 0.3575761 * g + 0.1804375 * b;
         double y = 0.2126729 * r + 0.7151522 * g + 0.0721750 * b;
         double z = 0.0193339 * r + 0.1191920 * g + 0.9503041 * b;
-        double fx = labF(x / 0.95047), fy = labF(y / 1.0), fz = labF(z / 1.08883);
+        double fx = labF(x / 0.95047), fy = labF(y), fz = labF(z / 1.08883);
         return new double[] { 116.0 * fy - 16.0, 500.0 * (fx - fy), 200.0 * (fy - fz) };
     }
 

@@ -54,7 +54,7 @@ public final class PerfTrace {
 
     private static int spans_index(PerfTrace t, String name) {
         int idx = t.spans.size();
-        t.spans.add(new Span(name, 0, t.depth));
+        t.spans.add(new Span(name, t.depth));
         return idx;
     }
 
@@ -102,9 +102,9 @@ public final class PerfTrace {
         final int depth;
         long ms;
 
-        Span(String name, long ms, int depth) {
+        Span(String name, int depth) {
             this.name = name;
-            this.ms = ms;
+            this.ms = 0;
             this.depth = depth;
         }
     }
