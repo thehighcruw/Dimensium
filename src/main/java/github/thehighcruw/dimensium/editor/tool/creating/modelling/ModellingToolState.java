@@ -103,12 +103,6 @@ public class ModellingToolState {
         return all;
     }
 
-    public int totalPointCount() {
-        int n = 0;
-        for (List<ModelPoint> row : rows) n += row.size();
-        return n;
-    }
-
     public void removeSelectedPoint() {
         if (selectedRow < 0 || selectedRow >= rows.size()) return;
         List<ModelPoint> row = rows.get(selectedRow);

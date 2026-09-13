@@ -138,18 +138,4 @@ public final class ItemIconCache {
         cache.put(key, texId);
         return texId;
     }
-
-    /** Delete all cached textures and the shared FBO. Call on resource reload or shutdown. */
-    public void clear() {
-        for (int texId : cache.values()) {
-            GL11.glDeleteTextures(texId);
-        }
-        cache.clear();
-        if (fboId != 0) {
-            GL30.glDeleteFramebuffers(fboId);
-            GL30.glDeleteRenderbuffers(depthRboId);
-            fboId = 0;
-            depthRboId = 0;
-        }
-    }
 }

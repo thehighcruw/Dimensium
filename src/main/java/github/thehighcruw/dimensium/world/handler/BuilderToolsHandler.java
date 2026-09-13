@@ -64,7 +64,7 @@ public class BuilderToolsHandler {
         }
     }
 
-    void handleRelease(MouseEvent event, EntityPlayer player, Minecraft mc) {
+    void handleRelease(MouseEvent event, Minecraft mc) {
         if (event.button != KeyConstants.RMB) return;
         BuilderToolState bts = BuilderToolState.INSTANCE;
 

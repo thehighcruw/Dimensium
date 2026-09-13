@@ -54,7 +54,6 @@ public class ServerEditQueue {
 
     private static final class PendingEdit {
 
-        final UUID playerId;
         final World world;
         final EntityPlayerMP player;
         final int txId;
@@ -71,9 +70,7 @@ public class ServerEditQueue {
         // null = notify phase not started yet.
         Map<Long, Deque<int[]>> pendingNotify = null;
 
-        PendingEdit(UUID playerId, World world, EntityPlayerMP player, int txId, String action, int[][] after,
-            List<int[]> ops) {
-            this.playerId = playerId;
+        PendingEdit(World world, EntityPlayerMP player, int txId, String action, int[][] after, List<int[]> ops) {
             this.world = world;
             this.player = player;
             this.txId = txId;
@@ -91,7 +88,7 @@ public class ServerEditQueue {
         List<int[]> ops) {
         if (ops.isEmpty()) return;
         queues.computeIfAbsent(playerId, k -> new LinkedList<>())
-            .add(new PendingEdit(playerId, world, player, txId, action, null, ops));
+            .add(new PendingEdit(world, player, txId, action, null, ops));
     }
 
     /**

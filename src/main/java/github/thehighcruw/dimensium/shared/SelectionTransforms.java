@@ -14,10 +14,10 @@ import java.util.Set;
 import net.minecraft.block.Block;
 import net.minecraft.world.World;
 
+import github.thehighcruw.dimensium.editor.tool.NoiseSampler;
 import github.thehighcruw.dimensium.editor.tool.brushes.GaussianKernel;
 import github.thehighcruw.dimensium.editor.tool.creating.modelling.ModellingMath;
 import github.thehighcruw.dimensium.editor.tool.creating.modelling.ModellingToolState.ModelPoint;
-import github.thehighcruw.dimensium.editor.tool.painting.noise.NoiseSampler;
 
 public final class SelectionTransforms {
 

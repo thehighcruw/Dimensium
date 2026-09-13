@@ -84,8 +84,7 @@ public final class ToolMaskRegistry {
 
     private boolean removeFromFolders(List<MaskEntry> list, MaskEntry target) {
         for (MaskEntry e : list) {
-            if (e instanceof MaskFolder) {
-                MaskFolder f = (MaskFolder) e;
+            if (e instanceof MaskFolder f) {
                 if (f.entries.remove(target)) return true;
                 if (removeFromFolders(f.entries, target)) return true;
             }
@@ -102,22 +101,6 @@ public final class ToolMaskRegistry {
             }
             if (e instanceof MaskFolder) clearActiveMaskIfInFolder((MaskFolder) e);
         }
-    }
-
-    /** Find the list that directly contains the given entry (null = not found). */
-    public List<MaskEntry> findParentList(MaskEntry target) {
-        return findParentList(entries, target);
-    }
-
-    private List<MaskEntry> findParentList(List<MaskEntry> list, MaskEntry target) {
-        for (MaskEntry e : list) {
-            if (e == target) return list;
-            if (e instanceof MaskFolder) {
-                List<MaskEntry> found = findParentList(((MaskFolder) e).entries, target);
-                if (found != null) return found;
-            }
-        }
-        return null;
     }
 
     /** Collect all ToolMask instances (top-level and inside folders). */

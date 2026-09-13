@@ -259,18 +259,13 @@ public class GuiColourPicker extends GuiContainer {
     }
 
     private String fsotTooltipKey(int id) {
-        switch (id) {
-            case BTN_F:
-                return "dimensium.colour_picker.filter.full_cube";
-            case BTN_S:
-                return "dimensium.colour_picker.filter.solid";
-            case BTN_O:
-                return "dimensium.colour_picker.filter.opaque";
-            case BTN_T:
-                return "dimensium.colour_picker.filter.same_texture";
-            default:
-                return null;
-        }
+        return switch (id) {
+            case BTN_F -> "dimensium.colour_picker.filter.full_cube";
+            case BTN_S -> "dimensium.colour_picker.filter.solid";
+            case BTN_O -> "dimensium.colour_picker.filter.opaque";
+            case BTN_T -> "dimensium.colour_picker.filter.same_texture";
+            default -> null;
+        };
     }
 
     /** Classic MC raised panel (highlight top-left, shadow bottom-right). */
@@ -580,7 +575,7 @@ public class GuiColourPicker extends GuiContainer {
             updateHue(mouseY - (guiTop + CONTENT_REL_Y));
             return;
         }
-        trySliderDrag(mouseX, mouseY);
+        trySliderDrag(mouseX);
     }
 
     @Override
@@ -792,13 +787,13 @@ public class GuiColourPicker extends GuiContainer {
             || sliderBr.mousePressed(mx, my);
     }
 
-    private void trySliderDrag(int mx, int my) {
-        sliderR.mouseDragged(mx, my);
-        sliderG.mouseDragged(mx, my);
-        sliderB.mouseDragged(mx, my);
-        sliderH.mouseDragged(mx, my);
-        sliderS.mouseDragged(mx, my);
-        sliderBr.mouseDragged(mx, my);
+    private void trySliderDrag(int mx) {
+        sliderR.mouseDragged(mx);
+        sliderG.mouseDragged(mx);
+        sliderB.mouseDragged(mx);
+        sliderH.mouseDragged(mx);
+        sliderS.mouseDragged(mx);
+        sliderBr.mouseDragged(mx);
     }
 
     private static boolean inBox(int mx, int my, int x, int y, int w, int h) {

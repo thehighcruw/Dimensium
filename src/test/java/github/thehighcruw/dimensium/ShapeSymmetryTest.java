@@ -58,10 +58,6 @@ public class ShapeSymmetryTest {
             1f);
     }
 
-    private static boolean s(ShapeType type, int dx, int dy, int dz, int w, int h, int d, boolean hollow) {
-        return s(type, dx, dy, dz, w, h, d, hollow, 6, 6, 2);
-    }
-
     // ── symmetry assertion helpers ────────────────────────────────────────────
 
     private static void assertXSym(ShapeType type, int w, int h, int d, boolean hollow, int rR, int rRZ, int tR) {

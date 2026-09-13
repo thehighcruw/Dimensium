@@ -17,7 +17,6 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import github.thehighcruw.dimensium.Dimensium;
 import github.thehighcruw.dimensium.DimensiumConfig;
 import github.thehighcruw.dimensium.DimensiumEditorMode;
 import github.thehighcruw.dimensium.editor.freecam.FreecamEntity;
@@ -262,7 +261,7 @@ public class TickHandler {
         BrushInput input = BrushInputRegistry.get(tool);
 
         // Gizmo drag state update — runs before paint loop so world renderers see fresh state.
-        if (input != null) input.onGizmoDrag(mx, my, snap, mc);
+        if (input != null) input.onGizmoDrag(mx, my, snap);
         updatePlacementGizmos(mx, my, snap);
 
         int sf = RenderUtils.scaleFactor();
@@ -296,7 +295,7 @@ public class TickHandler {
             lastFreehandX = Integer.MIN_VALUE;
             return;
         }
-        if (mx * sf < OverlayRenderer.toolPanel.currentW || my * sf < (int) MenuBar.INSTANCE.height()) return;
+        if (mx * sf < OverlayRenderer.TOOL_WINDOW.currentW || my * sf < (int) MenuBar.INSTANCE.height()) return;
 
         MovingObjectPosition mop = GuiDimensiumOverlay.raycastFromMouse(mx, my, sw, sh);
         if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return;
@@ -637,17 +636,6 @@ public class TickHandler {
 
     private boolean isSprinting(Minecraft mc) {
         return Keyboard.isKeyDown(mc.gameSettings.keyBindSprint.getKeyCode());
-    }
-
-    private boolean isKeyComboDown(int key, int mods) {
-        if (!Keyboard.isKeyDown(key)) return false;
-        boolean ctrl = Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) || Keyboard.isKeyDown(Keyboard.KEY_RCONTROL);
-        boolean shift = Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT);
-        boolean alt = Keyboard.isKeyDown(Keyboard.KEY_LMENU) || Keyboard.isKeyDown(Keyboard.KEY_RMENU);
-        boolean needCtrl = (mods & Dimensium.MOD_CTRL) != 0;
-        boolean needShift = (mods & Dimensium.MOD_SHIFT) != 0;
-        boolean needAlt = (mods & Dimensium.MOD_ALT) != 0;
-        return ctrl == needCtrl && shift == needShift && alt == needAlt;
     }
 
     private static String toolActionName(Tool tool) {

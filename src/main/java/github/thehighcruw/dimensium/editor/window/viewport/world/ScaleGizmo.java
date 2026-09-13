@@ -174,8 +174,8 @@ public class ScaleGizmo {
 
     // ── Hover ──────────────────────────────────────────────────────────────────
 
-    public void updateHover(int mouseX, int mouseY, int sw, int sh, EntityLivingBase player, double gx, double gy,
-        double gz, float rotX, float rotY, float rotZ) {
+    public void updateHover(int mouseX, int mouseY, EntityLivingBase player, double gx, double gy, double gz,
+        float rotX, float rotY, float rotZ) {
         double eyeX = player.posX, eyeY = player.posY + player.getEyeHeight(), eyeZ = player.posZ;
         float scale = RotationGizmo.computeScale(gx - eyeX, gy - eyeY, gz - eyeZ);
         float[] R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
@@ -188,7 +188,7 @@ public class ScaleGizmo {
             double wcx = gx + dirRot[0] * BOX_CENTER * scale;
             double wcy = gy + dirRot[1] * BOX_CENTER * scale;
             double wcz = gz + dirRot[2] * BOX_CENTER * scale;
-            double[] sc = proj.project(wcx, wcy, wcz, sw, sh);
+            double[] sc = proj.project(wcx, wcy, wcz);
             if (sc == null) continue;
             double dx = sc[0] - mouseX, dy = sc[1] - mouseY;
             double dist = Math.sqrt(dx * dx + dy * dy);
@@ -205,8 +205,8 @@ public class ScaleGizmo {
     /**
      * startScale is the current scale value for the hovered axis.
      */
-    public void startDrag(int mouseX, int mouseY, int sw, int sh, EntityLivingBase player, double gx, double gy,
-        double gz, float scale, float rotX, float rotY, float rotZ) {
+    public void startDrag(int mouseX, int mouseY, double gx, double gy, double gz, float scale, float rotX, float rotY,
+        float rotZ) {
         if (hoveredAxis == Axis.NONE) return;
         dragAxis = hoveredAxis;
         dragStartMX = mouseX;
@@ -217,8 +217,8 @@ public class ScaleGizmo {
         float[] R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
         float[] dir = RotationGizmo.rotateVec(AXIS_DIR[a], R);
 
-        double[] os = proj.project(gx, gy, gz, sw, sh);
-        double[] ts = proj.project(gx + dir[0], gy + dir[1], gz + dir[2], sw, sh);
+        double[] os = proj.project(gx, gy, gz);
+        double[] ts = proj.project(gx + dir[0], gy + dir[1], gz + dir[2]);
         if (os == null || ts == null) {
             screenDx = 1;
             screenDy = 0;

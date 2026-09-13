@@ -173,10 +173,6 @@ public class BlockColorCache {
             .collect(Collectors.toList());
     }
 
-    private static double labDelta(double[] a, double[] b) {
-        return Math.sqrt(sq(a[0] - b[0]) + sq(a[1] - b[1]) + sq(a[2] - b[2]));
-    }
-
     // ── Phase 1: read atlas pixels from GL ───────────────────────────────────
 
     @SuppressWarnings("unchecked")

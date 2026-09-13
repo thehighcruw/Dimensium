@@ -125,20 +125,20 @@ public class HistoryWindow extends ImGuiWindow {
 
         // ── Redo stack (entries above pointer, shown newest-first) ────────────
         for (int i = size - 1; i > pointer; i--) {
-            renderRow(names, i, pointer, history, false, true, fullContentW);
+            renderRow(names, i, pointer, history, true, fullContentW);
         }
 
         // ── Current + past ────────────────────────────────────────────────────
         for (int i = pointer; i >= 0; i--) {
-            renderRow(names, i, pointer, history, true, false, fullContentW);
+            renderRow(names, i, pointer, history, false, fullContentW);
         }
 
         ImGui.columns(1);
         ImGui.end();
     }
 
-    private void renderRow(List<String> names, int i, int pointer, ClientEditHistory history, boolean inHistory,
-        boolean isRedo, float fullContentW) {
+    private void renderRow(List<String> names, int i, int pointer, ClientEditHistory history, boolean isRedo,
+        float fullContentW) {
         boolean isCurrent = (i == pointer);
         float scale = ImGuiManager.INSTANCE.getUIScale();
 

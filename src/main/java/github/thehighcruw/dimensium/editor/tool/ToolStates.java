@@ -2,7 +2,7 @@
  * Copyright (c) 2026 TheHighcruw
  * SPDX-License-Identifier: MIT
  */
-package github.thehighcruw.dimensium.editor.window.panel;
+package github.thehighcruw.dimensium.editor.tool;
 
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushState;
 import github.thehighcruw.dimensium.editor.tool.creating.fill.FloodfillToolState;

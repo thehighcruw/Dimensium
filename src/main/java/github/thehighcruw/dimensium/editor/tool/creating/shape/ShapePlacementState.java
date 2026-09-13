@@ -171,10 +171,10 @@ public class ShapePlacementState {
         int ix1 = (int) Math.ceil(maxX), iy1 = (int) Math.ceil(maxY), iz1 = (int) Math.ceil(maxZ);
 
         ghostBlocks = buildGhostBlocks(s, w, h, d, R, ccx, ccy, ccz, ix0, iy0, iz0, ix1, iy1, iz1);
-        rebuildShapeProposal(s);
+        rebuildShapeProposal();
     }
 
-    private void rebuildShapeProposal(ShapeToolState s) {
+    private void rebuildShapeProposal() {
         if (ghostBlocks == null || ghostBlocks.isEmpty()) {
             preview = null;
             return;

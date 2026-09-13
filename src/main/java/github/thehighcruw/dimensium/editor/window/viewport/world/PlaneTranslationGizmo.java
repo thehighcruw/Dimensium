@@ -134,8 +134,8 @@ public class PlaneTranslationGizmo {
 
     // ── Hover ──────────────────────────────────────────────────────────────────
 
-    public void updateHover(int mouseX, int mouseY, int sw, int sh, EntityLivingBase player, double gx, double gy,
-        double gz, float rotX, float rotY, float rotZ) {
+    public void updateHover(int mouseX, int mouseY, EntityLivingBase player, double gx, double gy, double gz,
+        float rotX, float rotY, float rotZ) {
         double eyeX = player.posX, eyeY = player.posY + player.getEyeHeight(), eyeZ = player.posZ;
         float scale = RotationGizmo.computeScale(gx - eyeX, gy - eyeY, gz - eyeZ);
         float[] R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
@@ -153,13 +153,11 @@ public class PlaneTranslationGizmo {
             double s = scale;
             double[][] corners = new double[4][];
             corners[0] = proj
-                .project(wcx + (-ha[0] - hb[0]) * s, wcy + (-ha[1] - hb[1]) * s, wcz + (-ha[2] - hb[2]) * s, sw, sh);
-            corners[1] = proj
-                .project(wcx + (ha[0] - hb[0]) * s, wcy + (ha[1] - hb[1]) * s, wcz + (ha[2] - hb[2]) * s, sw, sh);
-            corners[2] = proj
-                .project(wcx + (ha[0] + hb[0]) * s, wcy + (ha[1] + hb[1]) * s, wcz + (ha[2] + hb[2]) * s, sw, sh);
+                .project(wcx + (-ha[0] - hb[0]) * s, wcy + (-ha[1] - hb[1]) * s, wcz + (-ha[2] - hb[2]) * s);
+            corners[1] = proj.project(wcx + (ha[0] - hb[0]) * s, wcy + (ha[1] - hb[1]) * s, wcz + (ha[2] - hb[2]) * s);
+            corners[2] = proj.project(wcx + (ha[0] + hb[0]) * s, wcy + (ha[1] + hb[1]) * s, wcz + (ha[2] + hb[2]) * s);
             corners[3] = proj
-                .project(wcx + (-ha[0] + hb[0]) * s, wcy + (-ha[1] + hb[1]) * s, wcz + (-ha[2] + hb[2]) * s, sw, sh);
+                .project(wcx + (-ha[0] + hb[0]) * s, wcy + (-ha[1] + hb[1]) * s, wcz + (-ha[2] + hb[2]) * s);
             boolean anyNull = false;
             for (double[] c : corners) if (c == null) {
                 anyNull = true;
@@ -181,8 +179,8 @@ public class PlaneTranslationGizmo {
      * anchorX/Y/Z is the current shape anchor position in world space.
      * Drag moves the anchor along the two axes of the hovered plane.
      */
-    public void startDrag(int mouseX, int mouseY, int sw, int sh, EntityLivingBase player, double gx, double gy,
-        double gz, double anchorX, double anchorY, double anchorZ, float rotX, float rotY, float rotZ) {
+    public void startDrag(int mouseX, int mouseY, int sw, int sh, double gx, double gy, double gz, double anchorX,
+        double anchorY, double anchorZ, float rotX, float rotY, float rotZ) {
         if (hoveredPlane == Plane.NONE) return;
         dragPlane = hoveredPlane;
         dragStartMX = mouseX;
@@ -207,9 +205,9 @@ public class PlaneTranslationGizmo {
         dragPlaneNZ = (double) worldAxisA[0] * worldAxisB[1] - (double) worldAxisA[1] * worldAxisB[0];
 
         // Screen-based fallback setup
-        double[] os = proj.project(gx, gy, gz, sw, sh);
-        double[] tsA = proj.project(gx + worldAxisA[0], gy + worldAxisA[1], gz + worldAxisA[2], sw, sh);
-        double[] tsB = proj.project(gx + worldAxisB[0], gy + worldAxisB[1], gz + worldAxisB[2], sw, sh);
+        double[] os = proj.project(gx, gy, gz);
+        double[] tsA = proj.project(gx + worldAxisA[0], gy + worldAxisA[1], gz + worldAxisA[2]);
+        double[] tsB = proj.project(gx + worldAxisB[0], gy + worldAxisB[1], gz + worldAxisB[2]);
         if (os == null || tsA == null || tsB == null) {
             screenAxisAX = 1;
             screenAxisAY = 0;
@@ -231,7 +229,7 @@ public class PlaneTranslationGizmo {
         }
 
         // Ray-based drag: find initial hit on plane
-        double[] ray = proj.unprojectRay(mouseX, mouseY, sw, sh);
+        double[] ray = proj.unprojectRay(mouseX, mouseY);
         double[] hit = ray != null ? rayPlaneIntersect(ray, gx, gy, gz, dragPlaneNX, dragPlaneNY, dragPlaneNZ) : null;
         if (hit != null) {
             dragStartHX = hit[0];
@@ -258,7 +256,7 @@ public class PlaneTranslationGizmo {
     public double[] updateDrag(int mouseX, int mouseY) {
         if (dragPlane == Plane.NONE) return null;
         if (useRayDrag) {
-            double[] ray = proj.unprojectRay(mouseX, mouseY, dragSW, dragSH);
+            double[] ray = proj.unprojectRay(mouseX, mouseY);
             if (ray != null) {
                 double[] hit = rayPlaneIntersect(
                     ray,

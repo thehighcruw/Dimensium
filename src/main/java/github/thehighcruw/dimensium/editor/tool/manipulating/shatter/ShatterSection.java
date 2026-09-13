@@ -14,14 +14,14 @@ import org.lwjgl.opengl.GL12;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import github.thehighcruw.dimensium.editor.tool.NoiseSampler;
+import github.thehighcruw.dimensium.editor.tool.ToolSection;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushSection;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushState;
 import github.thehighcruw.dimensium.editor.tool.manipulating.shatter.ShatterToolState.AxisMode;
 import github.thehighcruw.dimensium.editor.tool.painting.NoiseParamSection;
 import github.thehighcruw.dimensium.editor.tool.painting.noise.NoiseParams;
-import github.thehighcruw.dimensium.editor.tool.painting.noise.NoiseSampler;
 import github.thehighcruw.dimensium.editor.tool.painting.noise.NoiseToolState.NoiseType;
-import github.thehighcruw.dimensium.editor.window.panel.ToolSection;
 import imgui.ImGui;
 import imgui.type.ImBoolean;
 import imgui.type.ImInt;

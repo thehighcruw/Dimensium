@@ -2,7 +2,10 @@
  * Copyright (c) 2026 TheHighcruw
  * SPDX-License-Identifier: MIT
  */
-package github.thehighcruw.dimensium.editor.tool.painting.noise;
+package github.thehighcruw.dimensium.editor.tool;
+
+import github.thehighcruw.dimensium.editor.tool.painting.noise.NoiseParams;
+import github.thehighcruw.dimensium.editor.tool.painting.noise.NoiseToolState;
 
 /**
  * Deterministic noise functions for the noise painter tool.

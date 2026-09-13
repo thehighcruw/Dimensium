@@ -159,12 +159,12 @@ public class TranslationGizmo {
      * Update hoveredAxis from current mouse position.
      * Call every frame from drawScreen (when not dragging).
      */
-    public void updateHover(int mouseX, int mouseY, int sw, int sh, EntityLivingBase player, double gx, double gy,
-        double gz, float rotX, float rotY, float rotZ) {
+    public void updateHover(int mouseX, int mouseY, EntityLivingBase player, double gx, double gy, double gz,
+        float rotX, float rotY, float rotZ) {
         double eyeX = player.posX, eyeY = player.posY + player.getEyeHeight(), eyeZ = player.posZ;
         float scale = RotationGizmo.computeScale(gx - eyeX, gy - eyeY, gz - eyeZ);
         float scaledArm = (ARM_LEN + CONE_H) * scale;
-        double[] origin = proj.project(gx, gy, gz, sw, sh);
+        double[] origin = proj.project(gx, gy, gz);
         if (origin == null) {
             hoveredAxis = Axis.NONE;
             return;
@@ -177,8 +177,7 @@ public class TranslationGizmo {
         for (int a = 0; a < 3; a++) {
             float[] base = { AXIS_DIR[a][0] * axisFlip[a], AXIS_DIR[a][1] * axisFlip[a], AXIS_DIR[a][2] * axisFlip[a] };
             float[] dir = RotationGizmo.rotateVec(base, R);
-            double[] tip = proj
-                .project(gx + dir[0] * scaledArm, gy + dir[1] * scaledArm, gz + dir[2] * scaledArm, sw, sh);
+            double[] tip = proj.project(gx + dir[0] * scaledArm, gy + dir[1] * scaledArm, gz + dir[2] * scaledArm);
             if (tip == null) continue;
 
             double dist = RotationGizmo.segDist(origin[0], origin[1], tip[0], tip[1], mouseX, mouseY);
@@ -194,8 +193,8 @@ public class TranslationGizmo {
      * Begin dragging along the currently hovered axis.
      * anchorX/Y/Z is the shape anchor (not center).
      */
-    public void startDrag(int mouseX, int mouseY, int sw, int sh, EntityLivingBase player, double gx, double gy,
-        double gz, double anchorX, double anchorY, double anchorZ, float rotX, float rotY, float rotZ) {
+    public void startDrag(int mouseX, int mouseY, int sw, int sh, double gx, double gy, double gz, double anchorX,
+        double anchorY, double anchorZ, float rotX, float rotY, float rotZ) {
         if (hoveredAxis == Axis.NONE) return;
         dragAxis = hoveredAxis;
         dragStartMX = mouseX;
@@ -216,8 +215,8 @@ public class TranslationGizmo {
         rotatedAxisDir = dir;
 
         // Screen-based fallback (used when ray unprojection fails)
-        double[] os = proj.project(gx, gy, gz, sw, sh);
-        double[] ts = proj.project(gx + dir[0], gy + dir[1], gz + dir[2], sw, sh);
+        double[] os = proj.project(gx, gy, gz);
+        double[] ts = proj.project(gx + dir[0], gy + dir[1], gz + dir[2]);
         if (os == null || ts == null) {
             screenDx = 1;
             screenDy = 0;
@@ -231,7 +230,7 @@ public class TranslationGizmo {
         }
 
         // Ray-based drag: find initial parameter along axis
-        double[] ray = proj.unprojectRay(mouseX, mouseY, sw, sh);
+        double[] ray = proj.unprojectRay(mouseX, mouseY);
         if (ray != null) {
             dragStartT = closestAxisT(ray, gx, gy, gz, dir);
             useRayDrag = true;
@@ -264,7 +263,7 @@ public class TranslationGizmo {
     public double[] updateDrag(int mouseX, int mouseY) {
         if (dragAxis == Axis.NONE) return null;
         if (useRayDrag) {
-            double[] ray = proj.unprojectRay(mouseX, mouseY, dragSW, dragSH);
+            double[] ray = proj.unprojectRay(mouseX, mouseY);
             if (ray != null) {
                 double t = closestAxisT(ray, dragGizmoX, dragGizmoY, dragGizmoZ, rotatedAxisDir);
                 double delta = t - dragStartT;

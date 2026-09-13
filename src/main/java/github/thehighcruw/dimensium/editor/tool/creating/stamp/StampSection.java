@@ -12,9 +12,9 @@ import net.minecraft.client.resources.I18n;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.blueprint.Blueprint;
+import github.thehighcruw.dimensium.editor.tool.ToolSection;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushSection;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushState;
-import github.thehighcruw.dimensium.editor.window.panel.ToolSection;
 import github.thehighcruw.dimensium.editor.window.popup.BlueprintBrowserPopup;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import imgui.ImGui;
@@ -78,7 +78,7 @@ public class StampSection implements ToolSection {
         if (removeIdx >= 0) state.blueprints.remove(removeIdx);
 
         if (ImGui.button(I18n.format("dimensium.stamp.add_blueprint") + "##ab")) {
-            BlueprintBrowserPopup.INSTANCE.open(bp -> { state.blueprints.add(new StampEntry(bp, null)); });
+            BlueprintBrowserPopup.INSTANCE.open(bp -> { state.blueprints.add(new StampEntry(bp)); });
         }
         ImGui.sameLine();
         if (ImGui.button(I18n.format("dimensium.stamp.add_clipboard") + "##ac")) {
@@ -142,6 +142,6 @@ public class StampSection implements ToolSection {
             SelectionState.BlockData bd = e.getValue();
             bp.offsets.add(new int[] { lx, ly, lz, Block.getIdFromBlock(bd.block), bd.meta });
         }
-        state.blueprints.add(new StampEntry(bp, null));
+        state.blueprints.add(new StampEntry(bp));
     }
 }

@@ -169,10 +169,6 @@ public class SettingsModal {
         capturingActionIndex = -1;
     }
 
-    public void close() {
-        doClose();
-    }
-
     private void doClose() {
         open = false;
         pendingOpen = false;
@@ -193,10 +189,6 @@ public class SettingsModal {
     public void toggle() {
         if (open) scheduleClose();
         else open();
-    }
-
-    public boolean isOpen() {
-        return open;
     }
 
     /**

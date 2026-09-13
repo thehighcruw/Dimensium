@@ -53,16 +53,6 @@ public class PacketHistoryEntry implements IPacket {
         this.afterChunk = after;
     }
 
-    // ── Server-side send helpers ──────────────────────────────────────────────
-
-    /**
-     * Used by PacketBlockList (client-originated ops): client already has after-state
-     * in BlockSender.pendingAfterOps, so only before is sent.
-     */
-    public static void sendChunked(EntityPlayerMP player, int txId, String action, int[][] before) {
-        sendChunked(player, txId, action, before, null);
-    }
-
     /**
      * Used by server-originated ops (PacketShapePlacement): after-state is unknown
      * to the client, so it must be included.

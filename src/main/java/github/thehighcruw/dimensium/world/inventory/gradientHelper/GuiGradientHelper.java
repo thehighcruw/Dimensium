@@ -144,9 +144,7 @@ public class GuiGradientHelper extends GuiContainer {
     }
 
     private void drawFsotTooltip(int mouseX, int mouseY) {
-        for (Object obj : buttonList) {
-            if (!(obj instanceof GuiButton)) continue;
-            GuiButton btn = (GuiButton) obj;
+        for (GuiButton btn : buttonList) {
             if (mouseX >= btn.xPosition && mouseX < btn.xPosition + btn.width
                 && mouseY >= btn.yPosition
                 && mouseY < btn.yPosition + btn.height) {
@@ -160,18 +158,13 @@ public class GuiGradientHelper extends GuiContainer {
     }
 
     private String fsotTooltipKey(int id) {
-        switch (id) {
-            case BTN_F:
-                return "dimensium.colour_picker.filter.full_cube";
-            case BTN_S:
-                return "dimensium.colour_picker.filter.solid";
-            case BTN_O:
-                return "dimensium.colour_picker.filter.opaque";
-            case BTN_T:
-                return "dimensium.colour_picker.filter.same_texture";
-            default:
-                return null;
-        }
+        return switch (id) {
+            case BTN_F -> "dimensium.colour_picker.filter.full_cube";
+            case BTN_S -> "dimensium.colour_picker.filter.solid";
+            case BTN_O -> "dimensium.colour_picker.filter.opaque";
+            case BTN_T -> "dimensium.colour_picker.filter.same_texture";
+            default -> null;
+        };
     }
 
     // ── Gradient computation ───────────────────────────────────────────────────

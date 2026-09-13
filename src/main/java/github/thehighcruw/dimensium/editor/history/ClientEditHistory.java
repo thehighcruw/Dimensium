@@ -55,13 +55,6 @@ public class ClientEditHistory {
         return names;
     }
 
-    public int[] changeCounts() {
-        ensureLoaded();
-        int[] counts = new int[entries.size()];
-        for (int i = 0; i < entries.size(); i++) counts[i] = entries.get(i).after.length;
-        return counts;
-    }
-
     // ── Called by PacketHistoryEntry.executeClient ────────────────────────────
 
     public void addEntry(String action, int[][] before, int[][] after) {
@@ -149,22 +142,15 @@ public class ClientEditHistory {
         }
     }
 
-    /** Call when the player disconnects so the next login reloads from disk. */
-    public void reset() {
-        entries.clear();
-        pointer = -1;
-        loaded = false;
-    }
-
     public long totalBytes() {
         long sum = 0;
-        for (Entry e : entries) sum += (long) (e.before.length + e.after.length) * 20 + e.action.length() * 2;
+        for (Entry e : entries) sum += (long) (e.before.length + e.after.length) * 20 + e.action.length() * 2L;
         return sum;
     }
 
     public long entryBytes(int i) {
         Entry e = entries.get(i);
-        return (long) (e.before.length + e.after.length) * 20 + e.action.length() * 2;
+        return (long) (e.before.length + e.after.length) * 20 + e.action.length() * 2L;
     }
 
     public void clear() {

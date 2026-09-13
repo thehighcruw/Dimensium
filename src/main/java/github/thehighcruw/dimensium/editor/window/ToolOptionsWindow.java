@@ -2,7 +2,7 @@
  * Copyright (c) 2026 TheHighcruw
  * SPDX-License-Identifier: MIT
  */
-package github.thehighcruw.dimensium.editor.window.panel;
+package github.thehighcruw.dimensium.editor.window;
 
 import net.minecraft.client.resources.I18n;
 
@@ -11,6 +11,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.DimensiumConfig;
 import github.thehighcruw.dimensium.DimensiumEditorMode;
 import github.thehighcruw.dimensium.editor.overlay.MenuBar;
+import github.thehighcruw.dimensium.editor.tool.ToolSection;
 import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
 import github.thehighcruw.dimensium.editor.window.imgui.ImGuiWindow;
 import imgui.ImGui;
@@ -19,13 +20,13 @@ import imgui.flag.ImGuiStyleVar;
 import imgui.type.ImBoolean;
 
 @SideOnly(Side.CLIENT)
-public class ToolOptionsPanel extends ImGuiWindow {
+public class ToolOptionsWindow extends ImGuiWindow {
 
-    private final ToolPanel toolPanel;
+    private final ToolWindow toolWindow;
     private boolean open = true;
 
-    public ToolOptionsPanel(ToolPanel toolPanel) {
-        this.toolPanel = toolPanel;
+    public ToolOptionsWindow(ToolWindow toolWindow) {
+        this.toolWindow = toolWindow;
     }
 
     @Override
@@ -38,11 +39,11 @@ public class ToolOptionsPanel extends ImGuiWindow {
         DimensiumConfig.setWindowToolOptionsPanelOpen(value);
     }
 
-    public void render(int sw, int sh) {
+    public void render(int sh) {
         if (!open) return;
         float menuH = MenuBar.INSTANCE.height();
         float scale = ImGuiManager.INSTANCE.getUIScale();
-        float physW = toolPanel.currentW * scale;
+        float physW = toolWindow.currentW * scale;
         ImGui.setNextWindowPos(0, menuH + 100 * scale, ImGuiCond.FirstUseEver);
         ImGui.setNextWindowSize(physW, sh - menuH - 100 * scale, ImGuiCond.FirstUseEver);
 
@@ -57,7 +58,7 @@ public class ToolOptionsPanel extends ImGuiWindow {
             return;
         }
 
-        ToolSection section = toolPanel.sectionMap.get(DimensiumEditorMode.INSTANCE.selectedTool);
+        ToolSection section = toolWindow.sectionMap.get(DimensiumEditorMode.INSTANCE.selectedTool);
         if (section != null) {
             section.render();
         }

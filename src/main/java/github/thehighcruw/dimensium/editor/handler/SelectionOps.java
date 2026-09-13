@@ -123,7 +123,7 @@ public class SelectionOps {
         boolean[] visited = new boolean[sx * sy * sz];
 
         Queue<int[]> queue = new LinkedList<>();
-        int startIdx = idx(0, 0, 0, sx, sy, sz);
+        int startIdx = idx(0, 0, 0, sy, sz);
         visited[startIdx] = true;
         queue.add(new int[] { ox, oy, oz });
 
@@ -134,7 +134,7 @@ public class SelectionOps {
             for (int[] d : dirs) {
                 int nx = cur[0] + d[0], ny = cur[1] + d[1], nz = cur[2] + d[2];
                 if (nx < ox || nx > ex || ny < oy || ny > ey || nz < oz || nz > ez) continue;
-                int i = idx(nx - ox, ny - oy, nz - oz, sx, sy, sz);
+                int i = idx(nx - ox, ny - oy, nz - oz, sy, sz);
                 if (visited[i]) continue;
                 // Don't cross through selected (solid) blocks.
                 if (selected.contains(SelectionState.pack(nx, ny, nz))) continue;
@@ -147,7 +147,7 @@ public class SelectionOps {
         List<int[]> ops = new ArrayList<>();
         for (int x = minX; x <= maxX; x++) for (int y = minY; y <= maxY; y++) for (int z = minZ; z <= maxZ; z++) {
             if (selected.contains(SelectionState.pack(x, y, z))) continue;
-            int i = idx(x - ox, y - oy, z - oz, sx, sy, sz);
+            int i = idx(x - ox, y - oy, z - oz, sy, sz);
             if (!visited[i] && world.getBlock(x, y, z) == Blocks.air) {
                 ops.add(new int[] { x, y, z, Block.getIdFromBlock(fillBlock), fillMeta });
             }
@@ -155,7 +155,7 @@ public class SelectionOps {
         return ops;
     }
 
-    private static int idx(int x, int y, int z, int sx, int sy, int sz) {
+    private static int idx(int x, int y, int z, int sy, int sz) {
         return x * sy * sz + y * sz + z;
     }
 

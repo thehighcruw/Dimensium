@@ -29,10 +29,6 @@ public class BuilderToolApplicator {
         STRATEGIES.put(BuilderTool.ERASE, new EraseStrategy());
     }
 
-    public static BuilderToolStrategy get(BuilderTool tool) {
-        return STRATEGIES.get(tool);
-    }
-
     public static boolean needsCapture(BuilderTool tool) {
         BuilderToolStrategy s = STRATEGIES.get(tool);
         return s != null && s.needsCapture();

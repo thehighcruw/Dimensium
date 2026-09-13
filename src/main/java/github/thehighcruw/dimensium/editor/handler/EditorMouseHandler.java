@@ -5,7 +5,6 @@
 package github.thehighcruw.dimensium.editor.handler;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.client.event.MouseEvent;
 
 import org.lwjgl.input.Keyboard;
@@ -30,7 +29,7 @@ import github.thehighcruw.dimensium.shared.util.RenderUtils;
 @SideOnly(Side.CLIENT)
 public class EditorMouseHandler {
 
-    public boolean handle(MouseEvent event, EntityPlayer player, Minecraft mc) {
+    public boolean handle(MouseEvent event, Minecraft mc) {
         FreecamState fs = FreecamState.INSTANCE;
         int sw = RenderUtils.scaledWidth();
         int sh = RenderUtils.scaledHeight();

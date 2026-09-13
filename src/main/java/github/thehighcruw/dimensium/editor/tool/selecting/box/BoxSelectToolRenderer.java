@@ -28,7 +28,7 @@ public class BoxSelectToolRenderer implements ToolRenderer {
     }
 
     @Override
-    public boolean renderHover(Minecraft mc, MovingObjectPosition mop, double rx, double ry, double rz) {
+    public boolean renderHover(MovingObjectPosition mop, double rx, double ry, double rz) {
         return true;
     }
 
@@ -41,24 +41,12 @@ public class BoxSelectToolRenderer implements ToolRenderer {
             || SelectionRenderer.boxCenterViewPlaneGizmo.isDragging()
             || SelectionRenderer.boxCenterGizmo.isDragging();
         if (!anyDragging) {
-            SelectionRenderer.boxPos1Gizmo.updateHover(
-                mx,
-                my,
-                sw,
-                sh,
-                bxEye,
-                bxSel.pendingX + 0.5,
-                bxSel.pendingY + 0.5,
-                bxSel.pendingZ + 0.5,
-                0,
-                0,
-                0);
+            SelectionRenderer.boxPos1Gizmo
+                .updateHover(mx, my, bxEye, bxSel.pendingX + 0.5, bxSel.pendingY + 0.5, bxSel.pendingZ + 0.5, 0, 0, 0);
             if (SelectionRenderer.boxPos1Gizmo.hoveredAxis == TranslationGizmo.Axis.NONE) {
                 SelectionRenderer.boxPos2Gizmo.updateHover(
                     mx,
                     my,
-                    sw,
-                    sh,
                     bxEye,
                     bxSel.pendingX2 + 0.5,
                     bxSel.pendingY2 + 0.5,
@@ -74,8 +62,8 @@ public class BoxSelectToolRenderer implements ToolRenderer {
                 double cxW = (bxSel.pendingX + bxSel.pendingX2) / 2.0 + 0.5;
                 double cyW = (bxSel.pendingY + bxSel.pendingY2) / 2.0 + 0.5;
                 double czW = (bxSel.pendingZ + bxSel.pendingZ2) / 2.0 + 0.5;
-                SelectionRenderer.boxCenterViewPlaneGizmo.updateHover(mx, my, sw, sh, bxEye, cxW, cyW, czW, 0, 0, 0);
-                SelectionRenderer.boxCenterGizmo.updateHover(mx, my, sw, sh, bxEye, cxW, cyW, czW, 0, 0, 0);
+                SelectionRenderer.boxCenterViewPlaneGizmo.updateHover(mx, my, bxEye, cxW, cyW, czW);
+                SelectionRenderer.boxCenterGizmo.updateHover(mx, my, bxEye, cxW, cyW, czW, 0, 0, 0);
             } else {
                 SelectionRenderer.boxCenterViewPlaneGizmo.hovered = false;
                 SelectionRenderer.boxCenterGizmo.hoveredAxis = TranslationGizmo.Axis.NONE;

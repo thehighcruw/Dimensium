@@ -39,25 +39,25 @@ public class BoxSelectBrushInput implements BrushInput {
                     if (SelectionRenderer.boxPos1Gizmo.hoveredAxis != TranslationGizmo.Axis.NONE) {
                         double gx = sel.pendingX + 0.5, gy = sel.pendingY + 0.5, gz = sel.pendingZ + 0.5;
                         SelectionRenderer.boxPos1Gizmo
-                            .startDrag(mouseX, mouseY, sw, sh, eye, gx, gy, gz, gx, gy, gz, 0, 0, 0);
+                            .startDrag(mouseX, mouseY, sw, sh, gx, gy, gz, gx, gy, gz, 0, 0, 0);
                         return true;
                     }
                     if (SelectionRenderer.boxPos1PlaneGizmo.hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
                         double gx = sel.pendingX + 0.5, gy = sel.pendingY + 0.5, gz = sel.pendingZ + 0.5;
                         SelectionRenderer.boxPos1PlaneGizmo
-                            .startDrag(mouseX, mouseY, sw, sh, eye, gx, gy, gz, gx, gy, gz, 0, 0, 0);
+                            .startDrag(mouseX, mouseY, sw, sh, gx, gy, gz, gx, gy, gz, 0, 0, 0);
                         return true;
                     }
                     if (SelectionRenderer.boxPos2Gizmo.hoveredAxis != TranslationGizmo.Axis.NONE) {
                         double gx = sel.pendingX2 + 0.5, gy = sel.pendingY2 + 0.5, gz = sel.pendingZ2 + 0.5;
                         SelectionRenderer.boxPos2Gizmo
-                            .startDrag(mouseX, mouseY, sw, sh, eye, gx, gy, gz, gx, gy, gz, 0, 0, 0);
+                            .startDrag(mouseX, mouseY, sw, sh, gx, gy, gz, gx, gy, gz, 0, 0, 0);
                         return true;
                     }
                     if (SelectionRenderer.boxPos2PlaneGizmo.hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
                         double gx = sel.pendingX2 + 0.5, gy = sel.pendingY2 + 0.5, gz = sel.pendingZ2 + 0.5;
                         SelectionRenderer.boxPos2PlaneGizmo
-                            .startDrag(mouseX, mouseY, sw, sh, eye, gx, gy, gz, gx, gy, gz, 0, 0, 0);
+                            .startDrag(mouseX, mouseY, sw, sh, gx, gy, gz, gx, gy, gz, 0, 0, 0);
                         return true;
                     }
                     if (SelectionRenderer.boxCenterViewPlaneGizmo.hovered) {
@@ -71,7 +71,7 @@ public class BoxSelectBrushInput implements BrushInput {
                         SelectionRenderer.INSTANCE.boxCenterDragP2Y = sel.pendingY2;
                         SelectionRenderer.INSTANCE.boxCenterDragP2Z = sel.pendingZ2;
                         SelectionRenderer.boxCenterViewPlaneGizmo
-                            .startDrag(mouseX, mouseY, sw, sh, eye, cxW, cyW, czW, cxW, cyW, czW);
+                            .startDrag(mouseX, mouseY, eye, cxW, cyW, czW, cxW, cyW, czW);
                         return true;
                     }
                     if (SelectionRenderer.boxCenterGizmo.hoveredAxis != TranslationGizmo.Axis.NONE) {
@@ -85,7 +85,7 @@ public class BoxSelectBrushInput implements BrushInput {
                         SelectionRenderer.INSTANCE.boxCenterDragP2Y = sel.pendingY2;
                         SelectionRenderer.INSTANCE.boxCenterDragP2Z = sel.pendingZ2;
                         SelectionRenderer.boxCenterGizmo
-                            .startDrag(mouseX, mouseY, sw, sh, eye, cxW, cyW, czW, cxW, cyW, czW, 0, 0, 0);
+                            .startDrag(mouseX, mouseY, sw, sh, cxW, cyW, czW, cxW, cyW, czW, 0, 0, 0);
                         return true;
                     }
                     if (SelectionRenderer.boxCenterPlaneGizmo.hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
@@ -99,7 +99,7 @@ public class BoxSelectBrushInput implements BrushInput {
                         SelectionRenderer.INSTANCE.boxCenterDragP2Y = sel.pendingY2;
                         SelectionRenderer.INSTANCE.boxCenterDragP2Z = sel.pendingZ2;
                         SelectionRenderer.boxCenterPlaneGizmo
-                            .startDrag(mouseX, mouseY, sw, sh, eye, cxW, cyW, czW, cxW, cyW, czW, 0, 0, 0);
+                            .startDrag(mouseX, mouseY, sw, sh, cxW, cyW, czW, cxW, cyW, czW, 0, 0, 0);
                         return true;
                     }
                 }
@@ -121,7 +121,7 @@ public class BoxSelectBrushInput implements BrushInput {
     }
 
     @Override
-    public void onGizmoDrag(int mx, int my, boolean snap, Minecraft mc) {
+    public void onGizmoDrag(int mx, int my, boolean snap) {
         SelectionState bxSel = SelectionState.INSTANCE;
         if (!bxSel.boxConfirmed) return;
         if (SelectionRenderer.boxPos1Gizmo.isDragging()) {

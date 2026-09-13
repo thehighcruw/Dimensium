@@ -46,11 +46,11 @@ import github.thehighcruw.dimensium.editor.window.SelectionWindow;
 import github.thehighcruw.dimensium.editor.window.SmoothSelectionWindow;
 import github.thehighcruw.dimensium.editor.window.ToolMaskEditorWindow;
 import github.thehighcruw.dimensium.editor.window.ToolMaskListWindow;
+import github.thehighcruw.dimensium.editor.window.ToolOptionsWindow;
+import github.thehighcruw.dimensium.editor.window.ToolWindow;
 import github.thehighcruw.dimensium.editor.window.TypeReplaceSelectionWindow;
 import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
 import github.thehighcruw.dimensium.editor.window.panel.PanelDraw;
-import github.thehighcruw.dimensium.editor.window.panel.ToolOptionsPanel;
-import github.thehighcruw.dimensium.editor.window.panel.ToolPanel;
 import github.thehighcruw.dimensium.editor.window.popup.BlockPickerPopup;
 import github.thehighcruw.dimensium.editor.window.popup.BlueprintBrowserPopup;
 import github.thehighcruw.dimensium.editor.window.popup.ConflictPopup;
@@ -78,8 +78,8 @@ public class OverlayRenderer {
 
     private static final ResourceLocation WIDGETS = new ResourceLocation("textures/gui/widgets.png");
 
-    public static final ToolPanel toolPanel = new ToolPanel();
-    public static final ToolOptionsPanel toolOptionsPanel = new ToolOptionsPanel(toolPanel);
+    public static final ToolWindow TOOL_WINDOW = new ToolWindow();
+    public static final ToolOptionsWindow TOOL_OPTIONS_WINDOW = new ToolOptionsWindow(TOOL_WINDOW);
     public static final BlockPickerPopup picker = new BlockPickerPopup();
 
     private int savedCurrentItem = 0;
@@ -155,8 +155,6 @@ public class OverlayRenderer {
             int mx = (int) fs.cursorX;
             int my = (int) fs.cursorY;
 
-            toolPanel.updateMouse(mx, my);
-
             ShapePlacementState ps = ShapePlacementState.INSTANCE;
             if (ps.active && !ps.gizmo.isDragging()
                 && !ps.rotGizmo.isDragging()
@@ -166,15 +164,15 @@ public class OverlayRenderer {
                 && mc.renderViewEntity != null) {
                 net.minecraft.entity.EntityLivingBase eye = mc.renderViewEntity;
                 double cx = ps.centerX(), cy = ps.centerY(), cz = ps.centerZ();
-                ps.viewPlaneGizmo.updateHover(mx, my, sw, sh, eye, cx, cy, cz, ps.rotX, ps.rotY, ps.rotZ);
+                ps.viewPlaneGizmo.updateHover(mx, my, eye, cx, cy, cz);
                 if (!ps.viewPlaneGizmo.hovered) {
-                    ps.gizmo.updateHover(mx, my, sw, sh, eye, cx, cy, cz, ps.rotX, ps.rotY, ps.rotZ);
+                    ps.gizmo.updateHover(mx, my, eye, cx, cy, cz, ps.rotX, ps.rotY, ps.rotZ);
                     if (ps.gizmo.hoveredAxis == TranslationGizmo.Axis.NONE) {
-                        ps.scaleGizmo.updateHover(mx, my, sw, sh, eye, cx, cy, cz, ps.rotX, ps.rotY, ps.rotZ);
+                        ps.scaleGizmo.updateHover(mx, my, eye, cx, cy, cz, ps.rotX, ps.rotY, ps.rotZ);
                         if (ps.scaleGizmo.hoveredAxis == ScaleGizmo.Axis.NONE) {
-                            ps.rotGizmo.updateHover(mx, my, sw, sh, eye, cx, cy, cz, ps.rotX, ps.rotY, ps.rotZ);
+                            ps.rotGizmo.updateHover(mx, my, eye, cx, cy, cz, ps.rotX, ps.rotY, ps.rotZ);
                             if (ps.rotGizmo.hoveredAxis == RotationGizmo.Axis.NONE) {
-                                ps.planeGizmo.updateHover(mx, my, sw, sh, eye, cx, cy, cz, ps.rotX, ps.rotY, ps.rotZ);
+                                ps.planeGizmo.updateHover(mx, my, eye, cx, cy, cz, ps.rotX, ps.rotY, ps.rotZ);
                             } else {
                                 ps.planeGizmo.hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
                             }
@@ -202,11 +200,11 @@ public class OverlayRenderer {
                 && mc.renderViewEntity != null) {
                 net.minecraft.entity.EntityLivingBase cEye = mc.renderViewEntity;
                 double ccx = cps.centerX(), ccy = cps.centerY(), ccz = cps.centerZ();
-                cps.gizmo.updateHover(mx, my, sw, sh, cEye, ccx, ccy, ccz, 0, 0, 0);
+                cps.gizmo.updateHover(mx, my, cEye, ccx, ccy, ccz, 0, 0, 0);
                 if (cps.gizmo.hoveredAxis == TranslationGizmo.Axis.NONE) {
-                    cps.planeGizmo.updateHover(mx, my, sw, sh, cEye, ccx, ccy, ccz, cps.rotX, cps.rotY, cps.rotZ);
+                    cps.planeGizmo.updateHover(mx, my, cEye, ccx, ccy, ccz, cps.rotX, cps.rotY, cps.rotZ);
                     if (cps.planeGizmo.hoveredPlane == PlaneTranslationGizmo.Plane.NONE) {
-                        cps.rotGizmo.updateHover(mx, my, sw, sh, cEye, ccx, ccy, ccz, cps.rotX, cps.rotY, cps.rotZ);
+                        cps.rotGizmo.updateHover(mx, my, cEye, ccx, ccy, ccz, cps.rotX, cps.rotY, cps.rotZ);
                     } else {
                         cps.rotGizmo.hoveredAxis = RotationGizmo.Axis.NONE;
                     }
@@ -223,11 +221,11 @@ public class OverlayRenderer {
                 && mc.renderViewEntity != null) {
                 net.minecraft.entity.EntityLivingBase eye = mc.renderViewEntity;
                 double gx = ms.gizmoX(), gy = ms.gizmoY(), gz = ms.gizmoZ();
-                ms.gizmo.updateHover(mx, my, sw, sh, eye, gx, gy, gz, ms.rotX, ms.rotY, ms.rotZ);
+                ms.gizmo.updateHover(mx, my, eye, gx, gy, gz, ms.rotX, ms.rotY, ms.rotZ);
                 if (ms.gizmo.hoveredAxis == TranslationGizmo.Axis.NONE) {
-                    ms.planeGizmo.updateHover(mx, my, sw, sh, eye, gx, gy, gz, ms.rotX, ms.rotY, ms.rotZ);
+                    ms.planeGizmo.updateHover(mx, my, eye, gx, gy, gz, ms.rotX, ms.rotY, ms.rotZ);
                     if (ms.planeGizmo.hoveredPlane == PlaneTranslationGizmo.Plane.NONE) {
-                        ms.rotGizmo.updateHover(mx, my, sw, sh, eye, gx, gy, gz, ms.rotX, ms.rotY, ms.rotZ);
+                        ms.rotGizmo.updateHover(mx, my, eye, gx, gy, gz, ms.rotX, ms.rotY, ms.rotZ);
                     } else {
                         ms.rotGizmo.hoveredAxis = RotationGizmo.Axis.NONE;
                     }
@@ -262,12 +260,12 @@ public class OverlayRenderer {
             MenuBar.INSTANCE.render();
             renderDockSpace(mc.displayWidth, mc.displayHeight);
             ViewportPanel.INSTANCE.render(mc.displayWidth, mc.displayHeight);
-            toolPanel.render(mc.displayWidth, mc.displayHeight);
-            toolOptionsPanel.render(mc.displayWidth, mc.displayHeight);
-            picker.renderImGui(mc);
+            TOOL_WINDOW.render(mc.displayHeight);
+            TOOL_OPTIONS_WINDOW.render(mc.displayHeight);
+            picker.renderImGui();
             ConflictPopup.INSTANCE.renderImGui();
-            CreateBlueprintPopup.INSTANCE.renderImGui(mc);
-            BlueprintBrowserPopup.INSTANCE.renderImGui(mc);
+            CreateBlueprintPopup.INSTANCE.renderImGui();
+            BlueprintBrowserPopup.INSTANCE.renderImGui();
             SettingsModal.INSTANCE.renderImGui();
             FilterSelectionWindow.INSTANCE.renderImGui();
             DistortSelectionWindow.INSTANCE.renderImGui();
@@ -284,8 +282,8 @@ public class OverlayRenderer {
             ClipboardWindow.INSTANCE.renderImGui();
             ToolMaskListWindow.INSTANCE.renderImGui();
             ToolMaskEditorWindow.INSTANCE.renderImGui();
-            PaletteWindow.INSTANCE.renderImGui(mc);
-            PaletteEditorWindow.INSTANCE.renderImGui(mc);
+            PaletteWindow.INSTANCE.renderImGui();
+            PaletteEditorWindow.INSTANCE.renderImGui();
             HistoryWindow.INSTANCE.renderImGui();
             LayoutPresetManageWindow.INSTANCE.renderImGui();
             MenuBar.INSTANCE.renderPopups();
@@ -301,7 +299,7 @@ public class OverlayRenderer {
         }
 
         // 10th slot is hidden while the editor overlay is active (viewport owns the screen).
-        if (!DimensiumEditorMode.INSTANCE.isActive()) renderTenthSlot(mc, sr, sw, sh);
+        if (!DimensiumEditorMode.INSTANCE.isActive()) renderTenthSlot(mc, sw, sh);
 
     }
 
@@ -320,7 +318,7 @@ public class OverlayRenderer {
      * for slot 8 (last slot) — its left edge is at texture x=161 — by drawing the
      * full strip at drawX = (slotX - 161) and scissoring to the slot area.
      */
-    private void renderTenthSlot(Minecraft mc, ScaledResolution sr, int sw, int sh) {
+    private void renderTenthSlot(Minecraft mc, int sw, int sh) {
         boolean active = DimensiumEditorMode.INSTANCE.isBuilderToolsActive();
         BuilderToolState bts = BuilderToolState.INSTANCE;
 
@@ -357,10 +355,8 @@ public class OverlayRenderer {
 
         // Tool icon inside the slot cell (cell starts at slotX+1, 20×22)
         ItemStack icon = iconForTool(bts.activeTool);
-        if (icon != null) {
-            PanelDraw.renderItemIcon(mc, icon, slotX + 3, slotY + 3);
-            GL11.glDisable(GL11.GL_LIGHTING);
-        }
+        PanelDraw.renderItemIcon(mc, icon, slotX + 3, slotY + 3);
+        GL11.glDisable(GL11.GL_LIGHTING);
 
         // Phase-keyed label below the selected highlight (or inside the slot when inactive)
         GL11.glEnable(GL11.GL_TEXTURE_2D);

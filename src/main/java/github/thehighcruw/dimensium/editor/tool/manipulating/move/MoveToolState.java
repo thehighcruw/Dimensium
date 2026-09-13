@@ -126,10 +126,6 @@ public class MoveToolState {
         ghostBlocks = null;
     }
 
-    public boolean hasSnapshot() {
-        return snapshot != null && !snapshot.isEmpty();
-    }
-
     /**
      * Recompute ghost blocks and preview when translation/rotation or snapshot changes.
      * No-op if nothing changed.

@@ -182,8 +182,6 @@ public final class ImGuiManager {
         // Keyboard.isKeyDown() is unreliable on macOS (LWJGL 2), so we use state tracked from
         // key events in addKeyEvent() instead of polling.
         boolean ctrlHeld = trackedLCtrl || trackedRCtrl;
-        boolean shiftHeld = trackedLShift || trackedRShift;
-        boolean altHeld = trackedLAlt || trackedRAlt;
         io.addKeyEvent(ImGuiKey.LeftCtrl, trackedLCtrl);
         io.addKeyEvent(ImGuiKey.RightCtrl, trackedRCtrl);
         io.addKeyEvent(ImGuiKey.LeftShift, trackedLShift);
@@ -279,14 +277,6 @@ public final class ImGuiManager {
 
     public boolean anyModalOpen() {
         return initialized && ImGui.isPopupOpen("", imgui.flag.ImGuiPopupFlags.AnyPopup);
-    }
-
-    public void shutdown() {
-        if (!initialized) return;
-        ImGui.saveIniSettingsToDisk("dimensium_layout.ini");
-        glRenderer.shutdown();
-        ImGui.destroyContext();
-        initialized = false;
     }
 
     private void applyStyle() {

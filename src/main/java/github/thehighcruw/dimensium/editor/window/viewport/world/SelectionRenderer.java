@@ -143,7 +143,7 @@ public class SelectionRenderer {
         float _sf = RenderUtils.scaleFactor();
         float _mx = FreecamState.INSTANCE.cursorX * _sf;
         float _my = FreecamState.INSTANCE.cursorY * _sf;
-        boolean _mouseOverOtherPanel = OverlayRenderer.toolPanel.containsMouse(_mx, _my)
+        boolean _mouseOverOtherPanel = OverlayRenderer.TOOL_WINDOW.containsMouse(_mx, _my)
             || MenuBar.INSTANCE.containsMouse(_mx, _my, mc.displayWidth);
         boolean _cursorOnViewport = !_mouseOverOtherPanel
             && (!ImGuiManager.INSTANCE.wantCaptureMouse() || ViewportPanel.INSTANCE.isHovered());
@@ -453,10 +453,8 @@ public class SelectionRenderer {
             boxPos2Gizmo.axisFlip[0] = -boxPos1Gizmo.axisFlip[0];
             boxPos2Gizmo.axisFlip[1] = -boxPos1Gizmo.axisFlip[1];
             boxPos2Gizmo.axisFlip[2] = -boxPos1Gizmo.axisFlip[2];
-            boxPos1ViewPlaneGizmo
-                .render(sel.pendingX + 0.5, sel.pendingY + 0.5, sel.pendingZ + 0.5, rx, ry, rz, 0, 0, 0);
-            boxPos2ViewPlaneGizmo
-                .render(sel.pendingX2 + 0.5, sel.pendingY2 + 0.5, sel.pendingZ2 + 0.5, rx, ry, rz, 0, 0, 0);
+            boxPos1ViewPlaneGizmo.render(sel.pendingX + 0.5, sel.pendingY + 0.5, sel.pendingZ + 0.5, rx, ry, rz);
+            boxPos2ViewPlaneGizmo.render(sel.pendingX2 + 0.5, sel.pendingY2 + 0.5, sel.pendingZ2 + 0.5, rx, ry, rz);
             boxPos1PlaneGizmo.render(sel.pendingX + 0.5, sel.pendingY + 0.5, sel.pendingZ + 0.5, rx, ry, rz, 0, 0, 0);
             boxPos1Gizmo.render(sel.pendingX + 0.5, sel.pendingY + 0.5, sel.pendingZ + 0.5, rx, ry, rz, 0, 0, 0);
             boxPos2PlaneGizmo
@@ -465,7 +463,7 @@ public class SelectionRenderer {
             double cxWorld = (sel.pendingX + sel.pendingX2) / 2.0 + 0.5;
             double cyWorld = (sel.pendingY + sel.pendingY2) / 2.0 + 0.5;
             double czWorld = (sel.pendingZ + sel.pendingZ2) / 2.0 + 0.5;
-            boxCenterViewPlaneGizmo.render(cxWorld, cyWorld, czWorld, rx, ry, rz, 0, 0, 0);
+            boxCenterViewPlaneGizmo.render(cxWorld, cyWorld, czWorld, rx, ry, rz);
             boxCenterPlaneGizmo.render(cxWorld, cyWorld, czWorld, rx, ry, rz, 0, 0, 0);
             boxCenterGizmo.render(cxWorld, cyWorld, czWorld, rx, ry, rz, 0, 0, 0);
         }
@@ -506,8 +504,7 @@ public class SelectionRenderer {
                 ps.cancel();
             } else {
                 ps.rebuildIfNeeded();
-                ps.viewPlaneGizmo
-                    .render(ps.centerX(), ps.centerY(), ps.centerZ(), rx, ry, rz, ps.rotX, ps.rotY, ps.rotZ);
+                ps.viewPlaneGizmo.render(ps.centerX(), ps.centerY(), ps.centerZ(), rx, ry, rz);
                 ps.planeGizmo.render(ps.centerX(), ps.centerY(), ps.centerZ(), rx, ry, rz, ps.rotX, ps.rotY, ps.rotZ);
                 ps.gizmo.render(ps.centerX(), ps.centerY(), ps.centerZ(), rx, ry, rz, ps.rotX, ps.rotY, ps.rotZ);
                 ps.scaleGizmo.render(ps.centerX(), ps.centerY(), ps.centerZ(), rx, ry, rz, ps.rotX, ps.rotY, ps.rotZ);
@@ -519,8 +516,7 @@ public class SelectionRenderer {
         ClipboardPlacementState cps = ClipboardPlacementState.INSTANCE;
         if (cps.active) {
             if (cps.preview != null) renderProposalPreview(mc, rx, ry, rz, cps.preview);
-            cps.viewPlaneGizmo
-                .render(cps.centerX(), cps.centerY(), cps.centerZ(), rx, ry, rz, cps.rotX, cps.rotY, cps.rotZ);
+            cps.viewPlaneGizmo.render(cps.centerX(), cps.centerY(), cps.centerZ(), rx, ry, rz);
             cps.planeGizmo
                 .render(cps.centerX(), cps.centerY(), cps.centerZ(), rx, ry, rz, cps.rotX, cps.rotY, cps.rotZ);
             cps.gizmo.render(cps.centerX(), cps.centerY(), cps.centerZ(), rx, ry, rz, 0, 0, 0);
@@ -544,7 +540,7 @@ public class SelectionRenderer {
                 if (ms.preview != null) {
                     renderProposalPreview(mc, rx, ry, rz, ms.preview);
                 }
-                ms.viewPlaneGizmo.render(ms.gizmoX(), ms.gizmoY(), ms.gizmoZ(), rx, ry, rz, ms.rotX, ms.rotY, ms.rotZ);
+                ms.viewPlaneGizmo.render(ms.gizmoX(), ms.gizmoY(), ms.gizmoZ(), rx, ry, rz);
                 ms.planeGizmo.render(ms.gizmoX(), ms.gizmoY(), ms.gizmoZ(), rx, ry, rz, ms.rotX, ms.rotY, ms.rotZ);
                 ms.gizmo.render(ms.gizmoX(), ms.gizmoY(), ms.gizmoZ(), rx, ry, rz, ms.rotX, ms.rotY, ms.rotZ);
                 ms.scaleGizmo.render(ms.gizmoX(), ms.gizmoY(), ms.gizmoZ(), rx, ry, rz, ms.rotX, ms.rotY, ms.rotZ);

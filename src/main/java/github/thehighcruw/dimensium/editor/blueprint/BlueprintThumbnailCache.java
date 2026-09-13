@@ -97,20 +97,6 @@ public class BlueprintThumbnailCache {
         return -1;
     }
 
-    public void invalidate(File blueprintFile) {
-        pending.remove(blueprintFile);
-        ready.remove(blueprintFile);
-        Integer id = cache.remove(blueprintFile);
-        if (id != null) GL11.glDeleteTextures(id);
-    }
-
-    public void clear() {
-        pending.clear();
-        ready.clear();
-        for (int id : cache.values()) GL11.glDeleteTextures(id);
-        cache.clear();
-    }
-
     private static DecodedImage decode(File sidecar) {
         if (!sidecar.exists()) return null;
         try {

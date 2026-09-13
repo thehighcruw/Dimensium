@@ -55,10 +55,6 @@ public class SelectionState {
     public Map<Long, BlockData> clipboard = null;
     public int clipW, clipH, clipD;
 
-    // ── History ───────────────────────────────────────────────────────────────
-
-    public final List<String> history = new ArrayList<>();
-
     // ── Query ────────────────────────────────────────────────────────────────
 
     public boolean hasSelection() {

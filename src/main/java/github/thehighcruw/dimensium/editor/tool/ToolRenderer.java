@@ -32,7 +32,7 @@ public interface ToolRenderer {
         }
 
         @Override
-        public boolean renderHover(Minecraft mc, MovingObjectPosition mop, double rx, double ry, double rz) {
+        public boolean renderHover(MovingObjectPosition mop, double rx, double ry, double rz) {
             return true;
         }
     };
@@ -58,7 +58,7 @@ public interface ToolRenderer {
      * Optional extra in-world render (ruler lines, elevation circle, etc.).
      * Return true to suppress the standard brush wireframe entirely.
      */
-    default boolean renderHover(Minecraft mc, MovingObjectPosition mop, double rx, double ry, double rz) {
+    default boolean renderHover(MovingObjectPosition mop, double rx, double ry, double rz) {
         return false;
     }
 

@@ -131,7 +131,7 @@ public final class GuiDimensiumOverlay {
         int _sf = RenderUtils.scaleFactor();
         int physX = mouseX * _sf;
         float _uiScale = ImGuiManager.INSTANCE.getUIScale();
-        if (physX < OverlayRenderer.toolPanel.currentW * _uiScale) {
+        if (physX < OverlayRenderer.TOOL_WINDOW.currentW * _uiScale) {
             // Left panel is now ImGui — clicks handled by ImGui input routing.
         } else {
             if (button == 2) {
@@ -163,7 +163,6 @@ public final class GuiDimensiumOverlay {
                             mouseY,
                             scaledW,
                             scaledH,
-                            _eye,
                             ccx,
                             ccy,
                             ccz,
@@ -179,7 +178,6 @@ public final class GuiDimensiumOverlay {
                             mouseY,
                             scaledW,
                             scaledH,
-                            _eye,
                             ccx,
                             ccy,
                             ccz,
@@ -193,18 +191,7 @@ public final class GuiDimensiumOverlay {
                         _cps.rotDragBaseX = _cps.rotX;
                         _cps.rotDragBaseY = _cps.rotY;
                         _cps.rotDragBaseZ = _cps.rotZ;
-                        _cps.rotGizmo.startDrag(
-                            mouseX,
-                            mouseY,
-                            scaledW,
-                            scaledH,
-                            _eye,
-                            ccx,
-                            ccy,
-                            ccz,
-                            _cps.rotX,
-                            _cps.rotY,
-                            _cps.rotZ);
+                        _cps.rotGizmo.startDrag(mouseX, mouseY, ccx, ccy, ccz, _cps.rotX, _cps.rotY, _cps.rotZ);
                     }
                 } else if (button == KeyConstants.RMB) {
                     _cps.cancel();
@@ -356,8 +343,8 @@ public final class GuiDimensiumOverlay {
      * cursor, or -1 if none is within {@code thresholdPx} pixels. Skips {@code skipIndex}.
      * Each entry in {@code positions} is {worldX, worldY, worldZ}.
      */
-    public static int findNearestPointOnScreen(List<int[]> positions, int skipIndex, int mouseX, int mouseY, int sw,
-        int sh, GizmoProjection proj, double thresholdPx) {
+    public static int findNearestPointOnScreen(List<int[]> positions, int skipIndex, int mouseX, int mouseY,
+        GizmoProjection proj, double thresholdPx) {
         // GizmoProjection.project() already maps GL window coords to the viewport panel's
         // GUI-space position, so projected coords compare directly to mouseX/mouseY.
         int best = -1;
@@ -365,7 +352,7 @@ public final class GuiDimensiumOverlay {
         for (int i = 0; i < positions.size(); i++) {
             if (i == skipIndex) continue;
             int[] p = positions.get(i);
-            double[] s = proj.project(p[0] + 0.5, p[1] + 0.5, p[2] + 0.5, sw, sh);
+            double[] s = proj.project(p[0] + 0.5, p[1] + 0.5, p[2] + 0.5);
             if (s == null) continue;
             double dx = s[0] - mouseX, dy = s[1] - mouseY;
             double d2 = dx * dx + dy * dy;

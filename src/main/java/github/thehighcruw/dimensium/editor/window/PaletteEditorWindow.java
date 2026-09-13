@@ -6,7 +6,6 @@ package github.thehighcruw.dimensium.editor.window;
 
 import java.util.List;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.item.ItemStack;
 
@@ -75,7 +74,7 @@ public class PaletteEditorWindow extends ImGuiWindow {
         setOpen(false);
     }
 
-    public void renderImGui(Minecraft mc) {
+    public void renderImGui() {
         if (!open) return;
 
         float scale = ImGuiManager.INSTANCE.getUIScale();
@@ -105,7 +104,7 @@ public class PaletteEditorWindow extends ImGuiWindow {
         splitPx = Math.max(minLeft, Math.min(totalW - minRight - splitterW, splitPx));
         float rightW = totalW - splitPx - splitterW;
 
-        renderCategoryList(splitPx, contentH, scale);
+        renderCategoryList(splitPx, contentH);
         ImGui.sameLine(0, 0);
         renderSplitter(splitterW, contentH, totalW, minLeft, minRight);
         ImGui.sameLine(0, 0);
@@ -133,7 +132,7 @@ public class PaletteEditorWindow extends ImGuiWindow {
             .addLine(midX, pos.y + 4f, midX, pos.y + contentH - 4f, lineColor, 1.5f);
     }
 
-    private void renderCategoryList(float leftW, float contentH, float scale) {
+    private void renderCategoryList(float leftW, float contentH) {
         float addBtnH = ImGui.getFrameHeight() + ImGui.getStyle()
             .getItemSpacingY() * 2f;
         float listH = contentH - addBtnH;

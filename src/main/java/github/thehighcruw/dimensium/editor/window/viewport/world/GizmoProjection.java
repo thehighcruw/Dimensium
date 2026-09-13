@@ -63,10 +63,8 @@ public final class GizmoProjection {
      * Projects an absolute world-space point to scaled-GUI screen coordinates.
      * Returns null if the point is behind the camera or projection failed.
      *
-     * @param sw scaled GUI screen width
-     * @param sh scaled GUI screen height
      */
-    public double[] project(double wx, double wy, double wz, int sw, int sh) {
+    public double[] project(double wx, double wy, double wz) {
         modelview.rewind();
         projection.rewind();
         viewport.rewind();
@@ -108,9 +106,8 @@ public final class GizmoProjection {
      * Returns null on failure.
      *
      * @param mouseX/mouseY GUI screen coordinates (same space as cursor3d)
-     * @param sw/sh         scaled GUI screen dimensions
      */
-    public double[] unprojectRay(int mouseX, int mouseY, int sw, int sh) {
+    public double[] unprojectRay(int mouseX, int mouseY) {
         Minecraft mc = Minecraft.getMinecraft();
         int sf = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight).getScaleFactor();
         int displayW = mc.displayWidth;

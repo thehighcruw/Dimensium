@@ -48,15 +48,13 @@ public class ShapeBrushInput implements BrushInput {
             double cx = ps.centerX(), cy = ps.centerY(), cz = ps.centerZ();
             EntityLivingBase eye = mc.renderViewEntity;
             if (ps.viewPlaneGizmo.hovered) {
-                ps.viewPlaneGizmo
-                    .startDrag(mouseX, mouseY, sw, sh, eye, cx, cy, cz, ps.anchorFX, ps.anchorFY, ps.anchorFZ);
+                ps.viewPlaneGizmo.startDrag(mouseX, mouseY, eye, cx, cy, cz, ps.anchorFX, ps.anchorFY, ps.anchorFZ);
             } else if (ps.gizmo.hoveredAxis != TranslationGizmo.Axis.NONE) {
                 ps.gizmo.startDrag(
                     mouseX,
                     mouseY,
                     sw,
                     sh,
-                    eye,
                     cx,
                     cy,
                     cz,
@@ -70,7 +68,7 @@ public class ShapeBrushInput implements BrushInput {
                 ps.rotDragBaseX = ps.rotX;
                 ps.rotDragBaseY = ps.rotY;
                 ps.rotDragBaseZ = ps.rotZ;
-                ps.rotGizmo.startDrag(mouseX, mouseY, sw, sh, eye, cx, cy, cz, ps.rotX, ps.rotY, ps.rotZ);
+                ps.rotGizmo.startDrag(mouseX, mouseY, cx, cy, cz, ps.rotX, ps.rotY, ps.rotZ);
             } else if (ps.scaleGizmo.hoveredAxis != ScaleGizmo.Axis.NONE) {
                 float currentScale = ps.scaleGizmo.hoveredAxis == ScaleGizmo.Axis.X ? ps.scaleX
                     : ps.scaleGizmo.hoveredAxis == ScaleGizmo.Axis.Y ? ps.scaleY : ps.scaleZ;
@@ -78,15 +76,13 @@ public class ShapeBrushInput implements BrushInput {
                 ps.scaleDragBaseW = sts.shapeWidth;
                 ps.scaleDragBaseH = sts.shapeHeight;
                 ps.scaleDragBaseD = sts.shapeDepth;
-                ps.scaleGizmo
-                    .startDrag(mouseX, mouseY, sw, sh, eye, cx, cy, cz, currentScale, ps.rotX, ps.rotY, ps.rotZ);
+                ps.scaleGizmo.startDrag(mouseX, mouseY, cx, cy, cz, currentScale, ps.rotX, ps.rotY, ps.rotZ);
             } else if (ps.planeGizmo.hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
                 ps.planeGizmo.startDrag(
                     mouseX,
                     mouseY,
                     sw,
                     sh,
-                    eye,
                     cx,
                     cy,
                     cz,

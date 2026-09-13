@@ -25,7 +25,7 @@ public class PathToolRenderer implements ToolRenderer {
     }
 
     @Override
-    public boolean renderHover(Minecraft mc, MovingObjectPosition mop, double rx, double ry, double rz) {
+    public boolean renderHover(MovingObjectPosition mop, double rx, double ry, double rz) {
         return true;
     }
 
@@ -37,7 +37,7 @@ public class PathToolRenderer implements ToolRenderer {
         if (selPt == null) return;
         if (!pathState.gizmo.isDragging() && !pathState.planeGizmo.isDragging() && mc.renderViewEntity != null) {
             double pgx = selPt.x + 0.5, pgy = selPt.y + 0.5, pgz = selPt.z + 0.5;
-            pathState.gizmo.updateHover(mx3d, my3d, sw, sh, mc.renderViewEntity, pgx, pgy, pgz, 0, 0, 0);
+            pathState.gizmo.updateHover(mx3d, my3d, mc.renderViewEntity, pgx, pgy, pgz, 0, 0, 0);
         }
     }
 }

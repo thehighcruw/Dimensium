@@ -60,8 +60,6 @@ import github.thehighcruw.dimensium.editor.tool.selecting.magic.MagicSelectSecti
 import github.thehighcruw.dimensium.editor.tool.utility.ruler.RulerBrushInput;
 import github.thehighcruw.dimensium.editor.tool.utility.ruler.RulerSection;
 import github.thehighcruw.dimensium.editor.tool.utility.ruler.RulerToolRenderer;
-import github.thehighcruw.dimensium.editor.window.panel.ToolSection;
-import github.thehighcruw.dimensium.editor.window.panel.ToolStates;
 import github.thehighcruw.dimensium.editor.window.viewport.world.BrushPreviewRenderer;
 
 /**
@@ -77,50 +75,35 @@ public final class ToolRegistry {
         { 0, 0, -1 } };
 
     static {
-        register(Tool.POINTER, null, 0f, 0f, 0f, null, ToolRenderer.NONE);
+        register(Tool.POINTER, null, null, ToolRenderer.NONE);
 
         register(
             Tool.SELECT,
             s -> new BoxSelectSection(s.select),
-            0.20f,
-            0.85f,
-            0.75f,
             new BoxSelectBrushInput(),
             BoxSelectToolRenderer.INSTANCE);
 
         register(
             Tool.MAGIC_SELECT,
             s -> new MagicSelectSection(s.magicSelect, s.select),
-            0.75f,
-            0.35f,
-            1.00f,
             new MagicSelectBrushInput(),
             ToolRenderer.NONE);
 
         register(
             Tool.FREEHAND_SELECT,
             s -> new FreehandSelectSection(s.brush),
-            0.20f,
-            0.85f,
-            0.75f,
             new FreehandSelectBrushInput(),
             ToolRenderer.DEFAULT_BRUSH);
 
         register(
             Tool.LASSO_SELECT,
             s -> new LassoSelectSection(s.lassoSelect),
-            0.20f,
-            0.85f,
-            0.75f,
             LassoBrushInput.INSTANCE,
             LassoSelectToolRenderer.INSTANCE);
 
         register(
             Tool.FREEHAND_DRAW,
             s -> new FreehandSection(s.freehand, s.brush),
-            0.24f,
-            0.50f,
-            1.00f,
             PaintBrushInput.INSTANCE,
             new ToolRenderer() {
 
@@ -141,45 +124,18 @@ public final class ToolRegistry {
         register(
             Tool.SCULPT_DRAW,
             s -> new SculptSection(s.sculpt, s.brush),
-            0.08f,
-            0.65f,
-            0.80f,
             PaintBrushInput.INSTANCE,
             ToolRenderer.DEFAULT_BRUSH);
 
-        register(
-            Tool.SHAPE,
-            s -> new ShapeSection(s.shape),
-            0.28f,
-            0.78f,
-            0.30f,
-            ShapeBrushInput.INSTANCE,
-            ToolRenderer.NONE);
+        register(Tool.SHAPE, s -> new ShapeSection(s.shape), ShapeBrushInput.INSTANCE, ToolRenderer.NONE);
 
-        register(
-            Tool.STAMP,
-            s -> new StampSection(s.stamp),
-            0.90f,
-            0.65f,
-            0.20f,
-            StampBrushInput.INSTANCE,
-            ToolRenderer.DEFAULT_BRUSH);
+        register(Tool.STAMP, s -> new StampSection(s.stamp), StampBrushInput.INSTANCE, ToolRenderer.DEFAULT_BRUSH);
 
-        register(
-            Tool.FILL,
-            s -> new FillSection(s.floodfill),
-            1.00f,
-            0.78f,
-            0.10f,
-            FillBrushInput.INSTANCE,
-            ToolRenderer.NONE);
+        register(Tool.FILL, s -> new FillSection(s.floodfill), FillBrushInput.INSTANCE, ToolRenderer.NONE);
 
         register(
             Tool.PAINTER,
             s -> new PainterSection(s.painter, s.brush),
-            0.24f,
-            0.50f,
-            1.00f,
             PaintBrushInput.INSTANCE,
             new ToolRenderer() {
 
@@ -199,135 +155,81 @@ public final class ToolRegistry {
         register(
             Tool.NOISE,
             s -> new NoiseSection(s.noise, s.brush, s.palette),
-            1.00f,
-            0.58f,
-            0.20f,
             PaintBrushInput.INSTANCE,
             ToolRenderer.DEFAULT_BRUSH);
 
         register(
             Tool.ROCK,
             s -> new RockSection(s.rock, s.brush),
-            0.55f,
-            0.42f,
-            0.28f,
             PaintBrushInput.INSTANCE,
             ToolRenderer.DEFAULT_BRUSH);
 
         register(
             Tool.GRADIENT,
             s -> new GradientSection(s.gradient, s.brush, s.palette),
-            0.62f,
-            0.28f,
-            1.00f,
             GradientBrushInput.INSTANCE,
             ToolRenderer.DEFAULT_BRUSH);
 
         register(
             Tool.SMOOTH,
             s -> new SmoothSection(s.smooth, s.brush),
-            0.20f,
-            0.78f,
-            0.72f,
             SmoothBrushInput.INSTANCE,
             ToolRenderer.DEFAULT_BRUSH);
 
-        register(
-            Tool.EXTRUDE,
-            s -> new ExtrudeSection(s.extrude),
-            1.00f,
-            0.28f,
-            0.68f,
-            ExtrudeBrushInput.INSTANCE,
-            ToolRenderer.NONE);
+        register(Tool.EXTRUDE, s -> new ExtrudeSection(s.extrude), ExtrudeBrushInput.INSTANCE, ToolRenderer.NONE);
 
-        register(Tool.MOVE, s -> new MoveSection(), 0.95f, 0.70f, 0.15f, MoveBrushInput.INSTANCE, ToolRenderer.NONE);
+        register(Tool.MOVE, s -> new MoveSection(), MoveBrushInput.INSTANCE, ToolRenderer.NONE);
 
-        register(
-            Tool.PATH,
-            s -> new PathSection(s.path),
-            0.55f,
-            0.85f,
-            1.00f,
-            PathBrushInput.INSTANCE,
-            PathToolRenderer.INSTANCE);
+        register(Tool.PATH, s -> new PathSection(s.path), PathBrushInput.INSTANCE, PathToolRenderer.INSTANCE);
 
         register(
             Tool.ELEVATION,
             s -> new ElevationSection(s.elevation),
-            0.40f,
-            0.72f,
-            0.30f,
             ElevationBrushInput.INSTANCE,
             ToolRenderer.NONE);
 
         register(
             Tool.DISTORT,
             s -> new DistortSection(s.distort, s.brush),
-            0.85f,
-            0.45f,
-            0.90f,
             PaintBrushInput.INSTANCE,
             ToolRenderer.DEFAULT_BRUSH);
 
         register(
             Tool.WELD,
             s -> new WeldSection(s.weld, s.brush),
-            0.60f,
-            0.80f,
-            0.70f,
             PaintBrushInput.INSTANCE,
             ToolRenderer.DEFAULT_BRUSH);
 
         register(
             Tool.MELT,
             s -> new MeltSection(s.melt, s.brush),
-            0.05f,
-            0.90f,
-            0.65f,
             PaintBrushInput.INSTANCE,
             ToolRenderer.DEFAULT_BRUSH);
 
         register(
             Tool.ROUGHEN,
             s -> new RoughenSection(s.roughen, s.brush),
-            0.75f,
-            0.55f,
-            0.30f,
             PaintBrushInput.INSTANCE,
             ToolRenderer.DEFAULT_BRUSH);
 
         register(
             Tool.SHATTER,
             s -> new ShatterSection(s.shatter, s.brush),
-            0.60f,
-            0.65f,
-            0.75f,
             PaintBrushInput.INSTANCE,
             ToolRenderer.DEFAULT_BRUSH);
 
-        register(
-            Tool.RULER,
-            s -> new RulerSection(s.ruler),
-            0.40f,
-            0.85f,
-            0.55f,
-            new RulerBrushInput(),
-            new RulerToolRenderer());
+        register(Tool.RULER, s -> new RulerSection(s.ruler), new RulerBrushInput(), new RulerToolRenderer());
 
         register(
             Tool.MODELLING,
             s -> new ModellingSection(s.modelling),
-            0.80f,
-            0.55f,
-            0.90f,
             ModellingBrushInput.INSTANCE,
             ModellingToolRenderer.INSTANCE);
     }
 
     private static void register(Tool tool, java.util.function.Function<ToolStates, ToolSection> sectionFactory,
-        float r, float g, float b, BrushInput brushInput, ToolRenderer toolRenderer) {
-        REGISTRY.put(tool, new Desc(sectionFactory, r, g, b, brushInput, toolRenderer));
+        BrushInput brushInput, ToolRenderer toolRenderer) {
+        REGISTRY.put(tool, new Desc(sectionFactory, brushInput, toolRenderer));
     }
 
     private static boolean hasAirNeighbor(Minecraft mc, int wx, int wy, int wz) {
@@ -335,10 +237,6 @@ public final class ToolRegistry {
             if (mc.theWorld.getBlock(wx + n[0], wy + n[1], wz + n[2]) == Blocks.air) return true;
         }
         return false;
-    }
-
-    public static ToolDescriptor get(Tool tool) {
-        return REGISTRY.get(tool);
     }
 
     public static BrushInput brushInput(Tool tool) {
@@ -356,10 +254,6 @@ public final class ToolRegistry {
         return d != null ? d.toolRenderer() : ToolRenderer.NONE;
     }
 
-    public static boolean hasBrushPreview(Tool tool) {
-        return toolRenderer(tool) != ToolRenderer.NONE;
-    }
-
     public static ToolSection createSection(Tool tool, ToolStates states) {
         ToolDescriptor d = REGISTRY.get(tool);
         return d != null ? d.createSection(states) : null;
@@ -370,16 +264,12 @@ public final class ToolRegistry {
     private static final class Desc implements ToolDescriptor {
 
         private final java.util.function.Function<ToolStates, ToolSection> sectionFactory;
-        private final float r, g, b;
         private final BrushInput brushInput;
         private final ToolRenderer toolRenderer;
 
-        Desc(java.util.function.Function<ToolStates, ToolSection> sectionFactory, float r, float g, float b,
-            BrushInput brushInput, ToolRenderer toolRenderer) {
+        Desc(java.util.function.Function<ToolStates, ToolSection> sectionFactory, BrushInput brushInput,
+            ToolRenderer toolRenderer) {
             this.sectionFactory = sectionFactory;
-            this.r = r;
-            this.g = g;
-            this.b = b;
             this.brushInput = brushInput;
             this.toolRenderer = toolRenderer;
         }
@@ -387,21 +277,6 @@ public final class ToolRegistry {
         @Override
         public ToolSection createSection(ToolStates states) {
             return sectionFactory != null ? sectionFactory.apply(states) : null;
-        }
-
-        @Override
-        public float r() {
-            return r;
-        }
-
-        @Override
-        public float g() {
-            return g;
-        }
-
-        @Override
-        public float b() {
-            return b;
         }
 
         @Override

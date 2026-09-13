@@ -24,10 +24,6 @@ public class GuiToggleButton extends GuiButton {
         this.active = active;
     }
 
-    public boolean isActive() {
-        return active;
-    }
-
     // MC panel colors — keep in sync with GuiColourPicker
     private static final int C_PANEL = 0xFFC6C6C6;
     private static final int C_PANEL_HI = 0xFFFFFFFF;

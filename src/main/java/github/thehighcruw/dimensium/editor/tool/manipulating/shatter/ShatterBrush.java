@@ -9,11 +9,11 @@ import net.minecraft.init.Blocks;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.World;
 
+import github.thehighcruw.dimensium.editor.tool.NoiseSampler;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushState;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushStrategy;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushUtil;
 import github.thehighcruw.dimensium.editor.tool.painting.noise.NoiseParams;
-import github.thehighcruw.dimensium.editor.tool.painting.noise.NoiseSampler;
 import github.thehighcruw.dimensium.editor.tool.selecting.SelectedBlockState;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 
@@ -45,18 +45,11 @@ public class ShatterBrush implements BrushStrategy {
     }
 
     private static float sampleEdge(NoiseParams p, ShatterToolState.AxisMode axisMode, int wx, int wy, int wz) {
-        float sc = p.noiseScale;
-        switch (axisMode) {
-            case XYZ:
-                return NoiseSampler.sample3D(p, wx, wy, wz);
-            case X:
-                return NoiseSampler.sample2D(p, wy, wz);
-            case Y:
-                return NoiseSampler.sample2D(p, wx, wz);
-            case Z:
-                return NoiseSampler.sample2D(p, wx, wy);
-            default:
-                return NoiseSampler.sample3D(p, wx, wy, wz);
-        }
+        return switch (axisMode) {
+            case XYZ -> NoiseSampler.sample3D(p, wx, wy, wz);
+            case X -> NoiseSampler.sample2D(p, wy, wz);
+            case Y -> NoiseSampler.sample2D(p, wx, wz);
+            case Z -> NoiseSampler.sample2D(p, wx, wy);
+        };
     }
 }

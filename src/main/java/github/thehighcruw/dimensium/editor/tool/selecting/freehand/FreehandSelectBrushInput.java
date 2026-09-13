@@ -47,7 +47,7 @@ public class FreehandSelectBrushInput implements BrushInput {
                     lastX = mop.blockX;
                     lastY = mop.blockY;
                     lastZ = mop.blockZ;
-                    onMouseHeld(heldButton, mc, mop);
+                    onMouseHeld(heldButton, mop);
                 }
             }
         } else {
@@ -65,7 +65,7 @@ public class FreehandSelectBrushInput implements BrushInput {
     }
 
     @Override
-    public void onMouseHeld(int button, Minecraft mc, MovingObjectPosition mop) {
+    public void onMouseHeld(int button, MovingObjectPosition mop) {
         if (button != KeyConstants.RMB) return;
         applyBrush(mop);
     }

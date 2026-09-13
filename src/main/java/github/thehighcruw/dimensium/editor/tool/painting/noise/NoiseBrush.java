@@ -11,6 +11,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.World;
 
+import github.thehighcruw.dimensium.editor.tool.NoiseSampler;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushState;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushStrategy;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushUtil;
@@ -26,7 +27,6 @@ public class NoiseBrush implements BrushStrategy {
         PaletteState ps = PaletteState.INSTANCE;
         if (ps.palette.isEmpty()) return;
         int x = mop.blockX, y = mop.blockY, z = mop.blockZ;
-        Block target = world.getBlock(x, y, z);
 
         boolean useXZ = false, useZY = false;
         if (!s.noise3D) {

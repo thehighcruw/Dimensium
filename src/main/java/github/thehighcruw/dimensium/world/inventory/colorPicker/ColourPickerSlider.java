@@ -149,10 +149,9 @@ public class ColourPickerSlider extends Gui {
         dragging = false;
     }
 
-    public boolean mouseDragged(int mx, int my) {
-        if (!dragging) return false;
+    public void mouseDragged(int mx) {
+        if (!dragging) return;
         updateFromMouse(mx);
-        return true;
     }
 
     private void updateFromMouse(int mx) {

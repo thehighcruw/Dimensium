@@ -14,7 +14,6 @@ import org.lwjgl.opengl.GL11;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import github.thehighcruw.dimensium.editor.tool.state.ClipboardPlacementState;
 import github.thehighcruw.dimensium.shared.BlockColorCache;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.SelectionState.BlockData;
@@ -303,89 +302,6 @@ class HologramRenderer {
         if (sel.clipboardVersion == cachedClipVersion && cachedClipWire != null) return;
         cachedClipWire = computeClipWireframe(sel);
         cachedClipVersion = sel.clipboardVersion;
-    }
-
-    /** Renders the clipboard ghost during a two-phase paste placement. */
-    static void renderClipboardPlacement(ClipboardPlacementState cps, double rx, double ry, double rz) {
-        if (cps.offsets == null) return;
-        float pulse = 0.5f + 0.5f * (float) Math.sin(System.currentTimeMillis() / 400.0);
-
-        double wx = cps.anchorX - rx;
-        double wy = cps.anchorY - ry;
-        double wz = cps.anchorZ - rz;
-
-        GL11.glEnable(GL11.GL_DEPTH_TEST);
-        GL11.glEnable(GL11.GL_TEXTURE_2D);
-        Minecraft.getMinecraft()
-            .getTextureManager()
-            .bindTexture(TextureMap.locationBlocksTexture);
-        GL11.glDisable(GL11.GL_LIGHTING);
-        GL11.glEnable(GL11.GL_CULL_FACE);
-        GL11.glFrontFace(GL11.GL_CW);
-        GL11.glEnable(GL11.GL_BLEND);
-        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        GL11.glColor4f(1.0f, 1.0f, 1.0f, 0.55f);
-
-        GL11.glPushMatrix();
-        GL11.glTranslated(wx, wy, wz);
-        if (cps.rotX != 0f || cps.rotY != 0f || cps.rotZ != 0f) {
-            float pcx = cps.clipW / 2f, pcy = cps.clipH / 2f, pcz = cps.clipD / 2f;
-            GL11.glTranslatef(pcx, pcy, pcz);
-            GL11.glRotatef(cps.rotZ, 0, 0, 1);
-            GL11.glRotatef(cps.rotY, 0, 1, 0);
-            GL11.glRotatef(cps.rotX, 1, 0, 0);
-            GL11.glTranslatef(-pcx, -pcy, -pcz);
-        }
-
-        Tessellator t = Tessellator.instance;
-        t.startDrawingQuads();
-        int batched = 0;
-        for (int[] o : cps.offsets) {
-            Block blk = Block.getBlockById(o[3]);
-            if (blk == null || blk == Blocks.air || blk.getRenderType() != 0) continue;
-            for (int face = 0; face < 6; face++) {
-                GhostRenderer.addTexturedFace(t, o[0], o[1], o[2], blk, o[4], face);
-                if (++batched % 2048 == 0) {
-                    t.draw();
-                    t.startDrawingQuads();
-                }
-            }
-        }
-        t.draw();
-
-        GL11.glDisable(GL11.GL_TEXTURE_2D);
-        GL11.glPolygonOffset(-1.0f, -1.0f);
-        GL11.glEnable(GL11.GL_POLYGON_OFFSET_FILL);
-        GL11.glEnable(GL11.GL_BLEND);
-        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
-        float alpha = 0.15f + 0.10f * pulse;
-        batched = 0;
-        t.startDrawingQuads();
-        for (int[] o : cps.offsets) {
-            Block blk = Block.getBlockById(o[3]);
-            if (blk == null || blk == Blocks.air) continue;
-            int blockId = o[3];
-            int rgb = BlockColorCache.INSTANCE.blockColor(blockId, o[4]);
-            if (rgb < 0) rgb = 0x8888FF;
-            float cr = ((rgb >> 16) & 0xFF) / 255f;
-            float cg = ((rgb >> 8) & 0xFF) / 255f;
-            float cb = (rgb & 0xFF) / 255f;
-            GL11.glColor4f(cr, cg, cb, alpha);
-            for (int face = 0; face < 6; face++) {
-                GhostRenderer.addSingleFace(t, o[0], o[1], o[2], face);
-                if (++batched % 2048 == 0) {
-                    t.draw();
-                    t.startDrawingQuads();
-                }
-            }
-        }
-        t.draw();
-
-        GL11.glDisable(GL11.GL_POLYGON_OFFSET_FILL);
-        GL11.glDisable(GL11.GL_BLEND);
-        GL11.glEnable(GL11.GL_TEXTURE_2D);
-        GL11.glFrontFace(GL11.GL_CCW);
-        GL11.glPopMatrix();
     }
 
     private static float[] computeClipWireframe(SelectionState sel) {

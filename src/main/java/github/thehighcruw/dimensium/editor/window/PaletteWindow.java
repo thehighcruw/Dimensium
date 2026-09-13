@@ -7,7 +7,6 @@ package github.thehighcruw.dimensium.editor.window;
 import java.util.List;
 
 import net.minecraft.block.Block;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
@@ -55,7 +54,7 @@ public class PaletteWindow extends ImGuiWindow {
         DimensiumConfig.setWindowPaletteOpen(value);
     }
 
-    public void renderImGui(Minecraft mc) {
+    public void renderImGui() {
         if (!open) return;
 
         float scale = ImGuiManager.INSTANCE.getUIScale();

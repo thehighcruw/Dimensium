@@ -14,7 +14,6 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 import net.minecraft.block.Block;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.init.Blocks;
 
@@ -86,14 +85,9 @@ public class BlueprintBrowserPopup {
         return open;
     }
 
-    public void close() {
-        open = false;
-        selectionCallback = null;
-    }
-
     // ── Render ────────────────────────────────────────────────────────────────
 
-    public void renderImGui(Minecraft mc) {
+    public void renderImGui() {
         if (pendingOpen) {
             ImGui.openPopup(POPUP_ID);
             pendingOpen = false;
@@ -181,7 +175,7 @@ public class BlueprintBrowserPopup {
 
                 if (clicked) {
                     try {
-                        loadBlueprint(BlueprintIO.load(file), file);
+                        loadBlueprint(BlueprintIO.load(file));
                     } catch (Exception ignored) {}
                     ImGui.closeCurrentPopup();
                     open = false;
@@ -293,14 +287,13 @@ public class BlueprintBrowserPopup {
         return SPINNER_CHARS[frame];
     }
 
-    private void loadBlueprint(Blueprint bp, File file) {
+    private void loadBlueprint(Blueprint bp) {
         if (selectionCallback != null) {
             Consumer<Blueprint> cb = selectionCallback;
             selectionCallback = null;
             cb.accept(bp);
             return;
         }
-        selectionCallback = null;
         SelectionState sel = SelectionState.INSTANCE;
         Map<Long, SelectionState.BlockData> clipboard = new HashMap<>(bp.offsets.size());
         for (int[] o : bp.offsets) {

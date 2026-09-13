@@ -10,13 +10,13 @@ import net.minecraft.client.resources.I18n;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import github.thehighcruw.dimensium.editor.tool.ToolSection;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushSection;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushState;
 import github.thehighcruw.dimensium.editor.tool.painting.MultiPaletteSection;
 import github.thehighcruw.dimensium.editor.tool.painting.gradient.GradientToolState.GradientInterp;
 import github.thehighcruw.dimensium.editor.tool.painting.gradient.GradientToolState.GradientShape;
 import github.thehighcruw.dimensium.editor.tool.state.PaletteState;
-import github.thehighcruw.dimensium.editor.window.panel.ToolSection;
 import imgui.ImGui;
 import imgui.type.ImBoolean;
 import imgui.type.ImInt;

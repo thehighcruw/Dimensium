@@ -8,7 +8,7 @@ import net.minecraft.client.resources.I18n;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import github.thehighcruw.dimensium.editor.window.panel.ToolSection;
+import github.thehighcruw.dimensium.editor.tool.ToolSection;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import imgui.ImGui;
 

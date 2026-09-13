@@ -101,8 +101,8 @@ public final class MenuBar {
                 if (ImGui.menuItem(
                     I18n.format("dimensium.menu.window.tool_panel"),
                     null,
-                    OverlayRenderer.toolPanel.isOpen())) {
-                    OverlayRenderer.toolPanel.setOpen(!OverlayRenderer.toolPanel.isOpen());
+                    OverlayRenderer.TOOL_WINDOW.isOpen())) {
+                    OverlayRenderer.TOOL_WINDOW.setOpen(!OverlayRenderer.TOOL_WINDOW.isOpen());
                 }
                 if (ImGui.menuItem(
                     I18n.format("dimensium.menu.window.tool_mask_list"),

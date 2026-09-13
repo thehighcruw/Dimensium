@@ -32,7 +32,7 @@ public class InputHandler {
         if (!OverlayRenderer.cheatsAllowed()) return;
 
         if (DimensiumEditorMode.INSTANCE.isActive()) {
-            if (editorMouse.handle(event, player, mc)) return;
+            if (editorMouse.handle(event, mc)) return;
         }
 
         worldMouse.handle(event, player, mc);

@@ -26,12 +26,7 @@ public interface BrushInput {
      * Called each render tick while {@code button} is held, after block-position dedup.
      * Only invoked when the tool has a registered BrushInput and a block is under the cursor.
      */
-    default void onMouseHeld(int button, Minecraft mc, MovingObjectPosition mop) {}
-
-    /** Handle a key press. @return true to consume the event. */
-    default boolean onKey(int keyCode, Minecraft mc, MovingObjectPosition mop) {
-        return false;
-    }
+    default void onMouseHeld(int button, MovingObjectPosition mop) {}
 
     /** Whether this tool uses the RMB drag-paint loop in TickHandler. */
     default boolean usesDragLoop() {
@@ -69,5 +64,5 @@ public interface BrushInput {
      * Called each render tick to update gizmo drag state and write results to tool state.
      * Runs before the paint loop so state is fresh for world renderers.
      */
-    default void onGizmoDrag(int mx, int my, boolean snap, Minecraft mc) {}
+    default void onGizmoDrag(int mx, int my, boolean snap) {}
 }

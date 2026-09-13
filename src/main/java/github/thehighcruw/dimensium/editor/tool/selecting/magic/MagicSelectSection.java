@@ -8,11 +8,11 @@ import net.minecraft.client.resources.I18n;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import github.thehighcruw.dimensium.editor.tool.ToolSection;
 import github.thehighcruw.dimensium.editor.tool.selecting.BooleanOpSection;
 import github.thehighcruw.dimensium.editor.tool.selecting.box.BoxSelectToolState;
 import github.thehighcruw.dimensium.editor.tool.selecting.magic.MagicSelectToolState.MagicCompareType;
 import github.thehighcruw.dimensium.editor.tool.selecting.magic.MagicSelectToolState.MagicDirection;
-import github.thehighcruw.dimensium.editor.window.panel.ToolSection;
 import imgui.ImGui;
 import imgui.type.ImBoolean;
 import imgui.type.ImInt;

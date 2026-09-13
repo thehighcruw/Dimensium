@@ -2,7 +2,7 @@
  * Copyright (c) 2026 TheHighcruw
  * SPDX-License-Identifier: MIT
  */
-package github.thehighcruw.dimensium.editor.window.panel;
+package github.thehighcruw.dimensium.editor.window;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -16,6 +16,8 @@ import github.thehighcruw.dimensium.DimensiumEditorMode;
 import github.thehighcruw.dimensium.editor.overlay.MenuBar;
 import github.thehighcruw.dimensium.editor.tool.Tool;
 import github.thehighcruw.dimensium.editor.tool.ToolRegistry;
+import github.thehighcruw.dimensium.editor.tool.ToolSection;
+import github.thehighcruw.dimensium.editor.tool.ToolStates;
 import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
 import github.thehighcruw.dimensium.editor.window.imgui.ImGuiWindow;
 import imgui.ImGui;
@@ -25,11 +27,9 @@ import imgui.type.ImBoolean;
 import imgui.type.ImInt;
 
 @SideOnly(Side.CLIENT)
-public class ToolPanel extends ImGuiWindow {
+public class ToolWindow extends ImGuiWindow {
 
     public int currentW = 400;
-    public static final int MIN_W = 200;
-    public static final int MAX_W = 700;
 
     private boolean open = true;
 
@@ -75,10 +75,7 @@ public class ToolPanel extends ImGuiWindow {
     private final ImInt catIdx = new ImInt(0);
     private final ImInt toolIdx = new ImInt(0);
 
-    /** No-op. Mouse is now managed by ImGui. */
-    public void updateMouse(int mx, int my) {}
-
-    public void render(int sw, int sh) {
+    public void render(int sh) {
         if (!open) return;
         float menuH = MenuBar.INSTANCE.height();
         float scale = ImGuiManager.INSTANCE.getUIScale();

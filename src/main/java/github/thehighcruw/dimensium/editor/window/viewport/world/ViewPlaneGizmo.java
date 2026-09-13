@@ -32,10 +32,6 @@ public class ViewPlaneGizmo {
     private final double[] cameraRight = new double[3];
     private final double[] cameraUp = new double[3];
 
-    public GizmoProjection getProjection() {
-        return proj;
-    }
-
     public boolean isDragging() {
         return dragging;
     }
@@ -47,8 +43,7 @@ public class ViewPlaneGizmo {
 
     // ── Rendering ─────────────────────────────────────────────────────────────
 
-    public void render(double gx, double gy, double gz, double rx, double ry, double rz, float rotX, float rotY,
-        float rotZ) {
+    public void render(double gx, double gy, double gz, double rx, double ry, double rz) {
         proj.capture(rx, ry, rz);
         float scale = RotationGizmo.computeScale(gx - rx, gy - ry, gz - rz);
         float h = CUBE_H * scale;
@@ -118,8 +113,7 @@ public class ViewPlaneGizmo {
 
     // ── Hover ─────────────────────────────────────────────────────────────────
 
-    public void updateHover(int mouseX, int mouseY, int sw, int sh, EntityLivingBase player, double gx, double gy,
-        double gz, float rotX, float rotY, float rotZ) {
+    public void updateHover(int mouseX, int mouseY, EntityLivingBase player, double gx, double gy, double gz) {
         float scale = RotationGizmo
             .computeScale(gx - player.posX, gy - (player.posY + player.getEyeHeight()), gz - player.posZ);
         float h = CUBE_H * scale;
@@ -128,7 +122,7 @@ public class ViewPlaneGizmo {
         double minY = Double.MAX_VALUE, maxY = -Double.MAX_VALUE;
         boolean anyValid = false;
         for (float ox : offs) for (float oy : offs) for (float oz : offs) {
-            double[] s = proj.project(gx + ox, gy + oy, gz + oz, sw, sh);
+            double[] s = proj.project(gx + ox, gy + oy, gz + oz);
             if (s == null) continue;
             anyValid = true;
             if (s[0] < minX) minX = s[0];
@@ -144,8 +138,8 @@ public class ViewPlaneGizmo {
 
     // ── Drag ─────────────────────────────────────────────────────────────────
 
-    public void startDrag(int mouseX, int mouseY, int sw, int sh, EntityLivingBase player, double gx, double gy,
-        double gz, double anchorX, double anchorY, double anchorZ) {
+    public void startDrag(int mouseX, int mouseY, EntityLivingBase player, double gx, double gy, double gz,
+        double anchorX, double anchorY, double anchorZ) {
         if (!hovered) return;
         dragging = true;
         dragStartMX = mouseX;
@@ -165,9 +159,9 @@ public class ViewPlaneGizmo {
         cameraUp[1] = Math.cos(pitch);
         cameraUp[2] = Math.sin(pitch) * Math.cos(yaw);
 
-        double[] s0 = proj.project(gx, gy, gz, sw, sh);
-        double[] sR = proj.project(gx + cameraRight[0], gy + cameraRight[1], gz + cameraRight[2], sw, sh);
-        double[] sU = proj.project(gx + cameraUp[0], gy + cameraUp[1], gz + cameraUp[2], sw, sh);
+        double[] s0 = proj.project(gx, gy, gz);
+        double[] sR = proj.project(gx + cameraRight[0], gy + cameraRight[1], gz + cameraRight[2]);
+        double[] sU = proj.project(gx + cameraUp[0], gy + cameraUp[1], gz + cameraUp[2]);
 
         if (s0 == null || sR == null) {
             scrRightX = 1;

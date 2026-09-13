@@ -339,9 +339,6 @@ public class DimensiumConfig {
     @Config.Comment("Tool Options panel open state.")
     public static boolean windowToolOptionsPanelOpen = true;
 
-    @Config.Comment("Properties panel open state.")
-    public static boolean windowRightPanelOpen = true;
-
     @Config.Comment("Block info window open state.")
     public static boolean windowBlockInfoOpen = true;
 

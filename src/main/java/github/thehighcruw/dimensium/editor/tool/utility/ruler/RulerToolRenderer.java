@@ -30,7 +30,7 @@ public class RulerToolRenderer implements ToolRenderer {
     }
 
     @Override
-    public boolean renderHover(Minecraft mc, MovingObjectPosition mop, double rx, double ry, double rz) {
+    public boolean renderHover(MovingObjectPosition mop, double rx, double ry, double rz) {
         List<int[]> points = RulerToolState.INSTANCE.points;
         int hx = mop.blockX, hy = mop.blockY, hz = mop.blockZ;
 

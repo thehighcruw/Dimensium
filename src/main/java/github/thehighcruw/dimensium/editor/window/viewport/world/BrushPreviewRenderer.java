@@ -54,7 +54,7 @@ public class BrushPreviewRenderer {
         int sx = bs.brushRadius, sy = bs.brushShape.hasHeight ? bs.brushHeight : bs.brushRadius, sz = sx;
         BrushShape shape = bs.brushShape;
 
-        if (renderer.renderHover(mc, mop, rx, ry, rz)) return;
+        if (renderer.renderHover(mop, rx, ry, rz)) return;
 
         boolean buttonHeld = BrushInputRegistry.usesDragLoop(activeTool) && Mouse.isButtonDown(KeyConstants.RMB);
 

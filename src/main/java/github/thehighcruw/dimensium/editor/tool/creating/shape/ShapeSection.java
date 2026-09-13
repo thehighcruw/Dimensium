@@ -8,8 +8,8 @@ import net.minecraft.client.resources.I18n;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import github.thehighcruw.dimensium.editor.tool.ToolSection;
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeToolState.ShapeType;
-import github.thehighcruw.dimensium.editor.window.panel.ToolSection;
 import imgui.ImGui;
 import imgui.type.ImBoolean;
 import imgui.type.ImInt;

@@ -7,7 +7,6 @@ package github.thehighcruw.dimensium.editor.window.popup;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
 
 import cpw.mods.fml.relauncher.Side;
@@ -73,7 +72,7 @@ public class CreateBlueprintPopup {
 
     // ── Render ────────────────────────────────────────────────────────────────
 
-    public void renderImGui(Minecraft mc) {
+    public void renderImGui() {
         if (!open) return;
 
         if (pendingOpen) {

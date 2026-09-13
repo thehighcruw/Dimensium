@@ -63,8 +63,6 @@ public class PathBrushInput implements BrushInput {
                 pts.selectedIndex,
                 mouseX,
                 mouseY,
-                sw,
-                sh,
                 pts.gizmo.getProjection(),
                 18);
             if (bestIdx >= 0) {
@@ -74,14 +72,13 @@ public class PathBrushInput implements BrushInput {
                 if (pts.gizmo.hoveredAxis != TranslationGizmo.Axis.NONE && pts.selectedPoint() != null && eye != null) {
                     PathToolState.PathPoint sel = pts.selectedPoint();
                     double pgx = sel.x + 0.5, pgy = sel.y + 0.5, pgz = sel.z + 0.5;
-                    pts.gizmo.startDrag(mouseX, mouseY, sw, sh, eye, pgx, pgy, pgz, pgx, pgy, pgz, 0, 0, 0);
+                    pts.gizmo.startDrag(mouseX, mouseY, sw, sh, pgx, pgy, pgz, pgx, pgy, pgz, 0, 0, 0);
                 } else
                     if (pts.planeGizmo.hoveredPlane != PlaneTranslationGizmo.Plane.NONE && pts.selectedPoint() != null
                         && eye != null) {
                             PathToolState.PathPoint sel = pts.selectedPoint();
                             double pgx = sel.x + 0.5, pgy = sel.y + 0.5, pgz = sel.z + 0.5;
-                            pts.planeGizmo
-                                .startDrag(mouseX, mouseY, sw, sh, eye, pgx, pgy, pgz, pgx, pgy, pgz, 0, 0, 0);
+                            pts.planeGizmo.startDrag(mouseX, mouseY, sw, sh, pgx, pgy, pgz, pgx, pgy, pgz, 0, 0, 0);
                         }
             return true;
         }
@@ -90,7 +87,7 @@ public class PathBrushInput implements BrushInput {
     }
 
     @Override
-    public void onGizmoDrag(int mx, int my, boolean snap, Minecraft mc) {
+    public void onGizmoDrag(int mx, int my, boolean snap) {
         PathToolState pts = PathToolState.INSTANCE;
         PathToolState.PathPoint selPt = pts.selectedPoint();
         if (selPt == null) return;

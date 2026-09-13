@@ -37,7 +37,6 @@ import github.thehighcruw.dimensium.editor.tool.selecting.SelectedBlockState;
 import github.thehighcruw.dimensium.editor.tool.selecting.box.BoxSelectToolState;
 import github.thehighcruw.dimensium.editor.tool.state.ClipboardPlacementState;
 import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
-import github.thehighcruw.dimensium.editor.window.panel.PanelSlider;
 import github.thehighcruw.dimensium.editor.window.popup.BlueprintBrowserPopup;
 import github.thehighcruw.dimensium.editor.window.popup.ConflictPopup;
 import github.thehighcruw.dimensium.editor.window.popup.CreateBlueprintPopup;
@@ -107,9 +106,6 @@ public class KeyHandler {
             }
             return;
         }
-
-        // ── Slider text-edit input ────────────────────────────────────────────
-        if (PanelSlider.handleKey(key, ch)) return;
 
         // Popups use ImGui for keyboard input; wantCaptureKeyboard() above handles blocking.
 

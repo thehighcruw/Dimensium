@@ -88,7 +88,7 @@ public class ClientProxy implements IProxy {
             HistoryWindow.INSTANCE, OperationsWindow.INSTANCE, ReplaceSelectionWindow.INSTANCE,
             SelectionWindow.INSTANCE, SmoothSelectionWindow.INSTANCE, TypeReplaceSelectionWindow.INSTANCE,
             ToolMaskListWindow.INSTANCE, ToolMaskEditorWindow.INSTANCE, PaletteWindow.INSTANCE,
-            PaletteEditorWindow.INSTANCE, OverlayRenderer.toolPanel, OverlayRenderer.toolOptionsPanel };
+            PaletteEditorWindow.INSTANCE, OverlayRenderer.TOOL_WINDOW, OverlayRenderer.TOOL_OPTIONS_WINDOW };
 
         if (DimensiumConfig.windowHistoryOpen) HistoryWindow.INSTANCE.setOpen(true);
         if (DimensiumConfig.windowToolMaskListOpen) ToolMaskListWindow.INSTANCE.open();
@@ -101,15 +101,15 @@ public class ClientProxy implements IProxy {
         if (DimensiumConfig.windowSelectionOpen) SelectionWindow.INSTANCE.open();
         if (DimensiumConfig.windowOperationsOpen) OperationsWindow.INSTANCE.open();
         if (DimensiumConfig.windowClipboardOpen) ClipboardWindow.INSTANCE.open();
-        if (!DimensiumConfig.windowToolPanelOpen) OverlayRenderer.toolPanel.setOpen(false);
-        if (!DimensiumConfig.windowToolOptionsPanelOpen) OverlayRenderer.toolOptionsPanel.setOpen(false);
+        if (!DimensiumConfig.windowToolPanelOpen) OverlayRenderer.TOOL_WINDOW.setOpen(false);
+        if (!DimensiumConfig.windowToolOptionsPanelOpen) OverlayRenderer.TOOL_OPTIONS_WINDOW.setOpen(false);
 
         LayoutPresetRegistry reg = LayoutPresetRegistry.INSTANCE;
-        reg.registerWindow("tools", OverlayRenderer.toolPanel::isOpen, OverlayRenderer.toolPanel::setOpen, true);
+        reg.registerWindow("tools", OverlayRenderer.TOOL_WINDOW::isOpen, OverlayRenderer.TOOL_WINDOW::setOpen, true);
         reg.registerWindow(
             "toolOptions",
-            OverlayRenderer.toolOptionsPanel::isOpen,
-            OverlayRenderer.toolOptionsPanel::setOpen,
+            OverlayRenderer.TOOL_OPTIONS_WINDOW::isOpen,
+            OverlayRenderer.TOOL_OPTIONS_WINDOW::setOpen,
             true);
         reg.registerWindow(
             "toolMaskList",

@@ -41,7 +41,7 @@ public class WorldMouseHandler {
                 if (event.buttonstate) {
                     builderTools.handle(event, player, mc);
                 } else {
-                    builderTools.handleRelease(event, player, mc);
+                    builderTools.handleRelease(event, mc);
                 }
             }
             event.setCanceled(true);

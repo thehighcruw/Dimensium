@@ -27,7 +27,7 @@ public class LassoSelectToolRenderer implements ToolRenderer {
     }
 
     @Override
-    public boolean renderHover(Minecraft mc, MovingObjectPosition mop, double rx, double ry, double rz) {
+    public boolean renderHover(MovingObjectPosition mop, double rx, double ry, double rz) {
         return true;
     }
 

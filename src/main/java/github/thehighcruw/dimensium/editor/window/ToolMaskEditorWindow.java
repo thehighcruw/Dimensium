@@ -97,7 +97,7 @@ public class ToolMaskEditorWindow extends ImGuiWindow {
             renderMaskSelector(scale);
             ImGui.separator();
             if (editingMask != null) {
-                renderMaskStringBar(scale);
+                renderMaskStringBar();
                 ImGui.separator();
                 renderTree(scale);
             }
@@ -166,7 +166,7 @@ public class ToolMaskEditorWindow extends ImGuiWindow {
         }
     }
 
-    private void renderMaskStringBar(float scale) {
+    private void renderMaskStringBar() {
         String str = editingMask.toMaskString();
         ImGui.pushStyleColor(ImGuiCol.FrameBg, 0.15f, 0.15f, 0.15f, 1f);
         ImGui.setNextItemWidth(-1f);
@@ -182,7 +182,7 @@ public class ToolMaskEditorWindow extends ImGuiWindow {
         // Palette panel
         ImGui.pushStyleColor(ImGuiCol.ChildBg, 0.10f, 0.10f, 0.10f, 1f);
         if (ImGui.beginChild("##palette", paletteW, treeHeight, true)) {
-            renderPalette(scale);
+            renderPalette();
         }
         ImGui.endChild();
         ImGui.popStyleColor();
@@ -207,7 +207,7 @@ public class ToolMaskEditorWindow extends ImGuiWindow {
     private static final String[] PALETTE_MASKS = { "Block", "Above", "Below", "Near", "Neighbour", "Adjacent", "Y",
         "Angle", "In Selection", "Can See Sky", "Surface" };
 
-    private void renderPalette(float scale) {
+    private void renderPalette() {
         ImGui.textDisabled(I18n.format("dimensium.mask.editor.palette_logic"));
         for (String type : PALETTE_LOGIC) renderPaletteItem(type);
         ImGui.spacing();
@@ -286,7 +286,7 @@ public class ToolMaskEditorWindow extends ImGuiWindow {
 
         // renderDragDrop MUST be immediately after the interactive item (selectable)
         renderDragDrop(node, parentList, indexInParent);
-        renderLeafContextMenu(node, parentList, indexInParent, scale);
+        renderLeafContextMenu(node, parentList, scale);
 
         if (selected) ImGui.popStyleColor();
 
@@ -425,7 +425,7 @@ public class ToolMaskEditorWindow extends ImGuiWindow {
         if (selected) ImGui.popStyleColor();
 
         renderDragDrop(node, parentList, indexInParent);
-        renderLogicContextMenu(node, parentList, indexInParent, scale);
+        renderLogicContextMenu(node, parentList);
 
         // Children
         for (int i = 0; i < node.children.size(); i++) {
@@ -509,9 +509,9 @@ public class ToolMaskEditorWindow extends ImGuiWindow {
         dragNode = null;
     }
 
-    private void renderLogicContextMenu(LogicNode node, List<MaskNode> parentList, int indexInParent, float scale) {
+    private void renderLogicContextMenu(LogicNode node, List<MaskNode> parentList) {
         if (ImGui.beginPopupContextItem("##lctx")) {
-            renderAddChildMenu(node, scale);
+            renderAddChildMenu(node);
             if (parentList != null) {
                 ImGui.separator();
                 if (ImGui.menuItem(I18n.format("dimensium.mask.editor.delete_node"))) {
@@ -523,7 +523,7 @@ public class ToolMaskEditorWindow extends ImGuiWindow {
         }
     }
 
-    private void renderLeafContextMenu(MaskNode node, List<MaskNode> parentList, int indexInParent, float scale) {
+    private void renderLeafContextMenu(MaskNode node, List<MaskNode> parentList, float scale) {
         if (ImGui.beginPopupContextItem("##lctx")) {
             renderLeafEditor(node, scale);
             if (parentList != null) {
@@ -537,7 +537,7 @@ public class ToolMaskEditorWindow extends ImGuiWindow {
         }
     }
 
-    private void renderAddChildMenu(LogicNode parent, float scale) {
+    private void renderAddChildMenu(LogicNode parent) {
         if (ImGui.beginMenu(I18n.format("dimensium.mask.editor.add_logic"))) {
             if (ImGui.menuItem("OR")) parent.children.add(new OrNode());
             if (ImGui.menuItem("AND")) parent.children.add(new AndNode());

@@ -72,7 +72,7 @@ public class ModellingBrushInput implements BrushInput {
                 }
             }
             int bestFlat = GuiDimensiumOverlay
-                .findNearestPointOnScreen(positions, skipFlat, mouseX, mouseY, sw, sh, mts.gizmo.getProjection(), 18);
+                .findNearestPointOnScreen(positions, skipFlat, mouseX, mouseY, mts.gizmo.getProjection(), 18);
             if (bestFlat >= 0) {
                 int flat = 0;
                 done: for (int r = 0; r < mts.rows.size(); r++) {
@@ -91,13 +91,13 @@ public class ModellingBrushInput implements BrushInput {
                 && eye != null) {
                     ModellingToolState.ModelPoint mSelPt = mts.selectedPointObj();
                     double mgx = mSelPt.x + 0.5, mgy = mSelPt.y + 0.5, mgz = mSelPt.z + 0.5;
-                    mts.gizmo.startDrag(mouseX, mouseY, sw, sh, eye, mgx, mgy, mgz, mgx, mgy, mgz, 0, 0, 0);
+                    mts.gizmo.startDrag(mouseX, mouseY, sw, sh, mgx, mgy, mgz, mgx, mgy, mgz, 0, 0, 0);
                 } else
                 if (mts.planeGizmo.hoveredPlane != PlaneTranslationGizmo.Plane.NONE && mts.selectedPointObj() != null
                     && eye != null) {
                         ModellingToolState.ModelPoint mSelPt = mts.selectedPointObj();
                         double mgx = mSelPt.x + 0.5, mgy = mSelPt.y + 0.5, mgz = mSelPt.z + 0.5;
-                        mts.planeGizmo.startDrag(mouseX, mouseY, sw, sh, eye, mgx, mgy, mgz, mgx, mgy, mgz, 0, 0, 0);
+                        mts.planeGizmo.startDrag(mouseX, mouseY, sw, sh, mgx, mgy, mgz, mgx, mgy, mgz, 0, 0, 0);
                     }
             return true;
         }
@@ -106,7 +106,7 @@ public class ModellingBrushInput implements BrushInput {
     }
 
     @Override
-    public void onGizmoDrag(int mx, int my, boolean snap, Minecraft mc) {
+    public void onGizmoDrag(int mx, int my, boolean snap) {
         ModellingToolState mts = ModellingToolState.INSTANCE;
         ModellingToolState.ModelPoint mSelPt = mts.selectedPointObj();
         if (mSelPt == null) return;

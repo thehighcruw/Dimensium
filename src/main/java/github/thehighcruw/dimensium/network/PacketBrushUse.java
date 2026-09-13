@@ -22,12 +22,6 @@ public class PacketBrushUse implements IPacket {
 
     public PacketBrushUse() {}
 
-    public PacketBrushUse(int blockX, int blockY, int blockZ) {
-        this.blockX = blockX;
-        this.blockY = blockY;
-        this.blockZ = blockZ;
-    }
-
     @Override
     public void encode(PacketBuffer buf) throws IOException {
         buf.writeInt(blockX);

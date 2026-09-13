@@ -505,7 +505,7 @@ public class ModellingMath {
         }
 
         int[] tet = findInitialTetrahedron(P, n);
-        if (tet == null) return coplanarHull(P, n);
+        if (tet == null) return coplanarHull(n);
 
         int a = tet[0], b = tet[1], c = tet[2], d = tet[3];
         double[] centroid = { (P[a][0] + P[b][0] + P[c][0] + P[d][0]) / 4, (P[a][1] + P[b][1] + P[c][1] + P[d][1]) / 4,
@@ -556,7 +556,7 @@ public class ModellingMath {
         return faces;
     }
 
-    private static List<int[]> coplanarHull(double[][] P, int n) {
+    private static List<int[]> coplanarHull(int n) {
         // Project to best 2D plane and return a fan
         List<int[]> result = new ArrayList<>();
         if (n < 3) return result;

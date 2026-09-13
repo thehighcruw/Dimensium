@@ -24,7 +24,7 @@ public class ModellingToolRenderer implements ToolRenderer {
     }
 
     @Override
-    public boolean renderHover(Minecraft mc, MovingObjectPosition mop, double rx, double ry, double rz) {
+    public boolean renderHover(MovingObjectPosition mop, double rx, double ry, double rz) {
         return true;
     }
 
@@ -35,7 +35,7 @@ public class ModellingToolRenderer implements ToolRenderer {
         if (mSelPt == null) return;
         if (!mts.gizmo.isDragging() && !mts.planeGizmo.isDragging() && mc.renderViewEntity != null) {
             double mgx = mSelPt.x + 0.5, mgy = mSelPt.y + 0.5, mgz = mSelPt.z + 0.5;
-            mts.gizmo.updateHover(mx3d, my3d, sw, sh, mc.renderViewEntity, mgx, mgy, mgz, 0, 0, 0);
+            mts.gizmo.updateHover(mx3d, my3d, mc.renderViewEntity, mgx, mgy, mgz, 0, 0, 0);
         }
     }
 }

@@ -125,7 +125,7 @@ public class ToolMaskListWindow extends ImGuiWindow {
             if (entry instanceof MaskFolder) {
                 renderFolder((MaskFolder) entry, entries, scale, depth);
             } else if (entry instanceof ToolMask) {
-                renderMask((ToolMask) entry, entries, scale);
+                renderMask((ToolMask) entry, entries);
             }
 
             ImGui.popID();
@@ -185,7 +185,7 @@ public class ToolMaskListWindow extends ImGuiWindow {
         }
     }
 
-    private void renderMask(ToolMask mask, List<MaskEntry> parentList, float scale) {
+    private void renderMask(ToolMask mask, List<MaskEntry> parentList) {
         ToolMaskRegistry registry = ToolMaskRegistry.INSTANCE;
         boolean isActive = registry.getActiveMask() == mask;
 

@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import net.minecraft.block.Block;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
@@ -20,7 +19,6 @@ import net.minecraftforge.oredict.OreDictionary;
 import codechicken.nei.api.ItemInfo;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import github.thehighcruw.dimensium.editor.overlay.OverlayRenderer;
 import github.thehighcruw.dimensium.editor.window.RecentBlockHistory;
 import github.thehighcruw.dimensium.editor.window.imgui.DeferredItemRender;
 import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
@@ -103,24 +101,9 @@ public class BlockPickerPopup {
         return open;
     }
 
-    public void commitFirst() {
-        OverlayRenderer.picker.commitFirstInstance();
-    }
-
-    void commitFirstInstance() {
-        List<ItemStack> results = getPickerResults();
-        if (!results.isEmpty() && callback != null) {
-            ItemStack picked = results.get(0)
-                .copy();
-            RecentBlockHistory.add(picked);
-            callback.accept(picked);
-        }
-        close();
-    }
-
     // ── Instance render ───────────────────────────────────────────────────────
 
-    public void renderImGui(Minecraft mc) {
+    public void renderImGui() {
         // Trigger the ImGui popup open mechanism from within the frame.
         if (pendingOpen) {
             ImGui.openPopup(POPUP_ID);
@@ -140,7 +123,6 @@ public class BlockPickerPopup {
 
         float _cell = cell();
         float _itemSz = itemSize();
-        float _gridW = gridW();
         float _popupW = popupW();
         float _padX = 8f * ImGuiManager.INSTANCE.getUIScale();
 
@@ -265,15 +247,6 @@ public class BlockPickerPopup {
         }
 
         ImGui.endPopup();
-    }
-
-    private void acceptPick(ItemStack picked) {
-        if (callback != null) callback.accept(picked);
-        ImGui.closeCurrentPopup();
-        open = false;
-        callback = null;
-        initialSelection = null;
-        initialIsAir = false;
     }
 
     // ── Search ────────────────────────────────────────────────────────────────

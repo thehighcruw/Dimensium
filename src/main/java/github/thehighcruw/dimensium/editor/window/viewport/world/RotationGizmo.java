@@ -116,8 +116,8 @@ public class RotationGizmo {
 
     // ── Hover ─────────────────────────────────────────────────────────────────
 
-    public void updateHover(int mouseX, int mouseY, int sw, int sh, EntityLivingBase player, double gx, double gy,
-        double gz, float rotX, float rotY, float rotZ) {
+    public void updateHover(int mouseX, int mouseY, EntityLivingBase player, double gx, double gy, double gz,
+        float rotX, float rotY, float rotZ) {
         double eyeX = player.posX, eyeY = player.posY + player.getEyeHeight(), eyeZ = player.posZ;
         float scale = computeScale(gx - eyeX, gy - eyeY, gz - eyeZ);
         float scaledR = ARC_R * scale;
@@ -135,12 +135,8 @@ public class RotationGizmo {
                 double ang = 2.0 * Math.PI * i / ARC_SEG;
                 float c = (float) (Math.cos(ang) * scaledR);
                 float s = (float) (Math.sin(ang) * scaledR);
-                double[] scr = proj.project(
-                    gx + c * rp1[0] + s * rp2[0],
-                    gy + c * rp1[1] + s * rp2[1],
-                    gz + c * rp1[2] + s * rp2[2],
-                    sw,
-                    sh);
+                double[] scr = proj
+                    .project(gx + c * rp1[0] + s * rp2[0], gy + c * rp1[1] + s * rp2[1], gz + c * rp1[2] + s * rp2[2]);
                 if (scr == null) {
                     prev = null;
                     continue;
@@ -167,8 +163,7 @@ public class RotationGizmo {
      * initial mouse angle relative to the projected gizmo center, so that
      * updateDrag can return the swept angle.
      */
-    public void startDrag(int mouseX, int mouseY, int sw, int sh, EntityLivingBase player, double gx, double gy,
-        double gz, float rotX, float rotY, float rotZ) {
+    public void startDrag(int mouseX, int mouseY, double gx, double gy, double gz, float rotX, float rotY, float rotZ) {
         if (hoveredAxis == Axis.NONE) return;
         dragAxis = hoveredAxis;
         // Y arc's p1×p2 = -Y, so its atan2 winds opposite to X and Z arcs.
@@ -179,7 +174,7 @@ public class RotationGizmo {
         float[] rp1 = rotateVec(ARC_P1[a], R);
         float[] rp2 = rotateVec(ARC_P2[a], R);
 
-        double[] cScr = proj.project(gx, gy, gz, sw, sh);
+        double[] cScr = proj.project(gx, gy, gz);
         if (cScr == null) {
             dragAxis = Axis.NONE;
             return;
@@ -188,8 +183,8 @@ public class RotationGizmo {
         centerScrY = cScr[1];
 
         // Screen-space direction of each arc basis vector (unit length)
-        double[] s1 = proj.project(gx + rp1[0], gy + rp1[1], gz + rp1[2], sw, sh);
-        double[] s2 = proj.project(gx + rp2[0], gy + rp2[1], gz + rp2[2], sw, sh);
+        double[] s1 = proj.project(gx + rp1[0], gy + rp1[1], gz + rp1[2]);
+        double[] s2 = proj.project(gx + rp2[0], gy + rp2[1], gz + rp2[2]);
 
         if (s1 == null || s2 == null) {
             e1x = 1;

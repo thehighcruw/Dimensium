@@ -11,7 +11,6 @@ public class MaskFolder implements MaskEntry {
 
     private String name;
     public final List<MaskEntry> entries = new ArrayList<>();
-    public boolean expanded = true;
 
     public MaskFolder(String name) {
         this.name = name;

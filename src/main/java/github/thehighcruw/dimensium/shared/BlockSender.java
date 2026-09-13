@@ -49,10 +49,6 @@ public class BlockSender {
         }
     }
 
-    public static void sendChunked(List<int[]> ops) {
-        sendChunked(ops, "Edit");
-    }
-
     public static void sendChunked(final List<int[]> ops, final String action) {
         long t0 = System.nanoTime();
         List<int[]> filtered = ToolMaskRegistry.INSTANCE.filter(ops);
