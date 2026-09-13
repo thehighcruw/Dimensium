@@ -45,7 +45,7 @@ public class BuilderToolsHandler {
         boolean hitBlock = mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK;
 
         if (event.button == KeyConstants.MMB && bts.phase == Phase.MANIPULATING) {
-            InputHandler.updateAxisLock(bts);
+            WorldMouseHandler.updateAxisLock(bts);
             bts.nudgeOffset(1, FreecamUtils.lookVec(player));
             return;
         }
