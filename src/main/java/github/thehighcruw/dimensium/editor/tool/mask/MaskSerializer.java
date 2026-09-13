@@ -57,13 +57,11 @@ public final class MaskSerializer {
 
     private static JsonElement serializeEntry(MaskEntry entry) {
         JsonObject obj = new JsonObject();
-        if (entry instanceof ToolMask) {
-            ToolMask mask = (ToolMask) entry;
+        if (entry instanceof ToolMask mask) {
             obj.addProperty("type", "mask");
             obj.addProperty("name", mask.getName());
             if (mask.getRoot() != null) obj.add("root", serializeNode(mask.getRoot()));
-        } else if (entry instanceof MaskFolder) {
-            MaskFolder folder = (MaskFolder) entry;
+        } else if (entry instanceof MaskFolder folder) {
             obj.addProperty("type", "folder");
             obj.addProperty("name", folder.getName());
             obj.add("entries", serializeEntries(folder.entries));
@@ -82,51 +80,42 @@ public final class MaskSerializer {
         } else if (node instanceof NotNode) {
             obj.addProperty("t", "NOT");
             obj.add("c", serializeChildren(((LogicNode) node).children));
-        } else if (node instanceof OffsetNode) {
-            OffsetNode n = (OffsetNode) node;
+        } else if (node instanceof OffsetNode n) {
             obj.addProperty("t", "OFFSET");
             obj.addProperty("dx", n.dx);
             obj.addProperty("dy", n.dy);
             obj.addProperty("dz", n.dz);
             obj.add("c", serializeChildren(n.children));
-        } else if (node instanceof BlockMask) {
-            BlockMask n = (BlockMask) node;
+        } else if (node instanceof BlockMask n) {
             obj.addProperty("t", "Block");
             obj.addProperty("id", n.blockId);
             obj.addProperty("meta", n.meta);
-        } else if (node instanceof AboveMask) {
-            AboveMask n = (AboveMask) node;
+        } else if (node instanceof AboveMask n) {
             obj.addProperty("t", "Above");
             obj.addProperty("id", n.blockId);
             obj.addProperty("meta", n.meta);
-        } else if (node instanceof BelowMask) {
-            BelowMask n = (BelowMask) node;
+        } else if (node instanceof BelowMask n) {
             obj.addProperty("t", "Below");
             obj.addProperty("id", n.blockId);
             obj.addProperty("meta", n.meta);
-        } else if (node instanceof NearMask) {
-            NearMask n = (NearMask) node;
+        } else if (node instanceof NearMask n) {
             obj.addProperty("t", "Near");
             obj.addProperty("id", n.blockId);
             obj.addProperty("meta", n.meta);
             obj.addProperty("r", n.radius);
-        } else if (node instanceof NeighbourMask) {
-            NeighbourMask n = (NeighbourMask) node;
+        } else if (node instanceof NeighbourMask n) {
             obj.addProperty("t", "Neighbour");
             obj.addProperty("id", n.blockId);
             obj.addProperty("meta", n.meta);
-        } else if (node instanceof AdjacentMask) {
-            AdjacentMask n = (AdjacentMask) node;
+        } else if (node instanceof AdjacentMask n) {
             obj.addProperty("t", "Adjacent");
             obj.addProperty("id", n.blockId);
             obj.addProperty("meta", n.meta);
-        } else if (node instanceof YMask) {
-            YMask n = (YMask) node;
+        } else if (node instanceof YMask n) {
             obj.addProperty("t", "Y");
             obj.addProperty("op", n.op.name());
             obj.addProperty("v", n.value);
-        } else if (node instanceof AngleMask) {
-            AngleMask n = (AngleMask) node;
+        } else if (node instanceof AngleMask n) {
             obj.addProperty("t", "Angle");
             obj.addProperty("a", n.angle);
             obj.addProperty("r", n.range);

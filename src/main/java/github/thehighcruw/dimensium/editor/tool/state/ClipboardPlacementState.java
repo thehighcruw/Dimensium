@@ -76,7 +76,7 @@ public class ClipboardPlacementState {
             int ly = (int) (key >> 10) & 0x3FF;
             int lz = (int) key & 0x3FF;
             SelectionState.BlockData bd = e.getValue();
-            offsets.add(new int[] { lx, ly, lz, Block.getIdFromBlock(bd.block), bd.meta });
+            offsets.add(new int[] { lx, ly, lz, Block.getIdFromBlock(bd.block()), bd.meta() });
         }
         viewPlaneGizmo.reset();
         gizmo.reset();

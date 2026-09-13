@@ -41,8 +41,7 @@ public class EditHistory {
 
         if (meta > 15 && world instanceof WorldServer) {
             Item item = Item.getItemFromBlock(blk);
-            if (item instanceof ItemBlock) {
-                ItemBlock itemBlock = (ItemBlock) item;
+            if (item instanceof ItemBlock itemBlock) {
                 ItemStack stack = new ItemStack(itemBlock, 1, meta);
                 // Clear the target position first so placeBlockAt has an air block to fill.
                 world.setBlock(x, y, z, Blocks.air, 0, 3);

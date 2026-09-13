@@ -9,8 +9,8 @@ import net.minecraft.inventory.Slot;
 
 class SlotGradientInput extends Slot {
 
-    SlotGradientInput(IInventory inventory, int slotIndex, int x, int y) {
-        super(inventory, slotIndex, x, y);
+    SlotGradientInput(IInventory inventory, int slotIndex, int x) {
+        super(inventory, slotIndex, x, GradientHelperContainer.INPUT_Y);
     }
 
 }

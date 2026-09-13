@@ -78,7 +78,7 @@ public class StampSection implements ToolSection {
         if (removeIdx >= 0) state.blueprints.remove(removeIdx);
 
         if (ImGui.button(I18n.format("dimensium.stamp.add_blueprint") + "##ab")) {
-            BlueprintBrowserPopup.INSTANCE.open(bp -> { state.blueprints.add(new StampEntry(bp)); });
+            BlueprintBrowserPopup.INSTANCE.open(bp -> state.blueprints.add(new StampEntry(bp)));
         }
         ImGui.sameLine();
         if (ImGui.button(I18n.format("dimensium.stamp.add_clipboard") + "##ac")) {
@@ -140,7 +140,7 @@ public class StampSection implements ToolSection {
             int ly = (int) (key >> 10) & 0x3FF;
             int lz = (int) key & 0x3FF;
             SelectionState.BlockData bd = e.getValue();
-            bp.offsets.add(new int[] { lx, ly, lz, Block.getIdFromBlock(bd.block), bd.meta });
+            bp.offsets.add(new int[] { lx, ly, lz, Block.getIdFromBlock(bd.block()), bd.meta() });
         }
         state.blueprints.add(new StampEntry(bp));
     }

@@ -18,6 +18,8 @@ import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.world.World;
 
+import com.github.bsideup.jabel.Desugar;
+
 import github.thehighcruw.dimensium.DimensiumConfig;
 import github.thehighcruw.dimensium.editor.tool.selecting.BooleanOp;
 import github.thehighcruw.dimensium.editor.tool.selecting.magic.MagicSelectToolState;
@@ -191,15 +193,15 @@ public class SelectionState {
         MagicSelectToolState.MagicDirection direction) {
         Block targetBlock = world.getBlock(sx, sy, sz);
         int targetMeta = world.getBlockMetadata(sx, sy, sz);
-        if (targetBlock == Blocks.air) return new HashSet<Long>();
+        if (targetBlock == Blocks.air) return new HashSet<>();
 
         int[][] dirs6 = { { 1, 0, 0 }, { -1, 0, 0 }, { 0, 1, 0 }, { 0, -1, 0 }, { 0, 0, 1 }, { 0, 0, -1 } };
         int[][] dirs26 = buildDirs26();
         int[][] allDirs = corners ? dirs26 : dirs6;
 
-        Set<Long> visited = new HashSet<Long>();
-        Queue<long[]> queue = new LinkedList<long[]>();
-        Set<Long> result = new HashSet<Long>();
+        Set<Long> visited = new HashSet<>();
+        Queue<long[]> queue = new LinkedList<>();
+        Set<Long> result = new HashSet<>();
 
         visited.add(pack(sx, sy, sz));
         queue.add(new long[] { sx, sy, sz });
@@ -262,15 +264,15 @@ public class SelectionState {
     /** Flood-fill air blocks starting from an air block, optionally directional. */
     public static Set<Long> floodFillAir(World world, int sx, int sy, int sz, int limit, boolean goDown,
         boolean corners) {
-        if (world.getBlock(sx, sy, sz) != Blocks.air) return new HashSet<Long>();
+        if (world.getBlock(sx, sy, sz) != Blocks.air) return new HashSet<>();
 
         int[][] dirs6 = { { 1, 0, 0 }, { -1, 0, 0 }, { 0, 1, 0 }, { 0, -1, 0 }, { 0, 0, 1 }, { 0, 0, -1 } };
         int[][] dirs26 = buildDirs26();
         int[][] dirs = corners ? dirs26 : dirs6;
 
-        Set<Long> visited = new HashSet<Long>();
-        Queue<long[]> queue = new LinkedList<long[]>();
-        Set<Long> result = new HashSet<Long>();
+        Set<Long> visited = new HashSet<>();
+        Queue<long[]> queue = new LinkedList<>();
+        Set<Long> result = new HashSet<>();
 
         visited.add(pack(sx, sy, sz));
         queue.add(new long[] { sx, sy, sz });
@@ -366,15 +368,8 @@ public class SelectionState {
 
     // ── Inner types ───────────────────────────────────────────────────────────
 
-    public static class BlockData {
-
-        public final Block block;
-        public final int meta;
-
-        public BlockData(Block block, int meta) {
-            this.block = block;
-            this.meta = meta;
-        }
+    @Desugar
+    public record BlockData(Block block, int meta) {
 
         public static final BlockData AIR = new BlockData(Blocks.air, 0);
     }

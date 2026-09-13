@@ -68,11 +68,10 @@ public final class ToolMaskRegistry {
         return mask;
     }
 
-    public MaskFolder createFolder(String baseName) {
+    public void createFolder(String baseName) {
         MaskFolder folder = new MaskFolder(uniqueName(baseName));
         entries.add(folder);
         save();
-        return folder;
     }
 
     public void remove(MaskEntry entry) {

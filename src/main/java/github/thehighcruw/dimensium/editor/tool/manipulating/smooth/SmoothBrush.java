@@ -26,14 +26,13 @@ public class SmoothBrush implements BrushStrategy {
         int ox = mop.blockX, oy = mop.blockY, oz = mop.blockZ;
         int sx = Math.min(bs.brushRadius, 12);
         int sy = Math.min(bs.brushShape.hasHeight ? bs.brushHeight : bs.brushRadius, 12);
-        int sz = sx;
 
         GaussianKernel kernel = GaussianKernel.build(s.smoothStrength * 0.5f + 0.5f);
         int margin = kernel.kR;
         int dimX = 2 * (sx + margin) + 1;
         int dimY = 2 * (sy + margin) + 1;
-        int dimZ = 2 * (sz + margin) + 1;
-        int snStY = dimZ, snStX = dimY * dimZ;
+        int dimZ = 2 * (sx + margin) + 1;
+        int snStX = dimY * dimZ;
         int N = dimX * dimY * dimZ;
 
         int[] snapId = new int[N];
@@ -44,9 +43,9 @@ public class SmoothBrush implements BrushStrategy {
             for (int dy = -(sy + margin); dy <= sy + margin; dy++) {
                 int iy = dy + sy + margin;
                 int wy = oy + dy;
-                int idx0 = ix * snStX + iy * snStY;
-                for (int dz = -(sz + margin); dz <= sz + margin; dz++) {
-                    int idx = idx0 + (dz + sz + margin);
+                int idx0 = ix * snStX + iy * dimZ;
+                for (int dz = -(sx + margin); dz <= sx + margin; dz++) {
+                    int idx = idx0 + (dz + sx + margin);
                     if (wy < worldMinY) {
                         snapId[idx] = -1;
                         snapMeta[idx] = 0;
@@ -62,13 +61,13 @@ public class SmoothBrush implements BrushStrategy {
             }
         }
 
-        int maxPos = (2 * sx + 1) * (2 * sy + 1) * (2 * sz + 1);
+        int maxPos = (2 * sx + 1) * (2 * sy + 1) * (2 * sx + 1);
         int[] pdx = new int[maxPos], pdy = new int[maxPos], pdz = new int[maxPos];
         int[] pCentre = new int[maxPos];
         int posCount = 0, originalSolid = 0;
-        for (int dx = -sx; dx <= sx; dx++) for (int dy = -sy; dy <= sy; dy++) for (int dz = -sz; dz <= sz; dz++) {
-            if (!BrushUtil.inShape(bs.brushShape, dx, dy, dz, sx, sy, sz)) continue;
-            int ci = (dx + sx + margin) * snStX + (dy + sy + margin) * snStY + (dz + sz + margin);
+        for (int dx = -sx; dx <= sx; dx++) for (int dy = -sy; dy <= sy; dy++) for (int dz = -sx; dz <= sx; dz++) {
+            if (!BrushUtil.inShape(bs.brushShape, dx, dy, dz, sx, sy, sx)) continue;
+            int ci = (dx + sx + margin) * snStX + (dy + sy + margin) * dimZ + (dz + sx + margin);
             if (snapId[ci] != 0) originalSolid++;
             pdx[posCount] = dx;
             pdy[posCount] = dy;
@@ -91,14 +90,14 @@ public class SmoothBrush implements BrushStrategy {
         boolean grow = s.smoothModifier == SmoothToolState.SmoothModifier.GROW;
         float invSx = sx > 0 ? 1f / sx : 0f;
         float invSy = sy > 0 ? 1f / sy : 0f;
-        float invSz = sz > 0 ? 1f / sz : 0f;
+        float invSz = sx > 0 ? 1f / sx : 0f;
 
         for (int i = 0; i < posCount; i++) {
             int dx = pdx[i], dy = pdy[i], dz = pdz[i];
             int ci = pCentre[i];
-            int ix = dx + sx + margin, iy = dy + sy + margin, iz = dz + sz + margin;
+            int ix = dx + sx + margin, iy = dy + sy + margin, iz = dz + sx + margin;
 
-            float d = kernel.solidWeight(snapId, ix, iy, iz, snStX, snStY) / kernel.totalWeight;
+            float d = kernel.solidWeight(snapId, ix, iy, iz, snStX, dimZ) / kernel.totalWeight;
 
             if (s.smoothFixEdges) {
                 float r = Math.max(Math.abs(dx) * invSx, Math.max(Math.abs(dy) * invSy, Math.abs(dz) * invSz));
@@ -121,7 +120,7 @@ public class SmoothBrush implements BrushStrategy {
                 for (int ky = -1; ky <= 1; ky++) {
                     int ny = iy + ky;
                     if (ny < 0 || ny >= dimY) continue;
-                    int nyB = nxB + ny * snStY;
+                    int nyB = nxB + ny * dimZ;
                     for (int kz = -1; kz <= 1; kz++) {
                         int nz = iz + kz;
                         if (nz < 0 || nz >= dimZ) continue;

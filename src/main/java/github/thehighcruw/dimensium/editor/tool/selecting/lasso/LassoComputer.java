@@ -5,6 +5,7 @@
 package github.thehighcruw.dimensium.editor.tool.selecting.lasso;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -133,7 +134,7 @@ public final class LassoComputer {
 
         // Per column: sort front-to-back, keep first (lassoDepth + 1) blocks.
         for (List<long[]> list : colCandidates.values()) {
-            list.sort((a, b) -> Double.compare(Double.longBitsToDouble(a[1]), Double.longBitsToDouble(b[1])));
+            list.sort(Comparator.comparingDouble(a -> Double.longBitsToDouble(a[1])));
             int limit = Math.min(list.size(), lassoDepth + 1);
             for (int i = 0; i < limit; i++) {
                 result.add(list.get(i)[0]);

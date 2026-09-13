@@ -5,6 +5,7 @@
 package github.thehighcruw.dimensium.network;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -12,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraft.network.PacketBuffer;
 
@@ -68,7 +68,7 @@ public class PacketBlockList implements IPacket {
 
     @Override
     public void encode(PacketBuffer buf) throws IOException {
-        byte[] nameBytes = action.getBytes("UTF-8");
+        byte[] nameBytes = action.getBytes(StandardCharsets.UTF_8);
         buf.writeShort(nameBytes.length);
         buf.writeBytes(nameBytes);
         buf.writeInt(transactionId);
@@ -82,7 +82,7 @@ public class PacketBlockList implements IPacket {
         int nameLen = buf.readShort() & 0xFFFF;
         byte[] nameBytes = new byte[nameLen];
         buf.readBytes(nameBytes);
-        action = new String(nameBytes, "UTF-8");
+        action = new String(nameBytes, StandardCharsets.UTF_8);
         transactionId = buf.readInt();
         isFinalChunk = buf.readBoolean();
         skipHistory = buf.readBoolean();
@@ -157,8 +157,6 @@ public class PacketBlockList implements IPacket {
             PerfTrace.pop();
             PerfTrace.push("applyBlocks");
             EditHistory.applyBlocks(handler.playerEntity.worldObj, accumulated);
-            PerfTrace.pop();
-            PerfTrace.end(0);
         } else {
             // Enqueue for deferred processing — no world access here so executeServer()
             // returns immediately without stalling the main thread.
@@ -167,13 +165,13 @@ public class PacketBlockList implements IPacket {
             ServerEditQueue.enqueue(
                 pid,
                 handler.playerEntity.worldObj,
-                (EntityPlayerMP) handler.playerEntity,
+                handler.playerEntity,
                 transactionId,
                 fullAction,
                 accumulated);
-            PerfTrace.pop();
-            PerfTrace.end(0);
         }
+        PerfTrace.pop();
+        PerfTrace.end(0);
         return null;
     }
 }

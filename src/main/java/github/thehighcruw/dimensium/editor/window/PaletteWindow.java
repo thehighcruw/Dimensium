@@ -215,9 +215,8 @@ public class PaletteWindow extends ImGuiWindow {
                 List<PaletteCategory> cats = PaletteRegistry.INSTANCE.getCategories();
                 if (!cats.isEmpty() && ImGui.beginMenu(I18n.format("dimensium.palette.context.add_to"))) {
                     for (int c = 0; c < cats.size(); c++) {
-                        final int catIdx = c;
                         if (ImGui.menuItem(cats.get(c).name + "##addto_" + c)) {
-                            PaletteRegistry.INSTANCE.addBlock(catIdx, stack);
+                            PaletteRegistry.INSTANCE.addBlock(c, stack);
                         }
                     }
                     ImGui.endMenu();
@@ -246,7 +245,7 @@ public class PaletteWindow extends ImGuiWindow {
 
     private static byte[] blockToPayload(ItemStack stack) {
         Block b = Block.getBlockFromItem(stack.getItem());
-        String name = (String) Block.blockRegistry.getNameForObject(b);
+        String name = Block.blockRegistry.getNameForObject(b);
         String s = name + ":" + stack.getItemDamage();
         return s.getBytes(java.nio.charset.StandardCharsets.UTF_8);
     }

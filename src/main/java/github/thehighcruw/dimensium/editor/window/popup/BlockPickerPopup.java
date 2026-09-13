@@ -267,6 +267,7 @@ public class BlockPickerPopup {
         return cachedResults;
     }
 
+    @SuppressWarnings("unchecked")
     private List<ItemStack> getAllBlocks() {
         if (allBlocks != null) return allBlocks;
 
@@ -276,9 +277,7 @@ public class BlockPickerPopup {
             if (item == null) continue;
             if (!(item instanceof ItemBlock)) continue;
 
-            List<ItemStack> permutations = new ArrayList<>();
-
-            permutations.addAll(ItemInfo.itemOverrides.get(item));
+            List<ItemStack> permutations = new ArrayList<>(ItemInfo.itemOverrides.get(item));
 
             if (permutations.isEmpty()) {
                 item.getSubItems(item, null, permutations);

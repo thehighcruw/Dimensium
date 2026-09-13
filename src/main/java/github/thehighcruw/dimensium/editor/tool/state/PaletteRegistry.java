@@ -115,7 +115,7 @@ public class PaletteRegistry {
             for (ItemStack s : cat.blocks) {
                 Block b = Block.getBlockFromItem(s.getItem());
                 if (b == null) continue;
-                String blockName = (String) Block.blockRegistry.getNameForObject(b);
+                String blockName = Block.blockRegistry.getNameForObject(b);
                 if (blockName == null) continue;
                 NBTTagCompound blockTag = new NBTTagCompound();
                 blockTag.setString("block", blockName);

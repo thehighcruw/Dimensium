@@ -26,7 +26,7 @@ public class PainterBrush implements BrushStrategy {
         BrushUtil.forBrush(bs, (dx, dy, dz) -> {
             int wx = x + dx, wy = y + dy, wz = z + dz;
             if (world.getBlock(wx, wy, wz) == Blocks.air) return;
-            if (s.painterMaskSurface && !BrushUtil.hasAirNeighbor(world, wx, wy, wz)) return;
+            if (s.painterMaskSurface && BrushUtil.hasSolidNeighbor(world, wx, wy, wz)) return;
             ChangeProposal.write(world, wx, wy, wz, paint, meta);
         });
     }

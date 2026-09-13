@@ -21,9 +21,9 @@ import github.thehighcruw.dimensium.shared.SelectionState;
 public class MagicSelectBrushInput implements BrushInput {
 
     @Override
-    public boolean onMouseClick(int button, Minecraft mc, MovingObjectPosition mop) {
-        if (button != KeyConstants.RMB) return false;
-        if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return false;
+    public void onMouseClick(int button, Minecraft mc, MovingObjectPosition mop) {
+        if (button != KeyConstants.RMB) return;
+        if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return;
         SelectionState sel = SelectionState.INSTANCE;
         MagicSelectToolState ts = MagicSelectToolState.INSTANCE;
         Set<Long> flooded = SelectionState.floodFill(
@@ -39,6 +39,5 @@ public class MagicSelectBrushInput implements BrushInput {
             ts.magicDirection);
         sel.applyOp(ToolMaskRegistry.INSTANCE.filterSelection(flooded), BoxSelectToolState.INSTANCE.booleanOp);
         sel.pendingPos1 = false;
-        return true;
     }
 }

@@ -44,4 +44,9 @@ public abstract class ImGuiWindow {
     public boolean containsMouse(float mx, float my) {
         return isOpen() && mx >= minX && mx < maxX && my >= minY && my < maxY;
     }
+
+    /** Width of this window in ImGui pixel coordinates, as captured last frame. */
+    public float getWidth() {
+        return maxX - minX;
+    }
 }

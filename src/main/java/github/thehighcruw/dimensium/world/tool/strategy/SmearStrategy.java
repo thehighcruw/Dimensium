@@ -55,7 +55,7 @@ public class SmearStrategy implements BuilderToolStrategy {
                 for (int y = 0; y < sel.clipH; y++) {
                     for (int z = 0; z < sel.clipD; z++) {
                         BlockData bd = sel.clipboardGet(x, y, z);
-                        if (bd.block == Blocks.air) continue;
+                        if (bd.block() == Blocks.air) continue;
                         int px = baseX + x, py = baseY + y, pz = baseZ + z;
                         boolean inOrigSel = px >= sel.minX() && px <= sel.maxX()
                             && py >= sel.minY()
@@ -63,7 +63,7 @@ public class SmearStrategy implements BuilderToolStrategy {
                             && pz >= sel.minZ()
                             && pz <= sel.maxZ();
                         if (!inOrigSel && world.getBlock(px, py, pz) != Blocks.air) continue;
-                        ops.add(new int[] { px, py, pz, Block.getIdFromBlock(bd.block), bd.meta });
+                        ops.add(new int[] { px, py, pz, Block.getIdFromBlock(bd.block()), bd.meta() });
                     }
                 }
             }
@@ -109,7 +109,7 @@ public class SmearStrategy implements BuilderToolStrategy {
                 for (int y = 0; y < sel.clipH; y++) {
                     for (int z = 0; z < sel.clipD; z++) {
                         BlockData bd = sel.clipboardGet(x, y, z);
-                        if (bd.block == Blocks.air) continue;
+                        if (bd.block() == Blocks.air) continue;
                         int px = baseX + x, py = baseY + y, pz = baseZ + z;
                         boolean inOrigSel = px >= sel.minX() && px <= sel.maxX()
                             && py >= sel.minY()
@@ -119,7 +119,7 @@ public class SmearStrategy implements BuilderToolStrategy {
                         if (!inOrigSel) {
                             p.proposed.put(
                                 ChangeProposal.packKey(px, py, pz),
-                                new int[] { Block.getIdFromBlock(bd.block), bd.meta });
+                                new int[] { Block.getIdFromBlock(bd.block()), bd.meta() });
                         }
                         if (p.proposed.size() > DimensiumConfig.smearBlockCap) break outer;
                     }

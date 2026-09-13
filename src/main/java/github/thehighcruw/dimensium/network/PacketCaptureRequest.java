@@ -6,7 +6,6 @@ package github.thehighcruw.dimensium.network;
 
 import java.io.IOException;
 
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraft.network.PacketBuffer;
 
@@ -71,7 +70,7 @@ public class PacketCaptureRequest implements IPacket {
                 handler.playerEntity.getCommandSenderName());
             return null;
         }
-        ServerCaptureQueue.enqueue((EntityPlayerMP) handler.playerEntity, txId, minX, minY, minZ, maxX, maxY, maxZ);
+        ServerCaptureQueue.enqueue(handler.playerEntity, txId, minX, minY, minZ, maxX, maxY, maxZ);
         return null;
     }
 }

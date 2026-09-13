@@ -41,38 +41,38 @@ public class FillBrushInput implements BrushInput {
     }
 
     @Override
-    public boolean onMouseClick(int button, Minecraft mc, MovingObjectPosition mop) {
+    public void onMouseClick(int button, Minecraft mc, MovingObjectPosition mop) {
         if (button == KeyConstants.LMB) {
             GuiDimensiumOverlay.cancelFillPreview();
-            return true;
+            return;
         }
-        if (button != KeyConstants.RMB) return false;
+        if (button != KeyConstants.RMB) return;
 
         if (BuilderToolState.INSTANCE.fillPreview != null) {
             sendFillPackets();
             BuilderToolState.INSTANCE.fillPreview = null;
-            return true;
+            return;
         }
 
-        if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return false;
+        if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return;
 
         int[] faceOffsets = ExtrudeHelper.sideToOutwardDir(mop.sideHit);
         int airX = mop.blockX + faceOffsets[0];
         int airY = mop.blockY + faceOffsets[1];
         int airZ = mop.blockZ + faceOffsets[2];
-        if (airY < 0 || airY > 255) return false;
-        if (mc.theWorld.getBlock(airX, airY, airZ) != Blocks.air) return false;
+        if (airY < 0 || airY > 255) return;
+        if (mc.theWorld.getBlock(airX, airY, airZ) != Blocks.air) return;
 
         FloodfillToolState ts = FloodfillToolState.INSTANCE;
         boolean goDown = ts.floodfillDir == FloodfillToolState.FloodfillDir.DOWN;
         Set<Long> airBlocks = SelectionState
             .floodFillAir(mc.theWorld, airX, airY, airZ, ts.floodfillLimit, goDown, ts.floodfillCorners);
-        if (airBlocks.isEmpty()) return false;
+        if (airBlocks.isEmpty()) return;
 
         ItemStack picked = SelectedBlockState.INSTANCE.selectedBlock;
-        if (picked == null) return false;
+        if (picked == null) return;
         Block paintBlock = Block.getBlockFromItem(picked.getItem());
-        if (paintBlock == null || paintBlock == Blocks.air) return false;
+        if (paintBlock == null || paintBlock == Blocks.air) return;
         int paintMeta = picked.getItemDamage();
         int paintId = Block.getIdFromBlock(paintBlock);
 
@@ -84,7 +84,6 @@ public class FillBrushInput implements BrushInput {
             p.proposed.put(ChangeProposal.packKey(bx, by, bz), new int[] { paintId, paintMeta });
         }
         BuilderToolState.INSTANCE.fillPreview = p;
-        return true;
     }
 
     private static void sendFillPackets() {

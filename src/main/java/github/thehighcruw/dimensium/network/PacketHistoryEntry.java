@@ -5,6 +5,7 @@
 package github.thehighcruw.dimensium.network;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -84,7 +85,7 @@ public class PacketHistoryEntry implements IPacket {
         buf.writeInt(txId);
         buf.writeBoolean(isFinalChunk);
         buf.writeBoolean(includesAfter);
-        byte[] nameBytes = action.getBytes("UTF-8");
+        byte[] nameBytes = action.getBytes(StandardCharsets.UTF_8);
         buf.writeShort(nameBytes.length);
         buf.writeBytes(nameBytes);
         PacketBlockList.encodeBlocks(buf, beforeChunk);
@@ -99,7 +100,7 @@ public class PacketHistoryEntry implements IPacket {
         int nameLen = buf.readShort() & 0xFFFF;
         byte[] nameBytes = new byte[nameLen];
         buf.readBytes(nameBytes);
-        action = new String(nameBytes, "UTF-8");
+        action = new String(nameBytes, StandardCharsets.UTF_8);
         beforeChunk = PacketBlockList.decodeBlocks(buf);
         afterChunk = includesAfter ? PacketBlockList.decodeBlocks(buf) : new ArrayList<>();
     }

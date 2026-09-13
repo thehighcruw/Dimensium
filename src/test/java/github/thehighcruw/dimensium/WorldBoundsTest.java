@@ -73,38 +73,38 @@ public class WorldBoundsTest {
      * if (y < 0 || y >= worldHeight) return / continue;
      * These tests verify the predicate directly, decoupled from the World class.
      */
-    private static boolean inBounds(int y, int worldHeight) {
-        return !(y < 0 || y >= worldHeight);
+    private static boolean inBounds(int y) {
+        return !(y < 0 || y >= 256);
     }
 
     @Test
     public void boundsGuardRejectsNegativeY() {
-        assertFalse(inBounds(-1, 256));
-        assertFalse(inBounds(-5, 256));
-        assertFalse(inBounds(-255, 256));
+        assertFalse(inBounds(-1));
+        assertFalse(inBounds(-5));
+        assertFalse(inBounds(-255));
     }
 
     @Test
     public void boundsGuardRejectsYAtOrAboveHeight() {
-        assertFalse(inBounds(256, 256));
-        assertFalse(inBounds(257, 256));
-        assertFalse(inBounds(300, 256));
+        assertFalse(inBounds(256));
+        assertFalse(inBounds(257));
+        assertFalse(inBounds(300));
     }
 
     @Test
     public void boundsGuardAcceptsValidY() {
-        assertTrue(inBounds(0, 256));
-        assertTrue(inBounds(1, 256));
-        assertTrue(inBounds(64, 256));
-        assertTrue(inBounds(255, 256));
+        assertTrue(inBounds(0));
+        assertTrue(inBounds(1));
+        assertTrue(inBounds(64));
+        assertTrue(inBounds(255));
     }
 
     @Test
     public void boundsGuardBoundaryExact() {
         // y=0 is valid, y=-1 is not. y=255 is valid, y=256 is not.
-        assertTrue(inBounds(0, 256));
-        assertFalse(inBounds(-1, 256));
-        assertTrue(inBounds(255, 256));
-        assertFalse(inBounds(256, 256));
+        assertTrue(inBounds(0));
+        assertFalse(inBounds(-1));
+        assertTrue(inBounds(255));
+        assertFalse(inBounds(256));
     }
 }

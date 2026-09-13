@@ -40,29 +40,34 @@ public class DimensiumImGuiGlRenderer {
     private boolean useVao;
     private int fontTexture;
 
-    private static final String VERT_SRC = "#version 120\n" + "uniform mat4 ProjMtx;\n"
-        + "attribute vec2 Position;\n"
-        + "attribute vec2 UV;\n"
-        + "attribute vec4 Color;\n"
-        + "varying vec2 Frag_UV;\n"
-        + "varying vec4 Frag_Color;\n"
-        + "void main() {\n"
-        + "  Frag_UV = UV;\n"
-        + "  Frag_Color = Color;\n"
-        + "  gl_Position = ProjMtx * vec4(Position.xy, 0, 1);\n"
-        + "}\n";
+    private static final String VERT_SRC = """
+        #version 120
+        uniform mat4 ProjMtx;
+        attribute vec2 Position;
+        attribute vec2 UV;
+        attribute vec4 Color;
+        varying vec2 Frag_UV;
+        varying vec4 Frag_Color;
+        void main() {
+          Frag_UV = UV;
+          Frag_Color = Color;
+          gl_Position = ProjMtx * vec4(Position.xy, 0, 1);
+        }
+        """;
 
-    private static final String FRAG_SRC = "#version 120\n" + "uniform sampler2D Texture;\n"
-        + "varying vec2 Frag_UV;\n"
-        + "varying vec4 Frag_Color;\n"
-        + "void main() {\n"
-        + "  gl_FragColor = Frag_Color * texture2D(Texture, Frag_UV.st);\n"
-        + "}\n";
+    private static final String FRAG_SRC = """
+        #version 120
+        uniform sampler2D Texture;
+        varying vec2 Frag_UV;
+        varying vec4 Frag_Color;
+        void main() {
+          gl_FragColor = Frag_Color * texture2D(Texture, Frag_UV.st);
+        }
+        """;
 
-    public boolean init() {
+    public void init() {
         createDeviceObjects();
         createFontsTexture();
-        return true;
     }
 
     private int compileShader(int type, String src) {
@@ -111,7 +116,6 @@ public class DimensiumImGuiGlRenderer {
         // Try VAO paths: ARB extension → APPLE extension (macOS) → GL30 core → none.
         // LWJGL2's GL30 shim checks capability flags that may be unset even if the context
         // supports VAOs; ARB/APPLE paths bypass that check.
-        useVao = false;
         try {
             vaoHandle = ARBVertexArrayObject.glGenVertexArrays();
             ARBVertexArrayObject.glBindVertexArray(vaoHandle);
@@ -148,14 +152,14 @@ public class DimensiumImGuiGlRenderer {
         try {
             ARBVertexArrayObject.glBindVertexArray(id);
             return;
-        } catch (Exception | Error e1) {}
+        } catch (Exception | Error ignored) {}
         try {
             APPLEVertexArrayObject.glBindVertexArrayAPPLE(id);
             return;
-        } catch (Exception | Error e2) {}
+        } catch (Exception | Error ignored) {}
         try {
             GL30.glBindVertexArray(id);
-        } catch (Exception | Error e3) {}
+        } catch (Exception | Error ignored) {}
     }
 
     public void rebuildFontTexture() {
@@ -233,11 +237,12 @@ public class DimensiumImGuiGlRenderer {
 
         GL11.glViewport(0, 0, fbW, fbH);
 
-        float l = dispX, r = dispX + dispW, t = dispY, b = dispY + dispH;
+        float r = dispX + dispW;
+        float b = dispY + dispH;
         projBuf.clear();
         projBuf.put(
-            new float[] { 2f / (r - l), 0, 0, 0, 0, 2f / (t - b), 0, 0, 0, 0, -1, 0, (r + l) / (l - r),
-                (t + b) / (b - t), 0, 1 });
+            new float[] { 2f / (r - dispX), 0, 0, 0, 0, 2f / (dispY - b), 0, 0, 0, 0, -1, 0, (r + dispX) / (dispX - r),
+                (dispY + b) / (b - dispY), 0, 1 });
         projBuf.flip();
 
         GL20.glUseProgram(program);

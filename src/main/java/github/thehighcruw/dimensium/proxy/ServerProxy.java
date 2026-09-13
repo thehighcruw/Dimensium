@@ -23,6 +23,4 @@ public class ServerProxy implements IProxy {
     @Override
     public void postInit() {}
 
-    @Override
-    public void loadComplete() {}
 }

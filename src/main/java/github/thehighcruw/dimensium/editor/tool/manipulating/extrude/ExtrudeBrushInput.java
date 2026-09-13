@@ -21,10 +21,9 @@ public class ExtrudeBrushInput implements BrushInput {
     private ExtrudeBrushInput() {}
 
     @Override
-    public boolean onMouseClick(int button, Minecraft mc, MovingObjectPosition mop) {
-        if (button != KeyConstants.RMB) return false;
-        if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return false;
+    public void onMouseClick(int button, Minecraft mc, MovingObjectPosition mop) {
+        if (button != KeyConstants.RMB) return;
+        if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return;
         ExtrudeHelper.applyExtrudeAt(mc.theWorld, mop.blockX, mop.blockY, mop.blockZ, mop.sideHit);
-        return true;
     }
 }

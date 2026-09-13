@@ -71,7 +71,7 @@ public class BuilderToolsHandler {
         if (bts.phase == Phase.MANIPULATING) {
             PerfTrace.begin("builder MANIPULATING release");
             PerfTrace.push("confirmOperation");
-            confirmOperation(bts, SelectionState.INSTANCE);
+            confirmOperation(bts);
             PerfTrace.pop();
             PerfTrace.push("resetPhase");
             bts.resetPhase();
@@ -124,9 +124,9 @@ public class BuilderToolsHandler {
         }
     }
 
-    private void confirmOperation(BuilderToolState bts, SelectionState sel) {
-        if (sel.clipboard == null) return;
-        BuilderToolApplicator.confirm(bts.activeTool, bts, sel);
+    private void confirmOperation(BuilderToolState bts) {
+        if (SelectionState.INSTANCE.clipboard == null) return;
+        BuilderToolApplicator.confirm(bts.activeTool, bts, SelectionState.INSTANCE);
     }
 
     /** Builds the smear preview proposal for the block under the cursor. Called each render frame. */

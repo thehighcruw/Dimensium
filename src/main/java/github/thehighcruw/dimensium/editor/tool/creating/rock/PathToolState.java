@@ -90,7 +90,7 @@ public class PathToolState {
             ItemStack b = points.get(i).block;
             if (ref == null && b != null) return true;
             if (ref != null && b == null) return true;
-            if (ref != null && b != null) {
+            if (ref != null) {
                 if (net.minecraft.block.Block.getBlockFromItem(ref.getItem())
                     != net.minecraft.block.Block.getBlockFromItem(b.getItem())) return true;
                 if (ref.getItemDamage() != b.getItemDamage()) return true;

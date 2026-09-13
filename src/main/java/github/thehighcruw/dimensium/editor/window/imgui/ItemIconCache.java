@@ -45,7 +45,6 @@ public final class ItemIconCache {
     // key = item numeric id * 65536 + damage value
     private final Map<Integer, Integer> cache = new HashMap<>();
     private int fboId = 0;
-    private int depthRboId = 0;
 
     private static int cacheKey(ItemStack stack) {
         return Item.getIdFromItem(stack.getItem()) * 65536 + stack.getItemDamage();
@@ -63,7 +62,7 @@ public final class ItemIconCache {
     private void ensureFBO() {
         if (fboId != 0) return;
         fboId = GL30.glGenFramebuffers();
-        depthRboId = GL30.glGenRenderbuffers();
+        int depthRboId = GL30.glGenRenderbuffers();
         GL30.glBindRenderbuffer(GL30.GL_RENDERBUFFER, depthRboId);
         GL30.glRenderbufferStorage(GL30.GL_RENDERBUFFER, GL14.GL_DEPTH_COMPONENT24, FBO_SIZE, FBO_SIZE);
         GL30.glBindRenderbuffer(GL30.GL_RENDERBUFFER, 0);

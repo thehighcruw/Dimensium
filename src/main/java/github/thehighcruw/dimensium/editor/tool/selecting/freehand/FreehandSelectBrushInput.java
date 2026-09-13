@@ -57,11 +57,10 @@ public class FreehandSelectBrushInput implements BrushInput {
     }
 
     @Override
-    public boolean onMouseClick(int button, Minecraft mc, MovingObjectPosition mop) {
-        if (button != KeyConstants.RMB) return false;
-        if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return false;
+    public void onMouseClick(int button, Minecraft mc, MovingObjectPosition mop) {
+        if (button != KeyConstants.RMB) return;
+        if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return;
         applyBrush(mop);
-        return true;
     }
 
     public void onMouseHeld(int button, MovingObjectPosition mop) {

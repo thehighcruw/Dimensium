@@ -61,9 +61,9 @@ public class GuiGradientHelper extends GuiContainer {
     private boolean dirty = true;
 
     @SuppressWarnings("unchecked")
-    private List<ItemStack>[] candidates = new List[OUTPUT_SLOTS];
-    private int[] cycleIndex = new int[OUTPUT_SLOTS];
-    private ItemStack[] lastInputSnapshot = new ItemStack[INPUT_SLOTS];
+    private final List<ItemStack>[] candidates = new List[OUTPUT_SLOTS];
+    private final int[] cycleIndex = new int[OUTPUT_SLOTS];
+    private final ItemStack[] lastInputSnapshot = new ItemStack[INPUT_SLOTS];
 
     public GuiGradientHelper(EntityPlayer player) {
         super(new GradientHelperContainer(player.inventory));
@@ -110,7 +110,7 @@ public class GuiGradientHelper extends GuiContainer {
             dirty = false;
         }
 
-        drawMcPanel(guiLeft, guiTop, PANEL_W, PANEL_H);
+        drawMcPanel(guiLeft, guiTop);
 
         fontRendererObj.drawString("Gradient Helper", guiLeft + 6, guiTop + 6, C_TEXT);
         fontRendererObj.drawString("Inputs", guiLeft + CONTENT_X, guiTop + INPUT_Y - 9, C_LABEL);
@@ -257,7 +257,7 @@ public class GuiGradientHelper extends GuiContainer {
         double fx = a / 500.0 + fy;
         double fz = fy - b / 200.0;
         double x = labFInv(fx) * 0.95047;
-        double y = labFInv(fy) * 1.00000;
+        double y = labFInv(fy);
         double z = labFInv(fz) * 1.08883;
         double r = delinearize(3.2404542 * x - 1.5371385 * y - 0.4985314 * z);
         double g = delinearize(-0.9692660 * x + 1.8760108 * y + 0.0415560 * z);
@@ -363,12 +363,22 @@ public class GuiGradientHelper extends GuiContainer {
 
     // ── MC drawing helpers ─────────────────────────────────────────────────────
 
-    private void drawMcPanel(int x, int y, int w, int h) {
-        drawRect(x, y, x + w, y + h, C_PANEL);
-        drawRect(x, y, x + w, y + 1, C_PANEL_HI);
-        drawRect(x, y, x + 1, y + h, C_PANEL_HI);
-        drawRect(x, y + h - 1, x + w, y + h, C_PANEL_SH);
-        drawRect(x + w - 1, y, x + w, y + h, C_PANEL_SH);
+    private void drawMcPanel(int x, int y) {
+        drawRect(x, y, x + GuiGradientHelper.PANEL_W, y + GuiGradientHelper.PANEL_H, C_PANEL);
+        drawRect(x, y, x + GuiGradientHelper.PANEL_W, y + 1, C_PANEL_HI);
+        drawRect(x, y, x + 1, y + GuiGradientHelper.PANEL_H, C_PANEL_HI);
+        drawRect(
+            x,
+            y + GuiGradientHelper.PANEL_H - 1,
+            x + GuiGradientHelper.PANEL_W,
+            y + GuiGradientHelper.PANEL_H,
+            C_PANEL_SH);
+        drawRect(
+            x + GuiGradientHelper.PANEL_W - 1,
+            y,
+            x + GuiGradientHelper.PANEL_W,
+            y + GuiGradientHelper.PANEL_H,
+            C_PANEL_SH);
     }
 
     // 18×18 inset — item renders at (x+1, y+1) inside this area
@@ -392,8 +402,7 @@ public class GuiGradientHelper extends GuiContainer {
                     ItemStack copy = inSlot.copy();
                     copy.stackSize = (mouseButton == KeyConstants.LMB) ? inSlot.getMaxStackSize() : 1;
                     mc.thePlayer.inventory.setItemStack(copy);
-                    ((EntityClientPlayerMP) mc.thePlayer).sendQueue
-                        .addToSendQueue(new C10PacketCreativeInventoryAction(-1, copy));
+                    mc.thePlayer.sendQueue.addToSendQueue(new C10PacketCreativeInventoryAction(-1, copy));
                 }
                 return;
             }
@@ -401,10 +410,8 @@ public class GuiGradientHelper extends GuiContainer {
         super.mouseClicked(mouseX, mouseY, mouseButton);
     }
 
-    @SuppressWarnings("unchecked")
     private Slot getSlotUnderMouse(int mouseX, int mouseY) {
-        for (Object o : inventorySlots.inventorySlots) {
-            Slot s = (Slot) o;
+        for (Slot s : inventorySlots.inventorySlots) {
             if (mouseX >= guiLeft + s.xDisplayPosition && mouseX < guiLeft + s.xDisplayPosition + 16
                 && mouseY >= guiTop + s.yDisplayPosition
                 && mouseY < guiTop + s.yDisplayPosition + 16) {
@@ -412,11 +419,6 @@ public class GuiGradientHelper extends GuiContainer {
             }
         }
         return null;
-    }
-
-    @Override
-    public boolean doesGuiPauseGame() {
-        return false;
     }
 
     private GradientHelperContainer gradientContainer() {

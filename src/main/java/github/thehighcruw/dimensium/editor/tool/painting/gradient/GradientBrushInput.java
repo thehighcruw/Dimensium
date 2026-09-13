@@ -25,15 +25,14 @@ public class GradientBrushInput implements BrushInput {
     }
 
     @Override
-    public boolean onMouseClick(int button, Minecraft mc, MovingObjectPosition mop) {
-        if (button != KeyConstants.LMB) return false;
-        if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return false;
+    public void onMouseClick(int button, Minecraft mc, MovingObjectPosition mop) {
+        if (button != KeyConstants.LMB) return;
+        if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return;
         GradientToolState gs = GradientToolState.INSTANCE;
         gs.gradientHasPos1 = true;
         gs.gradientPos1X = mop.blockX;
         gs.gradientPos1Y = mop.blockY;
         gs.gradientPos1Z = mop.blockZ;
-        return true;
     }
 
     @Override

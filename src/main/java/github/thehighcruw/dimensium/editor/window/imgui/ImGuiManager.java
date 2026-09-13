@@ -8,7 +8,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.ArrayDeque;
+import java.util.Objects;
 import java.util.Queue;
+
+import javax.annotation.Nonnull;
 
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
@@ -66,8 +69,8 @@ public final class ImGuiManager {
     private static final float FONT_SIZE_BASE_PX = 24f;
     private File fontTempFile = null;
 
-    private File ensureFontFile() {
-        if (fontTempFile != null && fontTempFile.exists()) return fontTempFile;
+    private void ensureFontFile() {
+        if (fontTempFile != null && fontTempFile.exists()) return;
         try {
             fontTempFile = File.createTempFile("dimensium-font-", ".ttf");
             fontTempFile.deleteOnExit();
@@ -75,13 +78,13 @@ public final class ImGuiManager {
                 FileOutputStream out = new FileOutputStream(fontTempFile)) {
                 byte[] buf = new byte[4096];
                 int n;
-                while ((n = in.read(buf)) != -1) out.write(buf, 0, n);
+                while ((n = Objects.requireNonNull(in)
+                    .read(buf)) != -1) out.write(buf, 0, n);
             }
         } catch (Exception e) {
             github.thehighcruw.dimensium.Dimensium.logger.error("Failed to extract font to temp file", e);
             fontTempFile = null;
         }
-        return fontTempFile;
     }
 
     public void ensureInit() {
@@ -281,21 +284,7 @@ public final class ImGuiManager {
 
     private void applyStyle() {
         ImGui.styleColorsDark();
-        ImGuiStyle style = ImGui.getStyle();
-        style.setWindowRounding(0f);
-        style.setChildRounding(0f);
-        style.setFrameRounding(0f);
-        style.setScrollbarRounding(0f);
-        style.setGrabRounding(0f);
-        style.setPopupRounding(0f);
-        style.setTabRounding(0f);
-        style.setWindowBorderSize(0f);
-        style.setDisplaySafeAreaPadding(0f, 0f);
-        style.setFramePadding(6f * uiScale, 3f * uiScale);
-        style.setItemSpacing(6f * uiScale, 4f * uiScale);
-        style.setWindowPadding(8f * uiScale, 8f * uiScale);
-        style.setScrollbarSize(14f * uiScale);
-        style.setGrabMinSize(10f * uiScale);
+        ImGuiStyle style = getStyle();
 
         style.setColor(ImGuiCol.Text, 1.00f, 1.00f, 1.00f, 1.00f);
         style.setColor(ImGuiCol.WindowBg, 0.055f, 0.055f, 0.078f, 1.00f);
@@ -321,5 +310,25 @@ public final class ImGuiManager {
         style.setColor(ImGuiCol.ScrollbarGrab, 0.20f, 0.20f, 0.27f, 1.00f);
         style.setColor(ImGuiCol.ScrollbarGrabHovered, 0.30f, 0.30f, 0.40f, 1.00f);
         style.setColor(ImGuiCol.ScrollbarGrabActive, 0.24f, 0.50f, 1.00f, 1.00f);
+    }
+
+    @Nonnull
+    private ImGuiStyle getStyle() {
+        ImGuiStyle style = ImGui.getStyle();
+        style.setWindowRounding(0f);
+        style.setChildRounding(0f);
+        style.setFrameRounding(0f);
+        style.setScrollbarRounding(0f);
+        style.setGrabRounding(0f);
+        style.setPopupRounding(0f);
+        style.setTabRounding(0f);
+        style.setWindowBorderSize(0f);
+        style.setDisplaySafeAreaPadding(0f, 0f);
+        style.setFramePadding(6f * uiScale, 3f * uiScale);
+        style.setItemSpacing(6f * uiScale, 4f * uiScale);
+        style.setWindowPadding(8f * uiScale, 8f * uiScale);
+        style.setScrollbarSize(14f * uiScale);
+        style.setGrabMinSize(10f * uiScale);
+        return style;
     }
 }

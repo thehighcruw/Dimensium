@@ -73,7 +73,7 @@ public final class LayoutPresetRegistry {
                                 .length() - EXT.length()));
             }
         }
-        Collections.sort(names, String.CASE_INSENSITIVE_ORDER);
+        names.sort(String.CASE_INSENSITIVE_ORDER);
         return names;
     }
 
@@ -116,30 +116,27 @@ public final class LayoutPresetRegistry {
         activePreset = name;
     }
 
-    public boolean load(String name) {
+    public void load(String name) {
         File f = new File(DIR, name + EXT);
-        if (!f.isFile()) return false;
+        if (!f.isFile()) return;
         String content = readFile(f);
-        if (content == null) return false;
+        if (content == null) return;
         ImGui.loadIniSettingsFromMemory(content);
         applyWindowStates(content);
         activePreset = name;
-        return true;
     }
 
-    public boolean rename(String oldName, String newName) {
+    public void rename(String oldName, String newName) {
         File from = new File(DIR, oldName + EXT);
         File to = new File(DIR, newName + EXT);
-        if (!from.isFile() || to.exists()) return false;
+        if (!from.isFile() || to.exists()) return;
         boolean ok = from.renameTo(to);
         if (ok && oldName.equals(activePreset)) activePreset = newName;
-        return ok;
     }
 
-    public boolean delete(String name) {
+    public void delete(String name) {
         boolean ok = new File(DIR, name + EXT).delete();
         if (ok && name.equals(activePreset)) activePreset = null;
-        return ok;
     }
 
     private void applyWindowStates(String content) {

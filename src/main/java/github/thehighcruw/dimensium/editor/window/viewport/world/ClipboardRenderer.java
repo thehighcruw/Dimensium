@@ -33,7 +33,6 @@ public class ClipboardRenderer {
 
     private int fboId = -1;
     private int texId = -1;
-    private int depthId = -1;
     private int whiteLightmap = -1; // 1x1 white texture bound on lightmap unit
     private int lastVersion = -2;
     public boolean fboFailed = false;
@@ -99,7 +98,7 @@ public class ClipboardRenderer {
             GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
             fboId = EXTFramebufferObject.glGenFramebuffersEXT();
             texId = GL11.glGenTextures();
-            depthId = EXTFramebufferObject.glGenRenderbuffersEXT();
+            int depthId = EXTFramebufferObject.glGenRenderbuffersEXT();
 
             GL11.glBindTexture(GL11.GL_TEXTURE_2D, texId);
             GL11.glTexImage2D(
@@ -250,8 +249,8 @@ public class ClipboardRenderer {
                 int y = (int) (key >> 10) & 0x3FF;
                 int z = (int) key & 0x3FF;
                 SelectionState.BlockData bd = entry.getValue();
-                if (bd != null && bd.block != Blocks.air) {
-                    rb.renderBlockByRenderType(bd.block, x, y, z);
+                if (bd != null && bd.block() != Blocks.air) {
+                    rb.renderBlockByRenderType(bd.block(), x, y, z);
                 }
             }
 

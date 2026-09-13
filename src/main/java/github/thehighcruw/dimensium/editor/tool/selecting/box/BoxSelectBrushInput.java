@@ -23,7 +23,7 @@ import github.thehighcruw.dimensium.shared.SelectionState;
 public class BoxSelectBrushInput implements BrushInput {
 
     @Override
-    public boolean onMouseClick(int button, Minecraft mc, MovingObjectPosition mop) {
+    public void onMouseClick(int button, Minecraft mc, MovingObjectPosition mop) {
         FreecamState fs = FreecamState.INSTANCE;
         int mouseX = (int) fs.cursorX, mouseY = (int) fs.cursorY;
 
@@ -37,22 +37,22 @@ public class BoxSelectBrushInput implements BrushInput {
                     if (SelectionRenderer.boxPos1Gizmo.hoveredAxis != TranslationGizmo.Axis.NONE) {
                         double gx = sel.pendingX + 0.5, gy = sel.pendingY + 0.5, gz = sel.pendingZ + 0.5;
                         SelectionRenderer.boxPos1Gizmo.startDrag(mouseX, mouseY, gx, gy, gz, gx, gy, gz, 0, 0, 0);
-                        return true;
+                        return;
                     }
                     if (SelectionRenderer.boxPos1PlaneGizmo.hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
                         double gx = sel.pendingX + 0.5, gy = sel.pendingY + 0.5, gz = sel.pendingZ + 0.5;
                         SelectionRenderer.boxPos1PlaneGizmo.startDrag(mouseX, mouseY, gx, gy, gz, gx, gy, gz, 0, 0, 0);
-                        return true;
+                        return;
                     }
                     if (SelectionRenderer.boxPos2Gizmo.hoveredAxis != TranslationGizmo.Axis.NONE) {
                         double gx = sel.pendingX2 + 0.5, gy = sel.pendingY2 + 0.5, gz = sel.pendingZ2 + 0.5;
                         SelectionRenderer.boxPos2Gizmo.startDrag(mouseX, mouseY, gx, gy, gz, gx, gy, gz, 0, 0, 0);
-                        return true;
+                        return;
                     }
                     if (SelectionRenderer.boxPos2PlaneGizmo.hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
                         double gx = sel.pendingX2 + 0.5, gy = sel.pendingY2 + 0.5, gz = sel.pendingZ2 + 0.5;
                         SelectionRenderer.boxPos2PlaneGizmo.startDrag(mouseX, mouseY, gx, gy, gz, gx, gy, gz, 0, 0, 0);
-                        return true;
+                        return;
                     }
                     if (SelectionRenderer.boxCenterViewPlaneGizmo.hovered) {
                         double cxW = (sel.pendingX + sel.pendingX2) / 2.0 + 0.5;
@@ -66,7 +66,7 @@ public class BoxSelectBrushInput implements BrushInput {
                         SelectionRenderer.INSTANCE.boxCenterDragP2Z = sel.pendingZ2;
                         SelectionRenderer.boxCenterViewPlaneGizmo
                             .startDrag(mouseX, mouseY, eye, cxW, cyW, czW, cxW, cyW, czW);
-                        return true;
+                        return;
                     }
                     if (SelectionRenderer.boxCenterGizmo.hoveredAxis != TranslationGizmo.Axis.NONE) {
                         double cxW = (sel.pendingX + sel.pendingX2) / 2.0 + 0.5;
@@ -80,7 +80,7 @@ public class BoxSelectBrushInput implements BrushInput {
                         SelectionRenderer.INSTANCE.boxCenterDragP2Z = sel.pendingZ2;
                         SelectionRenderer.boxCenterGizmo
                             .startDrag(mouseX, mouseY, cxW, cyW, czW, cxW, cyW, czW, 0, 0, 0);
-                        return true;
+                        return;
                     }
                     if (SelectionRenderer.boxCenterPlaneGizmo.hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
                         double cxW = (sel.pendingX + sel.pendingX2) / 2.0 + 0.5;
@@ -94,24 +94,22 @@ public class BoxSelectBrushInput implements BrushInput {
                         SelectionRenderer.INSTANCE.boxCenterDragP2Z = sel.pendingZ2;
                         SelectionRenderer.boxCenterPlaneGizmo
                             .startDrag(mouseX, mouseY, cxW, cyW, czW, cxW, cyW, czW, 0, 0, 0);
-                        return true;
+                        return;
                     }
                 }
                 GuiDimensiumOverlay.commitBoxSelection(sel, ts);
             }
-            return true;
+            return;
         }
 
-        if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return false;
+        if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return;
 
         if (button == KeyConstants.RMB) {
             sel.pendingPos1 = true;
-            sel.boxConfirmed = false;
             sel.pendingX = mop.blockX;
             sel.pendingY = mop.blockY;
             sel.pendingZ = mop.blockZ;
         }
-        return true;
     }
 
     @Override

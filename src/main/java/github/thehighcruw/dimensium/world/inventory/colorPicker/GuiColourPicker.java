@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.client.gui.inventory.GuiContainer;
@@ -170,7 +172,7 @@ public class GuiColourPicker extends GuiContainer {
         }
 
         // MC-style raised panel
-        drawMcPanel(guiLeft, guiTop, PANEL_W, PANEL_H);
+        drawMcPanel(guiLeft, guiTop);
 
         // Title
         fontRendererObj.drawString("Colour Picker", guiLeft + 6, guiTop + 6, C_TEXT);
@@ -202,7 +204,7 @@ public class GuiColourPicker extends GuiContainer {
         sy += 4;
         sy = drawSliderRow(sliderH, slidX, sy, "H");
         sy = drawSliderRow(sliderS, slidX, sy, "S");
-        sy = drawSliderRow(sliderBr, slidX, sy, "B");
+        drawSliderRow(sliderBr, slidX, sy, "B");
 
         // Color preview swatch — inset, 16×16
         int rgb = hsbToRgb(hue, sat, bri);
@@ -243,9 +245,7 @@ public class GuiColourPicker extends GuiContainer {
     }
 
     private void drawFsotTooltip(int mouseX, int mouseY) {
-        for (Object obj : buttonList) {
-            if (!(obj instanceof GuiButton)) continue;
-            GuiButton btn = (GuiButton) obj;
+        for (GuiButton btn : buttonList) {
             if (mouseX >= btn.xPosition && mouseX < btn.xPosition + btn.width
                 && mouseY >= btn.yPosition
                 && mouseY < btn.yPosition + btn.height) {
@@ -269,12 +269,22 @@ public class GuiColourPicker extends GuiContainer {
     }
 
     /** Classic MC raised panel (highlight top-left, shadow bottom-right). */
-    private void drawMcPanel(int x, int y, int w, int h) {
-        drawRect(x, y, x + w, y + h, C_PANEL);
-        drawRect(x, y, x + w, y + 2, C_PANEL_HI);
-        drawRect(x, y, x + 2, y + h, C_PANEL_HI);
-        drawRect(x, y + h - 2, x + w, y + h, C_PANEL_SH);
-        drawRect(x + w - 2, y, x + w, y + h, C_PANEL_SH);
+    private void drawMcPanel(int x, int y) {
+        drawRect(x, y, x + GuiColourPicker.PANEL_W, y + GuiColourPicker.PANEL_H, C_PANEL);
+        drawRect(x, y, x + GuiColourPicker.PANEL_W, y + 2, C_PANEL_HI);
+        drawRect(x, y, x + 2, y + GuiColourPicker.PANEL_H, C_PANEL_HI);
+        drawRect(
+            x,
+            y + GuiColourPicker.PANEL_H - 2,
+            x + GuiColourPicker.PANEL_W,
+            y + GuiColourPicker.PANEL_H,
+            C_PANEL_SH);
+        drawRect(
+            x + GuiColourPicker.PANEL_W - 2,
+            y,
+            x + GuiColourPicker.PANEL_W,
+            y + GuiColourPicker.PANEL_H,
+            C_PANEL_SH);
     }
 
     /** Classic MC inset area (shadow top-left, highlight bottom-right). */
@@ -361,6 +371,23 @@ public class GuiColourPicker extends GuiContainer {
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glShadeModel(GL11.GL_SMOOTH);
 
+        Tessellator t = getTessellator(x, y, stops);
+        t.draw();
+
+        GL11.glEnable(GL11.GL_TEXTURE_2D);
+        GL11.glShadeModel(GL11.GL_FLAT);
+        GL11.glDisable(GL11.GL_DEPTH_TEST);
+
+        int my = y + (int) (hue * SV_SIZE);
+        drawRect(x, my - 1, x + HUE_W, my, 0x80000000);
+        drawRect(x, my, x + HUE_W, my + 2, 0xFFFFFFFF);
+        drawRect(x, my + 2, x + HUE_W, my + 3, 0x80000000);
+
+        GL11.glEnable(GL11.GL_DEPTH_TEST);
+    }
+
+    @Nonnull
+    private static Tessellator getTessellator(int x, int y, float[][] stops) {
         Tessellator t = Tessellator.instance;
         int segs = stops.length - 1;
         t.startDrawingQuads();
@@ -377,18 +404,7 @@ public class GuiColourPicker extends GuiContainer {
             t.setColorRGBA_F(bot[0], bot[1], bot[2], 1f);
             t.addVertex(x, y1, 0);
         }
-        t.draw();
-
-        GL11.glEnable(GL11.GL_TEXTURE_2D);
-        GL11.glShadeModel(GL11.GL_FLAT);
-        GL11.glDisable(GL11.GL_DEPTH_TEST);
-
-        int my = y + (int) (hue * SV_SIZE);
-        drawRect(x, my - 1, x + HUE_W, my, 0x80000000);
-        drawRect(x, my, x + HUE_W, my + 2, 0xFFFFFFFF);
-        drawRect(x, my + 2, x + HUE_W, my + 3, 0x80000000);
-
-        GL11.glEnable(GL11.GL_DEPTH_TEST);
+        return t;
     }
 
     // ── Slider rows ───────────────────────────────────────────────────────────
@@ -402,7 +418,6 @@ public class GuiColourPicker extends GuiContainer {
     // ── Mouse input ───────────────────────────────────────────────────────────
 
     @Override
-    @SuppressWarnings("unchecked")
     protected void mouseClicked(int mouseX, int mouseY, int button) {
         if (button == 0) {
             int svX = guiLeft + SV_REL_X;
@@ -596,32 +611,32 @@ public class GuiColourPicker extends GuiContainer {
             return;
         }
         if (fieldKey(fieldR, typedChar, keyCode)) {
-            parseIntField(fieldR, sliderR, 0, 255);
+            parseIntField(fieldR, sliderR);
             onSliderRgbChanged();
             return;
         }
         if (fieldKey(fieldG, typedChar, keyCode)) {
-            parseIntField(fieldG, sliderG, 0, 255);
+            parseIntField(fieldG, sliderG);
             onSliderRgbChanged();
             return;
         }
         if (fieldKey(fieldB, typedChar, keyCode)) {
-            parseIntField(fieldB, sliderB, 0, 255);
+            parseIntField(fieldB, sliderB);
             onSliderRgbChanged();
             return;
         }
         if (fieldKey(fieldH, typedChar, keyCode)) {
-            parseFloatField(fieldH, sliderH, 0, 360);
+            parseFloatField(fieldH, sliderH, 360);
             onSliderHsbChanged();
             return;
         }
         if (fieldKey(fieldS, typedChar, keyCode)) {
-            parseFloatField(fieldS, sliderS, 0, 100);
+            parseFloatField(fieldS, sliderS, 100);
             onSliderHsbChanged();
             return;
         }
         if (fieldKey(fieldBr, typedChar, keyCode)) {
-            parseFloatField(fieldBr, sliderBr, 0, 100);
+            parseFloatField(fieldBr, sliderBr, 100);
             onSliderHsbChanged();
             return;
         }
@@ -645,24 +660,24 @@ public class GuiColourPicker extends GuiContainer {
         return true;
     }
 
-    private void parseIntField(GuiTextField f, ColourPickerSlider s, int min, int max) {
+    private void parseIntField(GuiTextField f, ColourPickerSlider s) {
         try {
             s.setValue(
                 Math.max(
-                    min,
+                    0,
                     Math.min(
-                        max,
+                        255,
                         Integer.parseInt(
                             f.getText()
                                 .trim()))));
         } catch (NumberFormatException ignored) {}
     }
 
-    private void parseFloatField(GuiTextField f, ColourPickerSlider s, float min, float max) {
+    private void parseFloatField(GuiTextField f, ColourPickerSlider s, float max) {
         try {
             s.setValue(
                 Math.max(
-                    min,
+                    (float) 0,
                     Math.min(
                         max,
                         Float.parseFloat(
@@ -696,11 +711,6 @@ public class GuiColourPicker extends GuiContainer {
         boolean next = !current;
         ((GuiToggleButton) btn).setActive(next);
         return next;
-    }
-
-    @Override
-    public boolean doesGuiPauseGame() {
-        return false;
     }
 
     // ── Colour helpers ────────────────────────────────────────────────────────
@@ -812,10 +822,9 @@ public class GuiColourPicker extends GuiContainer {
         return Math.round(v * 10f) / 10f;
     }
 
-    @SuppressWarnings("unchecked")
     private Slot slotAtPosition(int mx, int my) {
         for (int i = 0; i < inventorySlots.inventorySlots.size(); i++) {
-            Slot s = (Slot) inventorySlots.inventorySlots.get(i);
+            Slot s = inventorySlots.inventorySlots.get(i);
             // Palette slots: exact 16×16 cell. Hotbar slots: registered +1 inside 18×18 frame,
             // so subtract 1 to align hitbox with the visual frame.
             boolean isHotbar = i >= ColourPickerContainer.GRID_PALETTE;

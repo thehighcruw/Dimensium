@@ -14,11 +14,11 @@ import net.minecraft.util.MovingObjectPosition;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.freecam.FreecamState;
+import github.thehighcruw.dimensium.editor.handler.AnchorSnap;
 import github.thehighcruw.dimensium.editor.handler.ExtrudeHelper;
 import github.thehighcruw.dimensium.editor.overlay.GuiDimensiumOverlay;
 import github.thehighcruw.dimensium.editor.tool.BrushInput;
 import github.thehighcruw.dimensium.editor.tool.creating.rock.PathToolState;
-import github.thehighcruw.dimensium.editor.handler.AnchorSnap;
 import github.thehighcruw.dimensium.editor.tool.selecting.SelectedBlockState;
 import github.thehighcruw.dimensium.editor.window.viewport.world.PlaneTranslationGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.TranslationGizmo;
@@ -89,8 +89,7 @@ public class PathBrushInput implements BrushInput {
         PathToolState.PathPoint selPt = pts.selectedPoint();
         if (selPt == null) return;
         if (pts.gizmo.isDragging() || pts.planeGizmo.isDragging()) {
-            double[] anchor = pts.gizmo.isDragging() ? pts.gizmo.updateDrag(mx, my)
-                : pts.planeGizmo.updateDrag(mx, my);
+            double[] anchor = pts.gizmo.isDragging() ? pts.gizmo.updateDrag(mx, my) : pts.planeGizmo.updateDrag(mx, my);
             if (anchor != null) {
                 selPt.x = AnchorSnap.toInt(anchor[0], snap);
                 selPt.y = AnchorSnap.toInt(anchor[1], snap);

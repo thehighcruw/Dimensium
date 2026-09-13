@@ -15,12 +15,8 @@ public interface BrushInput {
 
     /**
      * Handle a mouse button press.
-     * 
-     * @return true to consume the event (cancels default painting).
      */
-    default boolean onMouseClick(int button, Minecraft mc, MovingObjectPosition mop) {
-        return false;
-    }
+    default void onMouseClick(int button, Minecraft mc, MovingObjectPosition mop) {}
 
     /** Whether this tool uses the RMB drag-paint loop in TickHandler. */
     default boolean usesDragLoop() {

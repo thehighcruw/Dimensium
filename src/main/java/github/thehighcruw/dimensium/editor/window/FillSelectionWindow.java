@@ -169,40 +169,30 @@ public class FillSelectionWindow extends ImGuiWindow {
     }
 
     private boolean matchesFillMode(Set<Long> selected, int x, int y, int z, int mode) {
-        switch (mode) {
-            case MODE_FILL_ALL:
-                return true;
-            case MODE_FILL_OUTLINE:
+        return switch (mode) {
+            case MODE_FILL_OUTLINE -> {
                 for (int[] f : FACE_DIRS) {
-                    if (!selected.contains(SelectionState.pack(x + f[0], y + f[1], z + f[2]))) return true;
+                    if (!selected.contains(SelectionState.pack(x + f[0], y + f[1], z + f[2]))) yield true;
                 }
-                return false;
-            case MODE_FILL_WALLS:
-                return !selected.contains(SelectionState.pack(x + 1, y, z))
-                    || !selected.contains(SelectionState.pack(x - 1, y, z))
-                    || !selected.contains(SelectionState.pack(x, y, z + 1))
-                    || !selected.contains(SelectionState.pack(x, y, z - 1));
-            case MODE_FILL_TOP:
-                return !selected.contains(SelectionState.pack(x, y + 1, z));
-            case MODE_FILL_BOTTOM:
-                return !selected.contains(SelectionState.pack(x, y - 1, z));
-            default:
-                return true;
-        }
+                yield false;
+            }
+            case MODE_FILL_WALLS -> !selected.contains(SelectionState.pack(x + 1, y, z))
+                || !selected.contains(SelectionState.pack(x - 1, y, z))
+                || !selected.contains(SelectionState.pack(x, y, z + 1))
+                || !selected.contains(SelectionState.pack(x, y, z - 1));
+            case MODE_FILL_TOP -> !selected.contains(SelectionState.pack(x, y + 1, z));
+            case MODE_FILL_BOTTOM -> !selected.contains(SelectionState.pack(x, y - 1, z));
+            default -> true;
+        };
     }
 
     private String getModeKey(int mode) {
-        switch (mode) {
-            case MODE_FILL_OUTLINE:
-                return "dimensium.op.fill.mode.outline";
-            case MODE_FILL_WALLS:
-                return "dimensium.op.fill.mode.walls";
-            case MODE_FILL_TOP:
-                return "dimensium.op.fill.mode.top";
-            case MODE_FILL_BOTTOM:
-                return "dimensium.op.fill.mode.bottom";
-            default:
-                return "dimensium.op.fill.mode.fill";
-        }
+        return switch (mode) {
+            case MODE_FILL_OUTLINE -> "dimensium.op.fill.mode.outline";
+            case MODE_FILL_WALLS -> "dimensium.op.fill.mode.walls";
+            case MODE_FILL_TOP -> "dimensium.op.fill.mode.top";
+            case MODE_FILL_BOTTOM -> "dimensium.op.fill.mode.bottom";
+            default -> "dimensium.op.fill.mode.fill";
+        };
     }
 }

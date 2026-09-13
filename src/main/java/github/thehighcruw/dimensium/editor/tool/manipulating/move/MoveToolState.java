@@ -169,7 +169,7 @@ public class MoveToolState {
             int nz = (int) Math.floor(cmZ + deltaFZ + rz);
 
             SelectionState.BlockData bd = e.getValue();
-            blocks.add(new int[] { nx, ny, nz, Block.getIdFromBlock(bd.block), bd.meta });
+            blocks.add(new int[] { nx, ny, nz, Block.getIdFromBlock(bd.block()), bd.meta() });
         }
         ghostBlocks = blocks;
 

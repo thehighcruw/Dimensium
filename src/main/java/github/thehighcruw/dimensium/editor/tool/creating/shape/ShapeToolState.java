@@ -67,5 +67,5 @@ public class ShapeToolState {
     public int shapePolygonSides = 6;
     public float shapeSpiralSpacing = 1.0f;
     public float shapeSpiralTurns = 3.0f;
-    public float shapeSupersphereExp = 2.0f;
+    public final float shapeSupersphereExp = 2.0f;
 }

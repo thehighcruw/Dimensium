@@ -155,7 +155,7 @@ public class PacketShapePlacement implements IPacket {
                 handler.playerEntity.getCommandSenderName());
             return null;
         }
-        EntityPlayerMP player = (EntityPlayerMP) handler.playerEntity;
+        EntityPlayerMP player = handler.playerEntity;
         World world = player.worldObj;
 
         int totalWeight = 0;

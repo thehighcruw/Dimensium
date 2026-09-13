@@ -33,10 +33,10 @@ public class GradientHelperContainer extends Container {
         outputInv = new InventoryBasic("gradient_output", false, OUTPUT_SLOTS);
 
         for (int i = 0; i < INPUT_SLOTS; i++) {
-            addSlotToContainer(new SlotGradientInput(inputInv, i, CONTENT_X + i * SLOT_SIZE, INPUT_Y));
+            addSlotToContainer(new SlotGradientInput(inputInv, i, CONTENT_X + i * SLOT_SIZE));
         }
         for (int i = 0; i < OUTPUT_SLOTS; i++) {
-            addSlotToContainer(new SlotGradientOutput(outputInv, i, CONTENT_X + i * SLOT_SIZE, OUTPUT_Y));
+            addSlotToContainer(new SlotGradientOutput(outputInv, i, CONTENT_X + i * SLOT_SIZE));
         }
 
         int hotbarStartX = (PANEL_W - 9 * 18) / 2;

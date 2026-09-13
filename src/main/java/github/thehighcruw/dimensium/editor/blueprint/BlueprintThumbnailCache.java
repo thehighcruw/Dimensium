@@ -16,9 +16,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
+import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
 
 import org.lwjgl.opengl.GL11;
+
+import com.github.bsideup.jabel.Desugar;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -39,26 +42,17 @@ public class BlueprintThumbnailCache {
 
         private int n = 0;
 
-        public Thread newThread(Runnable r) {
+        public Thread newThread(@Nonnull Runnable r) {
             Thread t = new Thread(r, "bp-thumb-decode-" + n++);
             t.setDaemon(true);
             return t;
         }
     });
 
-    private static final class DecodedImage {
+    @Desugar
+    private record DecodedImage(int w, int h, ByteBuffer buf) {}
 
-        final int w, h;
-        final ByteBuffer buf;
-
-        DecodedImage(int w, int h, ByteBuffer buf) {
-            this.w = w;
-            this.h = h;
-            this.buf = buf;
-        }
-    }
-
-    private final Map<File, Integer> cache = new LinkedHashMap<File, Integer>(MAX_ENTRIES, 0.75f, true) {
+    private final Map<File, Integer> cache = new LinkedHashMap<>(MAX_ENTRIES, 0.75f, true) {
 
         protected boolean removeEldestEntry(Map.Entry<File, Integer> eldest) {
             if (size() > MAX_ENTRIES) {

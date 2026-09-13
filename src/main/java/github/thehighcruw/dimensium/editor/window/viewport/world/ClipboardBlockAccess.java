@@ -33,13 +33,13 @@ public class ClipboardBlockAccess implements IBlockAccess {
     @Override
     public Block getBlock(int x, int y, int z) {
         SelectionState.BlockData bd = at(x, y, z);
-        return (bd == null) ? Blocks.air : bd.block;
+        return (bd == null) ? Blocks.air : bd.block();
     }
 
     @Override
     public int getBlockMetadata(int x, int y, int z) {
         SelectionState.BlockData bd = at(x, y, z);
-        return (bd == null) ? 0 : bd.meta;
+        return (bd == null) ? 0 : bd.meta();
     }
 
     @Override
@@ -81,8 +81,9 @@ public class ClipboardBlockAccess implements IBlockAccess {
     @Override
     public boolean isSideSolid(int x, int y, int z, ForgeDirection side, boolean def) {
         SelectionState.BlockData bd = at(x, y, z);
-        if (bd == null || bd.block == Blocks.air) return false;
-        return bd.block.isSideSolid(this, x, y, z, side);
+        if (bd == null || bd.block() == Blocks.air) return false;
+        return bd.block()
+            .isSideSolid(this, x, y, z, side);
     }
 
 }

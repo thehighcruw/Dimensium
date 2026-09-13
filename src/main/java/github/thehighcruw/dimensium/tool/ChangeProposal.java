@@ -18,7 +18,7 @@ import github.thehighcruw.dimensium.editor.tool.mask.ToolMask;
 /**
  * Accumulates block changes for a drag stroke before committing them to the server.
  *
- * While a drag is active ({@link #activeDrag} != null), {@link #write} stores changes
+ * While a drag is active ({@link #getActiveDrag()} != null), {@link #write} stores changes
  * here instead of writing to the world. The real world is never modified during the drag,
  * so every brush stroke within the same drag reads the original pre-drag world state.
  * On RMB release the caller flushes the proposal and sends it as a PacketBlockList.
@@ -39,7 +39,7 @@ public class ChangeProposal {
 
     /** Crease-edge wireframe cache. Recomputed when proposed.size() changes. */
     public float[] cachedWire = null;
-    public int[] wireOrigin = new int[3];
+    public final int[] wireOrigin = new int[3];
     public int wireCacheSize = -1;
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────

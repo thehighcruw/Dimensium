@@ -188,6 +188,8 @@ val imguiVersion = "1.92.7.1"
 // Download and cache it, then substitute it in the mod jar.
 val imguiMacosUniversalDir = layout.buildDirectory.dir("imgui-universal")
 val downloadImguiMacosFat by tasks.registering(DownloadImguiFatTask::class) {
+    description = "Downloads Imgui Fat JAR for all platforms"
+
     version.set(imguiVersion)
     outputFile.set(imguiMacosUniversalDir.map { it.file("libimgui-java64.dylib") })
 }

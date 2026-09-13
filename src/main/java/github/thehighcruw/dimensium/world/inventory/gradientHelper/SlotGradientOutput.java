@@ -11,8 +11,8 @@ import net.minecraft.item.ItemStack;
 
 class SlotGradientOutput extends Slot {
 
-    SlotGradientOutput(IInventory inventory, int slotIndex, int x, int y) {
-        super(inventory, slotIndex, x, y);
+    SlotGradientOutput(IInventory inventory, int slotIndex, int x) {
+        super(inventory, slotIndex, x, GradientHelperContainer.OUTPUT_Y);
     }
 
     @Override

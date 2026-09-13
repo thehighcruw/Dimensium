@@ -69,7 +69,7 @@ public class ElevationBrushInput implements BrushInput {
 
         int sf = RenderUtils.scaleFactor();
         int mx = (int) fs.cursorX, my = (int) fs.cursorY;
-        if (mx * sf < OverlayRenderer.TOOL_WINDOW.currentW || my * sf < (int) MenuBar.INSTANCE.height()) return true;
+        if (mx * sf < OverlayRenderer.TOOL_WINDOW.getWidth() || my * sf < (int) MenuBar.INSTANCE.height()) return true;
 
         MovingObjectPosition mop = GuiDimensiumOverlay.raycastFromMouse(mx, my, sw, sh);
         if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return true;

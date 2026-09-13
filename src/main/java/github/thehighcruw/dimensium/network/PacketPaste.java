@@ -47,8 +47,8 @@ public class PacketPaste implements IPacket {
             int i = x * h * d + y * d + z;
             if (i >= 0 && i < count) {
                 SelectionState.BlockData bd = entry.getValue();
-                blockIds[i] = Block.getIdFromBlock(bd.block);
-                blockMetas[i] = (short) bd.meta;
+                blockIds[i] = Block.getIdFromBlock(bd.block());
+                blockMetas[i] = (short) bd.meta();
             }
         }
     }

@@ -53,12 +53,10 @@ public final class ViewportPanel {
         float scale = ImGuiManager.INSTANCE.getUIScale();
         float defaultLeftW = 400 * scale;
         float defaultRightW = 316 * scale;
-        float vpX = defaultLeftW;
-        float vpY = menuH;
         float vpW = sw - defaultLeftW - defaultRightW;
         float vpH = sh - menuH;
 
-        ImGui.setNextWindowPos(vpX, vpY, ImGuiCond.FirstUseEver);
+        ImGui.setNextWindowPos(defaultLeftW, menuH, ImGuiCond.FirstUseEver);
         ImGui.setNextWindowSize(vpW, vpH, ImGuiCond.FirstUseEver);
 
         // No border on outer window — border is drawn by the child image window only.

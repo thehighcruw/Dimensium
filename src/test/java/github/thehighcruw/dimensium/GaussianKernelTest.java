@@ -6,6 +6,8 @@ package github.thehighcruw.dimensium;
 
 import static org.junit.Assert.*;
 
+import java.util.Arrays;
+
 import org.junit.Test;
 
 import github.thehighcruw.dimensium.editor.tool.brushes.GaussianKernel;
@@ -82,14 +84,14 @@ public class GaussianKernelTest {
         int margin = k.kR;
         // Volume must be at least (2*margin+1)^3 to avoid out-of-bounds
         int dim = 2 * margin + 3; // one extra layer on each side
-        int stX = dim * dim, stY = dim;
+        int stX = dim * dim;
         int[] snap = new int[dim * dim * dim];
         // Fill entirely with solid
-        for (int i = 0; i < snap.length; i++) snap[i] = 1;
+        Arrays.fill(snap, 1);
 
         // Sample at the centre of the volume
         int cx = dim / 2, cy = dim / 2, cz = dim / 2;
-        float sw = k.solidWeight(snap, cx, cy, cz, stX, stY);
+        float sw = k.solidWeight(snap, cx, cy, cz, stX, dim);
         assertEquals("all-solid neighbourhood → solidWeight equals totalWeight", k.totalWeight, sw, EPSILON);
     }
 
@@ -98,11 +100,11 @@ public class GaussianKernelTest {
         GaussianKernel k = GaussianKernel.build(1.0f);
         int margin = k.kR;
         int dim = 2 * margin + 3;
-        int stX = dim * dim, stY = dim;
+        int stX = dim * dim;
         int[] snap = new int[dim * dim * dim]; // all zeros (air)
 
         int cx = dim / 2, cy = dim / 2, cz = dim / 2;
-        float sw = k.solidWeight(snap, cx, cy, cz, stX, stY);
+        float sw = k.solidWeight(snap, cx, cy, cz, stX, dim);
         assertEquals("all-air neighbourhood → solidWeight is 0", 0f, sw, EPSILON);
     }
 
@@ -111,13 +113,13 @@ public class GaussianKernelTest {
         GaussianKernel k = GaussianKernel.build(1.0f);
         int margin = k.kR;
         int dim = 2 * margin + 3;
-        int stX = dim * dim, stY = dim;
+        int stX = dim * dim;
         int[] snap = new int[dim * dim * dim];
 
         int cx = dim / 2, cy = dim / 2, cz = dim / 2;
-        snap[cx * stX + cy * stY + cz] = 1;
+        snap[cx * stX + cy * dim + cz] = 1;
 
-        float sw = k.solidWeight(snap, cx, cy, cz, stX, stY);
+        float sw = k.solidWeight(snap, cx, cy, cz, stX, dim);
         float centreTap = k.data[k.kR * k.strideX + k.kR * k.strideY + k.kR];
         assertEquals("only centre solid → solidWeight equals centre kernel tap", centreTap, sw, EPSILON);
     }
@@ -127,12 +129,12 @@ public class GaussianKernelTest {
         GaussianKernel k = GaussianKernel.build(1.0f);
         int margin = k.kR;
         int dim = 2 * margin + 3;
-        int stX = dim * dim, stY = dim;
+        int stX = dim * dim;
         int[] snap = new int[dim * dim * dim];
-        for (int i = 0; i < snap.length; i++) snap[i] = 1;
+        Arrays.fill(snap, 1);
 
         int cx = dim / 2, cy = dim / 2, cz = dim / 2;
-        float sw = k.solidWeight(snap, cx, cy, cz, stX, stY);
+        float sw = k.solidWeight(snap, cx, cy, cz, stX, dim);
         assertTrue("solidWeight must not exceed totalWeight", sw <= k.totalWeight + EPSILON);
     }
 }

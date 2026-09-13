@@ -4,6 +4,8 @@
  */
 package github.thehighcruw.dimensium.editor.overlay;
 
+import java.io.File;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.Tessellator;
@@ -84,9 +86,9 @@ public class OverlayRenderer {
 
     private int savedCurrentItem = 0;
 
-    public static boolean cheatsAllowed() {
+    public static boolean isNotCreative() {
         Minecraft mc = Minecraft.getMinecraft();
-        return mc.thePlayer != null && mc.thePlayer.capabilities.isCreativeMode;
+        return mc.thePlayer == null || !mc.thePlayer.capabilities.isCreativeMode;
     }
 
     /**
@@ -98,7 +100,7 @@ public class OverlayRenderer {
     @SubscribeEvent
     public void onHudPre(RenderGameOverlayEvent.Pre event) {
         if (!DimensiumEditorMode.INSTANCE.isActive()) return;
-        if (!cheatsAllowed()) return;
+        if (isNotCreative()) return;
         RenderGameOverlayEvent.ElementType t = event.type;
         if (t != RenderGameOverlayEvent.ElementType.ALL && t != RenderGameOverlayEvent.ElementType.TEXT) {
             event.setCanceled(true);
@@ -116,7 +118,7 @@ public class OverlayRenderer {
         if (DimensiumEditorMode.INSTANCE.isActive()) return;
         if (!DimensiumEditorMode.INSTANCE.isBuilderToolsActive()) return;
         Minecraft mc = Minecraft.getMinecraft();
-        if (mc.thePlayer == null || !cheatsAllowed()) return;
+        if (mc.thePlayer == null || isNotCreative()) return;
         savedCurrentItem = mc.thePlayer.inventory.currentItem;
         mc.thePlayer.inventory.currentItem = -100;
     }
@@ -128,7 +130,7 @@ public class OverlayRenderer {
         if (DimensiumEditorMode.INSTANCE.isActive()) return;
         if (!DimensiumEditorMode.INSTANCE.isBuilderToolsActive()) return;
         Minecraft mc = Minecraft.getMinecraft();
-        if (mc.thePlayer == null || !cheatsAllowed()) return;
+        if (mc.thePlayer == null || isNotCreative()) return;
         mc.thePlayer.inventory.currentItem = savedCurrentItem;
     }
 
@@ -143,7 +145,7 @@ public class OverlayRenderer {
         EntityPlayer player = mc.thePlayer;
         if (player == null) return;
 
-        if (!cheatsAllowed()) return;
+        if (isNotCreative()) return;
 
         ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
         int sw = sr.getScaledWidth();
@@ -255,8 +257,7 @@ public class OverlayRenderer {
 
             // ImGui display space = physical pixels. Panels sized in physical px.
             int sf = sr.getScaleFactor();
-            ImGuiManager.INSTANCE
-                .newFrame(mc.displayWidth, mc.displayHeight, sf, (float) fs.cursorX, (float) fs.cursorY);
+            ImGuiManager.INSTANCE.newFrame(mc.displayWidth, mc.displayHeight, sf, fs.cursorX, fs.cursorY);
             MenuBar.INSTANCE.render();
             renderDockSpace(mc.displayWidth, mc.displayHeight);
             ViewportPanel.INSTANCE.render(mc.displayWidth, mc.displayHeight);
@@ -331,7 +332,6 @@ public class OverlayRenderer {
         // - 21px cell+right-border: slot 8 (texture x=161, w=21)
         // Total visual width: 22px. Cell starts at slotX+1.
         int slotX = barX + 182 + 4;
-        int slotY = barY;
 
         GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
         GL11.glEnable(GL11.GL_BLEND);
@@ -342,20 +342,20 @@ public class OverlayRenderer {
         GL11.glColor4f(1f, 1f, 1f, 1f);
 
         // 1px left border from slot 0's outer left edge
-        drawTexRect(slotX, slotY, 0, 0, 1, 22);
+        drawTexRect(slotX, barY, 0, 0, 1, 22);
         // Slot 8 cell (20px) + bar's right border (1px) = 21px total
-        drawTexRect(slotX + 1, slotY, 161, 0, 21, 22);
+        drawTexRect(slotX + 1, barY, 161, 0, 21, 22);
 
         // Selected-slot highlight: 24×24 at (0,22) in widgets.png.
         // Cell is at slotX+1, so highlight starts at slotX (1px left overhang).
         if (active) {
             GL11.glColor4f(1f, 1f, 1f, 1f);
-            drawTexRect(slotX, slotY - 1, 0, 22, 24, 24);
+            drawTexRect(slotX, barY - 1, 0, 22, 24, 24);
         }
 
         // Tool icon inside the slot cell (cell starts at slotX+1, 20×22)
         ItemStack icon = iconForTool(bts.activeTool);
-        PanelDraw.renderItemIcon(mc, icon, slotX + 3, slotY + 3);
+        PanelDraw.renderItemIcon(mc, icon, slotX + 3, barY + 3);
         GL11.glDisable(GL11.GL_LIGHTING);
 
         // Phase-keyed label below the selected highlight (or inside the slot when inactive)
@@ -374,10 +374,10 @@ public class OverlayRenderer {
             }
             // Draw tool name + phase above the bar (4px above it)
             mc.fontRenderer
-                .drawStringWithShadow(bts.activeTool.label + phaseSuffix + extra, slotX + 1, slotY - 11, 0xFFFFFF);
+                .drawStringWithShadow(bts.activeTool.label + phaseSuffix + extra, slotX + 1, barY - 11, 0xFFFFFF);
         } else {
             // Hint text above slot when inactive
-            mc.fontRenderer.drawStringWithShadow("\2477>\247r", slotX + 6, slotY - 10, 0x888888);
+            mc.fontRenderer.drawStringWithShadow("\2477>\247r", slotX + 6, barY - 10, 0x888888);
         }
 
         GL11.glPopAttrib();
@@ -517,7 +517,7 @@ public class OverlayRenderer {
         int dockspaceId = ImGui.getID("##main_dockspace");
         ImGui.dockSpace(dockspaceId, 0f, 0f, ImGuiDockNodeFlags.None);
 
-        if (!defaultLayoutApplied && !new java.io.File("dimensium_layout.ini").exists()) {
+        if (!defaultLayoutApplied && !new File("dimensium_layout.ini").exists()) {
             defaultLayoutApplied = true;
             DockDefaultLayout.apply(dockspaceId, sw, sh - menuH - statusH);
         }
@@ -525,7 +525,7 @@ public class OverlayRenderer {
         if (resetLayoutRequested) {
             resetLayoutRequested = false;
             ImGui.loadIniSettingsFromMemory("");
-            new java.io.File("dimensium_layout.ini").delete(); // best-effort: ignored if missing
+            boolean ignored = new File("dimensium_layout.ini").delete(); // best-effort: ignored if missing
             DockDefaultLayout.apply(dockspaceId, sw, sh - menuH - statusH);
         }
 

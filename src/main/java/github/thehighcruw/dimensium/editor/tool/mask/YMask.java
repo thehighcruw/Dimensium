@@ -31,45 +31,24 @@ public class YMask extends MaskNode {
 
     @Override
     public boolean test(World world, int x, int y, int z) {
-        switch (op) {
-            case EQUAL:
-                return y == value;
-            case LESS:
-                return y < value;
-            case LESS_EQ:
-                return y <= value;
-            case GREATER:
-                return y > value;
-            case GREATER_EQ:
-                return y >= value;
-            default:
-                return false;
-        }
+        return switch (op) {
+            case EQUAL -> y == value;
+            case LESS -> y < value;
+            case LESS_EQ -> y <= value;
+            case GREATER -> y > value;
+            case GREATER_EQ -> y >= value;
+        };
     }
 
     @Override
     public String displayName() {
-        String sym;
-        switch (op) {
-            case EQUAL:
-                sym = "=";
-                break;
-            case LESS:
-                sym = "<";
-                break;
-            case LESS_EQ:
-                sym = "<=";
-                break;
-            case GREATER:
-                sym = ">";
-                break;
-            case GREATER_EQ:
-                sym = ">=";
-                break;
-            default:
-                sym = "?";
-                break;
-        }
+        String sym = switch (op) {
+            case EQUAL -> "=";
+            case LESS -> "<";
+            case LESS_EQ -> "<=";
+            case GREATER -> ">";
+            case GREATER_EQ -> ">=";
+        };
         return "Y " + sym + " " + value;
     }
 }

@@ -133,8 +133,4 @@ public class ClientProxy implements IProxy {
         reg.registerWindow("autoshade", AutoshadeWindow.INSTANCE::isOpen, AutoshadeWindow.INSTANCE::setOpen, false);
     }
 
-    @Override
-    public void loadComplete() {
-        // Nothing — BlockColorCache initializes lazily on first render frame via TextureStitchEvent.
-    }
 }

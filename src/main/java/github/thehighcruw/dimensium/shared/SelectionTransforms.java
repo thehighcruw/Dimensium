@@ -99,9 +99,9 @@ public final class SelectionTransforms {
             float wx = NoiseSampler.rawSimplex3(nx, ny, nz, seed);
             float wy = NoiseSampler.rawSimplex3(nx + 31.7f, ny + 17.3f, nz + 53.1f, seed);
             float wz = NoiseSampler.rawSimplex3(nx + 67.9f, ny + 83.5f, nz + 11.3f, seed);
-            int rx = (int) Math.round(x + wx * distX);
-            int ry = (int) Math.round(y + wy * distY);
-            int rz = (int) Math.round(z + wz * distZ);
+            int rx = Math.round(x + wx * distX);
+            int ry = Math.round(y + wy * distY);
+            int rz = Math.round(z + wz * distZ);
             if (ry < 0 || ry > 255) continue;
             result.add(SelectionState.pack(rx, ry, rz));
         }
@@ -133,14 +133,14 @@ public final class SelectionTransforms {
         int dimY = (mxY - mnY) + 2 * margin + 1;
         int dimZ = (mxZ - mnZ) + 2 * margin + 1;
         if (dimX > MAX_SMOOTH_DIM || dimY > MAX_SMOOTH_DIM || dimZ > MAX_SMOOTH_DIM) return new HashSet<>(blocks);
-        int snStX = dimY * dimZ, snStY = dimZ;
+        int snStX = dimY * dimZ;
 
         int[] snap = new int[dimX * dimY * dimZ];
         for (long key : blocks) {
             int x = SelectionState.unpackX(key) - mnX + margin;
             int y = SelectionState.unpackY(key) - mnY + margin;
             int z = SelectionState.unpackZ(key) - mnZ + margin;
-            snap[x * snStX + y * snStY + z] = 1;
+            snap[x * snStX + y * dimZ + z] = 1;
         }
 
         Set<Long> result = new HashSet<>();
@@ -148,15 +148,15 @@ public final class SelectionTransforms {
             int lx = SelectionState.unpackX(key) - mnX + margin;
             int ly = SelectionState.unpackY(key) - mnY + margin;
             int lz = SelectionState.unpackZ(key) - mnZ + margin;
-            float density = kernel.solidWeight(snap, lx, ly, lz, snStX, snStY) / kernel.totalWeight;
+            float density = kernel.solidWeight(snap, lx, ly, lz, snStX, dimZ) / kernel.totalWeight;
             if (density >= threshold) result.add(key);
         }
         // Also check non-selected voxels in the bounding box that might grow in
         for (int lx = margin; lx < dimX - margin; lx++) {
             for (int ly = margin; ly < dimY - margin; ly++) {
                 for (int lz = margin; lz < dimZ - margin; lz++) {
-                    if (snap[lx * snStX + ly * snStY + lz] != 0) continue; // already handled above
-                    float density = kernel.solidWeight(snap, lx, ly, lz, snStX, snStY) / kernel.totalWeight;
+                    if (snap[lx * snStX + ly * dimZ + lz] != 0) continue; // already handled above
+                    float density = kernel.solidWeight(snap, lx, ly, lz, snStX, dimZ) / kernel.totalWeight;
                     if (density >= threshold) {
                         int wx = lx - margin + mnX;
                         int wy = ly - margin + mnY;

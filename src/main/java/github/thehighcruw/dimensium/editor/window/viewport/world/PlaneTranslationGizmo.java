@@ -151,14 +151,23 @@ public class PlaneTranslationGizmo {
             float[] hb = RotationGizmo.rotateVec(new float[] { b[0] * SQ_HALF, b[1] * SQ_HALF, b[2] * SQ_HALF }, R);
             float[] cRot = RotationGizmo.rotateVec(new float[] { cx, cy, cz }, R);
             double wcx = gx + cRot[0] * scale, wcy = gy + cRot[1] * scale, wcz = gz + cRot[2] * scale;
-            double s = scale;
             double[][] corners = new double[4][];
-            corners[0] = proj
-                .project(wcx + (-ha[0] - hb[0]) * s, wcy + (-ha[1] - hb[1]) * s, wcz + (-ha[2] - hb[2]) * s);
-            corners[1] = proj.project(wcx + (ha[0] - hb[0]) * s, wcy + (ha[1] - hb[1]) * s, wcz + (ha[2] - hb[2]) * s);
-            corners[2] = proj.project(wcx + (ha[0] + hb[0]) * s, wcy + (ha[1] + hb[1]) * s, wcz + (ha[2] + hb[2]) * s);
-            corners[3] = proj
-                .project(wcx + (-ha[0] + hb[0]) * s, wcy + (-ha[1] + hb[1]) * s, wcz + (-ha[2] + hb[2]) * s);
+            corners[0] = proj.project(
+                wcx + (-ha[0] - hb[0]) * (double) scale,
+                wcy + (-ha[1] - hb[1]) * (double) scale,
+                wcz + (-ha[2] - hb[2]) * (double) scale);
+            corners[1] = proj.project(
+                wcx + (ha[0] - hb[0]) * (double) scale,
+                wcy + (ha[1] - hb[1]) * (double) scale,
+                wcz + (ha[2] - hb[2]) * (double) scale);
+            corners[2] = proj.project(
+                wcx + (ha[0] + hb[0]) * (double) scale,
+                wcy + (ha[1] + hb[1]) * (double) scale,
+                wcz + (ha[2] + hb[2]) * (double) scale);
+            corners[3] = proj.project(
+                wcx + (-ha[0] + hb[0]) * (double) scale,
+                wcy + (-ha[1] + hb[1]) * (double) scale,
+                wcz + (-ha[2] + hb[2]) * (double) scale);
             boolean anyNull = false;
             for (double[] c : corners) if (c == null) {
                 anyNull = true;

@@ -41,10 +41,8 @@ public class FreecamUtils {
     public static Vec3 camForward(FreecamEntity cam) {
         double yaw = Math.toRadians(cam.rotationYaw);
         double pitch = Math.toRadians(cam.rotationPitch);
-        return Vec3.createVectorHelper(
-            -Math.sin(yaw) * Math.cos(pitch),
-            -Math.sin(pitch),
-            Math.cos(yaw) * Math.cos(pitch));
+        return Vec3
+            .createVectorHelper(-Math.sin(yaw) * Math.cos(pitch), -Math.sin(pitch), Math.cos(yaw) * Math.cos(pitch));
     }
 
     /**
@@ -56,10 +54,6 @@ public class FreecamUtils {
         double pitch = Math.toRadians(pitchDeg);
         double cp = Math.cos(pitch), sp = Math.sin(pitch);
         double cy = Math.cos(yaw), sy = Math.sin(yaw);
-        return new double[][] {
-            { -sy * cp, -sp, cy * cp },
-            { cy, 0, sy },
-            { -sy * sp, cp, cy * sp }
-        };
+        return new double[][] { { -sy * cp, -sp, cy * cp }, { cy, 0, sy }, { -sy * sp, cp, cy * sp } };
     }
 }

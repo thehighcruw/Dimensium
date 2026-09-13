@@ -5,8 +5,6 @@
 package github.thehighcruw.dimensium.editor.window;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -90,13 +88,7 @@ public class AnalyzeWindow extends ImGuiWindow {
         }
 
         List<Map.Entry<String, Integer>> entries = new ArrayList<>(counts.entrySet());
-        Collections.sort(entries, new Comparator<Map.Entry<String, Integer>>() {
-
-            @Override
-            public int compare(Map.Entry<String, Integer> a, Map.Entry<String, Integer> b) {
-                return Integer.compare(b.getValue(), a.getValue());
-            }
-        });
+        entries.sort((a, b) -> Integer.compare(b.getValue(), a.getValue()));
 
         for (Map.Entry<String, Integer> e : entries) {
             blockNames.add(e.getKey());

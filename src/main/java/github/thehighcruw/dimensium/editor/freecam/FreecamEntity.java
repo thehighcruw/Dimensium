@@ -34,11 +34,6 @@ public class FreecamEntity extends EntityLivingBase {
     }
 
     @Override
-    protected void entityInit() {
-        super.entityInit();
-    }
-
-    @Override
     public void readEntityFromNBT(NBTTagCompound nbt) {}
 
     @Override

@@ -233,7 +233,8 @@ public class ShapeMathTest {
 
     @Test
     public void torusCenterIsHole() {
-        int R = TORUS_R, r = TORUS_TUBE, outer = R + r;
+        int r = TORUS_TUBE;
+        int outer = TORUS_R + r;
         int w = outer * 2 + 1, h = r * 2 + 1;
         float cx = (w - 1) / 2f, cy = (h - 1) / 2f;
         assertFalse(shape(ShapeType.TORUS, Math.round(cx), Math.round(cy), Math.round(cx), w, h, w, false));
@@ -241,7 +242,8 @@ public class ShapeMathTest {
 
     @Test
     public void torusHollowSmallerThanSolid() {
-        int R = TORUS_R, r = TORUS_TUBE, outer = R + r;
+        int r = TORUS_TUBE;
+        int outer = TORUS_R + r;
         int w = outer * 2 + 1, h = r * 2 + 1;
         int solid = count(ShapeType.TORUS, w, h, w, false);
         int hollow = count(ShapeType.TORUS, w, h, w, true);

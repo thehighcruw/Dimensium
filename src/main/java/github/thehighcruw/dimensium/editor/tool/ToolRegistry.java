@@ -6,9 +6,12 @@ package github.thehighcruw.dimensium.editor.tool;
 
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.function.Function;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
+
+import com.github.bsideup.jabel.Desugar;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -261,32 +264,13 @@ public final class ToolRegistry {
 
     private ToolRegistry() {}
 
-    private static final class Desc implements ToolDescriptor {
-
-        private final java.util.function.Function<ToolStates, ToolSection> sectionFactory;
-        private final BrushInput brushInput;
-        private final ToolRenderer toolRenderer;
-
-        Desc(java.util.function.Function<ToolStates, ToolSection> sectionFactory, BrushInput brushInput,
-            ToolRenderer toolRenderer) {
-            this.sectionFactory = sectionFactory;
-            this.brushInput = brushInput;
-            this.toolRenderer = toolRenderer;
-        }
+    @Desugar
+    private record Desc(Function<ToolStates, ToolSection> sectionFactory, BrushInput brushInput,
+        ToolRenderer toolRenderer) implements ToolDescriptor {
 
         @Override
         public ToolSection createSection(ToolStates states) {
             return sectionFactory != null ? sectionFactory.apply(states) : null;
-        }
-
-        @Override
-        public BrushInput brushInput() {
-            return brushInput;
-        }
-
-        @Override
-        public ToolRenderer toolRenderer() {
-            return toolRenderer;
         }
     }
 }

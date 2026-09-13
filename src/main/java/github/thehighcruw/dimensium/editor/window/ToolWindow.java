@@ -29,7 +29,7 @@ import imgui.type.ImInt;
 @SideOnly(Side.CLIENT)
 public class ToolWindow extends ImGuiWindow {
 
-    public int currentW = 400;
+    static final int INITIAL_WIDTH = 400;
 
     private boolean open = true;
 
@@ -79,7 +79,7 @@ public class ToolWindow extends ImGuiWindow {
         if (!open) return;
         float menuH = MenuBar.INSTANCE.height();
         float scale = ImGuiManager.INSTANCE.getUIScale();
-        float physW = this.currentW * scale;
+        float physW = INITIAL_WIDTH * scale;
         ImGui.setNextWindowPos(0, menuH, ImGuiCond.FirstUseEver);
         ImGui.setNextWindowSize(physW, sh - menuH, ImGuiCond.FirstUseEver);
 

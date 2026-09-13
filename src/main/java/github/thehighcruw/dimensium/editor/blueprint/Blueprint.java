@@ -10,7 +10,7 @@ import java.util.List;
 public class Blueprint {
 
     public String name = "";
-    public List<String> tags = new ArrayList<>();
+    public final List<String> tags = new ArrayList<>();
     public int clipW, clipH, clipD;
     /** Each entry: {lx, ly, lz, blockId, meta}. */
     public List<int[]> offsets = new ArrayList<>();

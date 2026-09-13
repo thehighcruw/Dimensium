@@ -26,11 +26,11 @@ public class MoveBrushInput implements BrushInput {
     private MoveBrushInput() {}
 
     @Override
-    public boolean onMouseClick(int button, Minecraft mc, MovingObjectPosition ignored) {
+    public void onMouseClick(int button, Minecraft mc, MovingObjectPosition ignored) {
         MoveToolState ms = MoveToolState.INSTANCE;
-        if (!ms.active) return false;
+        if (!ms.active) return;
         EntityLivingBase eye = mc.renderViewEntity;
-        if (eye == null) return false;
+        if (eye == null) return;
         FreecamState fs = FreecamState.INSTANCE;
         int mouseX = (int) fs.cursorX, mouseY = (int) fs.cursorY;
 
@@ -49,6 +49,5 @@ public class MoveBrushInput implements BrushInput {
         } else if (button == KeyConstants.RMB) {
             GuiDimensiumOverlay.confirmMove();
         }
-        return true;
     }
 }

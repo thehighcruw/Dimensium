@@ -90,7 +90,7 @@ public class PathMath {
             double segT = 0;
             if (pts.size() > 1) {
                 double segLen = 1.0 / (pts.size() - 1);
-                segIdx = (int) Math.min((int) (globalT / segLen), pts.size() - 2);
+                segIdx = Math.min((int) (globalT / segLen), pts.size() - 2);
                 segT = (globalT - segIdx * segLen) / segLen;
                 segT = Math.max(0, Math.min(1, segT));
             }
@@ -110,7 +110,7 @@ public class PathMath {
         if (!state.hasMultipleBlocks()) {
             return blockToIdMeta(a.block != null ? a.block : activeBlock);
         }
-        double adjT;
+        double adjT = 0.0;
         switch (state.interp) {
             case NEAREST:
                 adjT = t;
@@ -128,8 +128,6 @@ public class PathMath {
                 adjT = remapped + voxelHash(wx, wy, wz, state.interpSeed) * 0.25;
                 break;
             }
-            default:
-                adjT = t;
         }
         return blockToIdMeta(
             adjT < 0.5 ? (a.block != null ? a.block : activeBlock) : (b.block != null ? b.block : activeBlock));
@@ -140,7 +138,7 @@ public class PathMath {
         h = (h ^ (h >>> 30)) * 0xbf58476d1ce4e5b9L;
         h = (h ^ (h >>> 27)) * 0x94d049bb133111ebL;
         h = h ^ (h >>> 31);
-        return (double) ((h & 0xFFFFFFL) / (double) 0x1000000L) - 0.5;
+        return ((h & 0xFFFFFFL) / (double) 0x1000000L) - 0.5;
     }
 
     /** Returns {blockId, meta} or null if stack is null or not a placeable block. */
@@ -165,7 +163,7 @@ public class PathMath {
             return result;
         }
 
-        int err1 = 0, err2 = 0;
+        int err1, err2;
         int x = x0, y = y0, z = z0;
         int step = 0;
         result.add(new double[] { x, y, z, 0.0 });

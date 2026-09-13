@@ -43,7 +43,7 @@ public class ToolOptionsWindow extends ImGuiWindow {
         if (!open) return;
         float menuH = MenuBar.INSTANCE.height();
         float scale = ImGuiManager.INSTANCE.getUIScale();
-        float physW = toolWindow.currentW * scale;
+        float physW = ToolWindow.INITIAL_WIDTH * scale;
         ImGui.setNextWindowPos(0, menuH + 100 * scale, ImGuiCond.FirstUseEver);
         ImGui.setNextWindowSize(physW, sh - menuH - 100 * scale, ImGuiCond.FirstUseEver);
 

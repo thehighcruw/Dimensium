@@ -65,7 +65,6 @@ public class SmoothSelectionWindow extends ImGuiWindow {
 
         if (visible) {
             boolean hasSel = SelectionState.INSTANCE.hasSelection();
-            boolean canApply = hasSel;
 
             float windowW = ImGui.getWindowWidth();
             float btnW = 70f * uiScale;
@@ -100,7 +99,7 @@ public class SmoothSelectionWindow extends ImGuiWindow {
             ImGui.setCursorPosX(
                 windowW - ImGui.getStyle()
                     .getWindowPaddingX() - btnW);
-            if (!canApply) ImGui.beginDisabled();
+            if (!hasSel) ImGui.beginDisabled();
             if (ImGui.button(I18n.format("dimensium.select.apply") + "##ssel_apply", btnW, 0)) {
                 SelectionState sel = SelectionState.INSTANCE;
                 if (sel.hasSelection()) {
@@ -110,7 +109,7 @@ public class SmoothSelectionWindow extends ImGuiWindow {
                 }
                 close();
             }
-            if (!canApply) ImGui.endDisabled();
+            if (!hasSel) ImGui.endDisabled();
         }
 
         ImGui.end();

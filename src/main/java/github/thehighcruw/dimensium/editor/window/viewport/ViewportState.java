@@ -19,7 +19,7 @@ import github.thehighcruw.dimensium.editor.overlay.ViewState;
 @SideOnly(Side.CLIENT)
 public final class ViewportState {
 
-    public String label;
+    public final String label;
     public final FreecamEntity cameraEntity;
 
     // GL texture owned by this viewport. Managed by ViewportCapture.

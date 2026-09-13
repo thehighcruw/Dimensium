@@ -49,7 +49,7 @@ public final class ViewportRegistry {
     /**
      * Add a new viewport, cloning the active camera position, and switch to it immediately.
      */
-    public ViewportState addViewport() {
+    public void addViewport() {
         Minecraft mc = Minecraft.getMinecraft();
         FreecamState fs = FreecamState.INSTANCE;
 
@@ -73,7 +73,6 @@ public final class ViewportRegistry {
         ViewportState vp = new ViewportState(label, newCam);
         viewports.add(vp);
         setActive(viewports.size() - 1);
-        return vp;
     }
 
     /** Switch active viewport, saving current FreecamState fields and restoring the target's. */
@@ -127,7 +126,7 @@ public final class ViewportRegistry {
         if (index == activeIndex || activeIndex >= viewports.size()) {
             // Active viewport was removed (or activeIndex is now out of bounds) —
             // switch to the adjacent viewport without trying to save the old state.
-            int newActive = Math.min(Math.max(index, 0), viewports.size() - 1);
+            int newActive = Math.min(index, viewports.size() - 1);
             activeIndex = newActive;
             FreecamState fs = FreecamState.INSTANCE;
             ViewportState next = viewports.get(newActive);

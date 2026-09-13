@@ -6,8 +6,6 @@ package github.thehighcruw.dimensium.editor.window.popup;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -272,12 +270,7 @@ public class BlueprintBrowserPopup {
             }
         }
         tagCloud.addAll(tagCounts.keySet());
-        Collections.sort(tagCloud, new Comparator<String>() {
-
-            public int compare(String a, String b) {
-                return tagCounts.get(b) - tagCounts.get(a);
-            }
-        });
+        tagCloud.sort((a, b) -> tagCounts.get(b) - tagCounts.get(a));
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

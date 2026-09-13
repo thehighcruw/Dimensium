@@ -605,11 +605,9 @@ public class ModellingMath {
 
     /** Returns the cross product (B-A) × (C-A). */
     private static double[] triNormal(double[] A, double[] B, double[] C) {
-        return new double[] {
-            (B[1] - A[1]) * (C[2] - A[2]) - (B[2] - A[2]) * (C[1] - A[1]),
+        return new double[] { (B[1] - A[1]) * (C[2] - A[2]) - (B[2] - A[2]) * (C[1] - A[1]),
             (B[2] - A[2]) * (C[0] - A[0]) - (B[0] - A[0]) * (C[2] - A[2]),
-            (B[0] - A[0]) * (C[1] - A[1]) - (B[1] - A[1]) * (C[0] - A[0])
-        };
+            (B[0] - A[0]) * (C[1] - A[1]) - (B[1] - A[1]) * (C[0] - A[0]) };
     }
 
     private static void addFaceOutward(List<int[]> faces, double[][] P, int a, int b, int c, double[] inside) {
@@ -702,8 +700,7 @@ public class ModellingMath {
         }
     }
 
-    private static void bresenhamMajor(Map<Long, int[]> out, int[] pos, int[] step, int[] deltas, int major,
-        int[] bm) {
+    private static void bresenhamMajor(Map<Long, int[]> out, int[] pos, int[] step, int[] deltas, int major, int[] bm) {
         int a = major == 0 ? 1 : 0;
         int b = major == 2 ? 1 : 2;
         int dm = deltas[major], da = deltas[a], db = deltas[b];

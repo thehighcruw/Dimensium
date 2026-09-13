@@ -35,7 +35,7 @@ public class ElevationBrush implements BrushStrategy {
 
         for (int dx = -radius; dx <= radius; dx++) {
             for (int dz = -radius; dz <= radius; dz++) {
-                float r = (float) Math.sqrt((double) (dx * dx + dz * dz)) / radius;
+                float r = (float) Math.sqrt(dx * dx + dz * dz) / radius;
                 if (r > 1f) continue;
 
                 float weight = falloff(s.elevationFalloff, r);

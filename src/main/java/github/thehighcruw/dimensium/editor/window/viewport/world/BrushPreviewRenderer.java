@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
+import javax.annotation.Nonnull;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.util.MovingObjectPosition;
@@ -51,7 +53,8 @@ public class BrushPreviewRenderer {
         int bx = mop.blockX, by = mop.blockY, bz = mop.blockZ;
         Tool activeTool = DimensiumEditorMode.INSTANCE.selectedTool;
         BrushState bs = BrushState.INSTANCE;
-        int sx = bs.brushRadius, sy = bs.brushShape.hasHeight ? bs.brushHeight : bs.brushRadius, sz = sx;
+        int sx = bs.brushRadius;
+        int sy = bs.brushShape.hasHeight ? bs.brushHeight : bs.brushRadius;
         BrushShape shape = bs.brushShape;
 
         if (renderer.renderHover(mop, rx, ry, rz)) return;
@@ -63,12 +66,12 @@ public class BrushPreviewRenderer {
                 // Accumulate solid blocks from all drag positions visited so far + current cursor.
                 // Uses absolute world-coord packing (20 bits/axis, offset 524288).
                 HashSet<Long> absSet = new HashSet<>();
-                collectSolidAbsolute(mc, shape, bx, by, bz, sx, sy, sz, absSet);
+                collectSolidAbsolute(mc, shape, bx, by, bz, sx, sy, sx, absSet);
                 for (long pk : TickHandler.INSTANCE.getSmoothDragPositions()) {
                     int cx2 = (int) ((pk >> 42) & 0x1FFFFF) - 1048576;
                     int cy2 = (int) ((pk >> 21) & 0x1FFFFF) - 1048576;
                     int cz2 = (int) (pk & 0x1FFFFF) - 1048576;
-                    collectSolidAbsolute(mc, shape, cx2, cy2, cz2, sx, sy, sz, absSet);
+                    collectSolidAbsolute(mc, shape, cx2, cy2, cz2, sx, sy, sx, absSet);
                 }
                 float[] wire = creaseWireframeAbsolute(absSet);
                 if (wire != null && wire.length > 0) {
@@ -84,10 +87,10 @@ public class BrushPreviewRenderer {
                 // Non-smooth tools: pulsating fill + crease using relative coords.
                 HashSet<Long> affectedSet = new HashSet<>();
                 for (int dx = -sx; dx <= sx; dx++)
-                    for (int dy = -sy; dy <= sy; dy++) for (int dz = -sz; dz <= sz; dz++) {
-                        if (!inBrushShape(shape, dx, dy, dz, sx, sy, sz)) continue;
+                    for (int dy = -sy; dy <= sy; dy++) for (int dz = -sx; dz <= sx; dz++) {
+                        if (!inBrushShape(shape, dx, dy, dz, sx, sy, sx)) continue;
                         if (renderer.isBlockAffected(mc, bx + dx, by + dy, bz + dz))
-                            affectedSet.add(SelectionRenderer.lPack(dx + sx, dy + sy, dz + sz));
+                            affectedSet.add(SelectionRenderer.lPack(dx + sx, dy + sy, dz + sx));
                     }
 
                 if (!affectedSet.isEmpty()) {
@@ -104,7 +107,7 @@ public class BrushPreviewRenderer {
                         int lz = (int) (pk & 0x1FFF) - 4096;
                         int ax = lx + bx - sx;
                         int ay = ly + by - sy;
-                        int az = lz + bz - sz;
+                        int az = lz + bz - sx;
                         for (int face = 0; face < 6; face++) {
                             long nk = SelectionRenderer.lPack(
                                 lx + GhostRenderer.NX[face],
@@ -126,8 +129,8 @@ public class BrushPreviewRenderer {
                     if (wire != null && wire.length > 0) {
                         GL11.glColor4f(0.50f, 0.85f, 1.0f, 0.9f);
                         GL11.glPushMatrix();
-                        GL11.glTranslated(bx - sx - rx, by - sy - ry, bz - sz - rz);
-                        WorldLines.setEyeForTranslation(bx - sx - rx, by - sy - ry, bz - sz - rz);
+                        GL11.glTranslated(bx - sx - rx, by - sy - ry, bz - sx - rz);
+                        WorldLines.setEyeForTranslation(bx - sx - rx, by - sy - ry, bz - sx - rz);
                         GhostRenderer.drawWireframeCache(Tessellator.instance, wire);
                         GL11.glPopMatrix();
                     }
@@ -135,10 +138,10 @@ public class BrushPreviewRenderer {
             }
         } else {
             // Static brush-shape preview: transparent white faces + white crease edges
-            float[] wire = getBrushWireframe(shape, sx, sy, sz);
+            float[] wire = getBrushWireframe(shape, sx, sy, sx);
             GL11.glPushMatrix();
-            GL11.glTranslated(bx - sx - rx, by - sy - ry, bz - sz - rz);
-            WorldLines.setEyeForTranslation(bx - sx - rx, by - sy - ry, bz - sz - rz);
+            GL11.glTranslated(bx - sx - rx, by - sy - ry, bz - sx - rz);
+            WorldLines.setEyeForTranslation(bx - sx - rx, by - sy - ry, bz - sx - rz);
 
             // Outer faces — view-shaded transparent white.
             // Depth write enabled so overlapping faces don't accumulate (fixes corner glow).
@@ -192,7 +195,7 @@ public class BrushPreviewRenderer {
             if (wire != null && wire.length > 0) {
                 GhostRenderer.drawWireframeCache(Tessellator.instance, wire);
             } else {
-                SelectionRenderer.drawBox(0, 0, 0, sx * 2 + 1, sy * 2 + 1, sz * 2 + 1);
+                SelectionRenderer.drawBox(0, 0, 0, sx * 2 + 1, sy * 2 + 1, sx * 2 + 1);
             }
             GL11.glPopMatrix();
         }
@@ -252,23 +255,7 @@ public class BrushPreviewRenderer {
     private static float[] creaseWireframeAbsolute(HashSet<Long> set) {
         if (set.isEmpty() || set.size() > BRUSH_VOXEL_MAX) return null;
 
-        HashMap<Long, Integer> edgeMask = new HashMap<>(set.size() * 4);
-        for (long pk : set) {
-            int bx = (int) ((pk >> 40) & 0xFFFFF) - ABS_OFFSET;
-            int by = (int) ((pk >> 20) & 0xFFFFF) - ABS_OFFSET;
-            int bz = (int) (pk & 0xFFFFF) - ABS_OFFSET;
-            for (int face = 0; face < 6; face++) {
-                long nb = wPack(bx + GhostRenderer.NX[face], by + GhostRenderer.NY[face], bz + GhostRenderer.NZ[face]);
-                if (set.contains(nb)) continue;
-                int axisBit = GhostRenderer.FACE_AXIS_BIT[face];
-                for (int[] e : GhostRenderer.FACE_EDGES[face]) {
-                    // Edge key: pack edge axis (2 bits) + absolute start corner (wPack)
-                    long ek = ((long) e[0] << 62) | wPack(bx + e[1], by + e[2], bz + e[3]);
-                    Integer prev = edgeMask.get(ek);
-                    edgeMask.put(ek, prev == null ? axisBit : prev | axisBit);
-                }
-            }
-        }
+        HashMap<Long, Integer> edgeMask = getEdgeMask(set);
 
         int creaseCount = 0;
         for (int mask : edgeMask.values()) if (Integer.bitCount(mask) > 1) creaseCount++;
@@ -290,6 +277,27 @@ public class BrushPreviewRenderer {
             verts[vi++] = ez + (axis == 2 ? 1 : 0);
         }
         return verts;
+    }
+
+    @Nonnull
+    private static HashMap<Long, Integer> getEdgeMask(HashSet<Long> set) {
+        HashMap<Long, Integer> edgeMask = new HashMap<>(set.size() * 4);
+        for (long pk : set) {
+            int bx = (int) ((pk >> 40) & 0xFFFFF) - ABS_OFFSET;
+            int by = (int) ((pk >> 20) & 0xFFFFF) - ABS_OFFSET;
+            int bz = (int) (pk & 0xFFFFF) - ABS_OFFSET;
+            for (int face = 0; face < 6; face++) {
+                long nb = wPack(bx + GhostRenderer.NX[face], by + GhostRenderer.NY[face], bz + GhostRenderer.NZ[face]);
+                if (set.contains(nb)) continue;
+                int axisBit = GhostRenderer.FACE_AXIS_BIT[face];
+                for (int[] e : GhostRenderer.FACE_EDGES[face]) {
+                    // Edge key: pack edge axis (2 bits) + absolute start corner (wPack)
+                    long ek = ((long) e[0] << 62) | wPack(bx + e[1], by + e[2], bz + e[3]);
+                    edgeMask.compute(ek, (k, prev) -> prev == null ? axisBit : prev | axisBit);
+                }
+            }
+        }
+        return edgeMask;
     }
 
     static boolean inBrushShape(BrushShape shape, int dx, int dy, int dz, int sx, int sy, int sz) {

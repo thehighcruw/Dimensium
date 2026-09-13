@@ -66,7 +66,7 @@ public class RecentBlockHistory {
             for (ItemStack s : history) {
                 Block b = Block.getBlockFromItem(s.getItem());
                 if (b == null) continue;
-                String name = (String) Block.blockRegistry.getNameForObject(b);
+                String name = Block.blockRegistry.getNameForObject(b);
                 if (name == null) continue;
                 w.println(name + ":" + s.getItemDamage());
             }

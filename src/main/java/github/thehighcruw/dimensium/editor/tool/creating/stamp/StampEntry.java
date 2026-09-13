@@ -8,7 +8,7 @@ import github.thehighcruw.dimensium.editor.blueprint.Blueprint;
 
 public class StampEntry {
 
-    public Blueprint blueprint;
+    public final Blueprint blueprint;
     public float chance = 1.0f;
     public int offsetY = 0;
 

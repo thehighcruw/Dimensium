@@ -19,7 +19,6 @@ import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.Mod.Instance;
 import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
-import cpw.mods.fml.common.event.FMLLoadCompleteEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.network.NetworkRegistry;
@@ -59,54 +58,63 @@ public class Dimensium {
     public static final int MOD_ALT = 4;
 
     // Global keybind — registered with MC so it appears in the controls menu.
-    public static KeyBinding toggleDimensium = new KeyBinding("key.dimensium.toggle", Keyboard.KEY_RSHIFT, "Dimensium");
+    public static final KeyBinding toggleDimensium = new KeyBinding(
+        "key.dimensium.toggle",
+        Keyboard.KEY_RSHIFT,
+        "Dimensium");
 
     // Tool-switch keybinds — one per Tool enum value, populated by applyKeybinds().
     public static final EnumMap<Tool, KeyBinding> toolKeybinds = buildToolKeybinds();
     public static final EnumMap<Tool, Integer> toolKeybindMods = new EnumMap<>(Tool.class);
 
     // Editor-view action keybinds — NOT registered with MC; configurable via Settings > Keybinds.
-    public static KeyBinding actionUndo = new KeyBinding("key.dimensium.undo", Keyboard.KEY_Z, "Dimensium");
-    public static KeyBinding actionRedo = new KeyBinding("key.dimensium.redo", Keyboard.KEY_Y, "Dimensium");
-    public static KeyBinding actionCopy = new KeyBinding("key.dimensium.copy", Keyboard.KEY_C, "Dimensium");
-    public static KeyBinding actionCut = new KeyBinding("key.dimensium.cut", Keyboard.KEY_X, "Dimensium");
-    public static KeyBinding actionPaste = new KeyBinding("key.dimensium.paste", Keyboard.KEY_V, "Dimensium");
-    public static KeyBinding actionFill = new KeyBinding("key.dimensium.fill", Keyboard.KEY_F, "Dimensium");
-    public static KeyBinding actionErase = new KeyBinding("key.dimensium.erase", Keyboard.KEY_DELETE, "Dimensium");
-    public static KeyBinding actionConfirm = new KeyBinding("key.dimensium.confirm", Keyboard.KEY_RETURN, "Dimensium");
-    public static KeyBinding actionSaveBlueprint = new KeyBinding(
+    public static final KeyBinding actionUndo = new KeyBinding("key.dimensium.undo", Keyboard.KEY_Z, "Dimensium");
+    public static final KeyBinding actionRedo = new KeyBinding("key.dimensium.redo", Keyboard.KEY_Y, "Dimensium");
+    public static final KeyBinding actionCopy = new KeyBinding("key.dimensium.copy", Keyboard.KEY_C, "Dimensium");
+    public static final KeyBinding actionCut = new KeyBinding("key.dimensium.cut", Keyboard.KEY_X, "Dimensium");
+    public static final KeyBinding actionPaste = new KeyBinding("key.dimensium.paste", Keyboard.KEY_V, "Dimensium");
+    public static final KeyBinding actionFill = new KeyBinding("key.dimensium.fill", Keyboard.KEY_F, "Dimensium");
+    public static final KeyBinding actionErase = new KeyBinding(
+        "key.dimensium.erase",
+        Keyboard.KEY_DELETE,
+        "Dimensium");
+    public static final KeyBinding actionConfirm = new KeyBinding(
+        "key.dimensium.confirm",
+        Keyboard.KEY_RETURN,
+        "Dimensium");
+    public static final KeyBinding actionSaveBlueprint = new KeyBinding(
         "key.dimensium.save_blueprint",
         Keyboard.KEY_P,
         "Dimensium");
-    public static KeyBinding actionBlueprintBrowser = new KeyBinding(
+    public static final KeyBinding actionBlueprintBrowser = new KeyBinding(
         "key.dimensium.blueprint_browser",
         Keyboard.KEY_B,
         "Dimensium");
-    public static KeyBinding actionSettings = new KeyBinding(
+    public static final KeyBinding actionSettings = new KeyBinding(
         "key.dimensium.settings",
         Keyboard.KEY_PERIOD,
         "Dimensium");
-    public static KeyBinding gizmoNudgeForward = new KeyBinding(
+    public static final KeyBinding gizmoNudgeForward = new KeyBinding(
         "key.dimensium.gizmo.nudge_forward",
         Keyboard.KEY_UP,
         "Dimensium");
-    public static KeyBinding gizmoNudgeBackward = new KeyBinding(
+    public static final KeyBinding gizmoNudgeBackward = new KeyBinding(
         "key.dimensium.gizmo.nudge_backward",
         Keyboard.KEY_DOWN,
         "Dimensium");
-    public static KeyBinding gizmoNudgeRight = new KeyBinding(
+    public static final KeyBinding gizmoNudgeRight = new KeyBinding(
         "key.dimensium.gizmo.nudge_right",
         Keyboard.KEY_RIGHT,
         "Dimensium");
-    public static KeyBinding gizmoNudgeLeft = new KeyBinding(
+    public static final KeyBinding gizmoNudgeLeft = new KeyBinding(
         "key.dimensium.gizmo.nudge_left",
         Keyboard.KEY_LEFT,
         "Dimensium");
-    public static KeyBinding gizmoNudgeUp = new KeyBinding(
+    public static final KeyBinding gizmoNudgeUp = new KeyBinding(
         "key.dimensium.gizmo.nudge_up",
         Keyboard.KEY_PRIOR,
         "Dimensium");
-    public static KeyBinding gizmoNudgeDown = new KeyBinding(
+    public static final KeyBinding gizmoNudgeDown = new KeyBinding(
         "key.dimensium.gizmo.nudge_down",
         Keyboard.KEY_NEXT,
         "Dimensium");
@@ -243,11 +251,6 @@ public class Dimensium {
     @EventHandler
     public void postInit(FMLPostInitializationEvent event) {
         proxy.postInit();
-    }
-
-    @EventHandler
-    public void loadComplete(FMLLoadCompleteEvent event) {
-        proxy.loadComplete();
     }
 
 }

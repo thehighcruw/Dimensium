@@ -29,7 +29,7 @@ public class InputHandler {
         Minecraft mc = Minecraft.getMinecraft();
         EntityPlayer player = mc.thePlayer;
         if (player == null || mc.theWorld == null) return;
-        if (!OverlayRenderer.cheatsAllowed()) return;
+        if (OverlayRenderer.isNotCreative()) return;
 
         if (DimensiumEditorMode.INSTANCE.isActive()) {
             if (editorMouse.handle(event, mc)) return;

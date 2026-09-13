@@ -12,5 +12,4 @@ public interface IProxy {
 
     void postInit();
 
-    void loadComplete();
 }

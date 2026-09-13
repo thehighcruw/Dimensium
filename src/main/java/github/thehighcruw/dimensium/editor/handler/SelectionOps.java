@@ -5,6 +5,7 @@
 package github.thehighcruw.dimensium.editor.handler;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -42,7 +43,7 @@ public class SelectionOps {
             int ly = (int) (key >> 10) & 0x3FF;
             int lz = (int) key & 0x3FF;
             SelectionState.BlockData bd = e.getValue();
-            ops.add(new int[] { ox + lx, oy + ly, oz + lz, Block.getIdFromBlock(bd.block), bd.meta });
+            ops.add(new int[] { ox + lx, oy + ly, oz + lz, Block.getIdFromBlock(bd.block()), bd.meta() });
         }
         return ops;
     }
@@ -172,7 +173,7 @@ public class SelectionOps {
                 falling.add(new int[] { x, y, z, Block.getIdFromBlock(b), world.getBlockMetadata(x, y, z) });
             }
         }
-        falling.sort((a, b) -> Integer.compare(a[1], b[1]));
+        falling.sort(Comparator.comparingInt(a -> a[1]));
 
         // Simulate: track which positions will be air after movement (applied to our ops list).
         java.util.Map<Long, int[]> state = new java.util.HashMap<>();

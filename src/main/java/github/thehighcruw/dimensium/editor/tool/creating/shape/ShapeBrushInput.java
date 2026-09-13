@@ -27,8 +27,8 @@ public class ShapeBrushInput implements BrushInput {
     private ShapeBrushInput() {}
 
     @Override
-    public boolean onMouseClick(int button, Minecraft mc, MovingObjectPosition mop) {
-        if (mc.thePlayer == null) return false;
+    public void onMouseClick(int button, Minecraft mc, MovingObjectPosition mop) {
+        if (mc.thePlayer == null) return;
         FreecamState fs = FreecamState.INSTANCE;
         int mouseX = (int) fs.cursorX, mouseY = (int) fs.cursorY;
         ShapePlacementState ps = ShapePlacementState.INSTANCE;
@@ -39,7 +39,7 @@ public class ShapeBrushInput implements BrushInput {
                     ps.start(mop.blockX, mop.blockY, mop.blockZ);
                 }
             }
-            return true;
+            return;
         }
 
         if (button == KeyConstants.LMB) {
@@ -90,6 +90,5 @@ public class ShapeBrushInput implements BrushInput {
         } else if (button == KeyConstants.RMB) {
             GuiDimensiumOverlay.confirmPlacement();
         }
-        return true;
     }
 }

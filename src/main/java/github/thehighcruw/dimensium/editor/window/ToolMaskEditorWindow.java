@@ -227,40 +227,24 @@ public class ToolMaskEditorWindow extends ImGuiWindow {
     private MaskNode createNodeForType(byte[] payload) {
         String type = new String(payload, java.nio.charset.StandardCharsets.UTF_8);
         int airId = Block.getIdFromBlock(Blocks.air);
-        switch (type) {
-            case "OR":
-                return new OrNode();
-            case "AND":
-                return new AndNode();
-            case "NOT":
-                return new NotNode();
-            case "OFFSET":
-                return new OffsetNode(0, -1, 0);
-            case "Block":
-                return new BlockMask(1, -1);
-            case "Above":
-                return new AboveMask(airId, -1);
-            case "Below":
-                return new BelowMask(airId, -1);
-            case "Near":
-                return new NearMask(airId, -1, 3);
-            case "Neighbour":
-                return new NeighbourMask(airId, -1);
-            case "Adjacent":
-                return new AdjacentMask(airId, -1);
-            case "Y":
-                return new YMask(YMask.Op.GREATER_EQ, 64);
-            case "Angle":
-                return new AngleMask(0f, 10f);
-            case "In Selection":
-                return new InSelectionMask();
-            case "Can See Sky":
-                return new CanSeeSkyMask();
-            case "Surface":
-                return new SurfaceMask();
-            default:
-                return null;
-        }
+        return switch (type) {
+            case "OR" -> new OrNode();
+            case "AND" -> new AndNode();
+            case "NOT" -> new NotNode();
+            case "OFFSET" -> new OffsetNode(0, -1, 0);
+            case "Block" -> new BlockMask(1, -1);
+            case "Above" -> new AboveMask(airId, -1);
+            case "Below" -> new BelowMask(airId, -1);
+            case "Near" -> new NearMask(airId, -1, 3);
+            case "Neighbour" -> new NeighbourMask(airId, -1);
+            case "Adjacent" -> new AdjacentMask(airId, -1);
+            case "Y" -> new YMask(YMask.Op.GREATER_EQ, 64);
+            case "Angle" -> new AngleMask(0f, 10f);
+            case "In Selection" -> new InSelectionMask();
+            case "Can See Sky" -> new CanSeeSkyMask();
+            case "Surface" -> new SurfaceMask();
+            default -> null;
+        };
     }
 
     private void renderNode(MaskNode node, List<MaskNode> parentList, int indexInParent, float scale) {
@@ -310,7 +294,7 @@ public class ToolMaskEditorWindow extends ImGuiWindow {
         ItemStack iconStack = blockItemStack(node);
         if (iconStack != null) {
             float iconSize = rowH - 2f * scale;
-            DeferredItemRender.schedule(iconStack, cx, cy + 1f * scale, iconSize);
+            DeferredItemRender.schedule(iconStack, cx, cy + scale, iconSize);
             cx += iconSize + pad;
         }
         ImGui.getWindowDrawList()

@@ -48,7 +48,7 @@ public class GradientBrush implements BrushStrategy {
         BrushUtil.forBrush(bs, (dx, dy, dz) -> {
             int wx = bx + dx, wy = by + dy, wz = bz + dz;
             if (world.getBlock(wx, wy, wz) == Blocks.air) return;
-            if (s.gradientMaskSurface && !BrushUtil.hasAirNeighbor(world, wx, wy, wz)) return;
+            if (s.gradientMaskSurface && BrushUtil.hasSolidNeighbor(world, wx, wy, wz)) return;
 
             float t;
             if (samePos) {

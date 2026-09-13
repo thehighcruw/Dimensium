@@ -16,8 +16,8 @@ import org.lwjgl.input.Keyboard;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.freecam.FreecamState;
-import github.thehighcruw.dimensium.editor.handler.ExtrudeHelper;
 import github.thehighcruw.dimensium.editor.handler.AnchorSnap;
+import github.thehighcruw.dimensium.editor.handler.ExtrudeHelper;
 import github.thehighcruw.dimensium.editor.overlay.GuiDimensiumOverlay;
 import github.thehighcruw.dimensium.editor.tool.BrushInput;
 import github.thehighcruw.dimensium.editor.window.viewport.world.PlaneTranslationGizmo;
@@ -108,8 +108,7 @@ public class ModellingBrushInput implements BrushInput {
         ModellingToolState.ModelPoint mSelPt = mts.selectedPointObj();
         if (mSelPt == null) return;
         if (mts.gizmo.isDragging() || mts.planeGizmo.isDragging()) {
-            double[] anchor = mts.gizmo.isDragging() ? mts.gizmo.updateDrag(mx, my)
-                : mts.planeGizmo.updateDrag(mx, my);
+            double[] anchor = mts.gizmo.isDragging() ? mts.gizmo.updateDrag(mx, my) : mts.planeGizmo.updateDrag(mx, my);
             if (anchor != null) {
                 mSelPt.x = AnchorSnap.toInt(anchor[0], snap);
                 mSelPt.y = AnchorSnap.toInt(anchor[1], snap);

@@ -28,7 +28,7 @@ public class FreehandBrush implements BrushStrategy {
             int wx = x + dx, wy = y + dy, wz = z + dz;
             Block existing = world.getBlock(wx, wy, wz);
             if (!s.freehandReplaceSolid && existing != Blocks.air) return;
-            if (s.freehandMaskSurface && !BrushUtil.hasAirNeighbor(world, wx, wy, wz)) return;
+            if (s.freehandMaskSurface && BrushUtil.hasSolidNeighbor(world, wx, wy, wz)) return;
             ChangeProposal.write(world, wx, wy, wz, paint, meta);
         });
     }

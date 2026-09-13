@@ -57,7 +57,6 @@ public final class MenuBar {
 
     private static final String POPUP_SAVE_AS = "##preset_save_as_popup";
     private final imgui.type.ImString saveAsBuffer = new imgui.type.ImString(128);
-    private String saveAsCurrentText = "";
     private String saveAsError = null;
     private boolean openSaveAsPopup = false;
 
@@ -249,13 +248,11 @@ public final class MenuBar {
 
     private void renderMaskEntries(java.util.List<MaskEntry> entries, ToolMask active) {
         for (MaskEntry entry : entries) {
-            if (entry instanceof ToolMask) {
-                ToolMask mask = (ToolMask) entry;
+            if (entry instanceof ToolMask mask) {
                 if (ImGui.menuItem(mask.getName(), null, active == mask)) {
                     ToolMaskRegistry.INSTANCE.setActiveMask(active == mask ? null : mask);
                 }
-            } else if (entry instanceof MaskFolder) {
-                MaskFolder folder = (MaskFolder) entry;
+            } else if (entry instanceof MaskFolder folder) {
                 if (ImGui.beginMenu(folder.getName())) {
                     renderMaskEntries(folder.entries, active);
                     ImGui.endMenu();
@@ -491,7 +488,7 @@ public final class MenuBar {
             ImGui.setNextItemWidth(-1f);
             boolean confirmed = ImGui
                 .inputText("##preset_name", saveAsBuffer, imgui.flag.ImGuiInputTextFlags.EnterReturnsTrue);
-            saveAsCurrentText = saveAsBuffer.get();
+            String saveAsCurrentText = saveAsBuffer.get();
             if (ImGui.isItemEdited()) saveAsError = null;
             if (saveAsError != null) {
                 ImGui.textColored(1f, 0.3f, 0.3f, 1f, saveAsError);

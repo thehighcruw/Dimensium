@@ -330,9 +330,16 @@ public final class NoiseSampler {
 
     /** Updates f[0]=F1, f[1]=F2, f[2]=F3 with a new candidate distance d. */
     private static void updateWorleyF3(float[] f, float d) {
-        if (d < f[0]) { f[2] = f[1]; f[1] = f[0]; f[0] = d; }
-        else if (d < f[1]) { f[2] = f[1]; f[1] = d; }
-        else if (d < f[2]) { f[2] = d; }
+        if (d < f[0]) {
+            f[2] = f[1];
+            f[1] = f[0];
+            f[0] = d;
+        } else if (d < f[1]) {
+            f[2] = f[1];
+            f[1] = d;
+        } else if (d < f[2]) {
+            f[2] = d;
+        }
     }
 
     // ── Voronoi edges (F2 - F1) ───────────────────────────────────────────────
@@ -366,8 +373,12 @@ public final class NoiseSampler {
 
     /** Updates f[0]=F1, f[1]=F2 with a new candidate distance d. */
     private static void updateF2(float[] f, float d) {
-        if (d < f[0]) { f[1] = f[0]; f[0] = d; }
-        else if (d < f[1]) { f[1] = d; }
+        if (d < f[0]) {
+            f[1] = f[0];
+            f[0] = d;
+        } else if (d < f[1]) {
+            f[1] = d;
+        }
     }
 
     // ── Metaball ──────────────────────────────────────────────────────────────

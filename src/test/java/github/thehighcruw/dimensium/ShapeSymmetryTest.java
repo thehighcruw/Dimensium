@@ -262,27 +262,27 @@ public class ShapeSymmetryTest {
 
     // ── TORUS ─────────────────────────────────────────────────────────────────
 
-    private static void torusXYZSym(int ringR, int ringRZ, int tubeR, boolean hollow) {
+    private static void torusXYZSym(int ringR, int ringRZ, int tubeR) {
         int outer = ringR + tubeR;
         int w = outer * 2 + 1, h = tubeR * 2 + 1;
-        assertXSym(ShapeType.TORUS, w, h, w, hollow, ringR, ringRZ, tubeR);
-        assertYSym(ShapeType.TORUS, w, h, w, hollow, ringR, ringRZ, tubeR);
-        assertZSym(ShapeType.TORUS, w, h, w, hollow, ringR, ringRZ, tubeR);
+        assertXSym(ShapeType.TORUS, w, h, w, false, ringR, ringRZ, tubeR);
+        assertYSym(ShapeType.TORUS, w, h, w, false, ringR, ringRZ, tubeR);
+        assertZSym(ShapeType.TORUS, w, h, w, false, ringR, ringRZ, tubeR);
     }
 
     @Test
     public void torusSymmetrySmall() {
-        torusXYZSym(4, 4, 2, false);
+        torusXYZSym(4, 4, 2);
     }
 
     @Test
     public void torusSymmetryMedium() {
-        torusXYZSym(6, 6, 2, false);
+        torusXYZSym(6, 6, 2);
     }
 
     @Test
     public void torusSymmetryLargeTube() {
-        torusXYZSym(7, 7, 3, false);
+        torusXYZSym(7, 7, 3);
     }
 
     // Hollow torus: XZ solid-surface boundary is fine; the inner hollow boundary
@@ -307,7 +307,7 @@ public class ShapeSymmetryTest {
     // Elliptic torus (ringR != ringRZ): XZ still symmetric, Y symmetric
     @Test
     public void torusEllipticSymmetry() {
-        torusXYZSym(6, 4, 2, false);
+        torusXYZSym(6, 4, 2);
     }
 
     // ── OCTAHEDRON ────────────────────────────────────────────────────────────

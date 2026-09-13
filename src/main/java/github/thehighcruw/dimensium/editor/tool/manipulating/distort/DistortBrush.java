@@ -24,19 +24,18 @@ public class DistortBrush implements BrushStrategy {
         int ox = mop.blockX, oy = mop.blockY, oz = mop.blockZ;
         int sx = bs.brushRadius;
         int sy = bs.brushShape.hasHeight ? bs.brushHeight : bs.brushRadius;
-        int sz = sx;
         float invScale = 1f / s.distortScale;
         long seed = s.distortSeed;
 
-        int maxPos = (2 * sx + 1) * (2 * sy + 1) * (2 * sz + 1);
+        int maxPos = (2 * sx + 1) * (2 * sy + 1) * (2 * sx + 1);
         int[] pdx = new int[maxPos], pdy = new int[maxPos], pdz = new int[maxPos];
         int[] srcId = new int[maxPos], srcMeta = new int[maxPos];
         int posCount = 0;
 
         for (int dx = -sx; dx <= sx; dx++) {
             for (int dy = -sy; dy <= sy; dy++) {
-                for (int dz = -sz; dz <= sz; dz++) {
-                    if (!BrushUtil.inShape(bs.brushShape, dx, dy, dz, sx, sy, sz)) continue;
+                for (int dz = -sx; dz <= sx; dz++) {
+                    if (!BrushUtil.inShape(bs.brushShape, dx, dy, dz, sx, sy, sx)) continue;
                     int wx = ox + dx, wy = oy + dy, wz = oz + dz;
 
                     float nx = wx * invScale, ny = wy * invScale, nz = wz * invScale;
@@ -48,7 +47,7 @@ public class DistortBrush implements BrushStrategy {
                     if (s.distortSmoothEdges) {
                         float rx = sx > 0 ? (float) Math.abs(dx) / sx : 0f;
                         float ry = sy > 0 ? (float) Math.abs(dy) / sy : 0f;
-                        float rz = sz > 0 ? (float) Math.abs(dz) / sz : 0f;
+                        float rz = sx > 0 ? (float) Math.abs(dz) / sx : 0f;
                         float r = Math.max(rx, Math.max(ry, rz));
                         if (r > 0.75f) {
                             float ef = (r - 0.75f) * 4f;
@@ -63,9 +62,9 @@ public class DistortBrush implements BrushStrategy {
                     float warpY = wy0 * s.distortDistanceY * edgeFade;
                     float warpZ = wz0 * s.distortDistanceZ * edgeFade;
 
-                    int srcX = (int) Math.round(wx + warpX);
-                    int srcY = (int) Math.round(wy + warpY);
-                    int srcZ = (int) Math.round(wz + warpZ);
+                    int srcX = Math.round(wx + warpX);
+                    int srcY = Math.round(wy + warpY);
+                    int srcZ = Math.round(wz + warpZ);
                     Block b = world.getBlock(srcX, srcY, srcZ);
                     srcId[posCount] = Block.getIdFromBlock(b);
                     srcMeta[posCount] = world.getBlockMetadata(srcX, srcY, srcZ);

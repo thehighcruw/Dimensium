@@ -35,14 +35,13 @@ public class RockBrush implements BrushStrategy {
         int ox = mop.blockX + n[0], oy = mop.blockY + n[1], oz = mop.blockZ + n[2];
         int sx = bs.brushRadius;
         int sy = bs.brushShape.hasHeight ? bs.brushHeight : bs.brushRadius;
-        int sz = sx;
-        int dimX = 2 * sx + 1, dimY = 2 * sy + 1, dimZ = 2 * sz + 1;
-        int strideY = dimZ, strideX = dimY * dimZ;
+        int dimX = 2 * sx + 1, dimY = 2 * sy + 1, dimZ = 2 * sx + 1;
+        int strideX = dimY * dimZ;
 
-        float[] density = buildDensity(s, bs, sx, sy, sz, ox, oy, oz, dimX, dimY, dimZ, strideX, strideY);
+        float[] density = buildDensity(s, bs, sx, sy, sx, ox, oy, oz, dimX, dimY, dimZ, strideX, dimZ);
 
         if (s.smoothingStdDev > 0f) {
-            int minRadius = Math.min(sx, Math.min(sy, sz));
+            int minRadius = Math.min(sy, sx);
             float clampedStdDev = Math.min(s.smoothingStdDev, minRadius / 2.5f);
             if (clampedStdDev > 0f) {
                 density = gaussianBlur3D(density, dimX, dimY, dimZ, clampedStdDev);
@@ -51,9 +50,9 @@ public class RockBrush implements BrushStrategy {
 
         for (int dx = -sx; dx <= sx; dx++) {
             for (int dy = -sy; dy <= sy; dy++) {
-                for (int dz = -sz; dz <= sz; dz++) {
-                    if (!BrushUtil.inShape(bs.brushShape, dx, dy, dz, sx, sy, sz)) continue;
-                    int idx = (dx + sx) * strideX + (dy + sy) * strideY + (dz + sz);
+                for (int dz = -sx; dz <= sx; dz++) {
+                    if (!BrushUtil.inShape(bs.brushShape, dx, dy, dz, sx, sy, sx)) continue;
+                    int idx = (dx + sx) * strideX + (dy + sy) * dimZ + (dz + sx);
                     if (density[idx] < FILL_THRESHOLD) continue;
 
                     int wx = ox + dx, wy = oy + dy, wz = oz + dz;
@@ -125,7 +124,7 @@ public class RockBrush implements BrushStrategy {
     }
 
     private static float[] blurAxis(float[] src, int dimX, int dimY, int dimZ, float[] kernel, int kr, int axis) {
-        int strideY = dimZ, strideX = dimY * dimZ;
+        int strideX = dimY * dimZ;
         float[] dst = new float[dimX * dimY * dimZ];
         for (int x = 0; x < dimX; x++) {
             for (int y = 0; y < dimY; y++) {
@@ -139,10 +138,10 @@ public class RockBrush implements BrushStrategy {
                         else nz += k;
                         if (nx < 0 || nx >= dimX || ny < 0 || ny >= dimY || nz < 0 || nz >= dimZ) continue;
                         float w = kernel[k + kr];
-                        val += src[nx * strideX + ny * strideY + nz] * w;
+                        val += src[nx * strideX + ny * dimZ + nz] * w;
                         wSum += w;
                     }
-                    dst[x * strideX + y * strideY + z] = wSum > 0f ? val / wSum : 0f;
+                    dst[x * strideX + y * dimZ + z] = wSum > 0f ? val / wSum : 0f;
                 }
             }
         }

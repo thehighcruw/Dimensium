@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
+
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.util.IIcon;
@@ -55,6 +57,13 @@ public class GhostRenderer {
 
         // For each exterior face, register its 4 edges with the face's plane-group bit.
         // An edge is a "crease" (should be drawn) iff it borders faces from 2+ plane groups.
+        HashMap<Long, Integer> edgeMask = getEdgeMask(blocks, set);
+
+        return buildVertsFromEdgeMask(edgeMask);
+    }
+
+    @Nonnull
+    private HashMap<Long, Integer> getEdgeMask(List<int[]> blocks, Set<Long> set) {
         HashMap<Long, Integer> edgeMask = new HashMap<>(blocks.size() * 4);
         for (int[] p : blocks) {
             int bx = p[0], by = p[1], bz = p[2];
@@ -63,18 +72,16 @@ public class GhostRenderer {
                 int axisBit = FACE_AXIS_BIT[face];
                 for (int[] e : FACE_EDGES[face]) {
                     long ek = lEdgeKey(e[0], bx + e[1], by + e[2], bz + e[3]);
-                    Integer prev = edgeMask.get(ek);
-                    edgeMask.put(ek, prev == null ? axisBit : prev | axisBit);
+                    edgeMask.compute(ek, (k, prev) -> prev == null ? axisBit : prev | axisBit);
                 }
             }
         }
-
-        return buildVertsFromEdgeMask(edgeMask);
+        return edgeMask;
     }
 
     /** Draws pre-computed wireframe vertices (x1,y1,z1,x2,y2,z2,...) as billboard quads. */
     static void drawWireframeCache(Tessellator t, float[] verts) {
-        WorldLines.drawWireframeCache(t, verts, WorldLines.W_THIN);
+        WorldLines.drawWireframeCache(t, verts);
     }
 
     // ── Geometry helpers ──────────────────────────────────────────────────────
@@ -91,25 +98,141 @@ public class GhostRenderer {
         float tr = ((tintRGB >> 16) & 0xFF) / 255f;
         float tg = ((tintRGB >> 8) & 0xFF) / 255f;
         float tb = (tintRGB & 0xFF) / 255f;
-        float x1 = x, y1 = y, z1 = z, x2 = x + 1f, y2 = y + 1f, z2 = z + 1f;
+        float x2 = x + 1f;
+        float y2 = y + 1f;
+        float z2 = z + 1f;
         switch (face) {
             case 0:
-                addFace(t, block, meta, 5, tr, tg, tb, x2, y2, z2, x2, y2, z1, x2, y1, z1, x2, y1, z2);
+                addFace(
+                    t,
+                    block,
+                    meta,
+                    5,
+                    tr,
+                    tg,
+                    tb,
+                    x2,
+                    y2,
+                    z2,
+                    x2,
+                    y2,
+                    (float) z,
+                    x2,
+                    (float) y,
+                    (float) z,
+                    x2,
+                    (float) y,
+                    z2);
                 break;
             case 1:
-                addFace(t, block, meta, 4, tr, tg, tb, x1, y2, z1, x1, y2, z2, x1, y1, z2, x1, y1, z1);
+                addFace(
+                    t,
+                    block,
+                    meta,
+                    4,
+                    tr,
+                    tg,
+                    tb,
+                    (float) x,
+                    y2,
+                    (float) z,
+                    (float) x,
+                    y2,
+                    z2,
+                    (float) x,
+                    (float) y,
+                    z2,
+                    (float) x,
+                    (float) y,
+                    (float) z);
                 break;
             case 2:
-                addFace(t, block, meta, 1, tr, tg, tb, x1, y2, z1, x2, y2, z1, x2, y2, z2, x1, y2, z2);
+                addFace(
+                    t,
+                    block,
+                    meta,
+                    1,
+                    tr,
+                    tg,
+                    tb,
+                    (float) x,
+                    y2,
+                    (float) z,
+                    x2,
+                    y2,
+                    (float) z,
+                    x2,
+                    y2,
+                    z2,
+                    (float) x,
+                    y2,
+                    z2);
                 break;
             case 3:
-                addFace(t, block, meta, 0, tr, tg, tb, x1, y1, z2, x2, y1, z2, x2, y1, z1, x1, y1, z1);
+                addFace(
+                    t,
+                    block,
+                    meta,
+                    0,
+                    tr,
+                    tg,
+                    tb,
+                    (float) x,
+                    (float) y,
+                    z2,
+                    x2,
+                    (float) y,
+                    z2,
+                    x2,
+                    (float) y,
+                    (float) z,
+                    (float) x,
+                    (float) y,
+                    (float) z);
                 break;
             case 4:
-                addFace(t, block, meta, 3, tr, tg, tb, x1, y2, z2, x2, y2, z2, x2, y1, z2, x1, y1, z2);
+                addFace(
+                    t,
+                    block,
+                    meta,
+                    3,
+                    tr,
+                    tg,
+                    tb,
+                    (float) x,
+                    y2,
+                    z2,
+                    x2,
+                    y2,
+                    z2,
+                    x2,
+                    (float) y,
+                    z2,
+                    (float) x,
+                    (float) y,
+                    z2);
                 break;
             case 5:
-                addFace(t, block, meta, 2, tr, tg, tb, x2, y2, z1, x1, y2, z1, x1, y1, z1, x2, y1, z1);
+                addFace(
+                    t,
+                    block,
+                    meta,
+                    2,
+                    tr,
+                    tg,
+                    tb,
+                    x2,
+                    y2,
+                    (float) z,
+                    (float) x,
+                    y2,
+                    (float) z,
+                    (float) x,
+                    (float) y,
+                    (float) z,
+                    x2,
+                    (float) y,
+                    (float) z);
                 break;
             default:
                 break;
@@ -151,8 +274,7 @@ public class GhostRenderer {
                 int axisBit = FACE_AXIS_BIT[face];
                 for (int[] e : FACE_EDGES[face]) {
                     long ek = ((long) e[0] << 39) | SelectionRenderer.lPack(bx + e[1], by + e[2], bz + e[3]);
-                    Integer prev = edgeMask.get(ek);
-                    edgeMask.put(ek, prev == null ? axisBit : prev | axisBit);
+                    edgeMask.compute(ek, (k, prev) -> prev == null ? axisBit : prev | axisBit);
                 }
             }
         }
@@ -182,31 +304,31 @@ public class GhostRenderer {
         return verts;
     }
 
-    static void addBoxFaces(Tessellator t, float x1, float y1, float z1, float x2, float y2, float z2) {
-        t.addVertex(x1, y1, z1);
-        t.addVertex(x1, y1, z2);
-        t.addVertex(x2, y1, z2);
-        t.addVertex(x2, y1, z1);
-        t.addVertex(x1, y2, z1);
-        t.addVertex(x2, y2, z1);
+    static void addBoxFaces(Tessellator t, float x2, float y2, float z2) {
+        t.addVertex((float) 0.0, (float) 0.0, (float) 0.0);
+        t.addVertex((float) 0.0, (float) 0.0, z2);
+        t.addVertex(x2, (float) 0.0, z2);
+        t.addVertex(x2, (float) 0.0, (float) 0.0);
+        t.addVertex((float) 0.0, y2, (float) 0.0);
+        t.addVertex(x2, y2, (float) 0.0);
         t.addVertex(x2, y2, z2);
-        t.addVertex(x1, y2, z2);
-        t.addVertex(x1, y1, z1);
-        t.addVertex(x2, y1, z1);
-        t.addVertex(x2, y2, z1);
-        t.addVertex(x1, y2, z1);
-        t.addVertex(x1, y1, z2);
-        t.addVertex(x1, y2, z2);
+        t.addVertex((float) 0.0, y2, z2);
+        t.addVertex((float) 0.0, (float) 0.0, (float) 0.0);
+        t.addVertex(x2, (float) 0.0, (float) 0.0);
+        t.addVertex(x2, y2, (float) 0.0);
+        t.addVertex((float) 0.0, y2, (float) 0.0);
+        t.addVertex((float) 0.0, (float) 0.0, z2);
+        t.addVertex((float) 0.0, y2, z2);
         t.addVertex(x2, y2, z2);
-        t.addVertex(x2, y1, z2);
-        t.addVertex(x1, y1, z1);
-        t.addVertex(x1, y2, z1);
-        t.addVertex(x1, y2, z2);
-        t.addVertex(x1, y1, z2);
-        t.addVertex(x2, y1, z1);
-        t.addVertex(x2, y1, z2);
+        t.addVertex(x2, (float) 0.0, z2);
+        t.addVertex((float) 0.0, (float) 0.0, (float) 0.0);
+        t.addVertex((float) 0.0, y2, (float) 0.0);
+        t.addVertex((float) 0.0, y2, z2);
+        t.addVertex((float) 0.0, (float) 0.0, z2);
+        t.addVertex(x2, (float) 0.0, (float) 0.0);
+        t.addVertex(x2, (float) 0.0, z2);
         t.addVertex(x2, y2, z2);
-        t.addVertex(x2, y2, z1);
+        t.addVertex(x2, y2, (float) 0.0);
     }
 
     /**

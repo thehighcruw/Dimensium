@@ -177,9 +177,9 @@ public class ModellingToolState {
                 .append(activeBlock.getItemDamage());
         }
         sb.append('|');
-        for (int r = 0; r < rows.size(); r++) {
+        for (List<ModelPoint> row : rows) {
             sb.append('R');
-            for (ModelPoint p : rows.get(r)) {
+            for (ModelPoint p : row) {
                 sb.append(p.x)
                     .append(',')
                     .append(p.y)

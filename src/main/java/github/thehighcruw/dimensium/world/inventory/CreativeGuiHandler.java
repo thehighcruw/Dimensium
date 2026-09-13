@@ -39,6 +39,7 @@ public class CreativeGuiHandler {
     }
 
     @SubscribeEvent
+    @SuppressWarnings("unchecked")
     public void onInitGui(GuiScreenEvent.InitGuiEvent.Post event) {
         if (!(event.gui instanceof GuiContainerCreative)) return;
         int guiLeft = (event.gui.width - CREATIVE_W) / 2;

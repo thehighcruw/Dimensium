@@ -92,7 +92,7 @@ class HologramRenderer {
         GL11.glPushMatrix();
         GL11.glTranslated(sel.minX() - rx, sel.minY() - ry, sel.minZ() - rz);
         GL11.glColor4f(1.0f, 0.1f, 0.1f, 0.12f + pulse * 0.06f);
-        SelectionRenderer.drawFilledBox(0, 0, 0, sel.width(), sel.height(), sel.depth());
+        SelectionRenderer.drawFilledBox(sel.width(), sel.height(), sel.depth());
         GL11.glColor4f(1.0f, 0.2f, 0.2f, 0.7f);
         GL11.glLineWidth(1.5f);
         SelectionRenderer.drawBox(0, 0, 0, sel.width(), sel.height(), sel.depth());
@@ -114,7 +114,7 @@ class HologramRenderer {
         GL11.glTranslated(sweptMinX - rx, sweptMinY - ry, sweptMinZ - rz);
 
         GL11.glColor4f(0.0f, 0.8f, 0.9f, 0.08f + pulse * 0.04f);
-        SelectionRenderer.drawFilledBox(0, 0, 0, sweptW, sweptH, sweptD);
+        SelectionRenderer.drawFilledBox(sweptW, sweptH, sweptD);
 
         GL11.glColor4f(1.0f, 1.0f, 1.0f, 0.6f);
         GL11.glLineWidth(1.5f);
@@ -168,7 +168,8 @@ class HologramRenderer {
                 for (int y = 0; y < h; y++) {
                     for (int z = 0; z < d; z++) {
                         BlockData bd = sel.clipboardGet(x, y, z);
-                        if (bd.block == Blocks.air || bd.block.getRenderType() != 0) continue;
+                        if (bd.block() == Blocks.air || bd.block()
+                            .getRenderType() != 0) continue;
                         for (int face = 0; face < 6; face++) {
                             int nx = x + GhostRenderer.NX[face], ny = y + GhostRenderer.NY[face],
                                 nz = z + GhostRenderer.NZ[face];
@@ -177,9 +178,10 @@ class HologramRenderer {
                                 && ny < h
                                 && nz >= 0
                                 && nz < d
-                                && sel.clipboardGet(nx, ny, nz).block != Blocks.air;
+                                && sel.clipboardGet(nx, ny, nz)
+                                    .block() != Blocks.air;
                             if (!occ) {
-                                GhostRenderer.addTexturedFace(t, x, y, z, bd.block, bd.meta, face);
+                                GhostRenderer.addTexturedFace(t, x, y, z, bd.block(), bd.meta(), face);
                                 if (++batched % 2048 == 0) {
                                     t.draw();
                                     t.startDrawingQuads();
@@ -199,9 +201,10 @@ class HologramRenderer {
                 for (int y = 0; y < h; y++) {
                     for (int z = 0; z < d; z++) {
                         BlockData bd = sel.clipboardGet(x, y, z);
-                        if (bd.block == Blocks.air || bd.block.getRenderType() == 0) continue;
-                        int blockId = Block.getIdFromBlock(bd.block);
-                        int rgb = BlockColorCache.INSTANCE.blockColor(blockId, bd.meta);
+                        if (bd.block() == Blocks.air || bd.block()
+                            .getRenderType() == 0) continue;
+                        int blockId = Block.getIdFromBlock(bd.block());
+                        int rgb = BlockColorCache.INSTANCE.blockColor(blockId, bd.meta());
                         if (rgb < 0) rgb = 0x888888;
                         float r = ((rgb >> 16) & 0xFF) / 255f;
                         float g = ((rgb >> 8) & 0xFF) / 255f;
@@ -215,7 +218,8 @@ class HologramRenderer {
                                 && ny < h
                                 && nz >= 0
                                 && nz < d
-                                && sel.clipboardGet(nx, ny, nz).block != Blocks.air;
+                                && sel.clipboardGet(nx, ny, nz)
+                                    .block() != Blocks.air;
                             if (!occ) {
                                 GhostRenderer.addSingleFace(t, x, y, z, face);
                                 if (++batched % 2048 == 0) {
@@ -244,7 +248,7 @@ class HologramRenderer {
                 for (int y = 0; y < h; y++) {
                     for (int z = 0; z < d; z++) {
                         BlockData bd = sel.clipboardGet(x, y, z);
-                        if (bd.block == Blocks.air) continue;
+                        if (bd.block() == Blocks.air) continue;
                         for (int face = 0; face < 6; face++) {
                             int nx = x + GhostRenderer.NX[face];
                             int ny = y + GhostRenderer.NY[face];
@@ -254,7 +258,8 @@ class HologramRenderer {
                                 && ny < h
                                 && nz >= 0
                                 && nz < d
-                                && sel.clipboardGet(nx, ny, nz).block != Blocks.air;
+                                && sel.clipboardGet(nx, ny, nz)
+                                    .block() != Blocks.air;
                             if (!neighborOccupied) {
                                 GhostRenderer.addSingleFace(t, x, y, z, face, 0.02f);
                                 if (++batched % 2048 == 0) {
@@ -287,7 +292,7 @@ class HologramRenderer {
             GL11.glPushMatrix();
             GL11.glTranslated(hx, hy, hz);
             GL11.glColor4f(0.2f, 1.0f, 0.4f, 0.08f + pulse * 0.04f);
-            SelectionRenderer.drawFilledBox(0, 0, 0, w, h, d);
+            SelectionRenderer.drawFilledBox(w, h, d);
             GL11.glColor4f(0.2f, 1.0f, 0.4f, 0.9f - (float) (copyIndex - 1) / Math.max(1, totalCopies) * 0.4f);
             GL11.glLineWidth(2.0f);
             SelectionRenderer.drawBox(0, 0, 0, w, h, d);
@@ -309,8 +314,9 @@ class HologramRenderer {
         int w = sel.clipW, h = sel.clipH, d = sel.clipD;
 
         java.util.HashSet<Long> set = new java.util.HashSet<>(w * h * d);
-        for (int x = 0; x < w; x++) for (int y = 0; y < h; y++) for (int z = 0; z < d; z++)
-            if (sel.clipboardGet(x, y, z).block != Blocks.air) set.add(SelectionRenderer.lPack(x, y, z));
+        for (int x = 0; x < w; x++)
+            for (int y = 0; y < h; y++) for (int z = 0; z < d; z++) if (sel.clipboardGet(x, y, z)
+                .block() != Blocks.air) set.add(SelectionRenderer.lPack(x, y, z));
 
         return GhostRenderer.creaseWireframeFromSet(set);
     }

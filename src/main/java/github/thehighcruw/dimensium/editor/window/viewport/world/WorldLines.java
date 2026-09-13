@@ -133,25 +133,25 @@ public class WorldLines {
      * Draw a 12-edge wireframe box as billboard quads.
      * Handles tessellator setup/teardown.
      */
-    static void drawBox(float x1, float y1, float z1, float x2, float y2, float z2, float halfW) {
+    static void drawBox(float x1, float y1, float z1, float x2, float y2, float z2) {
         GL11.glDisable(GL11.GL_CULL_FACE);
         Tessellator t = Tessellator.instance;
         t.startDrawingQuads();
         // Bottom ring
-        addSegment(t, x1, y1, z1, x2, y1, z1, halfW);
-        addSegment(t, x2, y1, z1, x2, y1, z2, halfW);
-        addSegment(t, x2, y1, z2, x1, y1, z2, halfW);
-        addSegment(t, x1, y1, z2, x1, y1, z1, halfW);
+        addSegment(t, x1, y1, z1, x2, y1, z1, WorldLines.W_SEL);
+        addSegment(t, x2, y1, z1, x2, y1, z2, WorldLines.W_SEL);
+        addSegment(t, x2, y1, z2, x1, y1, z2, WorldLines.W_SEL);
+        addSegment(t, x1, y1, z2, x1, y1, z1, WorldLines.W_SEL);
         // Top ring
-        addSegment(t, x1, y2, z1, x2, y2, z1, halfW);
-        addSegment(t, x2, y2, z1, x2, y2, z2, halfW);
-        addSegment(t, x2, y2, z2, x1, y2, z2, halfW);
-        addSegment(t, x1, y2, z2, x1, y2, z1, halfW);
+        addSegment(t, x1, y2, z1, x2, y2, z1, WorldLines.W_SEL);
+        addSegment(t, x2, y2, z1, x2, y2, z2, WorldLines.W_SEL);
+        addSegment(t, x2, y2, z2, x1, y2, z2, WorldLines.W_SEL);
+        addSegment(t, x1, y2, z2, x1, y2, z1, WorldLines.W_SEL);
         // Vertical edges
-        addSegment(t, x1, y1, z1, x1, y2, z1, halfW);
-        addSegment(t, x2, y1, z1, x2, y2, z1, halfW);
-        addSegment(t, x2, y1, z2, x2, y2, z2, halfW);
-        addSegment(t, x1, y1, z2, x1, y2, z2, halfW);
+        addSegment(t, x1, y1, z1, x1, y2, z1, WorldLines.W_SEL);
+        addSegment(t, x2, y1, z1, x2, y2, z1, WorldLines.W_SEL);
+        addSegment(t, x2, y1, z2, x2, y2, z2, WorldLines.W_SEL);
+        addSegment(t, x1, y1, z2, x1, y2, z2, WorldLines.W_SEL);
         t.draw();
     }
 
@@ -159,13 +159,21 @@ public class WorldLines {
      * Draw wireframe from float[](x1,y1,z1,x2,y2,z2,...) as billboard quads.
      * Handles tessellator setup/teardown and batching.
      */
-    static void drawWireframeCache(Tessellator t, float[] verts, float halfW) {
+    static void drawWireframeCache(Tessellator t, float[] verts) {
         if (verts == null || verts.length < 6) return;
         GL11.glDisable(GL11.GL_CULL_FACE);
         t.startDrawingQuads();
         int batched = 0;
         for (int i = 0; i + 5 < verts.length; i += 6) {
-            addSegment(t, verts[i], verts[i + 1], verts[i + 2], verts[i + 3], verts[i + 4], verts[i + 5], halfW);
+            addSegment(
+                t,
+                verts[i],
+                verts[i + 1],
+                verts[i + 2],
+                verts[i + 3],
+                verts[i + 4],
+                verts[i + 5],
+                WorldLines.W_THIN);
             if (++batched % 2048 == 0) {
                 t.draw();
                 t.startDrawingQuads();
@@ -179,26 +187,26 @@ public class WorldLines {
      * subtracted from each vertex (for SelectionRenderer's cached int[] wireframe).
      * Eye must already be set to (0,0,0) since the result is camera-relative.
      */
-    static void drawIntWireframeCache(Tessellator t, int[] verts, double offX, double offY, double offZ, float halfW) {
+    static void drawIntWireframeCache(int[] verts, double offX, double offY, double offZ) {
         if (verts == null || verts.length < 6) return;
         GL11.glDisable(GL11.GL_CULL_FACE);
-        t.startDrawingQuads();
+        Tessellator.instance.startDrawingQuads();
         int batched = 0;
         for (int i = 0; i + 5 < verts.length; i += 6) {
             addSegment(
-                t,
+                Tessellator.instance,
                 verts[i] - offX,
                 verts[i + 1] - offY,
                 verts[i + 2] - offZ,
                 verts[i + 3] - offX,
                 verts[i + 4] - offY,
                 verts[i + 5] - offZ,
-                halfW);
+                WorldLines.W_THIN);
             if (++batched % 2048 == 0) {
-                t.draw();
-                t.startDrawingQuads();
+                Tessellator.instance.draw();
+                Tessellator.instance.startDrawingQuads();
             }
         }
-        t.draw();
+        Tessellator.instance.draw();
     }
 }

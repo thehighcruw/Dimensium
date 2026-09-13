@@ -47,7 +47,7 @@ public class NoiseBrush implements BrushStrategy {
         BrushUtil.forBrush(bs, (dx, dy, dz) -> {
             int wx = x + dx, wy = y + dy, wz = z + dz;
             if (world.getBlock(wx, wy, wz) == Blocks.air) return;
-            if (s.noiseSurfaceOnly && !BrushUtil.hasAirNeighbor(world, wx, wy, wz)) return;
+            if (s.noiseSurfaceOnly && BrushUtil.hasSolidNeighbor(world, wx, wy, wz)) return;
 
             float noiseVal;
             if (s.noise3D) {

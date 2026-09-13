@@ -55,7 +55,7 @@ public class TranslationGizmo {
     private double dragStartT;
 
     /** Per-axis sign: 1 = arrow points in +axis direction, -1 = flipped. */
-    public float[] axisFlip = { 1f, 1f, 1f };
+    public final float[] axisFlip = { 1f, 1f, 1f };
 
     public GizmoProjection getProjection() {
         return proj;

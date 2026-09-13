@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -19,6 +20,8 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import net.minecraft.client.Minecraft;
+
+import com.github.bsideup.jabel.Desugar;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -29,17 +32,13 @@ public class ClientEditHistory {
 
     public static final ClientEditHistory INSTANCE = new ClientEditHistory();
 
-    public static final class Entry {
+    /**
+     * @param before {x,y,z,id,meta}
+     * @param after  {x,y,z,id,meta}
+     */
+    @Desugar
+    public record Entry(String action, int[][] before, int[][] after) {
 
-        public final String action;
-        public final int[][] before; // {x,y,z,id,meta}
-        public final int[][] after; // {x,y,z,id,meta}
-
-        public Entry(String action, int[][] before, int[][] after) {
-            this.action = action;
-            this.before = before;
-            this.after = after;
-        }
     }
 
     private final List<Entry> entries = new ArrayList<>();
@@ -177,7 +176,7 @@ public class ClientEditHistory {
             out.writeInt(pointer);
             out.writeInt(entries.size());
             for (Entry e : entries) {
-                byte[] nameBytes = e.action.getBytes("UTF-8");
+                byte[] nameBytes = e.action.getBytes(StandardCharsets.UTF_8);
                 out.writeInt(nameBytes.length);
                 out.write(nameBytes);
                 writeBlockArray(out, e.before);
@@ -201,7 +200,7 @@ public class ClientEditHistory {
                 int nameLen = in.readInt();
                 byte[] nameBytes = new byte[nameLen];
                 in.readFully(nameBytes);
-                String action = new String(nameBytes, "UTF-8");
+                String action = new String(nameBytes, StandardCharsets.UTF_8);
                 int[][] before = readBlockArray(in);
                 int[][] after = readBlockArray(in);
                 entries.add(new Entry(action, before, after));
