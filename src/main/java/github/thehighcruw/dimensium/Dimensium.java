@@ -23,12 +23,12 @@ import cpw.mods.fml.common.event.FMLLoadCompleteEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.network.NetworkRegistry;
-import github.thehighcruw.dimensium.handler.GradientGuiHandler;
-import github.thehighcruw.dimensium.history.ServerCaptureQueue;
-import github.thehighcruw.dimensium.history.ServerEditQueue;
+import github.thehighcruw.dimensium.editor.history.ServerCaptureQueue;
+import github.thehighcruw.dimensium.editor.history.ServerEditQueue;
+import github.thehighcruw.dimensium.editor.tool.Tool;
 import github.thehighcruw.dimensium.network.PacketHandler;
 import github.thehighcruw.dimensium.proxy.IProxy;
-import github.thehighcruw.dimensium.tool.Tool;
+import github.thehighcruw.dimensium.world.inventory.gradientHelper.GradientGuiHandler;
 
 @Mod(
     modid = Dimensium.MODID,

@@ -20,11 +20,11 @@ import com.gtnewhorizon.gtnhlib.network.base.IPacket;
 
 import github.thehighcruw.dimensium.Dimensium;
 import github.thehighcruw.dimensium.DimensiumConfig;
-import github.thehighcruw.dimensium.history.EditHistory;
-import github.thehighcruw.dimensium.tool.math.ShapeMath;
-import github.thehighcruw.dimensium.tool.state.SelectedBlockState;
-import github.thehighcruw.dimensium.tool.state.ShapePlacementState;
-import github.thehighcruw.dimensium.tool.state.ShapeToolState;
+import github.thehighcruw.dimensium.editor.history.EditHistory;
+import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeMath;
+import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapePlacementState;
+import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeToolState;
+import github.thehighcruw.dimensium.editor.tool.selecting.SelectedBlockState;
 
 public class PacketShapePlacement implements IPacket {
 

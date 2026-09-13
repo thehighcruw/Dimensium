@@ -8,8 +8,8 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-import github.thehighcruw.dimensium.tool.brushes.BrushUtil;
-import github.thehighcruw.dimensium.tool.state.BrushShape;
+import github.thehighcruw.dimensium.editor.tool.brushes.BrushShape;
+import github.thehighcruw.dimensium.editor.tool.brushes.BrushUtil;
 
 /**
  * Symmetry tests for BrushUtil.inShape (used by all brush-based tools).

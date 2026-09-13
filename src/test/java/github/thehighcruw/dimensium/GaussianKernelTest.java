@@ -8,7 +8,7 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-import github.thehighcruw.dimensium.tool.brushes.GaussianKernel;
+import github.thehighcruw.dimensium.editor.tool.brushes.GaussianKernel;
 
 public class GaussianKernelTest {
 

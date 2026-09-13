@@ -11,8 +11,8 @@ import java.util.Set;
 
 import org.junit.Test;
 
-import github.thehighcruw.dimensium.tool.SelectionTransforms;
-import github.thehighcruw.dimensium.tool.state.SelectionState;
+import github.thehighcruw.dimensium.shared.SelectionState;
+import github.thehighcruw.dimensium.shared.SelectionTransforms;
 
 public class SelectionTransformsTest {
 

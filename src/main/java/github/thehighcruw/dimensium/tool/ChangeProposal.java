@@ -12,7 +12,8 @@ import java.util.Map;
 import net.minecraft.block.Block;
 import net.minecraft.world.World;
 
-import github.thehighcruw.dimensium.tool.mask.ToolMask;
+import github.thehighcruw.dimensium.editor.tool.ActiveDragState;
+import github.thehighcruw.dimensium.editor.tool.mask.ToolMask;
 
 /**
  * Accumulates block changes for a drag stroke before committing them to the server.

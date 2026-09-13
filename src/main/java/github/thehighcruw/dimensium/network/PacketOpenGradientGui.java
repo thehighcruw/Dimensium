@@ -12,7 +12,7 @@ import net.minecraft.network.PacketBuffer;
 import com.gtnewhorizon.gtnhlib.network.base.IPacket;
 
 import github.thehighcruw.dimensium.Dimensium;
-import github.thehighcruw.dimensium.handler.GradientGuiHandler;
+import github.thehighcruw.dimensium.world.inventory.gradientHelper.GradientGuiHandler;
 
 public class PacketOpenGradientGui implements IPacket {
 

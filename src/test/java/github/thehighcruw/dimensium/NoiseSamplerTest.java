@@ -8,9 +8,9 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-import github.thehighcruw.dimensium.tool.math.NoiseSampler;
-import github.thehighcruw.dimensium.tool.state.NoiseParams;
-import github.thehighcruw.dimensium.tool.state.NoiseToolState.NoiseType;
+import github.thehighcruw.dimensium.editor.tool.painting.noise.NoiseParams;
+import github.thehighcruw.dimensium.editor.tool.painting.noise.NoiseSampler;
+import github.thehighcruw.dimensium.editor.tool.painting.noise.NoiseToolState.NoiseType;
 
 public class NoiseSamplerTest {
 

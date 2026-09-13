@@ -17,8 +17,8 @@ import com.gtnewhorizon.gtnhlib.network.base.IPacket;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import github.thehighcruw.dimensium.handler.BlockSender;
-import github.thehighcruw.dimensium.history.ClientEditHistory;
+import github.thehighcruw.dimensium.editor.history.ClientEditHistory;
+import github.thehighcruw.dimensium.shared.BlockSender;
 
 /**
  * Server → client. Carries one history entry (before + after block states).

@@ -13,7 +13,7 @@ import java.util.List;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import github.thehighcruw.dimensium.handler.brushes.LassoComputer;
+import github.thehighcruw.dimensium.editor.tool.selecting.lasso.LassoComputer;
 
 /**
  * Tests LassoComputer.pointInPolygon via reflection (private static).

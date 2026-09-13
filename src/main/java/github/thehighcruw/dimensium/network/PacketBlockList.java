@@ -19,9 +19,9 @@ import net.minecraft.network.PacketBuffer;
 import com.gtnewhorizon.gtnhlib.network.base.IPacket;
 
 import github.thehighcruw.dimensium.Dimensium;
-import github.thehighcruw.dimensium.history.EditHistory;
-import github.thehighcruw.dimensium.history.ServerEditQueue;
-import github.thehighcruw.dimensium.util.PerfTrace;
+import github.thehighcruw.dimensium.editor.history.EditHistory;
+import github.thehighcruw.dimensium.editor.history.ServerEditQueue;
+import github.thehighcruw.dimensium.shared.util.PerfTrace;
 
 /** Arbitrary list of (x, y, z, blockId, meta) placements executed server-side. */
 public class PacketBlockList implements IPacket {

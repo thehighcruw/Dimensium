@@ -19,9 +19,9 @@ import com.gtnewhorizon.gtnhlib.network.base.IPacket;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.tool.BuilderToolState;
 import github.thehighcruw.dimensium.tool.BuilderToolState.Phase;
-import github.thehighcruw.dimensium.tool.state.SelectionState;
 
 /** Server → client: block data for a captured AABB. Chunked for large selections. */
 public class PacketCaptureResponse implements IPacket {

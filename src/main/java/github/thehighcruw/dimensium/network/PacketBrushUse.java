@@ -13,7 +13,7 @@ import net.minecraft.world.World;
 import com.gtnewhorizon.gtnhlib.network.base.IPacket;
 
 import github.thehighcruw.dimensium.Dimensium;
-import github.thehighcruw.dimensium.tool.BrushApplicator;
+import github.thehighcruw.dimensium.editor.tool.BrushApplicator;
 
 /** Applies the currently selected brush/paint tool at the given block position. */
 public class PacketBrushUse implements IPacket {

@@ -8,7 +8,7 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-import github.thehighcruw.dimensium.handler.ExtrudeHelper;
+import github.thehighcruw.dimensium.editor.handler.ExtrudeHelper;
 
 /**
  * Tests pure-logic methods of ExtrudeHelper that require no Minecraft or World.

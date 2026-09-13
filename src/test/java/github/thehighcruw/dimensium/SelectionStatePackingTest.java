@@ -8,7 +8,7 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-import github.thehighcruw.dimensium.tool.state.SelectionState;
+import github.thehighcruw.dimensium.shared.SelectionState;
 
 /**
  * Tests SelectionState coordinate packing in isolation (no Minecraft deps).

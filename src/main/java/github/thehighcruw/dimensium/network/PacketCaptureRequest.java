@@ -13,7 +13,7 @@ import net.minecraft.network.PacketBuffer;
 import com.gtnewhorizon.gtnhlib.network.base.IPacket;
 
 import github.thehighcruw.dimensium.Dimensium;
-import github.thehighcruw.dimensium.history.ServerCaptureQueue;
+import github.thehighcruw.dimensium.editor.history.ServerCaptureQueue;
 
 /** Client → server: request a world-state capture for the given AABB. */
 public class PacketCaptureRequest implements IPacket {

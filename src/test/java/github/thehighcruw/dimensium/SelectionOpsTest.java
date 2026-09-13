@@ -13,9 +13,9 @@ import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 
-import github.thehighcruw.dimensium.handler.SelectionOps;
-import github.thehighcruw.dimensium.tool.state.BooleanOp;
-import github.thehighcruw.dimensium.tool.state.SelectionState;
+import github.thehighcruw.dimensium.editor.handler.SelectionOps;
+import github.thehighcruw.dimensium.editor.tool.selecting.BooleanOp;
+import github.thehighcruw.dimensium.shared.SelectionState;
 
 /**
  * Tests SelectionOps methods that do not require a live World.

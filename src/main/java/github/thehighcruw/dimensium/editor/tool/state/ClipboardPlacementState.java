@@ -1,0 +1,147 @@
+/*
+ * Copyright (c) 2026 TheHighcruw
+ * SPDX-License-Identifier: MIT
+ */
+package github.thehighcruw.dimensium.editor.tool.state;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import net.minecraft.block.Block;
+
+import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeMath;
+import github.thehighcruw.dimensium.editor.window.viewport.world.PlaneTranslationGizmo;
+import github.thehighcruw.dimensium.editor.window.viewport.world.RotationGizmo;
+import github.thehighcruw.dimensium.editor.window.viewport.world.TranslationGizmo;
+import github.thehighcruw.dimensium.editor.window.viewport.world.ViewPlaneGizmo;
+import github.thehighcruw.dimensium.shared.SelectionState;
+import github.thehighcruw.dimensium.tool.ChangeProposal;
+
+public class ClipboardPlacementState {
+
+    public static final ClipboardPlacementState INSTANCE = new ClipboardPlacementState();
+
+    public boolean active = false;
+    public int anchorX, anchorY, anchorZ;
+    public float anchorFX, anchorFY, anchorFZ;
+
+    public float rotX = 0f, rotY = 0f, rotZ = 0f;
+    public float rotDragBaseX, rotDragBaseY, rotDragBaseZ;
+
+    /** Clipboard local offsets as int[]{lx, ly, lz, blockId, meta}. */
+    public List<int[]> offsets = null;
+
+    /** Discrete block preview rebuilt whenever anchor or rotation changes. */
+    public ChangeProposal preview = null;
+
+    public final ViewPlaneGizmo viewPlaneGizmo = new ViewPlaneGizmo();
+    public final TranslationGizmo gizmo = new TranslationGizmo();
+    public final PlaneTranslationGizmo planeGizmo = new PlaneTranslationGizmo();
+    public final RotationGizmo rotGizmo = new RotationGizmo();
+
+    public double centerX() {
+        return anchorFX + clipW / 2.0;
+    }
+
+    public double centerY() {
+        return anchorFY + clipH / 2.0;
+    }
+
+    public double centerZ() {
+        return anchorFZ + clipD / 2.0;
+    }
+
+    public int clipW, clipH, clipD;
+
+    public void start(SelectionState sel, int x, int y, int z) {
+        if (sel.clipboard == null) return;
+        active = true;
+        anchorX = x;
+        anchorY = y;
+        anchorZ = z;
+        anchorFX = x;
+        anchorFY = y;
+        anchorFZ = z;
+        rotX = 0f;
+        rotY = 0f;
+        rotZ = 0f;
+        clipW = sel.clipW;
+        clipH = sel.clipH;
+        clipD = sel.clipD;
+        offsets = new ArrayList<>(sel.clipboard.size());
+        for (Map.Entry<Long, SelectionState.BlockData> e : sel.clipboard.entrySet()) {
+            long key = e.getKey();
+            int lx = (int) (key >> 20) & 0xFFFFF;
+            int ly = (int) (key >> 10) & 0x3FF;
+            int lz = (int) key & 0x3FF;
+            SelectionState.BlockData bd = e.getValue();
+            offsets.add(new int[] { lx, ly, lz, Block.getIdFromBlock(bd.block), bd.meta });
+        }
+        viewPlaneGizmo.reset();
+        gizmo.reset();
+        planeGizmo.reset();
+        rotGizmo.reset();
+        rebuildPreview();
+    }
+
+    public void cancel() {
+        active = false;
+        offsets = null;
+        preview = null;
+        viewPlaneGizmo.reset();
+        gizmo.reset();
+        planeGizmo.reset();
+        rotGizmo.reset();
+    }
+
+    /** Rebuild the discrete-position ChangeProposal from current anchor + rotation. */
+    public void rebuildPreview() {
+        if (offsets == null) {
+            preview = null;
+            return;
+        }
+        ChangeProposal p = ChangeProposal.forPreview();
+        if (rotX == 0f && rotY == 0f && rotZ == 0f) {
+            for (int[] o : offsets) {
+                long key = ChangeProposal.packKey(anchorX + o[0], anchorY + o[1], anchorZ + o[2]);
+                p.proposed.put(key, new int[] { o[3], o[4] });
+            }
+        } else {
+            float[] R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
+            float cx = clipW / 2f, cy = clipH / 2f, cz = clipD / 2f;
+            for (int[] o : offsets) {
+                float dx = o[0] + 0.5f - cx, dy = o[1] + 0.5f - cy, dz = o[2] + 0.5f - cz;
+                float wx = R[0] * dx + R[1] * dy + R[2] * dz + cx;
+                float wy = R[3] * dx + R[4] * dy + R[5] * dz + cy;
+                float wz = R[6] * dx + R[7] * dy + R[8] * dz + cz;
+                long key = ChangeProposal.packKey(
+                    anchorX + (int) Math.floor(wx),
+                    anchorY + (int) Math.floor(wy),
+                    anchorZ + (int) Math.floor(wz));
+                p.proposed.put(key, new int[] { o[3], o[4] });
+            }
+        }
+        preview = p;
+    }
+
+    /** Returns ops ready for BlockSender.sendChunked, with rotation applied. */
+    public List<int[]> toOps() {
+        if (preview != null) {
+            List<int[]> ops = new ArrayList<>(preview.proposed.size());
+            for (Map.Entry<Long, int[]> e : preview.proposed.entrySet()) {
+                long key = e.getKey();
+                int[] bm = e.getValue();
+                ops.add(
+                    new int[] { ChangeProposal.unpackX(key), ChangeProposal.unpackY(key), ChangeProposal.unpackZ(key),
+                        bm[0], bm[1] });
+            }
+            return ops;
+        }
+        List<int[]> ops = new ArrayList<>(offsets.size());
+        for (int[] o : offsets) {
+            ops.add(new int[] { anchorX + o[0], anchorY + o[1], anchorZ + o[2], o[3], o[4] });
+        }
+        return ops;
+    }
+}

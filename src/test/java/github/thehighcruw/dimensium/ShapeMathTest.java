@@ -8,8 +8,8 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-import github.thehighcruw.dimensium.tool.math.ShapeMath;
-import github.thehighcruw.dimensium.tool.state.ShapeToolState.ShapeType;
+import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeMath;
+import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeToolState.ShapeType;
 
 public class ShapeMathTest {
 

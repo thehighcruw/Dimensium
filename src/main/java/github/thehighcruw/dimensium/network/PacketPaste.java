@@ -15,7 +15,7 @@ import net.minecraft.world.World;
 import com.gtnewhorizon.gtnhlib.network.base.IPacket;
 
 import github.thehighcruw.dimensium.Dimensium;
-import github.thehighcruw.dimensium.tool.state.SelectionState;
+import github.thehighcruw.dimensium.shared.SelectionState;
 
 public class PacketPaste implements IPacket {
 
