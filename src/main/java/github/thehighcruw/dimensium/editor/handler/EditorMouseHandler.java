@@ -67,28 +67,28 @@ public class EditorMouseHandler {
 
         if (event.button >= 0) {
             if (event.buttonstate) {
-                if (onPanel) {
-                    GuiDimensiumOverlay.handleClick(mx, my, sw, sh, event.button);
-                } else if (event.button == KeyConstants.LMB) {
-                    if (InputHandler.isCameraModDown()) {
-                        fs.cameraLmbDragActive = true;
+                if (!onPanel) {
+                    if (event.button == KeyConstants.LMB) {
+                        if (InputHandler.isCameraModDown()) {
+                            fs.cameraLmbDragActive = true;
+                        } else if (!FreecamState.INSTANCE.isMoving()) {
+                            fs.lmbPressing = true;
+                            fs.lmbPressX = fs.cursorX;
+                            fs.lmbPressY = fs.cursorY;
+                            GuiDimensiumOverlay.handleClick(mx, my, sw, sh, event.button);
+                        }
+                    } else if (event.button == KeyConstants.RMB) {
+                        if (InputHandler.isCameraModDown()) {
+                            fs.cameraRmbDragActive = true;
+                            fs.rmbPressing = true;
+                            fs.rmbPressX = fs.cursorX;
+                            fs.rmbPressY = fs.cursorY;
+                        } else if (!FreecamState.INSTANCE.isMoving()) {
+                            GuiDimensiumOverlay.handleClick(mx, my, sw, sh, event.button);
+                        }
                     } else if (!FreecamState.INSTANCE.isMoving()) {
-                        fs.lmbPressing = true;
-                        fs.lmbPressX = fs.cursorX;
-                        fs.lmbPressY = fs.cursorY;
                         GuiDimensiumOverlay.handleClick(mx, my, sw, sh, event.button);
                     }
-                } else if (event.button == KeyConstants.RMB) {
-                    if (InputHandler.isCameraModDown()) {
-                        fs.cameraRmbDragActive = true;
-                        fs.rmbPressing = true;
-                        fs.rmbPressX = fs.cursorX;
-                        fs.rmbPressY = fs.cursorY;
-                    } else if (!FreecamState.INSTANCE.isMoving()) {
-                        GuiDimensiumOverlay.handleClick(mx, my, sw, sh, event.button);
-                    }
-                } else if (!FreecamState.INSTANCE.isMoving()) {
-                    GuiDimensiumOverlay.handleClick(mx, my, sw, sh, event.button);
                 }
             } else {
                 if (event.button == KeyConstants.LMB) {

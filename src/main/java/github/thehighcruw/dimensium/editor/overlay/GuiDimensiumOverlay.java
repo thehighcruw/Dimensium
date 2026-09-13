@@ -115,79 +115,68 @@ public final class GuiDimensiumOverlay {
             || OverlayRenderer.picker.isOpen()) {
             return;
         }
-        // mouseX/mouseY are in scaled GUI pixels; panel widths are physical pixels — convert.
-        Minecraft _mc = Minecraft.getMinecraft();
-        int _sf = RenderUtils.scaleFactor();
-        int physX = mouseX * _sf;
-        if (physX >= OverlayRenderer.TOOL_WINDOW.getWidth()) {
-            if (button == 2) {
-                MovingObjectPosition mop = raycastFromMouse(
-                    (int) FreecamState.INSTANCE.cursorX,
-                    (int) FreecamState.INSTANCE.cursorY,
-                    scaledW,
-                    scaledH);
-                if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-                    Minecraft mc = Minecraft.getMinecraft();
-                    Block b = mc.theWorld.getBlock(mop.blockX, mop.blockY, mop.blockZ);
-                    int meta = mc.theWorld.getBlockMetadata(mop.blockX, mop.blockY, mop.blockZ);
-                    if (b != null && b != Blocks.air) {
-                        ItemStack picked = new ItemStack(b, 1, meta);
-                        RecentBlockHistory.add(picked);
-                        SelectedBlockState.INSTANCE.selectedBlock = picked;
-                    }
+        Minecraft mc = Minecraft.getMinecraft();
+        if (button == 2) {
+            MovingObjectPosition mop = raycastFromMouse(
+                (int) FreecamState.INSTANCE.cursorX,
+                (int) FreecamState.INSTANCE.cursorY,
+                scaledW,
+                scaledH);
+            if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+                Block b = mc.theWorld.getBlock(mop.blockX, mop.blockY, mop.blockZ);
+                int meta = mc.theWorld.getBlockMetadata(mop.blockX, mop.blockY, mop.blockZ);
+                if (b != null && b != Blocks.air) {
+                    ItemStack picked = new ItemStack(b, 1, meta);
+                    RecentBlockHistory.add(picked);
+                    SelectedBlockState.INSTANCE.selectedBlock = picked;
                 }
-                return;
             }
-            ClipboardPlacementState _cps = ClipboardPlacementState.INSTANCE;
-            if (_cps.active) {
-                if (button == KeyConstants.LMB) {
-                    EntityLivingBase _eye = _mc.renderViewEntity;
-                    double ccx = _cps.centerX(), ccy = _cps.centerY(), ccz = _cps.centerZ();
-                    if (_eye != null && _cps.gizmo.hoveredAxis != TranslationGizmo.Axis.NONE) {
-                        _cps.gizmo.startDrag(
-                            mouseX,
-                            mouseY,
-                            ccx,
-                            ccy,
-                            ccz,
-                            _cps.anchorFX,
-                            _cps.anchorFY,
-                            _cps.anchorFZ,
-                            0,
-                            0,
-                            0);
-                    } else if (_eye != null && _cps.planeGizmo.hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
-                        _cps.planeGizmo.startDrag(
-                            mouseX,
-                            mouseY,
-                            ccx,
-                            ccy,
-                            ccz,
-                            _cps.anchorFX,
-                            _cps.anchorFY,
-                            _cps.anchorFZ,
-                            _cps.rotX,
-                            _cps.rotY,
-                            _cps.rotZ);
-                    } else if (_eye != null && _cps.rotGizmo.hoveredAxis != RotationGizmo.Axis.NONE) {
-                        _cps.rotDragBaseX = _cps.rotX;
-                        _cps.rotDragBaseY = _cps.rotY;
-                        _cps.rotDragBaseZ = _cps.rotZ;
-                        _cps.rotGizmo.startDrag(mouseX, mouseY, ccx, ccy, ccz, _cps.rotX, _cps.rotY, _cps.rotZ);
-                    }
-                } else if (button == KeyConstants.RMB) {
-                    _cps.cancel();
-                }
-                return;
-            }
-
-            Tool tool = DimensiumEditorMode.INSTANCE.selectedTool;
-            BrushInput brushInput = BrushInputRegistry.get(tool);
-            if (brushInput != null) {
-                brushInput.onMouseClick(button, Minecraft.getMinecraft(), null);
-            }
-            // Brush tools are applied while held — see TickHandler.applyPaintIfHeld
+            return;
         }
+        ClipboardPlacementState cps = ClipboardPlacementState.INSTANCE;
+        if (cps.active) {
+            if (button == KeyConstants.LMB) {
+                EntityLivingBase eye = mc.renderViewEntity;
+                double ccx = cps.centerX(), ccy = cps.centerY(), ccz = cps.centerZ();
+                if (eye != null && cps.gizmo.hoveredAxis != TranslationGizmo.Axis.NONE) {
+                    cps.gizmo
+                        .startDrag(mouseX, mouseY, ccx, ccy, ccz, cps.anchorFX, cps.anchorFY, cps.anchorFZ, 0, 0, 0);
+                } else if (eye != null && cps.planeGizmo.hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
+                    cps.planeGizmo.startDrag(
+                        mouseX,
+                        mouseY,
+                        ccx,
+                        ccy,
+                        ccz,
+                        cps.anchorFX,
+                        cps.anchorFY,
+                        cps.anchorFZ,
+                        cps.rotX,
+                        cps.rotY,
+                        cps.rotZ);
+                } else if (eye != null && cps.rotGizmo.hoveredAxis != RotationGizmo.Axis.NONE) {
+                    cps.rotDragBaseX = cps.rotX;
+                    cps.rotDragBaseY = cps.rotY;
+                    cps.rotDragBaseZ = cps.rotZ;
+                    cps.rotGizmo.startDrag(mouseX, mouseY, ccx, ccy, ccz, cps.rotX, cps.rotY, cps.rotZ);
+                }
+            } else if (button == KeyConstants.RMB) {
+                cps.cancel();
+            }
+            return;
+        }
+
+        Tool tool = DimensiumEditorMode.INSTANCE.selectedTool;
+        BrushInput brushInput = BrushInputRegistry.get(tool);
+        if (brushInput != null) {
+            MovingObjectPosition mop = raycastFromMouse(
+                (int) FreecamState.INSTANCE.cursorX,
+                (int) FreecamState.INSTANCE.cursorY,
+                scaledW,
+                scaledH);
+            brushInput.onMouseClick(button, mc, mop);
+        }
+        // Brush tools are applied while held — see TickHandler.applyPaintIfHeld
     }
 
     public static void handleRelease(int button) {
@@ -398,19 +387,21 @@ public final class GuiDimensiumOverlay {
         ShapePlacementState ps = ShapePlacementState.INSTANCE;
         if (ps.active && (ps.gizmo.isDragging() || ps.rotGizmo.isDragging()
             || ps.scaleGizmo.isDragging()
+            || ps.planeGizmo.isDragging()
             || ps.viewPlaneGizmo.isDragging())) return true;
         ClipboardPlacementState cps = ClipboardPlacementState.INSTANCE;
-        if (cps.active && (cps.gizmo.isDragging() || cps.rotGizmo.isDragging())) return true;
+        if (cps.active && (cps.gizmo.isDragging() || cps.planeGizmo.isDragging() || cps.rotGizmo.isDragging()))
+            return true;
         MoveToolState ms = MoveToolState.INSTANCE;
-        if (ms.active && (ms.gizmo.isDragging() || ms.rotGizmo.isDragging())) return true;
+        if (ms.active && (ms.gizmo.isDragging() || ms.planeGizmo.isDragging() || ms.rotGizmo.isDragging())) return true;
         SelectionState sel = SelectionState.INSTANCE;
         if (sel.boxConfirmed
             && (SelectionRenderer.boxPos1Gizmo.isDragging() || SelectionRenderer.boxPos2Gizmo.isDragging()
                 || SelectionRenderer.boxCenterViewPlaneGizmo.isDragging()
                 || SelectionRenderer.boxCenterGizmo.isDragging()))
             return true;
-        if (PathToolState.INSTANCE.gizmo.isDragging()) return true;
-        return ModellingToolState.INSTANCE.gizmo.isDragging();
+        if (PathToolState.INSTANCE.gizmo.isDragging() || PathToolState.INSTANCE.planeGizmo.isDragging()) return true;
+        return ModellingToolState.INSTANCE.gizmo.isDragging() || ModellingToolState.INSTANCE.planeGizmo.isDragging();
     }
 
     /** Commits the pending box selection (boxConfirmed state) and clears gizmo state. */

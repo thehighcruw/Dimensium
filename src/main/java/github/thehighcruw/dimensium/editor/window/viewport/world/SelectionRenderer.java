@@ -34,6 +34,7 @@ import github.thehighcruw.dimensium.editor.freecam.FreecamState;
 import github.thehighcruw.dimensium.editor.freecam.FreecamUtils;
 import github.thehighcruw.dimensium.editor.handler.ExtrudeHelper;
 import github.thehighcruw.dimensium.editor.handler.TickHandler;
+import github.thehighcruw.dimensium.editor.overlay.GuiDimensiumOverlay;
 import github.thehighcruw.dimensium.editor.overlay.MenuBar;
 import github.thehighcruw.dimensium.editor.overlay.OverlayRenderer;
 import github.thehighcruw.dimensium.editor.overlay.ViewState;
@@ -103,7 +104,7 @@ public class SelectionRenderer {
 
     @SubscribeEvent
     public void onRenderWorldLast(RenderWorldLastEvent event) {
-        if (FreecamState.INSTANCE.isMoving()) {
+        if (FreecamState.INSTANCE.isMoving() && !GuiDimensiumOverlay.anyGizmoDragging()) {
             return;
         }
 
