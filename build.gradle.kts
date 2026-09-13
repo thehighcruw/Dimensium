@@ -36,7 +36,6 @@ plugins {
     id("com.gtnewhorizons.retrofuturagradle")
     id("com.github.spotbugs") version "6.1.11"
     id("com.diffplug.spotless") version "6.25.0"
-    id("pmd")
 }
 
 group = "github.thehighcruw.dimensium"
@@ -93,7 +92,7 @@ val cpdConfiguration = configurations.create("cpd") {
     @Suppress("DEPRECATION")
     isVisible = false
     isTransitive = true
-    description = "CPD (PMD copy-paste detection) dependencies"
+    description = "PMD and CPD dependencies"
 }
 
 dependencies {
@@ -121,19 +120,42 @@ tasks.register<JavaExec>("cpdCheck") {
     }
 }
 
-pmd {
-    toolVersion = "6.55.0"
-    ruleSets = listOf()
-    ruleSetFiles = files("config/pmd-rules.xml")
-    isConsoleOutput = true
-    isIgnoreFailures = false
-    rulesMinimumPriority = 2
+val pmdRunTask = tasks.register<JavaExec>("pmdRun") {
+    group = "verification"
+    description = "Run PMD static analysis on main sources"
+    classpath = cpdConfiguration
+    mainClass.set("net.sourceforge.pmd.PMD")
+    val reportDir = layout.buildDirectory.dir("reports/pmd")
+    val reportFile = reportDir.map { it.file("main.xml") }
+    doFirst {
+        reportDir.get().asFile.mkdirs()
+    }
+    args = listOf(
+        "-d", "src/main/java",
+        "-R", "config/pmd-rules.xml",
+        "-f", "xml",
+        "-r", reportFile.get().asFile.absolutePath,
+        "--use-version", "java-14",
+        "--no-cache",
+        "--failOnViolation", "true"
+    )
+    isIgnoreExitValue = true
+    doLast {
+        val report = reportFile.get().asFile
+        if (report.exists()) {
+            val violations = report.readText().lines().count { "<violation" in it }
+            if (violations > 0) {
+                println("PMD: $violations violation(s) — see ${report.absolutePath}")
+                throw GradleException("PMD found $violations violation(s).")
+            } else {
+                println("PMD: no violations.")
+            }
+        }
+    }
 }
 
-tasks.withType<Pmd>().configureEach {
-    if (name != "pmdMain") {
-        isEnabled = false
-    }
+tasks.named("check").configure {
+    dependsOn(pmdRunTask)
 }
 
 spotless {
@@ -157,12 +179,6 @@ spotbugs {
 tasks.withType<com.github.spotbugs.snom.SpotBugsTask>().configureEach {
     reports.create("html") { enabled = true }
     reports.create("xml") { enabled = false }
-}
-
-afterEvaluate {
-    tasks.withType<com.github.spotbugs.snom.SpotBugsTask>().configureEach {
-        isEnabled = true
-    }
 }
 
 val imguiVersion = "1.92.7.1"

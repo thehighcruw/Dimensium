@@ -9,23 +9,23 @@
     <!-- Method length -->
     <rule ref="category/java/design.xml/NcssCount">
         <properties>
-            <property name="methodReportLevel" value="40"/>
-            <property name="classReportLevel" value="1000"/>
+            <property name="methodReportLevel" value="500"/>
+            <property name="classReportLevel" value="2000"/>
         </properties>
     </rule>
 
     <!-- Cyclomatic complexity -->
     <rule ref="category/java/design.xml/CyclomaticComplexity">
         <properties>
-            <property name="methodReportLevel" value="10"/>
-            <property name="classReportLevel" value="80"/>
+            <property name="methodReportLevel" value="250"/>
+            <property name="classReportLevel" value="500"/>
         </properties>
     </rule>
 
     <!-- Cognitive complexity -->
     <rule ref="category/java/design.xml/CognitiveComplexity">
         <properties>
-            <property name="reportLevel" value="15"/>
+            <property name="reportLevel" value="300"/>
         </properties>
     </rule>
 

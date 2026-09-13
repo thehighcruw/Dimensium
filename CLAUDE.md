@@ -101,7 +101,17 @@ Never use bare numeric literals for values that have semantic meaning. Declare `
 
 Exception: `0` and `1` used as loop indices or array sizes where the value *is* the concept (e.g. `i = 0`, `array.length - 1`).
 
-### 8. Prefer GTNHLib over reinventing
+### 8. Remove dead code and redundant dependencies
+
+Delete unused code rather than commenting it out or leaving it in place. This includes:
+
+- Unused imports, fields, methods, and classes
+- Gradle plugins, configurations, and dependencies that no longer serve a purpose
+- Feature flags, compatibility shims, or workarounds that have been superseded
+
+When a tool, library, or plugin is replaced by a better alternative, remove the old one in the same change. Do not leave disabled-but-present infrastructure (e.g. `isEnabled = false` blocks, commented-out plugin applications).
+
+### 9. Prefer GTNHLib over reinventing
 
 Before writing new infrastructure, check `.context/GTNHLib/`. Open integration opportunities below.
 
