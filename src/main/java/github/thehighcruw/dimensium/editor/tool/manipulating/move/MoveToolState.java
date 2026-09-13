@@ -14,9 +14,13 @@ import net.minecraft.init.Blocks;
 import net.minecraft.world.World;
 
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeMath;
+import github.thehighcruw.dimensium.editor.tool.gizmo.WithAxisTranslationGizmo;
+import github.thehighcruw.dimensium.editor.tool.gizmo.WithPlaneTranslationGizmo;
+import github.thehighcruw.dimensium.editor.tool.gizmo.WithRotationGizmo;
+import github.thehighcruw.dimensium.editor.tool.gizmo.WithScalingGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.PlaneTranslationGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.RotationGizmo;
-import github.thehighcruw.dimensium.editor.window.viewport.world.ScaleGizmo;
+import github.thehighcruw.dimensium.editor.window.viewport.world.ScalingGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.TranslationGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.ViewPlaneGizmo;
 import github.thehighcruw.dimensium.shared.SelectionState;
@@ -26,7 +30,8 @@ import github.thehighcruw.dimensium.tool.ChangeProposal;
  * Client-side state for the Move tool.
  * Owns its own block snapshot — never touches SelectionState.clipboard.
  */
-public class MoveToolState {
+public class MoveToolState
+    implements WithAxisTranslationGizmo, WithPlaneTranslationGizmo, WithRotationGizmo, WithScalingGizmo {
 
     public static final MoveToolState INSTANCE = new MoveToolState();
 
@@ -61,10 +66,30 @@ public class MoveToolState {
     public ChangeProposal preview = null;
 
     public final ViewPlaneGizmo viewPlaneGizmo = new ViewPlaneGizmo();
-    public final PlaneTranslationGizmo planeGizmo = new PlaneTranslationGizmo();
-    public final ScaleGizmo scaleGizmo = new ScaleGizmo();
-    public final TranslationGizmo gizmo = new TranslationGizmo();
-    public final RotationGizmo rotGizmo = new RotationGizmo();
+    private final PlaneTranslationGizmo planeGizmo = new PlaneTranslationGizmo();
+    private final ScalingGizmo scalingGizmo = new ScalingGizmo();
+    private final TranslationGizmo gizmo = new TranslationGizmo();
+    private final RotationGizmo rotGizmo = new RotationGizmo();
+
+    @Override
+    public TranslationGizmo getAxisTranslationGizmo() {
+        return gizmo;
+    }
+
+    @Override
+    public PlaneTranslationGizmo getPlaneTranslationGizmo() {
+        return planeGizmo;
+    }
+
+    @Override
+    public RotationGizmo getRotationGizmo() {
+        return rotGizmo;
+    }
+
+    @Override
+    public ScalingGizmo getScalingGizmo() {
+        return scalingGizmo;
+    }
 
     // Cache keys for ghost rebuild
     private float lastDFX = Float.NaN, lastDFY = Float.NaN, lastDFZ = Float.NaN;
@@ -103,7 +128,7 @@ public class MoveToolState {
         preview = null;
         viewPlaneGizmo.reset();
         planeGizmo.reset();
-        scaleGizmo.reset();
+        scalingGizmo.reset();
         gizmo.reset();
         rotGizmo.reset();
     }
@@ -220,10 +245,15 @@ public class MoveToolState {
         rotZ = 0f;
         viewPlaneGizmo.reset();
         planeGizmo.reset();
-        scaleGizmo.reset();
+        scalingGizmo.reset();
         gizmo.reset();
         rotGizmo.reset();
         ghostBlocks = null;
         lastDFX = Float.NaN;
+    }
+
+    public boolean isAnyGizmoDragging() {
+        return getAxisTranslationGizmo().isDragging() || getPlaneTranslationGizmo().isDragging()
+            || getRotationGizmo().isDragging();
     }
 }

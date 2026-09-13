@@ -510,10 +510,14 @@ public class SelectionRenderer {
             } else {
                 ps.rebuildIfNeeded();
                 ps.viewPlaneGizmo.render(ps.centerX(), ps.centerY(), ps.centerZ(), rx, ry, rz);
-                ps.planeGizmo.render(ps.centerX(), ps.centerY(), ps.centerZ(), rx, ry, rz, ps.rotX, ps.rotY, ps.rotZ);
-                ps.gizmo.render(ps.centerX(), ps.centerY(), ps.centerZ(), rx, ry, rz, ps.rotX, ps.rotY, ps.rotZ);
-                ps.scaleGizmo.render(ps.centerX(), ps.centerY(), ps.centerZ(), rx, ry, rz, ps.rotX, ps.rotY, ps.rotZ);
-                ps.rotGizmo.render(ps.centerX(), ps.centerY(), ps.centerZ(), rx, ry, rz, ps.rotX, ps.rotY, ps.rotZ);
+                ps.getPlaneTranslationGizmo()
+                    .render(ps.centerX(), ps.centerY(), ps.centerZ(), rx, ry, rz, ps.rotX, ps.rotY, ps.rotZ);
+                ps.getAxisTranslationGizmo()
+                    .render(ps.centerX(), ps.centerY(), ps.centerZ(), rx, ry, rz, ps.rotX, ps.rotY, ps.rotZ);
+                ps.getScalingGizmo()
+                    .render(ps.centerX(), ps.centerY(), ps.centerZ(), rx, ry, rz, ps.rotX, ps.rotY, ps.rotZ);
+                ps.getRotationGizmo()
+                    .render(ps.centerX(), ps.centerY(), ps.centerZ(), rx, ry, rz, ps.rotX, ps.rotY, ps.rotZ);
             }
         }
 
@@ -522,10 +526,12 @@ public class SelectionRenderer {
         if (cps.active) {
             if (cps.preview != null) renderProposalPreview(mc, rx, ry, rz, cps.preview);
             cps.viewPlaneGizmo.render(cps.centerX(), cps.centerY(), cps.centerZ(), rx, ry, rz);
-            cps.planeGizmo
+            cps.getPlaneTranslationGizmo()
                 .render(cps.centerX(), cps.centerY(), cps.centerZ(), rx, ry, rz, cps.rotX, cps.rotY, cps.rotZ);
-            cps.gizmo.render(cps.centerX(), cps.centerY(), cps.centerZ(), rx, ry, rz, 0, 0, 0);
-            cps.rotGizmo.render(cps.centerX(), cps.centerY(), cps.centerZ(), rx, ry, rz, cps.rotX, cps.rotY, cps.rotZ);
+            cps.getAxisTranslationGizmo()
+                .render(cps.centerX(), cps.centerY(), cps.centerZ(), rx, ry, rz, 0, 0, 0);
+            cps.getRotationGizmo()
+                .render(cps.centerX(), cps.centerY(), cps.centerZ(), rx, ry, rz, cps.rotX, cps.rotY, cps.rotZ);
         }
 
         // ── Move tool ghost + gizmos ──────────────────────────────────────────
@@ -546,10 +552,14 @@ public class SelectionRenderer {
                     renderProposalPreview(mc, rx, ry, rz, ms.preview);
                 }
                 ms.viewPlaneGizmo.render(ms.gizmoX(), ms.gizmoY(), ms.gizmoZ(), rx, ry, rz);
-                ms.planeGizmo.render(ms.gizmoX(), ms.gizmoY(), ms.gizmoZ(), rx, ry, rz, ms.rotX, ms.rotY, ms.rotZ);
-                ms.gizmo.render(ms.gizmoX(), ms.gizmoY(), ms.gizmoZ(), rx, ry, rz, ms.rotX, ms.rotY, ms.rotZ);
-                ms.scaleGizmo.render(ms.gizmoX(), ms.gizmoY(), ms.gizmoZ(), rx, ry, rz, ms.rotX, ms.rotY, ms.rotZ);
-                ms.rotGizmo.render(ms.gizmoX(), ms.gizmoY(), ms.gizmoZ(), rx, ry, rz, ms.rotX, ms.rotY, ms.rotZ);
+                ms.getPlaneTranslationGizmo()
+                    .render(ms.gizmoX(), ms.gizmoY(), ms.gizmoZ(), rx, ry, rz, ms.rotX, ms.rotY, ms.rotZ);
+                ms.getAxisTranslationGizmo()
+                    .render(ms.gizmoX(), ms.gizmoY(), ms.gizmoZ(), rx, ry, rz, ms.rotX, ms.rotY, ms.rotZ);
+                ms.getScalingGizmo()
+                    .render(ms.gizmoX(), ms.gizmoY(), ms.gizmoZ(), rx, ry, rz, ms.rotX, ms.rotY, ms.rotZ);
+                ms.getRotationGizmo()
+                    .render(ms.gizmoX(), ms.gizmoY(), ms.gizmoZ(), rx, ry, rz, ms.rotX, ms.rotY, ms.rotZ);
             } else if (ms.active) {
                 ms.cancel();
             }
@@ -580,13 +590,16 @@ public class SelectionRenderer {
             }
             // Capture GL matrices unconditionally so GizmoProjection is valid for findNearestPointOnScreen
             // even before any point is selected (gizmo.render only captures when selectedPointObj != null).
-            mts.gizmo.getProjection()
+            mts.getAxisTranslationGizmo()
+                .getProjection()
                 .capture(rx, ry, rz);
             // Gizmo on selected point
             ModellingToolState.ModelPoint mSelPt = mts.selectedPointObj();
             if (mSelPt != null) {
-                mts.planeGizmo.render(mSelPt.x + 0.5, mSelPt.y + 0.5, mSelPt.z + 0.5, rx, ry, rz, 0, 0, 0);
-                mts.gizmo.render(mSelPt.x + 0.5, mSelPt.y + 0.5, mSelPt.z + 0.5, rx, ry, rz, 0, 0, 0);
+                mts.getPlaneTranslationGizmo()
+                    .render(mSelPt.x + 0.5, mSelPt.y + 0.5, mSelPt.z + 0.5, rx, ry, rz, 0, 0, 0);
+                mts.getAxisTranslationGizmo()
+                    .render(mSelPt.x + 0.5, mSelPt.y + 0.5, mSelPt.z + 0.5, rx, ry, rz, 0, 0, 0);
             }
             // Lines between adjacent rows (column-matched)
             if (mts.rows.size() >= 2) {
@@ -613,7 +626,8 @@ public class SelectionRenderer {
             PathToolState pathState = PathToolState.INSTANCE;
             // Capture GL matrices here unconditionally so GizmoProjection is valid even
             // before any point is selected (gizmo.render only captures when selectedIndex >= 0).
-            pathState.gizmo.getProjection()
+            pathState.getAxisTranslationGizmo()
+                .getProjection()
                 .capture(rx, ry, rz);
             GL11.glDisable(GL11.GL_TEXTURE_2D);
             for (int i = 0; i < pathState.points.size(); i++) {
@@ -633,8 +647,10 @@ public class SelectionRenderer {
             if (pathState.selectedIndex >= 0 && !pathState.points.isEmpty()) {
                 PathToolState.PathPoint selPt = pathState.selectedPoint();
                 if (selPt != null) {
-                    pathState.planeGizmo.render(selPt.x + 0.5, selPt.y + 0.5, selPt.z + 0.5, rx, ry, rz, 0, 0, 0);
-                    pathState.gizmo.render(selPt.x + 0.5, selPt.y + 0.5, selPt.z + 0.5, rx, ry, rz, 0, 0, 0);
+                    pathState.getPlaneTranslationGizmo()
+                        .render(selPt.x + 0.5, selPt.y + 0.5, selPt.z + 0.5, rx, ry, rz, 0, 0, 0);
+                    pathState.getAxisTranslationGizmo()
+                        .render(selPt.x + 0.5, selPt.y + 0.5, selPt.z + 0.5, rx, ry, rz, 0, 0, 0);
                 }
             }
         }

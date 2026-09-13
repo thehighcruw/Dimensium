@@ -35,9 +35,14 @@ public class PathToolRenderer implements ToolRenderer {
         if (pathState.selectedIndex < 0 || pathState.points.isEmpty()) return;
         PathToolState.PathPoint selPt = pathState.selectedPoint();
         if (selPt == null) return;
-        if (!pathState.gizmo.isDragging() && !pathState.planeGizmo.isDragging() && mc.renderViewEntity != null) {
+        if (!pathState.getAxisTranslationGizmo()
+            .isDragging()
+            && !pathState.getPlaneTranslationGizmo()
+                .isDragging()
+            && mc.renderViewEntity != null) {
             double pgx = selPt.x + 0.5, pgy = selPt.y + 0.5, pgz = selPt.z + 0.5;
-            pathState.gizmo.updateHover(mx3d, my3d, mc.renderViewEntity, pgx, pgy, pgz, 0, 0, 0);
+            pathState.getAxisTranslationGizmo()
+                .updateHover(mx3d, my3d, mc.renderViewEntity, pgx, pgy, pgz, 0, 0, 0);
         }
     }
 }

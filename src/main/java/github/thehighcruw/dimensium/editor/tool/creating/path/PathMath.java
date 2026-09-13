@@ -10,10 +10,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
 
 import github.thehighcruw.dimensium.editor.tool.creating.rock.PathToolState;
+import github.thehighcruw.dimensium.shared.util.BlockUtils;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 
 public class PathMath {
@@ -108,7 +108,7 @@ public class PathMath {
     private static int[] resolveBlock(PathToolState state, ItemStack activeBlock, int segIdx, double t, int wx, int wy,
         int wz, PathToolState.PathPoint a, PathToolState.PathPoint b) {
         if (!state.hasMultipleBlocks()) {
-            return blockToIdMeta(a.block != null ? a.block : activeBlock);
+            return BlockUtils.blockToIdMeta(a.block != null ? a.block : activeBlock);
         }
         double adjT = 0.0;
         switch (state.interp) {
@@ -129,7 +129,7 @@ public class PathMath {
                 break;
             }
         }
-        return blockToIdMeta(
+        return BlockUtils.blockToIdMeta(
             adjT < 0.5 ? (a.block != null ? a.block : activeBlock) : (b.block != null ? b.block : activeBlock));
     }
 
@@ -139,14 +139,6 @@ public class PathMath {
         h = (h ^ (h >>> 27)) * 0x94d049bb133111ebL;
         h = h ^ (h >>> 31);
         return ((h & 0xFFFFFFL) / (double) 0x1000000L) - 0.5;
-    }
-
-    /** Returns {blockId, meta} or null if stack is null or not a placeable block. */
-    private static int[] blockToIdMeta(ItemStack stack) {
-        if (stack == null) return null;
-        Block blk = Block.getBlockFromItem(stack.getItem());
-        if (blk == null || blk == net.minecraft.init.Blocks.air) return null;
-        return new int[] { Block.getIdFromBlock(blk), stack.getItemDamage() };
     }
 
     static List<double[]> bresenhamSegment(PathToolState.PathPoint a, PathToolState.PathPoint b) {

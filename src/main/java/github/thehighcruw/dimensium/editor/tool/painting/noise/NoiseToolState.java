@@ -25,7 +25,7 @@ public class NoiseToolState {
         }
     }
 
-    public final NoiseParams noiseParams = new NoiseParams(NoiseType.SIMPLEX);
+    public NoiseParams noiseParams = NoiseParams.withDefaults(NoiseType.SIMPLEX);
 
     public boolean noiseSurfaceOnly = false;
     public boolean noise3D = false;

@@ -12,10 +12,14 @@ import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 
 import github.thehighcruw.dimensium.DimensiumConfig;
+import github.thehighcruw.dimensium.editor.tool.gizmo.WithAxisTranslationGizmo;
+import github.thehighcruw.dimensium.editor.tool.gizmo.WithPlaneTranslationGizmo;
+import github.thehighcruw.dimensium.editor.tool.gizmo.WithRotationGizmo;
+import github.thehighcruw.dimensium.editor.tool.gizmo.WithScalingGizmo;
 import github.thehighcruw.dimensium.editor.tool.selecting.SelectedBlockState;
 import github.thehighcruw.dimensium.editor.window.viewport.world.PlaneTranslationGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.RotationGizmo;
-import github.thehighcruw.dimensium.editor.window.viewport.world.ScaleGizmo;
+import github.thehighcruw.dimensium.editor.window.viewport.world.ScalingGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.TranslationGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.ViewPlaneGizmo;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
@@ -24,7 +28,8 @@ import github.thehighcruw.dimensium.tool.ChangeProposal;
  * Client-side state for interactive shape placement.
  * Tracks anchor position, caches ghost block positions, and owns the gizmos.
  */
-public class ShapePlacementState {
+public class ShapePlacementState
+    implements WithAxisTranslationGizmo, WithPlaneTranslationGizmo, WithRotationGizmo, WithScalingGizmo {
 
     public static final ShapePlacementState INSTANCE = new ShapePlacementState();
 
@@ -53,11 +58,31 @@ public class ShapePlacementState {
     /** ShapeToolState dimensions captured at scale-drag start; used to avoid per-frame runaway. */
     public int scaleDragBaseW, scaleDragBaseH, scaleDragBaseD;
 
-    public final TranslationGizmo gizmo = new TranslationGizmo();
-    public final RotationGizmo rotGizmo = new RotationGizmo();
-    public final PlaneTranslationGizmo planeGizmo = new PlaneTranslationGizmo();
-    public final ScaleGizmo scaleGizmo = new ScaleGizmo();
+    private final TranslationGizmo gizmo = new TranslationGizmo();
+    private final RotationGizmo rotGizmo = new RotationGizmo();
+    private final PlaneTranslationGizmo planeGizmo = new PlaneTranslationGizmo();
+    private final ScalingGizmo scalingGizmo = new ScalingGizmo();
     public final ViewPlaneGizmo viewPlaneGizmo = new ViewPlaneGizmo();
+
+    @Override
+    public TranslationGizmo getAxisTranslationGizmo() {
+        return gizmo;
+    }
+
+    @Override
+    public PlaneTranslationGizmo getPlaneTranslationGizmo() {
+        return planeGizmo;
+    }
+
+    @Override
+    public RotationGizmo getRotationGizmo() {
+        return rotGizmo;
+    }
+
+    @Override
+    public ScalingGizmo getScalingGizmo() {
+        return scalingGizmo;
+    }
 
     private String shapeKey = "";
 
@@ -78,7 +103,7 @@ public class ShapePlacementState {
         gizmo.reset();
         rotGizmo.reset();
         planeGizmo.reset();
-        scaleGizmo.reset();
+        scalingGizmo.reset();
         viewPlaneGizmo.reset();
         shapeKey = "";
         ghostBlocks = null;
@@ -91,7 +116,7 @@ public class ShapePlacementState {
         gizmo.reset();
         rotGizmo.reset();
         planeGizmo.reset();
-        scaleGizmo.reset();
+        scalingGizmo.reset();
         viewPlaneGizmo.reset();
     }
 
@@ -275,5 +300,12 @@ public class ShapePlacementState {
             + Math.round(scaleZ * 100)
             + ","
             + Math.round(DimensiumConfig.shapeThreshold * 1000);
+    }
+
+    public boolean isAnyGizmoDragging() {
+        return getAxisTranslationGizmo().isDragging() || getRotationGizmo().isDragging()
+            || getScalingGizmo().isDragging()
+            || getPlaneTranslationGizmo().isDragging()
+            || viewPlaneGizmo.isDragging();
     }
 }

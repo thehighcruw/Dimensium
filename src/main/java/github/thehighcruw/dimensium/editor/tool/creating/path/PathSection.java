@@ -115,7 +115,8 @@ public class PathSection implements ToolSection {
                 int idx = state.selectedIndex;
                 state.points.remove(idx);
                 state.selectedIndex = state.points.isEmpty() ? -1 : Math.min(idx, state.points.size() - 1);
-                state.gizmo.reset();
+                state.getAxisTranslationGizmo()
+                    .reset();
                 state.invalidatePath();
             }
             ImGui.popStyleColor(3);

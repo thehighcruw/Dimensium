@@ -53,7 +53,8 @@ public class ModellingBrushInput implements BrushInput {
             mts.selectedRow = mts.currentRowIndex;
             mts.selectedPoint = mts.rows.get(mts.currentRowIndex)
                 .size() - 1;
-            mts.gizmo.reset();
+            mts.getAxisTranslationGizmo()
+                .reset();
             mts.invalidate();
             return;
         }
@@ -70,8 +71,14 @@ public class ModellingBrushInput implements BrushInput {
                     positions.add(new int[] { p.x, p.y, p.z });
                 }
             }
-            int bestFlat = GuiDimensiumOverlay
-                .findNearestPointOnScreen(positions, skipFlat, mouseX, mouseY, mts.gizmo.getProjection(), 18);
+            int bestFlat = GuiDimensiumOverlay.findNearestPointOnScreen(
+                positions,
+                skipFlat,
+                mouseX,
+                mouseY,
+                mts.getAxisTranslationGizmo()
+                    .getProjection(),
+                18);
             if (bestFlat >= 0) {
                 int flat = 0;
                 done: for (int r = 0; r < mts.rows.size(); r++) {
@@ -81,22 +88,26 @@ public class ModellingBrushInput implements BrushInput {
                             mts.selectedRow = r;
                             mts.selectedPoint = c;
                             mts.currentRowIndex = r;
-                            mts.gizmo.reset();
+                            mts.getAxisTranslationGizmo()
+                                .reset();
                             break done;
                         }
                     }
                 }
-            } else if (mts.gizmo.hoveredAxis != TranslationGizmo.Axis.NONE && mts.selectedPointObj() != null
+            } else if (mts.getAxisTranslationGizmo().hoveredAxis != TranslationGizmo.Axis.NONE
+                && mts.selectedPointObj() != null
                 && eye != null) {
                     ModellingToolState.ModelPoint mSelPt = mts.selectedPointObj();
                     double mgx = mSelPt.x + 0.5, mgy = mSelPt.y + 0.5, mgz = mSelPt.z + 0.5;
-                    mts.gizmo.startDrag(mouseX, mouseY, mgx, mgy, mgz, mgx, mgy, mgz, 0, 0, 0);
-                } else
-                if (mts.planeGizmo.hoveredPlane != PlaneTranslationGizmo.Plane.NONE && mts.selectedPointObj() != null
+                    mts.getAxisTranslationGizmo()
+                        .startDrag(mouseX, mouseY, mgx, mgy, mgz, mgx, mgy, mgz, 0, 0, 0);
+                } else if (mts.getPlaneTranslationGizmo().hoveredPlane != PlaneTranslationGizmo.Plane.NONE
+                    && mts.selectedPointObj() != null
                     && eye != null) {
                         ModellingToolState.ModelPoint mSelPt = mts.selectedPointObj();
                         double mgx = mSelPt.x + 0.5, mgy = mSelPt.y + 0.5, mgz = mSelPt.z + 0.5;
-                        mts.planeGizmo.startDrag(mouseX, mouseY, mgx, mgy, mgz, mgx, mgy, mgz, 0, 0, 0);
+                        mts.getPlaneTranslationGizmo()
+                            .startDrag(mouseX, mouseY, mgx, mgy, mgz, mgx, mgy, mgz, 0, 0, 0);
                     }
         }
 
@@ -107,8 +118,16 @@ public class ModellingBrushInput implements BrushInput {
         ModellingToolState mts = ModellingToolState.INSTANCE;
         ModellingToolState.ModelPoint mSelPt = mts.selectedPointObj();
         if (mSelPt == null) return;
-        if (mts.gizmo.isDragging() || mts.planeGizmo.isDragging()) {
-            double[] anchor = mts.gizmo.isDragging() ? mts.gizmo.updateDrag(mx, my) : mts.planeGizmo.updateDrag(mx, my);
+        if (mts.getAxisTranslationGizmo()
+            .isDragging()
+            || mts.getPlaneTranslationGizmo()
+                .isDragging()) {
+            double[] anchor = mts.getAxisTranslationGizmo()
+                .isDragging()
+                    ? mts.getAxisTranslationGizmo()
+                        .updateDrag(mx, my)
+                    : mts.getPlaneTranslationGizmo()
+                        .updateDrag(mx, my);
             if (anchor != null) {
                 mSelPt.x = AnchorSnap.toInt(anchor[0], snap);
                 mSelPt.y = AnchorSnap.toInt(anchor[1], snap);

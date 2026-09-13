@@ -11,11 +11,13 @@ import java.util.concurrent.ThreadLocalRandom;
 import net.minecraft.item.ItemStack;
 
 import github.thehighcruw.dimensium.editor.tool.creating.path.PathMath;
+import github.thehighcruw.dimensium.editor.tool.gizmo.WithAxisTranslationGizmo;
+import github.thehighcruw.dimensium.editor.tool.gizmo.WithPlaneTranslationGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.PlaneTranslationGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.TranslationGizmo;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 
-public class PathToolState {
+public class PathToolState implements WithAxisTranslationGizmo, WithPlaneTranslationGizmo {
 
     public static final PathToolState INSTANCE = new PathToolState();
 
@@ -73,8 +75,18 @@ public class PathToolState {
 
     public ChangeProposal preview = null;
 
-    public final TranslationGizmo gizmo = new TranslationGizmo();
-    public final PlaneTranslationGizmo planeGizmo = new PlaneTranslationGizmo();
+    private final TranslationGizmo gizmo = new TranslationGizmo();
+    private final PlaneTranslationGizmo planeGizmo = new PlaneTranslationGizmo();
+
+    @Override
+    public TranslationGizmo getAxisTranslationGizmo() {
+        return gizmo;
+    }
+
+    @Override
+    public PlaneTranslationGizmo getPlaneTranslationGizmo() {
+        return planeGizmo;
+    }
 
     private String cachedKey = "";
 

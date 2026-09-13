@@ -15,7 +15,7 @@ import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeMath;
  * Dragging along the axis scales the shape on that axis.
  * X = red, Y = green, Z = blue (matching TranslationGizmo colors).
  */
-public class ScaleGizmo {
+public class ScalingGizmo {
 
     public enum Axis {
         NONE,

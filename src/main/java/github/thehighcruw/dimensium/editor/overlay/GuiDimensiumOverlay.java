@@ -138,28 +138,31 @@ public final class GuiDimensiumOverlay {
             if (button == KeyConstants.LMB) {
                 EntityLivingBase eye = mc.renderViewEntity;
                 double ccx = cps.centerX(), ccy = cps.centerY(), ccz = cps.centerZ();
-                if (eye != null && cps.gizmo.hoveredAxis != TranslationGizmo.Axis.NONE) {
-                    cps.gizmo
+                if (eye != null && cps.getAxisTranslationGizmo().hoveredAxis != TranslationGizmo.Axis.NONE) {
+                    cps.getAxisTranslationGizmo()
                         .startDrag(mouseX, mouseY, ccx, ccy, ccz, cps.anchorFX, cps.anchorFY, cps.anchorFZ, 0, 0, 0);
-                } else if (eye != null && cps.planeGizmo.hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
-                    cps.planeGizmo.startDrag(
-                        mouseX,
-                        mouseY,
-                        ccx,
-                        ccy,
-                        ccz,
-                        cps.anchorFX,
-                        cps.anchorFY,
-                        cps.anchorFZ,
-                        cps.rotX,
-                        cps.rotY,
-                        cps.rotZ);
-                } else if (eye != null && cps.rotGizmo.hoveredAxis != RotationGizmo.Axis.NONE) {
-                    cps.rotDragBaseX = cps.rotX;
-                    cps.rotDragBaseY = cps.rotY;
-                    cps.rotDragBaseZ = cps.rotZ;
-                    cps.rotGizmo.startDrag(mouseX, mouseY, ccx, ccy, ccz, cps.rotX, cps.rotY, cps.rotZ);
-                }
+                } else if (eye != null
+                    && cps.getPlaneTranslationGizmo().hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
+                        cps.getPlaneTranslationGizmo()
+                            .startDrag(
+                                mouseX,
+                                mouseY,
+                                ccx,
+                                ccy,
+                                ccz,
+                                cps.anchorFX,
+                                cps.anchorFY,
+                                cps.anchorFZ,
+                                cps.rotX,
+                                cps.rotY,
+                                cps.rotZ);
+                    } else if (eye != null && cps.getRotationGizmo().hoveredAxis != RotationGizmo.Axis.NONE) {
+                        cps.rotDragBaseX = cps.rotX;
+                        cps.rotDragBaseY = cps.rotY;
+                        cps.rotDragBaseZ = cps.rotZ;
+                        cps.getRotationGizmo()
+                            .startDrag(mouseX, mouseY, ccx, ccy, ccz, cps.rotX, cps.rotY, cps.rotZ);
+                    }
             } else if (button == KeyConstants.RMB) {
                 cps.cancel();
             }
@@ -183,26 +186,55 @@ public final class GuiDimensiumOverlay {
         if (button == KeyConstants.LMB) {
             ShapePlacementState ps = ShapePlacementState.INSTANCE;
             if (ps.active) {
-                if (ps.gizmo.isDragging()) ps.gizmo.endDrag();
-                if (ps.rotGizmo.isDragging()) ps.rotGizmo.endDrag();
-                if (ps.scaleGizmo.isDragging()) {
+                if (ps.getAxisTranslationGizmo()
+                    .isDragging())
+                    ps.getAxisTranslationGizmo()
+                        .endDrag();
+                if (ps.getRotationGizmo()
+                    .isDragging())
+                    ps.getRotationGizmo()
+                        .endDrag();
+                if (ps.getScalingGizmo()
+                    .isDragging()) {
                     // scaleX/Y/Z already reset to 1f each drag frame; ShapeToolState already updated
-                    ps.scaleGizmo.endDrag();
+                    ps.getScalingGizmo()
+                        .endDrag();
                 }
-                if (ps.planeGizmo.isDragging()) ps.planeGizmo.endDrag();
+                if (ps.getPlaneTranslationGizmo()
+                    .isDragging())
+                    ps.getPlaneTranslationGizmo()
+                        .endDrag();
                 if (ps.viewPlaneGizmo.isDragging()) ps.viewPlaneGizmo.endDrag();
             }
             ClipboardPlacementState cps = ClipboardPlacementState.INSTANCE;
             if (cps.active) {
-                if (cps.gizmo.isDragging()) cps.gizmo.endDrag();
-                if (cps.planeGizmo.isDragging()) cps.planeGizmo.endDrag();
-                if (cps.rotGizmo.isDragging()) cps.rotGizmo.endDrag();
+                if (cps.getAxisTranslationGizmo()
+                    .isDragging())
+                    cps.getAxisTranslationGizmo()
+                        .endDrag();
+                if (cps.getPlaneTranslationGizmo()
+                    .isDragging())
+                    cps.getPlaneTranslationGizmo()
+                        .endDrag();
+                if (cps.getRotationGizmo()
+                    .isDragging())
+                    cps.getRotationGizmo()
+                        .endDrag();
             }
             MoveToolState ms = MoveToolState.INSTANCE;
             if (ms.active) {
-                if (ms.gizmo.isDragging()) ms.gizmo.endDrag();
-                if (ms.planeGizmo.isDragging()) ms.planeGizmo.endDrag();
-                if (ms.rotGizmo.isDragging()) ms.rotGizmo.endDrag();
+                if (ms.getAxisTranslationGizmo()
+                    .isDragging())
+                    ms.getAxisTranslationGizmo()
+                        .endDrag();
+                if (ms.getPlaneTranslationGizmo()
+                    .isDragging())
+                    ms.getPlaneTranslationGizmo()
+                        .endDrag();
+                if (ms.getRotationGizmo()
+                    .isDragging())
+                    ms.getRotationGizmo()
+                        .endDrag();
             }
             SelectionState sel = SelectionState.INSTANCE;
             if (sel.boxConfirmed) {
@@ -216,11 +248,23 @@ public final class GuiDimensiumOverlay {
                 if (SelectionRenderer.boxCenterPlaneGizmo.isDragging()) SelectionRenderer.boxCenterPlaneGizmo.endDrag();
             }
             PathToolState pts = PathToolState.INSTANCE;
-            if (pts.gizmo.isDragging()) pts.gizmo.endDrag();
-            if (pts.planeGizmo.isDragging()) pts.planeGizmo.endDrag();
+            if (pts.getAxisTranslationGizmo()
+                .isDragging())
+                pts.getAxisTranslationGizmo()
+                    .endDrag();
+            if (pts.getPlaneTranslationGizmo()
+                .isDragging())
+                pts.getPlaneTranslationGizmo()
+                    .endDrag();
             ModellingToolState mtsDrag = ModellingToolState.INSTANCE;
-            if (mtsDrag.gizmo.isDragging()) mtsDrag.gizmo.endDrag();
-            if (mtsDrag.planeGizmo.isDragging()) mtsDrag.planeGizmo.endDrag();
+            if (mtsDrag.getAxisTranslationGizmo()
+                .isDragging())
+                mtsDrag.getAxisTranslationGizmo()
+                    .endDrag();
+            if (mtsDrag.getPlaneTranslationGizmo()
+                .isDragging())
+                mtsDrag.getPlaneTranslationGizmo()
+                    .endDrag();
         } else if (button == KeyConstants.RMB) {
             Tool tool = DimensiumEditorMode.INSTANCE.selectedTool;
             if (tool == Tool.SELECT) {
@@ -385,23 +429,26 @@ public final class GuiDimensiumOverlay {
      */
     public static boolean anyGizmoDragging() {
         ShapePlacementState ps = ShapePlacementState.INSTANCE;
-        if (ps.active && (ps.gizmo.isDragging() || ps.rotGizmo.isDragging()
-            || ps.scaleGizmo.isDragging()
-            || ps.planeGizmo.isDragging()
-            || ps.viewPlaneGizmo.isDragging())) return true;
+        if (ps.active && ps.isAnyGizmoDragging()) return true;
         ClipboardPlacementState cps = ClipboardPlacementState.INSTANCE;
-        if (cps.active && (cps.gizmo.isDragging() || cps.planeGizmo.isDragging() || cps.rotGizmo.isDragging()))
-            return true;
+        if (cps.active && cps.isAnyGizmoDragging()) return true;
         MoveToolState ms = MoveToolState.INSTANCE;
-        if (ms.active && (ms.gizmo.isDragging() || ms.planeGizmo.isDragging() || ms.rotGizmo.isDragging())) return true;
+        if (ms.active && ms.isAnyGizmoDragging()) return true;
         SelectionState sel = SelectionState.INSTANCE;
         if (sel.boxConfirmed
             && (SelectionRenderer.boxPos1Gizmo.isDragging() || SelectionRenderer.boxPos2Gizmo.isDragging()
                 || SelectionRenderer.boxCenterViewPlaneGizmo.isDragging()
                 || SelectionRenderer.boxCenterGizmo.isDragging()))
             return true;
-        if (PathToolState.INSTANCE.gizmo.isDragging() || PathToolState.INSTANCE.planeGizmo.isDragging()) return true;
-        return ModellingToolState.INSTANCE.gizmo.isDragging() || ModellingToolState.INSTANCE.planeGizmo.isDragging();
+        if (PathToolState.INSTANCE.getAxisTranslationGizmo()
+            .isDragging()
+            || PathToolState.INSTANCE.getPlaneTranslationGizmo()
+                .isDragging())
+            return true;
+        return ModellingToolState.INSTANCE.getAxisTranslationGizmo()
+            .isDragging()
+            || ModellingToolState.INSTANCE.getPlaneTranslationGizmo()
+                .isDragging();
     }
 
     /** Commits the pending box selection (boxConfirmed state) and clears gizmo state. */

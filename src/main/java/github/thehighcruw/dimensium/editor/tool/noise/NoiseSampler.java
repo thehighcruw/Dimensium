@@ -2,7 +2,7 @@
  * Copyright (c) 2026 TheHighcruw
  * SPDX-License-Identifier: MIT
  */
-package github.thehighcruw.dimensium.editor.tool;
+package github.thehighcruw.dimensium.editor.tool.noise;
 
 import github.thehighcruw.dimensium.editor.tool.painting.noise.NoiseParams;
 import github.thehighcruw.dimensium.editor.tool.painting.noise.NoiseToolState;
@@ -34,18 +34,18 @@ public final class NoiseSampler {
 
     /** Returns noise in [0,1] for 2D coordinates using NoiseParams settings. */
     public static float sample2D(NoiseParams p, float x, float y) {
-        float sx = x / p.noiseScale, sy = y / p.noiseScale;
+        float sx = x / p.noiseScale(), sy = y / p.noiseScale();
         // normRange is in normalized (post-scale) space; noiseScale controls zoom,
         // noiseMetaballRange controls blob radius relative to cell spacing independently.
-        float normRange = p.noiseMetaballRange;
+        float normRange = p.noiseMetaballRange();
         float raw = fbm2(p, sx, sy, normRange);
         return saturate(raw);
     }
 
     /** Returns noise in [0,1] for 3D coordinates using NoiseParams settings. */
     public static float sample3D(NoiseParams p, float x, float y, float z) {
-        float sx = x / p.noiseScale, sy = y / p.noiseScale, sz = z / p.noiseScale;
-        float normRange = p.noiseMetaballRange;
+        float sx = x / p.noiseScale(), sy = y / p.noiseScale(), sz = z / p.noiseScale();
+        float normRange = p.noiseMetaballRange();
         float raw = fbm3(p, sx, sy, sz, normRange);
         return saturate(raw);
     }
@@ -53,58 +53,58 @@ public final class NoiseSampler {
     // ── FBM wrappers ─────────────────────────────────────────────────────────
 
     private static float fbm2(NoiseParams p, float x, float y, float normRange) {
-        if (p.noiseOctaves <= 1) {
-            return base2(p, x, y, p.noiseSeed, normRange);
+        if (p.noiseOctaves() <= 1) {
+            return base2(p, x, y, p.noiseSeed(), normRange);
         }
         float value = 0, amplitude = 1, totalAmp = 0;
         float fx = x, fy = y;
-        for (int o = 0; o < p.noiseOctaves; o++) {
-            value += amplitude * base2(p, fx, fy, p.noiseSeed + o * 1000003L, normRange);
+        for (int o = 0; o < p.noiseOctaves(); o++) {
+            value += amplitude * base2(p, fx, fy, p.noiseSeed() + o * 1000003L, normRange);
             totalAmp += amplitude;
-            amplitude *= p.noiseGain;
-            fx *= p.noiseLacunarity;
-            fy *= p.noiseLacunarity;
+            amplitude *= p.noiseGain();
+            fx *= p.noiseLacunarity();
+            fy *= p.noiseLacunarity();
         }
         return value / totalAmp;
     }
 
     private static float fbm3(NoiseParams p, float x, float y, float z, float normRange) {
-        if (p.noiseOctaves <= 1) {
-            return base3(p, x, y, z, p.noiseSeed, normRange);
+        if (p.noiseOctaves() <= 1) {
+            return base3(p, x, y, z, p.noiseSeed(), normRange);
         }
         float value = 0, amplitude = 1, totalAmp = 0;
         float fx = x, fy = y, fz = z;
-        for (int o = 0; o < p.noiseOctaves; o++) {
-            value += amplitude * base3(p, fx, fy, fz, p.noiseSeed + o * 1000003L, normRange);
+        for (int o = 0; o < p.noiseOctaves(); o++) {
+            value += amplitude * base3(p, fx, fy, fz, p.noiseSeed() + o * 1000003L, normRange);
             totalAmp += amplitude;
-            amplitude *= p.noiseGain;
-            fx *= p.noiseLacunarity;
-            fy *= p.noiseLacunarity;
-            fz *= p.noiseLacunarity;
+            amplitude *= p.noiseGain();
+            fx *= p.noiseLacunarity();
+            fy *= p.noiseLacunarity();
+            fz *= p.noiseLacunarity();
         }
         return value / totalAmp;
     }
 
     private static float base2(NoiseParams p, float x, float y, long seed, float normRange) {
-        return switch (p.noiseType) {
+        return switch (p.noiseType()) {
             case SIMPLEX -> (simplex2(x, y, seed) + 1f) * 0.5f;
             case PERLIN -> (perlin2(x, y, seed) + 1f) * 0.5f;
-            case WORLEY -> worley2(x, y, seed, p.noiseJitter, p.noiseW1, p.noiseW2, p.noiseW3);
-            case VORONOI_EDGES -> voronoiEdge2(x, y, seed, p.noiseJitter);
-            case METABALL -> metaball2(x, y, seed, p.noiseJitter, normRange);
-            case SPLATTER -> splatter2(x, y, seed, p.noiseJitter);
+            case WORLEY -> worley2(x, y, seed, p.noiseJitter(), p.noiseW1(), p.noiseW2(), p.noiseW3());
+            case VORONOI_EDGES -> voronoiEdge2(x, y, seed, p.noiseJitter());
+            case METABALL -> metaball2(x, y, seed, p.noiseJitter(), normRange);
+            case SPLATTER -> splatter2(x, y, seed, p.noiseJitter());
             case WHITE -> white2(x, y, seed);
         };
     }
 
     private static float base3(NoiseParams p, float x, float y, float z, long seed, float normRange) {
-        return switch (p.noiseType) {
+        return switch (p.noiseType()) {
             case SIMPLEX -> (simplex3(x, y, z, seed) + 1f) * 0.5f;
             case PERLIN -> (perlin3(x, y, z, seed) + 1f) * 0.5f;
-            case WORLEY -> worley3(x, y, z, seed, p.noiseJitter, p.noiseW1, p.noiseW2, p.noiseW3);
-            case VORONOI_EDGES -> voronoiEdge3(x, y, z, seed, p.noiseJitter);
-            case METABALL -> metaball3(x, y, z, seed, p.noiseJitter, normRange);
-            case SPLATTER -> splatter3(x, y, z, seed, p.noiseJitter);
+            case WORLEY -> worley3(x, y, z, seed, p.noiseJitter(), p.noiseW1(), p.noiseW2(), p.noiseW3());
+            case VORONOI_EDGES -> voronoiEdge3(x, y, z, seed, p.noiseJitter());
+            case METABALL -> metaball3(x, y, z, seed, p.noiseJitter(), normRange);
+            case SPLATTER -> splatter3(x, y, z, seed, p.noiseJitter());
             case WHITE -> white3(x, y, z, seed);
         };
     }

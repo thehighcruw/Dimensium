@@ -47,7 +47,8 @@ public class PathBrushInput implements BrushInput {
                 PathToolState.PathPoint pt = new PathToolState.PathPoint(px, py, pz, 0, blk);
                 pts.points.add(pt);
                 pts.selectedIndex = pts.points.size() - 1;
-                pts.gizmo.reset();
+                pts.getAxisTranslationGizmo()
+                    .reset();
                 pts.invalidatePath();
             }
             return;
@@ -62,23 +63,28 @@ public class PathBrushInput implements BrushInput {
                 pts.selectedIndex,
                 mouseX,
                 mouseY,
-                pts.gizmo.getProjection(),
+                pts.getAxisTranslationGizmo()
+                    .getProjection(),
                 18);
             if (bestIdx >= 0) {
                 pts.selectedIndex = bestIdx;
-                pts.gizmo.reset();
-            } else
-                if (pts.gizmo.hoveredAxis != TranslationGizmo.Axis.NONE && pts.selectedPoint() != null && eye != null) {
+                pts.getAxisTranslationGizmo()
+                    .reset();
+            } else if (pts.getAxisTranslationGizmo().hoveredAxis != TranslationGizmo.Axis.NONE
+                && pts.selectedPoint() != null
+                && eye != null) {
                     PathToolState.PathPoint sel = pts.selectedPoint();
                     double pgx = sel.x + 0.5, pgy = sel.y + 0.5, pgz = sel.z + 0.5;
-                    pts.gizmo.startDrag(mouseX, mouseY, pgx, pgy, pgz, pgx, pgy, pgz, 0, 0, 0);
-                } else
-                    if (pts.planeGizmo.hoveredPlane != PlaneTranslationGizmo.Plane.NONE && pts.selectedPoint() != null
-                        && eye != null) {
-                            PathToolState.PathPoint sel = pts.selectedPoint();
-                            double pgx = sel.x + 0.5, pgy = sel.y + 0.5, pgz = sel.z + 0.5;
-                            pts.planeGizmo.startDrag(mouseX, mouseY, pgx, pgy, pgz, pgx, pgy, pgz, 0, 0, 0);
-                        }
+                    pts.getAxisTranslationGizmo()
+                        .startDrag(mouseX, mouseY, pgx, pgy, pgz, pgx, pgy, pgz, 0, 0, 0);
+                } else if (pts.getPlaneTranslationGizmo().hoveredPlane != PlaneTranslationGizmo.Plane.NONE
+                    && pts.selectedPoint() != null
+                    && eye != null) {
+                        PathToolState.PathPoint sel = pts.selectedPoint();
+                        double pgx = sel.x + 0.5, pgy = sel.y + 0.5, pgz = sel.z + 0.5;
+                        pts.getPlaneTranslationGizmo()
+                            .startDrag(mouseX, mouseY, pgx, pgy, pgz, pgx, pgy, pgz, 0, 0, 0);
+                    }
         }
 
     }
@@ -88,8 +94,16 @@ public class PathBrushInput implements BrushInput {
         PathToolState pts = PathToolState.INSTANCE;
         PathToolState.PathPoint selPt = pts.selectedPoint();
         if (selPt == null) return;
-        if (pts.gizmo.isDragging() || pts.planeGizmo.isDragging()) {
-            double[] anchor = pts.gizmo.isDragging() ? pts.gizmo.updateDrag(mx, my) : pts.planeGizmo.updateDrag(mx, my);
+        if (pts.getAxisTranslationGizmo()
+            .isDragging()
+            || pts.getPlaneTranslationGizmo()
+                .isDragging()) {
+            double[] anchor = pts.getAxisTranslationGizmo()
+                .isDragging()
+                    ? pts.getAxisTranslationGizmo()
+                        .updateDrag(mx, my)
+                    : pts.getPlaneTranslationGizmo()
+                        .updateDrag(mx, my);
             if (anchor != null) {
                 selPt.x = AnchorSnap.toInt(anchor[0], snap);
                 selPt.y = AnchorSnap.toInt(anchor[1], snap);

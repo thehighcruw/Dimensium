@@ -208,7 +208,8 @@ public class KeyHandler {
                     int idx = pts.selectedIndex;
                     pts.points.remove(idx);
                     pts.selectedIndex = pts.points.isEmpty() ? -1 : Math.min(idx, pts.points.size() - 1);
-                    pts.gizmo.reset();
+                    pts.getAxisTranslationGizmo()
+                        .reset();
                     pts.invalidatePath();
                     return;
                 }
@@ -367,7 +368,8 @@ public class KeyHandler {
                 pt.x += delta[0];
                 pt.y += delta[1];
                 pt.z += delta[2];
-                pts.gizmo.reset();
+                pts.getAxisTranslationGizmo()
+                    .reset();
                 pts.invalidatePath();
                 return true;
             }
@@ -380,7 +382,8 @@ public class KeyHandler {
                 pt.x += delta[0];
                 pt.y += delta[1];
                 pt.z += delta[2];
-                modts.gizmo.reset();
+                modts.getAxisTranslationGizmo()
+                    .reset();
                 modts.invalidate();
                 return true;
             }

@@ -25,7 +25,7 @@ public class ShatterToolState {
         }
     }
 
-    public final NoiseParams noiseParams = new NoiseParams(NoiseToolState.NoiseType.VORONOI_EDGES);
+    public NoiseParams noiseParams = NoiseParams.withDefaults(NoiseToolState.NoiseType.VORONOI_EDGES);
 
     public float crackWidth = 0.15f;
     public AxisMode axisMode = AxisMode.XYZ;

@@ -8,7 +8,7 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-import github.thehighcruw.dimensium.editor.tool.NoiseSampler;
+import github.thehighcruw.dimensium.editor.tool.noise.NoiseSampler;
 import github.thehighcruw.dimensium.editor.tool.painting.noise.NoiseParams;
 import github.thehighcruw.dimensium.editor.tool.painting.noise.NoiseToolState.NoiseType;
 
@@ -66,8 +66,8 @@ public class NoiseSamplerTest {
     @Test
     public void sample2DOutputInZeroToOne() {
         for (NoiseType type : NoiseType.values()) {
-            NoiseParams p = new NoiseParams(type);
-            p.noiseSeed = 7L;
+            NoiseParams p = NoiseParams.withDefaults(type)
+                .withSeed(7L);
             float[] coords = { 0f, 1f, 5f, -3f, 12.5f };
             for (float x : coords) for (float y : coords) {
                 float v = NoiseSampler.sample2D(p, x, y);
@@ -78,8 +78,8 @@ public class NoiseSamplerTest {
 
     @Test
     public void sample2DIsDeterministic() {
-        NoiseParams p = new NoiseParams(NoiseType.SIMPLEX);
-        p.noiseSeed = 55L;
+        NoiseParams p = NoiseParams.withDefaults(NoiseType.SIMPLEX)
+            .withSeed(55L);
         float a = NoiseSampler.sample2D(p, 3.3f, -1.1f);
         float b = NoiseSampler.sample2D(p, 3.3f, -1.1f);
         assertEquals(a, b, EPSILON);
@@ -87,9 +87,9 @@ public class NoiseSamplerTest {
 
     @Test
     public void sample2DMultiOctaveStillInRange() {
-        NoiseParams p = new NoiseParams(NoiseType.PERLIN);
-        p.noiseOctaves = 4;
-        p.noiseSeed = 1L;
+        NoiseParams p = NoiseParams.withDefaults(NoiseType.PERLIN)
+            .withOctaves(4)
+            .withSeed(1L);
         for (int i = 0; i < 20; i++) {
             float v = NoiseSampler.sample2D(p, i * 1.3f, i * 0.7f);
             assertTrue("multi-octave sample2D out of [0,1]: " + v, v >= 0f && v <= 1f);
@@ -101,8 +101,8 @@ public class NoiseSamplerTest {
     @Test
     public void sample3DOutputInZeroToOne() {
         for (NoiseType type : NoiseType.values()) {
-            NoiseParams p = new NoiseParams(type);
-            p.noiseSeed = 3L;
+            NoiseParams p = NoiseParams.withDefaults(type)
+                .withSeed(3L);
             float[] coords = { 0f, 1f, 5f, -3f };
             for (float x : coords) for (float y : coords) for (float z : coords) {
                 float v = NoiseSampler.sample3D(p, x, y, z);
@@ -115,8 +115,8 @@ public class NoiseSamplerTest {
 
     @Test
     public void sample3DIsDeterministic() {
-        NoiseParams p = new NoiseParams(NoiseType.WORLEY);
-        p.noiseSeed = 77L;
+        NoiseParams p = NoiseParams.withDefaults(NoiseType.WORLEY)
+            .withSeed(77L);
         float a = NoiseSampler.sample3D(p, 1f, 2f, 3f);
         float b = NoiseSampler.sample3D(p, 1f, 2f, 3f);
         assertEquals(a, b, EPSILON);
@@ -124,9 +124,9 @@ public class NoiseSamplerTest {
 
     @Test
     public void sample3DMultiOctaveStillInRange() {
-        NoiseParams p = new NoiseParams(NoiseType.SIMPLEX);
-        p.noiseOctaves = 6;
-        p.noiseSeed = 42L;
+        NoiseParams p = NoiseParams.withDefaults(NoiseType.SIMPLEX)
+            .withOctaves(6)
+            .withSeed(42L);
         for (int i = 0; i < 20; i++) {
             float v = NoiseSampler.sample3D(p, i * 1.1f, i * 0.9f, i * 0.5f);
             assertTrue("multi-octave sample3D out of [0,1]: " + v, v >= 0f && v <= 1f);
@@ -135,10 +135,10 @@ public class NoiseSamplerTest {
 
     @Test
     public void sample3DSensitiveToSeed() {
-        NoiseParams p1 = new NoiseParams(NoiseType.SIMPLEX);
-        p1.noiseSeed = 1L;
-        NoiseParams p2 = new NoiseParams(NoiseType.SIMPLEX);
-        p2.noiseSeed = 1000003L;
+        NoiseParams p1 = NoiseParams.withDefaults(NoiseType.SIMPLEX)
+            .withSeed(1L);
+        NoiseParams p2 = NoiseParams.withDefaults(NoiseType.SIMPLEX)
+            .withSeed(1000003L);
         // Use non-integer world coords to avoid lattice-point degeneracy.
         float a = NoiseSampler.sample3D(p1, 5.3f, 5.7f, 5.1f);
         float b = NoiseSampler.sample3D(p2, 5.3f, 5.7f, 5.1f);

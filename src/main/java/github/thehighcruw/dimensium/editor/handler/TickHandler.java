@@ -43,7 +43,7 @@ import github.thehighcruw.dimensium.editor.tool.painting.gradient.GradientToolSt
 import github.thehighcruw.dimensium.editor.tool.painting.noise.NoiseToolState;
 import github.thehighcruw.dimensium.editor.tool.state.ClipboardPlacementState;
 import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
-import github.thehighcruw.dimensium.editor.window.viewport.world.ScaleGizmo;
+import github.thehighcruw.dimensium.editor.window.viewport.world.ScalingGizmo;
 import github.thehighcruw.dimensium.shared.BlockSender;
 import github.thehighcruw.dimensium.shared.KeyConstants;
 import github.thehighcruw.dimensium.shared.util.PerfTrace;
@@ -326,10 +326,20 @@ public class TickHandler {
     private void updatePlacementGizmos(int mx, int my, boolean snap) {
         ShapePlacementState ps = ShapePlacementState.INSTANCE;
         if (ps.active) {
-            if (ps.gizmo.isDragging() || ps.planeGizmo.isDragging() || ps.viewPlaneGizmo.isDragging()) {
-                double[] anchor = ps.gizmo.isDragging() ? ps.gizmo.updateDrag(mx, my)
-                    : ps.planeGizmo.isDragging() ? ps.planeGizmo.updateDrag(mx, my)
-                        : ps.viewPlaneGizmo.updateDrag(mx, my);
+            if (ps.getAxisTranslationGizmo()
+                .isDragging()
+                || ps.getPlaneTranslationGizmo()
+                    .isDragging()
+                || ps.viewPlaneGizmo.isDragging()) {
+                double[] anchor = ps.getAxisTranslationGizmo()
+                    .isDragging()
+                        ? ps.getAxisTranslationGizmo()
+                            .updateDrag(mx, my)
+                        : ps.getPlaneTranslationGizmo()
+                            .isDragging()
+                                ? ps.getPlaneTranslationGizmo()
+                                    .updateDrag(mx, my)
+                                : ps.viewPlaneGizmo.updateDrag(mx, my);
                 if (anchor != null) {
                     ps.anchorFX = AnchorSnap.toFloat(anchor[0], snap);
                     ps.anchorFY = AnchorSnap.toFloat(anchor[1], snap);
@@ -338,44 +348,60 @@ public class TickHandler {
                     ps.anchorY = (int) Math.floor(ps.anchorFY);
                     ps.anchorZ = (int) Math.floor(ps.anchorFZ);
                 }
-            } else if (ps.rotGizmo.isDragging()) {
-                float[] angles = AnchorSnap
-                    .applyRotGizmo(ps.rotGizmo, ps.rotDragBaseX, ps.rotDragBaseY, ps.rotDragBaseZ, mx, my);
-                if (Math.abs(angles[0] - ps.rotX) >= 0.5f || Math.abs(angles[1] - ps.rotY) >= 0.5f
-                    || Math.abs(angles[2] - ps.rotZ) >= 0.5f) {
-                    ps.rotX = angles[0];
-                    ps.rotY = angles[1];
-                    ps.rotZ = angles[2];
-                    ps.invalidateGhost();
-                }
-            } else if (ps.scaleGizmo.isDragging()) {
-                float[] result = ps.scaleGizmo.updateDrag(mx, my);
-                if (result != null) {
-                    ScaleGizmo.Axis axis = ps.scaleGizmo.getDragAxis();
-                    if (axis == ScaleGizmo.Axis.X) ps.scaleX = result[0];
-                    else if (axis == ScaleGizmo.Axis.Y) ps.scaleY = result[0];
-                    else ps.scaleZ = result[0];
-                    ShapeToolState sts = ShapeToolState.INSTANCE;
-                    if (axis == ScaleGizmo.Axis.X) {
-                        sts.shapeWidth = Math.max(1, Math.round(ps.scaleDragBaseW * ps.scaleX));
-                        ps.scaleX = 1f;
-                    } else if (axis == ScaleGizmo.Axis.Y) {
-                        sts.shapeHeight = Math.max(1, Math.round(ps.scaleDragBaseH * ps.scaleY));
-                        ps.scaleY = 1f;
-                    } else {
-                        sts.shapeDepth = Math.max(1, Math.round(ps.scaleDragBaseD * ps.scaleZ));
-                        ps.scaleZ = 1f;
+            } else if (ps.getRotationGizmo()
+                .isDragging()) {
+                    float[] angles = AnchorSnap.applyRotGizmo(
+                        ps.getRotationGizmo(),
+                        ps.rotDragBaseX,
+                        ps.rotDragBaseY,
+                        ps.rotDragBaseZ,
+                        mx,
+                        my);
+                    if (Math.abs(angles[0] - ps.rotX) >= 0.5f || Math.abs(angles[1] - ps.rotY) >= 0.5f
+                        || Math.abs(angles[2] - ps.rotZ) >= 0.5f) {
+                        ps.rotX = angles[0];
+                        ps.rotY = angles[1];
+                        ps.rotZ = angles[2];
+                        ps.invalidateGhost();
                     }
-                    ps.invalidateGhost();
-                }
-            }
+                } else if (ps.getScalingGizmo()
+                    .isDragging()) {
+                        float[] result = ps.getScalingGizmo()
+                            .updateDrag(mx, my);
+                        if (result != null) {
+                            ScalingGizmo.Axis axis = ps.getScalingGizmo()
+                                .getDragAxis();
+                            if (axis == ScalingGizmo.Axis.X) ps.scaleX = result[0];
+                            else if (axis == ScalingGizmo.Axis.Y) ps.scaleY = result[0];
+                            else ps.scaleZ = result[0];
+                            ShapeToolState sts = ShapeToolState.INSTANCE;
+                            if (axis == ScalingGizmo.Axis.X) {
+                                sts.shapeWidth = Math.max(1, Math.round(ps.scaleDragBaseW * ps.scaleX));
+                                ps.scaleX = 1f;
+                            } else if (axis == ScalingGizmo.Axis.Y) {
+                                sts.shapeHeight = Math.max(1, Math.round(ps.scaleDragBaseH * ps.scaleY));
+                                ps.scaleY = 1f;
+                            } else {
+                                sts.shapeDepth = Math.max(1, Math.round(ps.scaleDragBaseD * ps.scaleZ));
+                                ps.scaleZ = 1f;
+                            }
+                            ps.invalidateGhost();
+                        }
+                    }
         }
 
         ClipboardPlacementState cps = ClipboardPlacementState.INSTANCE;
         if (cps.active) {
-            if (cps.gizmo.isDragging() || cps.planeGizmo.isDragging()) {
-                double[] anchor = cps.gizmo.isDragging() ? cps.gizmo.updateDrag(mx, my)
-                    : cps.planeGizmo.updateDrag(mx, my);
+            if (cps.getAxisTranslationGizmo()
+                .isDragging()
+                || cps.getPlaneTranslationGizmo()
+                    .isDragging()) {
+                double[] anchor = cps.getAxisTranslationGizmo()
+                    .isDragging()
+                        ? cps.getAxisTranslationGizmo()
+                            .updateDrag(mx, my)
+                        : cps.getPlaneTranslationGizmo()
+                            .updateDrag(mx, my);
                 if (anchor != null) {
                     cps.anchorFX = AnchorSnap.toFloat(anchor[0], snap);
                     cps.anchorFY = AnchorSnap.toFloat(anchor[1], snap);
@@ -390,38 +416,57 @@ public class TickHandler {
                         cps.rebuildPreview();
                     }
                 }
-            } else if (cps.rotGizmo.isDragging()) {
-                float[] angles = AnchorSnap
-                    .applyRotGizmo(cps.rotGizmo, cps.rotDragBaseX, cps.rotDragBaseY, cps.rotDragBaseZ, mx, my);
-                cps.rotX = angles[0];
-                cps.rotY = angles[1];
-                cps.rotZ = angles[2];
-                cps.rebuildPreview();
-            }
+            } else if (cps.getRotationGizmo()
+                .isDragging()) {
+                    float[] angles = AnchorSnap.applyRotGizmo(
+                        cps.getRotationGizmo(),
+                        cps.rotDragBaseX,
+                        cps.rotDragBaseY,
+                        cps.rotDragBaseZ,
+                        mx,
+                        my);
+                    cps.rotX = angles[0];
+                    cps.rotY = angles[1];
+                    cps.rotZ = angles[2];
+                    cps.rebuildPreview();
+                }
         }
 
         MoveToolState ms = MoveToolState.INSTANCE;
         if (ms.active) {
-            if (ms.gizmo.isDragging() || ms.planeGizmo.isDragging()) {
-                double[] anchor = ms.gizmo.isDragging() ? ms.gizmo.updateDrag(mx, my)
-                    : ms.planeGizmo.updateDrag(mx, my);
+            if (ms.getAxisTranslationGizmo()
+                .isDragging()
+                || ms.getPlaneTranslationGizmo()
+                    .isDragging()) {
+                double[] anchor = ms.getAxisTranslationGizmo()
+                    .isDragging()
+                        ? ms.getAxisTranslationGizmo()
+                            .updateDrag(mx, my)
+                        : ms.getPlaneTranslationGizmo()
+                            .updateDrag(mx, my);
                 if (anchor != null) {
                     ms.deltaFX = AnchorSnap.toFloat(anchor[0], snap) - ms.cmX;
                     ms.deltaFY = AnchorSnap.toFloat(anchor[1], snap) - ms.cmY;
                     ms.deltaFZ = AnchorSnap.toFloat(anchor[2], snap) - ms.cmZ;
                     ms.invalidateGhost();
                 }
-            } else if (ms.rotGizmo.isDragging()) {
-                float[] angles = AnchorSnap
-                    .applyRotGizmo(ms.rotGizmo, ms.rotDragBaseX, ms.rotDragBaseY, ms.rotDragBaseZ, mx, my);
-                if (Math.abs(angles[0] - ms.rotX) >= 0.5f || Math.abs(angles[1] - ms.rotY) >= 0.5f
-                    || Math.abs(angles[2] - ms.rotZ) >= 0.5f) {
-                    ms.rotX = angles[0];
-                    ms.rotY = angles[1];
-                    ms.rotZ = angles[2];
-                    ms.invalidateGhost();
+            } else if (ms.getRotationGizmo()
+                .isDragging()) {
+                    float[] angles = AnchorSnap.applyRotGizmo(
+                        ms.getRotationGizmo(),
+                        ms.rotDragBaseX,
+                        ms.rotDragBaseY,
+                        ms.rotDragBaseZ,
+                        mx,
+                        my);
+                    if (Math.abs(angles[0] - ms.rotX) >= 0.5f || Math.abs(angles[1] - ms.rotY) >= 0.5f
+                        || Math.abs(angles[2] - ms.rotZ) >= 0.5f) {
+                        ms.rotX = angles[0];
+                        ms.rotY = angles[1];
+                        ms.rotZ = angles[2];
+                        ms.invalidateGhost();
+                    }
                 }
-            }
         }
     }
 
@@ -560,7 +605,7 @@ public class TickHandler {
                 .format("dimensium.action.draw", I18n.format(BrushState.INSTANCE.brushShape.label));
             case PAINTER -> I18n.format("dimensium.action.paint", I18n.format(BrushState.INSTANCE.brushShape.label));
             case NOISE -> I18n
-                .format("dimensium.action.noise", I18n.format(NoiseToolState.INSTANCE.noiseParams.noiseType.label));
+                .format("dimensium.action.noise", I18n.format(NoiseToolState.INSTANCE.noiseParams.noiseType().label));
             case GRADIENT -> I18n
                 .format("dimensium.action.gradient", I18n.format(GradientToolState.INSTANCE.gradientShape.label));
             case SMOOTH -> I18n.format("dimensium.action.smooth");

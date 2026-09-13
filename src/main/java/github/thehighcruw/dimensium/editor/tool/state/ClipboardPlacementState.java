@@ -11,6 +11,9 @@ import java.util.Map;
 import net.minecraft.block.Block;
 
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeMath;
+import github.thehighcruw.dimensium.editor.tool.gizmo.WithAxisTranslationGizmo;
+import github.thehighcruw.dimensium.editor.tool.gizmo.WithPlaneTranslationGizmo;
+import github.thehighcruw.dimensium.editor.tool.gizmo.WithRotationGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.PlaneTranslationGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.RotationGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.TranslationGizmo;
@@ -18,7 +21,7 @@ import github.thehighcruw.dimensium.editor.window.viewport.world.ViewPlaneGizmo;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 
-public class ClipboardPlacementState {
+public class ClipboardPlacementState implements WithAxisTranslationGizmo, WithPlaneTranslationGizmo, WithRotationGizmo {
 
     public static final ClipboardPlacementState INSTANCE = new ClipboardPlacementState();
 
@@ -36,9 +39,9 @@ public class ClipboardPlacementState {
     public ChangeProposal preview = null;
 
     public final ViewPlaneGizmo viewPlaneGizmo = new ViewPlaneGizmo();
-    public final TranslationGizmo gizmo = new TranslationGizmo();
-    public final PlaneTranslationGizmo planeGizmo = new PlaneTranslationGizmo();
-    public final RotationGizmo rotGizmo = new RotationGizmo();
+    private final TranslationGizmo gizmo = new TranslationGizmo();
+    private final PlaneTranslationGizmo planeGizmo = new PlaneTranslationGizmo();
+    private final RotationGizmo rotGizmo = new RotationGizmo();
 
     public double centerX() {
         return anchorFX + clipW / 2.0;
@@ -53,6 +56,21 @@ public class ClipboardPlacementState {
     }
 
     public int clipW, clipH, clipD;
+
+    @Override
+    public TranslationGizmo getAxisTranslationGizmo() {
+        return gizmo;
+    }
+
+    @Override
+    public PlaneTranslationGizmo getPlaneTranslationGizmo() {
+        return planeGizmo;
+    }
+
+    @Override
+    public RotationGizmo getRotationGizmo() {
+        return rotGizmo;
+    }
 
     public void start(SelectionState sel, int x, int y, int z) {
         if (sel.clipboard == null) return;
@@ -143,5 +161,10 @@ public class ClipboardPlacementState {
             ops.add(new int[] { anchorX + o[0], anchorY + o[1], anchorZ + o[2], o[3], o[4] });
         }
         return ops;
+    }
+
+    public boolean isAnyGizmoDragging() {
+        return getAxisTranslationGizmo().isDragging() || getPlaneTranslationGizmo().isDragging()
+            || getRotationGizmo().isDragging();
     }
 }

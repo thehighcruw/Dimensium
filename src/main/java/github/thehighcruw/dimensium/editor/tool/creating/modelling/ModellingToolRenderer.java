@@ -33,9 +33,14 @@ public class ModellingToolRenderer implements ToolRenderer {
         ModellingToolState mts = ModellingToolState.INSTANCE;
         ModellingToolState.ModelPoint mSelPt = mts.selectedPointObj();
         if (mSelPt == null) return;
-        if (!mts.gizmo.isDragging() && !mts.planeGizmo.isDragging() && mc.renderViewEntity != null) {
+        if (!mts.getAxisTranslationGizmo()
+            .isDragging()
+            && !mts.getPlaneTranslationGizmo()
+                .isDragging()
+            && mc.renderViewEntity != null) {
             double mgx = mSelPt.x + 0.5, mgy = mSelPt.y + 0.5, mgz = mSelPt.z + 0.5;
-            mts.gizmo.updateHover(mx3d, my3d, mc.renderViewEntity, mgx, mgy, mgz, 0, 0, 0);
+            mts.getAxisTranslationGizmo()
+                .updateHover(mx3d, my3d, mc.renderViewEntity, mgx, mgy, mgz, 0, 0, 0);
         }
     }
 }

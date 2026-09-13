@@ -9,6 +9,7 @@ import java.io.File;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
@@ -27,6 +28,9 @@ import github.thehighcruw.dimensium.editor.tool.Tool;
 import github.thehighcruw.dimensium.editor.tool.ToolRegistry;
 import github.thehighcruw.dimensium.editor.tool.ToolRenderer;
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapePlacementState;
+import github.thehighcruw.dimensium.editor.tool.gizmo.WithAxisTranslationGizmo;
+import github.thehighcruw.dimensium.editor.tool.gizmo.WithPlaneTranslationGizmo;
+import github.thehighcruw.dimensium.editor.tool.gizmo.WithRotationGizmo;
 import github.thehighcruw.dimensium.editor.tool.manipulating.move.MoveToolState;
 import github.thehighcruw.dimensium.editor.tool.selecting.box.BoxSelectToolState;
 import github.thehighcruw.dimensium.editor.tool.state.ClipboardPlacementState;
@@ -64,7 +68,7 @@ import github.thehighcruw.dimensium.editor.window.viewport.ViewportRegistry;
 import github.thehighcruw.dimensium.editor.window.viewport.ViewportState;
 import github.thehighcruw.dimensium.editor.window.viewport.world.PlaneTranslationGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.RotationGizmo;
-import github.thehighcruw.dimensium.editor.window.viewport.world.ScaleGizmo;
+import github.thehighcruw.dimensium.editor.window.viewport.world.ScalingGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.TranslationGizmo;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.tool.BuilderTool;
@@ -114,11 +118,9 @@ public class OverlayRenderer {
      */
     @SubscribeEvent
     public void onHotbarPre(RenderGameOverlayEvent.Pre event) {
-        if (event.type != RenderGameOverlayEvent.ElementType.HOTBAR) return;
-        if (DimensiumEditorMode.INSTANCE.isActive()) return;
-        if (!DimensiumEditorMode.INSTANCE.isBuilderToolsActive()) return;
+        if (areBuilderToolsInactive(event)) return;
+
         Minecraft mc = Minecraft.getMinecraft();
-        if (mc.thePlayer == null || isNotCreative()) return;
         savedCurrentItem = mc.thePlayer.inventory.currentItem;
         mc.thePlayer.inventory.currentItem = -100;
     }
@@ -126,12 +128,19 @@ public class OverlayRenderer {
     /** After the vanilla hotbar renders: restore currentItem. */
     @SubscribeEvent
     public void onHotbarPost(RenderGameOverlayEvent.Post event) {
-        if (event.type != RenderGameOverlayEvent.ElementType.HOTBAR) return;
-        if (DimensiumEditorMode.INSTANCE.isActive()) return;
-        if (!DimensiumEditorMode.INSTANCE.isBuilderToolsActive()) return;
+        if (areBuilderToolsInactive(event)) return;
+
         Minecraft mc = Minecraft.getMinecraft();
-        if (mc.thePlayer == null || isNotCreative()) return;
         mc.thePlayer.inventory.currentItem = savedCurrentItem;
+    }
+
+    private boolean areBuilderToolsInactive(RenderGameOverlayEvent event) {
+        if (event.type != RenderGameOverlayEvent.ElementType.HOTBAR) return true;
+        if (DimensiumEditorMode.INSTANCE.isActive()) return true;
+        if (!DimensiumEditorMode.INSTANCE.isBuilderToolsActive()) return true;
+
+        Minecraft mc = Minecraft.getMinecraft();
+        return mc.thePlayer == null || isNotCreative();
     }
 
     @SubscribeEvent
@@ -158,83 +167,27 @@ public class OverlayRenderer {
             int my = (int) fs.cursorY;
 
             ShapePlacementState ps = ShapePlacementState.INSTANCE;
-            if (ps.active && !ps.gizmo.isDragging()
-                && !ps.rotGizmo.isDragging()
-                && !ps.scaleGizmo.isDragging()
-                && !ps.planeGizmo.isDragging()
-                && !ps.viewPlaneGizmo.isDragging()
-                && mc.renderViewEntity != null) {
-                net.minecraft.entity.EntityLivingBase eye = mc.renderViewEntity;
+            if (ps.active && !ps.isAnyGizmoDragging() && mc.renderViewEntity != null) {
                 double cx = ps.centerX(), cy = ps.centerY(), cz = ps.centerZ();
-                ps.viewPlaneGizmo.updateHover(mx, my, eye, cx, cy, cz);
-                if (!ps.viewPlaneGizmo.hovered) {
-                    ps.gizmo.updateHover(mx, my, eye, cx, cy, cz, ps.rotX, ps.rotY, ps.rotZ);
-                    if (ps.gizmo.hoveredAxis == TranslationGizmo.Axis.NONE) {
-                        ps.scaleGizmo.updateHover(mx, my, eye, cx, cy, cz, ps.rotX, ps.rotY, ps.rotZ);
-                        if (ps.scaleGizmo.hoveredAxis == ScaleGizmo.Axis.NONE) {
-                            ps.rotGizmo.updateHover(mx, my, eye, cx, cy, cz, ps.rotX, ps.rotY, ps.rotZ);
-                            if (ps.rotGizmo.hoveredAxis == RotationGizmo.Axis.NONE) {
-                                ps.planeGizmo.updateHover(mx, my, eye, cx, cy, cz, ps.rotX, ps.rotY, ps.rotZ);
-                            } else {
-                                ps.planeGizmo.hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
-                            }
-                        } else {
-                            ps.rotGizmo.hoveredAxis = RotationGizmo.Axis.NONE;
-                            ps.planeGizmo.hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
-                        }
-                    } else {
-                        ps.scaleGizmo.hoveredAxis = ScaleGizmo.Axis.NONE;
-                        ps.rotGizmo.hoveredAxis = RotationGizmo.Axis.NONE;
-                        ps.planeGizmo.hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
-                    }
-                } else {
-                    ps.gizmo.hoveredAxis = TranslationGizmo.Axis.NONE;
-                    ps.scaleGizmo.hoveredAxis = ScaleGizmo.Axis.NONE;
-                    ps.rotGizmo.hoveredAxis = RotationGizmo.Axis.NONE;
-                    ps.planeGizmo.hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
-                }
+                updateShapeGizmoHover(ps, mx, my, mc.renderViewEntity, cx, cy, cz);
             }
 
             ClipboardPlacementState cps = ClipboardPlacementState.INSTANCE;
-            if (cps.active && !cps.gizmo.isDragging()
-                && !cps.planeGizmo.isDragging()
-                && !cps.rotGizmo.isDragging()
-                && mc.renderViewEntity != null) {
-                net.minecraft.entity.EntityLivingBase cEye = mc.renderViewEntity;
+            if (cps.active && !cps.isAnyGizmoDragging() && mc.renderViewEntity != null) {
+                EntityLivingBase cEye = mc.renderViewEntity;
                 double ccx = cps.centerX(), ccy = cps.centerY(), ccz = cps.centerZ();
-                cps.gizmo.updateHover(mx, my, cEye, ccx, ccy, ccz, 0, 0, 0);
-                if (cps.gizmo.hoveredAxis == TranslationGizmo.Axis.NONE) {
-                    cps.planeGizmo.updateHover(mx, my, cEye, ccx, ccy, ccz, cps.rotX, cps.rotY, cps.rotZ);
-                    if (cps.planeGizmo.hoveredPlane == PlaneTranslationGizmo.Plane.NONE) {
-                        cps.rotGizmo.updateHover(mx, my, cEye, ccx, ccy, ccz, cps.rotX, cps.rotY, cps.rotZ);
-                    } else {
-                        cps.rotGizmo.hoveredAxis = RotationGizmo.Axis.NONE;
-                    }
-                } else {
-                    cps.planeGizmo.hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
-                    cps.rotGizmo.hoveredAxis = RotationGizmo.Axis.NONE;
-                }
+                cps.getAxisTranslationGizmo()
+                    .updateHover(mx, my, cEye, ccx, ccy, ccz, 0, 0, 0);
+                handleGizmoHover(cps, mx, my, cEye, ccx, ccy, ccz, cps.rotX, cps.rotY, cps.rotZ);
             }
 
             MoveToolState ms = MoveToolState.INSTANCE;
-            if (ms.active && !ms.gizmo.isDragging()
-                && !ms.planeGizmo.isDragging()
-                && !ms.rotGizmo.isDragging()
-                && mc.renderViewEntity != null) {
-                net.minecraft.entity.EntityLivingBase eye = mc.renderViewEntity;
+            if (ms.active && !ms.isAnyGizmoDragging() && mc.renderViewEntity != null) {
+                EntityLivingBase eye = mc.renderViewEntity;
                 double gx = ms.gizmoX(), gy = ms.gizmoY(), gz = ms.gizmoZ();
-                ms.gizmo.updateHover(mx, my, eye, gx, gy, gz, ms.rotX, ms.rotY, ms.rotZ);
-                if (ms.gizmo.hoveredAxis == TranslationGizmo.Axis.NONE) {
-                    ms.planeGizmo.updateHover(mx, my, eye, gx, gy, gz, ms.rotX, ms.rotY, ms.rotZ);
-                    if (ms.planeGizmo.hoveredPlane == PlaneTranslationGizmo.Plane.NONE) {
-                        ms.rotGizmo.updateHover(mx, my, eye, gx, gy, gz, ms.rotX, ms.rotY, ms.rotZ);
-                    } else {
-                        ms.rotGizmo.hoveredAxis = RotationGizmo.Axis.NONE;
-                    }
-                } else {
-                    ms.planeGizmo.hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
-                    ms.rotGizmo.hoveredAxis = RotationGizmo.Axis.NONE;
-                }
+                ms.getAxisTranslationGizmo()
+                    .updateHover(mx, my, eye, gx, gy, gz, ms.rotX, ms.rotY, ms.rotZ);
+                handleGizmoHover(ms, mx, my, eye, gx, gy, gz, ms.rotX, ms.rotY, ms.rotZ);
             }
 
             // ── Box-select commit on tool change ─────────────────────────────
@@ -302,6 +255,59 @@ public class OverlayRenderer {
         // 10th slot is hidden while the editor overlay is active (viewport owns the screen).
         if (!DimensiumEditorMode.INSTANCE.isActive()) renderTenthSlot(mc, sw, sh);
 
+    }
+
+    private static void updateShapeGizmoHover(ShapePlacementState ps, int mx, int my, EntityLivingBase eye, double cx,
+        double cy, double cz) {
+        ps.viewPlaneGizmo.updateHover(mx, my, eye, cx, cy, cz);
+        if (ps.viewPlaneGizmo.hovered) {
+            ps.getAxisTranslationGizmo().hoveredAxis = TranslationGizmo.Axis.NONE;
+            ps.getScalingGizmo().hoveredAxis = ScalingGizmo.Axis.NONE;
+            ps.getRotationGizmo().hoveredAxis = RotationGizmo.Axis.NONE;
+            ps.getPlaneTranslationGizmo().hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
+            return;
+        }
+        ps.getAxisTranslationGizmo()
+            .updateHover(mx, my, eye, cx, cy, cz, ps.rotX, ps.rotY, ps.rotZ);
+        if (ps.getAxisTranslationGizmo().hoveredAxis != TranslationGizmo.Axis.NONE) {
+            ps.getScalingGizmo().hoveredAxis = ScalingGizmo.Axis.NONE;
+            ps.getRotationGizmo().hoveredAxis = RotationGizmo.Axis.NONE;
+            ps.getPlaneTranslationGizmo().hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
+            return;
+        }
+        ps.getScalingGizmo()
+            .updateHover(mx, my, eye, cx, cy, cz, ps.rotX, ps.rotY, ps.rotZ);
+        if (ps.getScalingGizmo().hoveredAxis != ScalingGizmo.Axis.NONE) {
+            ps.getRotationGizmo().hoveredAxis = RotationGizmo.Axis.NONE;
+            ps.getPlaneTranslationGizmo().hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
+            return;
+        }
+        ps.getRotationGizmo()
+            .updateHover(mx, my, eye, cx, cy, cz, ps.rotX, ps.rotY, ps.rotZ);
+        if (ps.getRotationGizmo().hoveredAxis != RotationGizmo.Axis.NONE) {
+            ps.getPlaneTranslationGizmo().hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
+            return;
+        }
+        ps.getPlaneTranslationGizmo()
+            .updateHover(mx, my, eye, cx, cy, cz, ps.rotX, ps.rotY, ps.rotZ);
+    }
+
+    private static <T extends WithAxisTranslationGizmo & WithPlaneTranslationGizmo & WithRotationGizmo> void handleGizmoHover(
+        T ms, int mx, int my, EntityLivingBase eye, double gx, double gy, double gz, float rotX, float rotY,
+        float rotZ) {
+        if (ms.getAxisTranslationGizmo().hoveredAxis == TranslationGizmo.Axis.NONE) {
+            ms.getPlaneTranslationGizmo()
+                .updateHover(mx, my, eye, gx, gy, gz, rotX, rotY, rotZ);
+            if (ms.getPlaneTranslationGizmo().hoveredPlane == PlaneTranslationGizmo.Plane.NONE) {
+                ms.getRotationGizmo()
+                    .updateHover(mx, my, eye, gx, gy, gz, rotX, rotY, rotZ);
+            } else {
+                ms.getRotationGizmo().hoveredAxis = RotationGizmo.Axis.NONE;
+            }
+        } else {
+            ms.getPlaneTranslationGizmo().hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
+            ms.getRotationGizmo().hoveredAxis = RotationGizmo.Axis.NONE;
+        }
     }
 
     /**

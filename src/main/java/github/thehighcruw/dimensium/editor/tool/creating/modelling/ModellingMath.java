@@ -13,16 +13,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
 
 import github.thehighcruw.dimensium.editor.tool.creating.modelling.ModellingToolState.ModelPoint;
+import github.thehighcruw.dimensium.shared.util.BlockUtils;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 
 public class ModellingMath {
 
     public static List<int[]> computeBlocks(ModellingToolState state, ItemStack activeBlock) {
-        int[] bm = blockToIdMeta(activeBlock);
+        int[] bm = BlockUtils.blockToIdMeta(activeBlock);
         if (bm == null) return Collections.emptyList();
 
         Map<Long, int[]> out = new HashMap<>();
@@ -747,13 +747,6 @@ public class ModellingMath {
         double len = Math.sqrt(n[0] * n[0] + n[1] * n[1] + n[2] * n[2]);
         if (len < 1e-12) return 0;
         return (n[0] * (P[0] - A[0]) + n[1] * (P[1] - A[1]) + n[2] * (P[2] - A[2])) / len;
-    }
-
-    static int[] blockToIdMeta(ItemStack stack) {
-        if (stack == null) return null;
-        Block blk = Block.getBlockFromItem(stack.getItem());
-        if (blk == null || blk == net.minecraft.init.Blocks.air) return null;
-        return new int[] { Block.getIdFromBlock(blk), stack.getItemDamage() };
     }
 
     private ModellingMath() {}
