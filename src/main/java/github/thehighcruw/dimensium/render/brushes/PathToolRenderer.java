@@ -7,8 +7,6 @@ package github.thehighcruw.dimensium.render.brushes;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.MovingObjectPosition;
 
-import org.lwjgl.input.Keyboard;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.tool.state.PathToolState;
@@ -36,17 +34,8 @@ public class PathToolRenderer implements ToolRenderer {
         if (pathState.selectedIndex < 0 || pathState.points.isEmpty()) return;
         PathToolState.PathPoint selPt = pathState.selectedPoint();
         if (selPt == null) return;
-        double pgx = selPt.x + 0.5, pgy = selPt.y + 0.5, pgz = selPt.z + 0.5;
-        if (pathState.gizmo.isDragging()) {
-            double[] anchor = pathState.gizmo.updateDrag(mx3d, my3d);
-            if (anchor != null) {
-                boolean snap = Keyboard.isKeyDown(Keyboard.KEY_LSHIFT);
-                selPt.x = (int) Math.floor(snap ? Math.floor(anchor[0] + 0.5) : anchor[0]);
-                selPt.y = (int) Math.floor(snap ? Math.floor(anchor[1] + 0.5) : anchor[1]);
-                selPt.z = (int) Math.floor(snap ? Math.floor(anchor[2] + 0.5) : anchor[2]);
-                pathState.invalidatePath();
-            }
-        } else if (mc.renderViewEntity != null) {
+        if (!pathState.gizmo.isDragging() && !pathState.planeGizmo.isDragging() && mc.renderViewEntity != null) {
+            double pgx = selPt.x + 0.5, pgy = selPt.y + 0.5, pgz = selPt.z + 0.5;
             pathState.gizmo.updateHover(mx3d, my3d, sw, sh, mc.renderViewEntity, pgx, pgy, pgz, 0, 0, 0);
         }
     }

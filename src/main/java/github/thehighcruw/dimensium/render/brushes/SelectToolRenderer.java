@@ -8,8 +8,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.MovingObjectPosition;
 
-import org.lwjgl.input.Keyboard;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.render.world.SelectionRenderer;
@@ -38,60 +36,10 @@ public class SelectToolRenderer implements ToolRenderer {
         SelectionState bxSel = SelectionState.INSTANCE;
         if (!bxSel.boxConfirmed || mc.renderViewEntity == null) return;
         EntityLivingBase bxEye = mc.renderViewEntity;
-        boolean snap = Keyboard.isKeyDown(Keyboard.KEY_LSHIFT);
-        if (SelectionRenderer.boxPos1Gizmo.isDragging()) {
-            double[] anchor = SelectionRenderer.boxPos1Gizmo.updateDrag(mx3d, my3d);
-            if (anchor != null) {
-                bxSel.pendingX = (int) Math.floor(snap ? Math.floor(anchor[0] + 0.5) : anchor[0]);
-                bxSel.pendingY = (int) Math.floor(snap ? Math.floor(anchor[1] + 0.5) : anchor[1]);
-                bxSel.pendingZ = (int) Math.floor(snap ? Math.floor(anchor[2] + 0.5) : anchor[2]);
-            }
-        } else if (SelectionRenderer.boxPos2Gizmo.isDragging()) {
-            double[] anchor = SelectionRenderer.boxPos2Gizmo.updateDrag(mx3d, my3d);
-            if (anchor != null) {
-                bxSel.pendingX2 = (int) Math.floor(snap ? Math.floor(anchor[0] + 0.5) : anchor[0]);
-                bxSel.pendingY2 = (int) Math.floor(snap ? Math.floor(anchor[1] + 0.5) : anchor[1]);
-                bxSel.pendingZ2 = (int) Math.floor(snap ? Math.floor(anchor[2] + 0.5) : anchor[2]);
-            }
-        } else if (SelectionRenderer.boxCenterViewPlaneGizmo.isDragging()) {
-            double[] anchor = SelectionRenderer.boxCenterViewPlaneGizmo.updateDrag(mx3d, my3d);
-            if (anchor != null) {
-                double cx0 = (SelectionRenderer.INSTANCE.boxCenterDragP1X + SelectionRenderer.INSTANCE.boxCenterDragP2X)
-                    / 2.0 + 0.5;
-                double cy0 = (SelectionRenderer.INSTANCE.boxCenterDragP1Y + SelectionRenderer.INSTANCE.boxCenterDragP2Y)
-                    / 2.0 + 0.5;
-                double cz0 = (SelectionRenderer.INSTANCE.boxCenterDragP1Z + SelectionRenderer.INSTANCE.boxCenterDragP2Z)
-                    / 2.0 + 0.5;
-                int dx = (int) Math.floor(snap ? Math.floor(anchor[0] - cx0 + 0.5) : anchor[0] - cx0);
-                int dy = (int) Math.floor(snap ? Math.floor(anchor[1] - cy0 + 0.5) : anchor[1] - cy0);
-                int dz = (int) Math.floor(snap ? Math.floor(anchor[2] - cz0 + 0.5) : anchor[2] - cz0);
-                bxSel.pendingX = SelectionRenderer.INSTANCE.boxCenterDragP1X + dx;
-                bxSel.pendingY = SelectionRenderer.INSTANCE.boxCenterDragP1Y + dy;
-                bxSel.pendingZ = SelectionRenderer.INSTANCE.boxCenterDragP1Z + dz;
-                bxSel.pendingX2 = SelectionRenderer.INSTANCE.boxCenterDragP2X + dx;
-                bxSel.pendingY2 = SelectionRenderer.INSTANCE.boxCenterDragP2Y + dy;
-                bxSel.pendingZ2 = SelectionRenderer.INSTANCE.boxCenterDragP2Z + dz;
-            }
-        } else if (SelectionRenderer.boxCenterGizmo.isDragging()) {
-            double[] anchor = SelectionRenderer.boxCenterGizmo.updateDrag(mx3d, my3d);
-            if (anchor != null) {
-                double cx0 = (SelectionRenderer.INSTANCE.boxCenterDragP1X + SelectionRenderer.INSTANCE.boxCenterDragP2X)
-                    / 2.0 + 0.5;
-                double cy0 = (SelectionRenderer.INSTANCE.boxCenterDragP1Y + SelectionRenderer.INSTANCE.boxCenterDragP2Y)
-                    / 2.0 + 0.5;
-                double cz0 = (SelectionRenderer.INSTANCE.boxCenterDragP1Z + SelectionRenderer.INSTANCE.boxCenterDragP2Z)
-                    / 2.0 + 0.5;
-                int dx = (int) Math.floor(snap ? Math.floor(anchor[0] - cx0 + 0.5) : anchor[0] - cx0);
-                int dy = (int) Math.floor(snap ? Math.floor(anchor[1] - cy0 + 0.5) : anchor[1] - cy0);
-                int dz = (int) Math.floor(snap ? Math.floor(anchor[2] - cz0 + 0.5) : anchor[2] - cz0);
-                bxSel.pendingX = SelectionRenderer.INSTANCE.boxCenterDragP1X + dx;
-                bxSel.pendingY = SelectionRenderer.INSTANCE.boxCenterDragP1Y + dy;
-                bxSel.pendingZ = SelectionRenderer.INSTANCE.boxCenterDragP1Z + dz;
-                bxSel.pendingX2 = SelectionRenderer.INSTANCE.boxCenterDragP2X + dx;
-                bxSel.pendingY2 = SelectionRenderer.INSTANCE.boxCenterDragP2Y + dy;
-                bxSel.pendingZ2 = SelectionRenderer.INSTANCE.boxCenterDragP2Z + dz;
-            }
-        } else {
+        boolean anyDragging = SelectionRenderer.boxPos1Gizmo.isDragging() || SelectionRenderer.boxPos2Gizmo.isDragging()
+            || SelectionRenderer.boxCenterViewPlaneGizmo.isDragging()
+            || SelectionRenderer.boxCenterGizmo.isDragging();
+        if (!anyDragging) {
             SelectionRenderer.boxPos1Gizmo.updateHover(
                 mx,
                 my,

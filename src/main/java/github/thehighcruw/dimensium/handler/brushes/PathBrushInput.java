@@ -87,4 +87,28 @@ public class PathBrushInput implements BrushInput {
 
         return false;
     }
+
+    @Override
+    public void onGizmoDrag(int mx, int my, boolean snap, Minecraft mc) {
+        PathToolState pts = PathToolState.INSTANCE;
+        PathToolState.PathPoint selPt = pts.selectedPoint();
+        if (selPt == null) return;
+        if (pts.gizmo.isDragging()) {
+            double[] anchor = pts.gizmo.updateDrag(mx, my);
+            if (anchor != null) {
+                selPt.x = (int) Math.floor(snap ? Math.floor(anchor[0] + 0.5) : anchor[0]);
+                selPt.y = (int) Math.floor(snap ? Math.floor(anchor[1] + 0.5) : anchor[1]);
+                selPt.z = (int) Math.floor(snap ? Math.floor(anchor[2] + 0.5) : anchor[2]);
+                pts.invalidatePath();
+            }
+        } else if (pts.planeGizmo.isDragging()) {
+            double[] anchor = pts.planeGizmo.updateDrag(mx, my);
+            if (anchor != null) {
+                selPt.x = (int) Math.floor(snap ? Math.floor(anchor[0] + 0.5) : anchor[0]);
+                selPt.y = (int) Math.floor(snap ? Math.floor(anchor[1] + 0.5) : anchor[1]);
+                selPt.z = (int) Math.floor(snap ? Math.floor(anchor[2] + 0.5) : anchor[2]);
+                pts.invalidatePath();
+            }
+        }
+    }
 }

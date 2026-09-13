@@ -59,13 +59,11 @@ import github.thehighcruw.dimensium.tool.BuilderToolState.Phase;
 import github.thehighcruw.dimensium.tool.DimensiumMode;
 import github.thehighcruw.dimensium.tool.Tool;
 import github.thehighcruw.dimensium.tool.ToolRegistry;
-import github.thehighcruw.dimensium.tool.math.ShapeMath;
 import github.thehighcruw.dimensium.tool.state.ClipboardPlacementState;
 import github.thehighcruw.dimensium.tool.state.MoveToolState;
 import github.thehighcruw.dimensium.tool.state.SelectToolState;
 import github.thehighcruw.dimensium.tool.state.SelectionState;
 import github.thehighcruw.dimensium.tool.state.ShapePlacementState;
-import github.thehighcruw.dimensium.tool.state.ShapeToolState;
 import imgui.ImGui;
 import imgui.flag.ImGuiDockNodeFlags;
 import imgui.flag.ImGuiStyleVar;
@@ -156,236 +154,82 @@ public class OverlayRenderer {
             toolPanel.updateMouse(mx, my);
 
             ShapePlacementState ps = ShapePlacementState.INSTANCE;
-            if (ps.active) {
+            if (ps.active && !ps.gizmo.isDragging()
+                && !ps.rotGizmo.isDragging()
+                && !ps.scaleGizmo.isDragging()
+                && !ps.planeGizmo.isDragging()
+                && !ps.viewPlaneGizmo.isDragging()
+                && mc.renderViewEntity != null) {
+                net.minecraft.entity.EntityLivingBase eye = mc.renderViewEntity;
                 double cx = ps.centerX(), cy = ps.centerY(), cz = ps.centerZ();
-                if (ps.gizmo.isDragging()) {
-                    double[] anchor = ps.gizmo.updateDrag(mx, my);
-                    if (anchor != null) {
-                        boolean snap = org.lwjgl.input.Keyboard.isKeyDown(org.lwjgl.input.Keyboard.KEY_LSHIFT);
-                        ps.anchorFX = snap ? (float) Math.floor(anchor[0] + 0.5) : (float) anchor[0];
-                        ps.anchorFY = snap ? (float) Math.floor(anchor[1] + 0.5) : (float) anchor[1];
-                        ps.anchorFZ = snap ? (float) Math.floor(anchor[2] + 0.5) : (float) anchor[2];
-                        ps.anchorX = (int) Math.floor(ps.anchorFX);
-                        ps.anchorY = (int) Math.floor(ps.anchorFY);
-                        ps.anchorZ = (int) Math.floor(ps.anchorFZ);
-                    }
-                } else if (ps.rotGizmo.isDragging()) {
-                    float delta = ps.rotGizmo.updateDrag(mx, my);
-                    RotationGizmo.Axis axis = ps.rotGizmo.getDragAxis();
-                    float[] Rbase = ShapeMath.buildRotationMatrix(ps.rotDragBaseX, ps.rotDragBaseY, ps.rotDragBaseZ);
-                    float[] dR = axis == RotationGizmo.Axis.X ? ShapeMath.buildRotationMatrix(delta, 0, 0)
-                        : axis == RotationGizmo.Axis.Y ? ShapeMath.buildRotationMatrix(0, delta, 0)
-                            : ShapeMath.buildRotationMatrix(0, 0, delta);
-                    float[] Rnew = ShapeMath.multiplyRotationMatrices(Rbase, dR);
-                    float[] angles = ShapeMath.decomposeRotationMatrix(Rnew);
-                    if (Math.abs(angles[0] - ps.rotX) >= 0.5f || Math.abs(angles[1] - ps.rotY) >= 0.5f
-                        || Math.abs(angles[2] - ps.rotZ) >= 0.5f) {
-                        ps.rotX = angles[0];
-                        ps.rotY = angles[1];
-                        ps.rotZ = angles[2];
-                        ps.invalidateGhost();
-                    }
-                } else if (ps.scaleGizmo.isDragging()) {
-                    float[] result = ps.scaleGizmo.updateDrag(mx, my);
-                    if (result != null) {
-                        ScaleGizmo.Axis axis = ps.scaleGizmo.getDragAxis();
-                        if (axis == ScaleGizmo.Axis.X) ps.scaleX = result[0];
-                        else if (axis == ScaleGizmo.Axis.Y) ps.scaleY = result[0];
-                        else ps.scaleZ = result[0];
-                        // Bake scale into ShapeToolState each frame; keep ps.scale* at 1 so rebuildIfNeeded
-                        // sees shapeWidth * 1.0 — preventing ghost from scaling at scaleX² speed.
-                        ShapeToolState sts = ShapeToolState.INSTANCE;
-                        if (axis == ScaleGizmo.Axis.X) {
-                            sts.shapeWidth = Math.max(1, Math.round(ps.scaleDragBaseW * ps.scaleX));
-                            ps.scaleX = 1f;
-                        } else if (axis == ScaleGizmo.Axis.Y) {
-                            sts.shapeHeight = Math.max(1, Math.round(ps.scaleDragBaseH * ps.scaleY));
-                            ps.scaleY = 1f;
-                        } else {
-                            sts.shapeDepth = Math.max(1, Math.round(ps.scaleDragBaseD * ps.scaleZ));
-                            ps.scaleZ = 1f;
-                        }
-                        ps.invalidateGhost();
-                    }
-                } else if (ps.planeGizmo.isDragging()) {
-                    double[] anchor = ps.planeGizmo.updateDrag(mx, my);
-                    if (anchor != null) {
-                        boolean snap = org.lwjgl.input.Keyboard.isKeyDown(org.lwjgl.input.Keyboard.KEY_LSHIFT);
-                        ps.anchorFX = snap ? (float) Math.floor(anchor[0] + 0.5) : (float) anchor[0];
-                        ps.anchorFY = snap ? (float) Math.floor(anchor[1] + 0.5) : (float) anchor[1];
-                        ps.anchorFZ = snap ? (float) Math.floor(anchor[2] + 0.5) : (float) anchor[2];
-                        ps.anchorX = (int) Math.floor(ps.anchorFX);
-                        ps.anchorY = (int) Math.floor(ps.anchorFY);
-                        ps.anchorZ = (int) Math.floor(ps.anchorFZ);
-                    }
-                } else if (ps.viewPlaneGizmo.isDragging()) {
-                    double[] anchor = ps.viewPlaneGizmo.updateDrag(mx, my);
-                    if (anchor != null) {
-                        boolean snap = org.lwjgl.input.Keyboard.isKeyDown(org.lwjgl.input.Keyboard.KEY_LSHIFT);
-                        ps.anchorFX = snap ? (float) Math.floor(anchor[0] + 0.5) : (float) anchor[0];
-                        ps.anchorFY = snap ? (float) Math.floor(anchor[1] + 0.5) : (float) anchor[1];
-                        ps.anchorFZ = snap ? (float) Math.floor(anchor[2] + 0.5) : (float) anchor[2];
-                        ps.anchorX = (int) Math.floor(ps.anchorFX);
-                        ps.anchorY = (int) Math.floor(ps.anchorFY);
-                        ps.anchorZ = (int) Math.floor(ps.anchorFZ);
-                    }
-                } else if (mc.renderViewEntity != null) {
-                    net.minecraft.entity.EntityLivingBase eye = mc.renderViewEntity;
-                    ps.viewPlaneGizmo.updateHover(mx, my, sw, sh, eye, cx, cy, cz, ps.rotX, ps.rotY, ps.rotZ);
-                    if (!ps.viewPlaneGizmo.hovered) {
-                        ps.gizmo.updateHover(mx, my, sw, sh, eye, cx, cy, cz, ps.rotX, ps.rotY, ps.rotZ);
-                        if (ps.gizmo.hoveredAxis == TranslationGizmo.Axis.NONE) {
-                            ps.scaleGizmo.updateHover(mx, my, sw, sh, eye, cx, cy, cz, ps.rotX, ps.rotY, ps.rotZ);
-                            if (ps.scaleGizmo.hoveredAxis == ScaleGizmo.Axis.NONE) {
-                                ps.rotGizmo.updateHover(mx, my, sw, sh, eye, cx, cy, cz, ps.rotX, ps.rotY, ps.rotZ);
-                                if (ps.rotGizmo.hoveredAxis == RotationGizmo.Axis.NONE) {
-                                    ps.planeGizmo
-                                        .updateHover(mx, my, sw, sh, eye, cx, cy, cz, ps.rotX, ps.rotY, ps.rotZ);
-                                } else {
-                                    ps.planeGizmo.hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
-                                }
+                ps.viewPlaneGizmo.updateHover(mx, my, sw, sh, eye, cx, cy, cz, ps.rotX, ps.rotY, ps.rotZ);
+                if (!ps.viewPlaneGizmo.hovered) {
+                    ps.gizmo.updateHover(mx, my, sw, sh, eye, cx, cy, cz, ps.rotX, ps.rotY, ps.rotZ);
+                    if (ps.gizmo.hoveredAxis == TranslationGizmo.Axis.NONE) {
+                        ps.scaleGizmo.updateHover(mx, my, sw, sh, eye, cx, cy, cz, ps.rotX, ps.rotY, ps.rotZ);
+                        if (ps.scaleGizmo.hoveredAxis == ScaleGizmo.Axis.NONE) {
+                            ps.rotGizmo.updateHover(mx, my, sw, sh, eye, cx, cy, cz, ps.rotX, ps.rotY, ps.rotZ);
+                            if (ps.rotGizmo.hoveredAxis == RotationGizmo.Axis.NONE) {
+                                ps.planeGizmo.updateHover(mx, my, sw, sh, eye, cx, cy, cz, ps.rotX, ps.rotY, ps.rotZ);
                             } else {
-                                ps.rotGizmo.hoveredAxis = RotationGizmo.Axis.NONE;
                                 ps.planeGizmo.hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
                             }
                         } else {
-                            ps.scaleGizmo.hoveredAxis = ScaleGizmo.Axis.NONE;
                             ps.rotGizmo.hoveredAxis = RotationGizmo.Axis.NONE;
                             ps.planeGizmo.hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
                         }
                     } else {
-                        ps.gizmo.hoveredAxis = TranslationGizmo.Axis.NONE;
                         ps.scaleGizmo.hoveredAxis = ScaleGizmo.Axis.NONE;
                         ps.rotGizmo.hoveredAxis = RotationGizmo.Axis.NONE;
                         ps.planeGizmo.hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
                     }
+                } else {
+                    ps.gizmo.hoveredAxis = TranslationGizmo.Axis.NONE;
+                    ps.scaleGizmo.hoveredAxis = ScaleGizmo.Axis.NONE;
+                    ps.rotGizmo.hoveredAxis = RotationGizmo.Axis.NONE;
+                    ps.planeGizmo.hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
                 }
             }
 
             ClipboardPlacementState cps = ClipboardPlacementState.INSTANCE;
-            if (cps.active) {
+            if (cps.active && !cps.gizmo.isDragging()
+                && !cps.planeGizmo.isDragging()
+                && !cps.rotGizmo.isDragging()
+                && mc.renderViewEntity != null) {
+                net.minecraft.entity.EntityLivingBase cEye = mc.renderViewEntity;
                 double ccx = cps.centerX(), ccy = cps.centerY(), ccz = cps.centerZ();
-                if (cps.gizmo.isDragging()) {
-                    double[] anchor = cps.gizmo.updateDrag(mx, my);
-                    if (anchor != null) {
-                        boolean snap = org.lwjgl.input.Keyboard.isKeyDown(org.lwjgl.input.Keyboard.KEY_LSHIFT);
-                        cps.anchorFX = snap ? (float) Math.floor(anchor[0] + 0.5) : (float) anchor[0];
-                        cps.anchorFY = snap ? (float) Math.floor(anchor[1] + 0.5) : (float) anchor[1];
-                        cps.anchorFZ = snap ? (float) Math.floor(anchor[2] + 0.5) : (float) anchor[2];
-                        int newAX = (int) Math.floor(cps.anchorFX);
-                        int newAY = (int) Math.floor(cps.anchorFY);
-                        int newAZ = (int) Math.floor(cps.anchorFZ);
-                        if (newAX != cps.anchorX || newAY != cps.anchorY || newAZ != cps.anchorZ) {
-                            cps.anchorX = newAX;
-                            cps.anchorY = newAY;
-                            cps.anchorZ = newAZ;
-                            cps.rebuildPreview();
-                        }
-                    }
-                } else if (cps.planeGizmo.isDragging()) {
-                    double[] anchor = cps.planeGizmo.updateDrag(mx, my);
-                    if (anchor != null) {
-                        boolean snap = org.lwjgl.input.Keyboard.isKeyDown(org.lwjgl.input.Keyboard.KEY_LSHIFT);
-                        cps.anchorFX = snap ? (float) Math.floor(anchor[0] + 0.5) : (float) anchor[0];
-                        cps.anchorFY = snap ? (float) Math.floor(anchor[1] + 0.5) : (float) anchor[1];
-                        cps.anchorFZ = snap ? (float) Math.floor(anchor[2] + 0.5) : (float) anchor[2];
-                        int newAX = (int) Math.floor(cps.anchorFX);
-                        int newAY = (int) Math.floor(cps.anchorFY);
-                        int newAZ = (int) Math.floor(cps.anchorFZ);
-                        if (newAX != cps.anchorX || newAY != cps.anchorY || newAZ != cps.anchorZ) {
-                            cps.anchorX = newAX;
-                            cps.anchorY = newAY;
-                            cps.anchorZ = newAZ;
-                            cps.rebuildPreview();
-                        }
-                    }
-                } else if (cps.rotGizmo.isDragging()) {
-                    float delta = cps.rotGizmo.updateDrag(mx, my);
-                    RotationGizmo.Axis axis = cps.rotGizmo.getDragAxis();
-                    float[] Rbase = ShapeMath.buildRotationMatrix(cps.rotDragBaseX, cps.rotDragBaseY, cps.rotDragBaseZ);
-                    float[] dR = axis == RotationGizmo.Axis.X ? ShapeMath.buildRotationMatrix(delta, 0, 0)
-                        : axis == RotationGizmo.Axis.Y ? ShapeMath.buildRotationMatrix(0, delta, 0)
-                            : ShapeMath.buildRotationMatrix(0, 0, delta);
-                    float[] Rnew = ShapeMath.multiplyRotationMatrices(Rbase, dR);
-                    float[] angles = ShapeMath.decomposeRotationMatrix(Rnew);
-                    cps.rotX = angles[0];
-                    cps.rotY = angles[1];
-                    cps.rotZ = angles[2];
-                    cps.rebuildPreview();
-                } else if (mc.renderViewEntity != null) {
-                    net.minecraft.entity.EntityLivingBase cEye = mc.renderViewEntity;
-                    cps.gizmo.updateHover(mx, my, sw, sh, cEye, ccx, ccy, ccz, 0, 0, 0);
-                    if (cps.gizmo.hoveredAxis == TranslationGizmo.Axis.NONE) {
-                        cps.planeGizmo.updateHover(mx, my, sw, sh, cEye, ccx, ccy, ccz, cps.rotX, cps.rotY, cps.rotZ);
-                        if (cps.planeGizmo.hoveredPlane == PlaneTranslationGizmo.Plane.NONE) {
-                            cps.rotGizmo.updateHover(mx, my, sw, sh, cEye, ccx, ccy, ccz, cps.rotX, cps.rotY, cps.rotZ);
-                        } else {
-                            cps.rotGizmo.hoveredAxis = RotationGizmo.Axis.NONE;
-                        }
+                cps.gizmo.updateHover(mx, my, sw, sh, cEye, ccx, ccy, ccz, 0, 0, 0);
+                if (cps.gizmo.hoveredAxis == TranslationGizmo.Axis.NONE) {
+                    cps.planeGizmo.updateHover(mx, my, sw, sh, cEye, ccx, ccy, ccz, cps.rotX, cps.rotY, cps.rotZ);
+                    if (cps.planeGizmo.hoveredPlane == PlaneTranslationGizmo.Plane.NONE) {
+                        cps.rotGizmo.updateHover(mx, my, sw, sh, cEye, ccx, ccy, ccz, cps.rotX, cps.rotY, cps.rotZ);
                     } else {
-                        cps.planeGizmo.hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
                         cps.rotGizmo.hoveredAxis = RotationGizmo.Axis.NONE;
                     }
+                } else {
+                    cps.planeGizmo.hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
+                    cps.rotGizmo.hoveredAxis = RotationGizmo.Axis.NONE;
                 }
             }
 
             MoveToolState ms = MoveToolState.INSTANCE;
-            if (ms.active) {
+            if (ms.active && !ms.gizmo.isDragging()
+                && !ms.planeGizmo.isDragging()
+                && !ms.rotGizmo.isDragging()
+                && mc.renderViewEntity != null) {
+                net.minecraft.entity.EntityLivingBase eye = mc.renderViewEntity;
                 double gx = ms.gizmoX(), gy = ms.gizmoY(), gz = ms.gizmoZ();
-                if (ms.gizmo.isDragging()) {
-                    double[] anchor = ms.gizmo.updateDrag(mx, my);
-                    if (anchor != null) {
-                        boolean snap = org.lwjgl.input.Keyboard.isKeyDown(org.lwjgl.input.Keyboard.KEY_LSHIFT);
-                        float nx = snap ? (float) Math.floor(anchor[0] + 0.5) : (float) anchor[0];
-                        float ny = snap ? (float) Math.floor(anchor[1] + 0.5) : (float) anchor[1];
-                        float nz = snap ? (float) Math.floor(anchor[2] + 0.5) : (float) anchor[2];
-                        ms.deltaFX = nx - ms.cmX;
-                        ms.deltaFY = ny - ms.cmY;
-                        ms.deltaFZ = nz - ms.cmZ;
-                        ms.invalidateGhost();
-                    }
-                } else if (ms.planeGizmo.isDragging()) {
-                    double[] anchor = ms.planeGizmo.updateDrag(mx, my);
-                    if (anchor != null) {
-                        boolean snap = org.lwjgl.input.Keyboard.isKeyDown(org.lwjgl.input.Keyboard.KEY_LSHIFT);
-                        float nx = snap ? (float) Math.floor(anchor[0] + 0.5) : (float) anchor[0];
-                        float ny = snap ? (float) Math.floor(anchor[1] + 0.5) : (float) anchor[1];
-                        float nz = snap ? (float) Math.floor(anchor[2] + 0.5) : (float) anchor[2];
-                        ms.deltaFX = nx - ms.cmX;
-                        ms.deltaFY = ny - ms.cmY;
-                        ms.deltaFZ = nz - ms.cmZ;
-                        ms.invalidateGhost();
-                    }
-                } else if (ms.rotGizmo.isDragging()) {
-                    float delta = ms.rotGizmo.updateDrag(mx, my);
-                    RotationGizmo.Axis axis = ms.rotGizmo.getDragAxis();
-                    float[] Rbase = ShapeMath.buildRotationMatrix(ms.rotDragBaseX, ms.rotDragBaseY, ms.rotDragBaseZ);
-                    float[] dR = axis == RotationGizmo.Axis.X ? ShapeMath.buildRotationMatrix(delta, 0, 0)
-                        : axis == RotationGizmo.Axis.Y ? ShapeMath.buildRotationMatrix(0, delta, 0)
-                            : ShapeMath.buildRotationMatrix(0, 0, delta);
-                    float[] Rnew = ShapeMath.multiplyRotationMatrices(Rbase, dR);
-                    float[] angles = ShapeMath.decomposeRotationMatrix(Rnew);
-                    if (Math.abs(angles[0] - ms.rotX) >= 0.5f || Math.abs(angles[1] - ms.rotY) >= 0.5f
-                        || Math.abs(angles[2] - ms.rotZ) >= 0.5f) {
-                        ms.rotX = angles[0];
-                        ms.rotY = angles[1];
-                        ms.rotZ = angles[2];
-                        ms.invalidateGhost();
-                    }
-                } else if (mc.renderViewEntity != null) {
-                    net.minecraft.entity.EntityLivingBase eye = mc.renderViewEntity;
-                    ms.gizmo.updateHover(mx, my, sw, sh, eye, gx, gy, gz, ms.rotX, ms.rotY, ms.rotZ);
-                    if (ms.gizmo.hoveredAxis == TranslationGizmo.Axis.NONE) {
-                        ms.planeGizmo.updateHover(mx, my, sw, sh, eye, gx, gy, gz, ms.rotX, ms.rotY, ms.rotZ);
-                        if (ms.planeGizmo.hoveredPlane == PlaneTranslationGizmo.Plane.NONE) {
-                            ms.rotGizmo.updateHover(mx, my, sw, sh, eye, gx, gy, gz, ms.rotX, ms.rotY, ms.rotZ);
-                        } else {
-                            ms.rotGizmo.hoveredAxis = RotationGizmo.Axis.NONE;
-                        }
+                ms.gizmo.updateHover(mx, my, sw, sh, eye, gx, gy, gz, ms.rotX, ms.rotY, ms.rotZ);
+                if (ms.gizmo.hoveredAxis == TranslationGizmo.Axis.NONE) {
+                    ms.planeGizmo.updateHover(mx, my, sw, sh, eye, gx, gy, gz, ms.rotX, ms.rotY, ms.rotZ);
+                    if (ms.planeGizmo.hoveredPlane == PlaneTranslationGizmo.Plane.NONE) {
+                        ms.rotGizmo.updateHover(mx, my, sw, sh, eye, gx, gy, gz, ms.rotX, ms.rotY, ms.rotZ);
                     } else {
-                        ms.planeGizmo.hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
                         ms.rotGizmo.hoveredAxis = RotationGizmo.Axis.NONE;
                     }
+                } else {
+                    ms.planeGizmo.hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
+                    ms.rotGizmo.hoveredAxis = RotationGizmo.Axis.NONE;
                 }
             }
 

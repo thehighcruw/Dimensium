@@ -104,4 +104,28 @@ public class ModellingBrushInput implements BrushInput {
 
         return false;
     }
+
+    @Override
+    public void onGizmoDrag(int mx, int my, boolean snap, Minecraft mc) {
+        ModellingToolState mts = ModellingToolState.INSTANCE;
+        ModellingToolState.ModelPoint mSelPt = mts.selectedPointObj();
+        if (mSelPt == null) return;
+        if (mts.gizmo.isDragging()) {
+            double[] anchor = mts.gizmo.updateDrag(mx, my);
+            if (anchor != null) {
+                mSelPt.x = (int) Math.floor(snap ? Math.floor(anchor[0] + 0.5) : anchor[0]);
+                mSelPt.y = (int) Math.floor(snap ? Math.floor(anchor[1] + 0.5) : anchor[1]);
+                mSelPt.z = (int) Math.floor(snap ? Math.floor(anchor[2] + 0.5) : anchor[2]);
+                mts.invalidate();
+            }
+        } else if (mts.planeGizmo.isDragging()) {
+            double[] anchor = mts.planeGizmo.updateDrag(mx, my);
+            if (anchor != null) {
+                mSelPt.x = (int) Math.floor(snap ? Math.floor(anchor[0] + 0.5) : anchor[0]);
+                mSelPt.y = (int) Math.floor(snap ? Math.floor(anchor[1] + 0.5) : anchor[1]);
+                mSelPt.z = (int) Math.floor(snap ? Math.floor(anchor[2] + 0.5) : anchor[2]);
+                mts.invalidate();
+            }
+        }
+    }
 }

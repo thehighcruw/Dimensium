@@ -64,4 +64,10 @@ public interface BrushInput {
      * Called when RMB is released after a drag.
      */
     default void onBrushRelease(Minecraft mc) {}
+
+    /**
+     * Called each render tick to update gizmo drag state and write results to tool state.
+     * Runs before the paint loop so state is fresh for world renderers.
+     */
+    default void onGizmoDrag(int mx, int my, boolean snap, Minecraft mc) {}
 }
