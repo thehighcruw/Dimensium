@@ -218,7 +218,7 @@ public final class GuiDimensiumOverlay {
         }
     }
 
-    public static void handleRelease(int mouseX, int mouseY, int button) {
+    public static void handleRelease(int button) {
         if (button == KeyConstants.LMB) {
             ShapePlacementState ps = ShapePlacementState.INSTANCE;
             if (ps.active) {
@@ -280,10 +280,6 @@ public final class GuiDimensiumOverlay {
                 }
             }
         }
-    }
-
-    public static void handleScroll(int mouseX, int dwheel, int scaledW) {
-        // Scroll fully handled by ImGui — no custom dispatch needed.
     }
 
     public static void confirmMove() {
@@ -420,6 +416,30 @@ public final class GuiDimensiumOverlay {
             BlockSender.sendChunked(ops, I18n.format("dimensium.action.modelling"));
         }
         mts.clear();
+    }
+
+    /**
+     * Returns true if any tool gizmo is currently being dragged.
+     * Used by TickHandler to suppress LMB camera rotation when a tool drag is active.
+     */
+    public static boolean anyGizmoDragging() {
+        ShapePlacementState ps = ShapePlacementState.INSTANCE;
+        if (ps.active && (ps.gizmo.isDragging() || ps.rotGizmo.isDragging()
+            || ps.scaleGizmo.isDragging()
+            || ps.viewPlaneGizmo.isDragging())) return true;
+        ClipboardPlacementState cps = ClipboardPlacementState.INSTANCE;
+        if (cps.active && (cps.gizmo.isDragging() || cps.rotGizmo.isDragging())) return true;
+        MoveToolState ms = MoveToolState.INSTANCE;
+        if (ms.active && (ms.gizmo.isDragging() || ms.rotGizmo.isDragging())) return true;
+        SelectionState sel = SelectionState.INSTANCE;
+        if (sel.boxConfirmed
+            && (SelectionRenderer.boxPos1Gizmo.isDragging() || SelectionRenderer.boxPos2Gizmo.isDragging()
+                || SelectionRenderer.boxCenterViewPlaneGizmo.isDragging()
+                || SelectionRenderer.boxCenterGizmo.isDragging()))
+            return true;
+        if (PathToolState.INSTANCE.gizmo.isDragging()) return true;
+        if (ModellingToolState.INSTANCE.gizmo.isDragging()) return true;
+        return false;
     }
 
     /** Commits the pending box selection (boxConfirmed state) and clears gizmo state. */

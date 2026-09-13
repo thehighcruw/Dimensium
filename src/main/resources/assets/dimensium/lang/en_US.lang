@@ -498,6 +498,12 @@ dimensium.settings.general.scroll_speed=Scroll Speed
 dimensium.settings.general.world_scroll_speed=World Scroll Speed
 dimensium.settings.general.ui_scroll_speed=UI Scroll Speed
 dimensium.settings.general.rotation_snap=Rotation Snap (degrees, 0 = off)
+dimensium.settings.general.movement_speed=Movement Speed (1.0x = normal walk speed)
+dimensium.settings.category.navigation=Navigation
+dimensium.settings.navigation.world_scroll_speed=World Scroll Speed
+dimensium.settings.navigation.movement_speed=Movement Speed (1.0x = normal walk speed)
+dimensium.settings.navigation.orbit_use_cursor=Orbit around cursor position
+dimensium.settings.navigation.orbit_use_cursor.hint=Off: orbits around screen center (crosshair)
 dimensium.settings.category.keybinds=Keybinds
 dimensium.settings.category.tools=Tools
 dimensium.settings.category.actions=Actions
@@ -527,6 +533,7 @@ dimensium.settings.keybind.gizmo_nudge_right=Nudge Gizmo Right
 dimensium.settings.keybind.gizmo_nudge_left=Nudge Gizmo Left
 dimensium.settings.keybind.gizmo_nudge_up=Nudge Gizmo Up (+Y)
 dimensium.settings.keybind.gizmo_nudge_down=Nudge Gizmo Down (-Y)
+dimensium.settings.keybind.orbit_crosshair=Orbit Crosshair
 
 # Operations modals / windows
 dimensium.op.fill.title=Fill

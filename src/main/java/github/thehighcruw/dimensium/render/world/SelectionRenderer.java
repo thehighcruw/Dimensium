@@ -95,6 +95,10 @@ public class SelectionRenderer {
 
     @SubscribeEvent
     public void onRenderWorldLast(RenderWorldLastEvent event) {
+        if (FreecamState.INSTANCE.isMoving()) {
+            return;
+        }
+
         PerfTrace.begin("onRenderWorldLast");
         PerfTrace.push("BlockColorCache.init");
         BlockColorCache.INSTANCE.init();
@@ -988,7 +992,7 @@ public class SelectionRenderer {
         t.startDrawingQuads();
         for (int dx = -radius; dx <= radius; dx++) {
             for (int dz = -radius; dz <= radius; dz++) {
-                float r = (float) Math.sqrt((double) (dx * dx + dz * dz)) / radius;
+                float r = (float) Math.sqrt(dx * dx + dz * dz) / radius;
                 if (r > 1f) continue;
 
                 float weight = ElevationBrush.falloff(s.elevationFalloff, r);
@@ -1024,13 +1028,13 @@ public class SelectionRenderer {
         t.startDrawingQuads();
         for (int dx = -radius; dx <= radius; dx++) {
             for (int dz = -radius; dz <= radius; dz++) {
-                float r = (float) Math.sqrt((double) (dx * dx + dz * dz)) / radius;
+                float r = (float) Math.sqrt(dx * dx + dz * dz) / radius;
                 if (r > 1f) continue;
 
                 int wx = cx + dx, wz = cz + dz;
                 double topY = elevPreviewTopY(mc, wx, wz) + 1.002;
 
-                if ((float) Math.sqrt((double) ((dx + 1) * (dx + 1) + dz * dz)) / radius > 1f) {
+                if ((float) Math.sqrt((dx + 1) * (dx + 1) + dz * dz) / radius > 1f) {
                     WorldLines.addSegment(
                         t,
                         wx + 1 - rx,
@@ -1041,11 +1045,11 @@ public class SelectionRenderer {
                         wz + 1 - rz,
                         WorldLines.W_THIN);
                 }
-                if ((float) Math.sqrt((double) ((dx - 1) * (dx - 1) + dz * dz)) / radius > 1f) {
+                if ((float) Math.sqrt((dx - 1) * (dx - 1) + dz * dz) / radius > 1f) {
                     WorldLines
                         .addSegment(t, wx - rx, topY - ry, wz - rz, wx - rx, topY - ry, wz + 1 - rz, WorldLines.W_THIN);
                 }
-                if ((float) Math.sqrt((double) (dx * dx + (dz + 1) * (dz + 1))) / radius > 1f) {
+                if ((float) Math.sqrt(dx * dx + (dz + 1) * (dz + 1)) / radius > 1f) {
                     WorldLines.addSegment(
                         t,
                         wx - rx,
@@ -1056,7 +1060,7 @@ public class SelectionRenderer {
                         wz + 1 - rz,
                         WorldLines.W_THIN);
                 }
-                if ((float) Math.sqrt((double) (dx * dx + (dz - 1) * (dz - 1))) / radius > 1f) {
+                if ((float) Math.sqrt(dx * dx + (dz - 1) * (dz - 1)) / radius > 1f) {
                     WorldLines
                         .addSegment(t, wx - rx, topY - ry, wz - rz, wx + 1 - rx, topY - ry, wz - rz, WorldLines.W_THIN);
                 }

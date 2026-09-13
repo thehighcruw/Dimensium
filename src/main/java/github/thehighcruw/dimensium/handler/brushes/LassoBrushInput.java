@@ -6,7 +6,7 @@ package github.thehighcruw.dimensium.handler.brushes;
 
 import net.minecraft.client.Minecraft;
 
-import org.lwjgl.input.Keyboard;
+import org.lwjgl.input.Mouse;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -29,11 +29,9 @@ public class LassoBrushInput implements BrushInput {
     public boolean onDragTick(Minecraft mc, int sw, int sh) {
         FreecamState fs = FreecamState.INSTANCE;
         LassoSelectToolState lasso = LassoSelectToolState.INSTANCE;
-        boolean altDown = Keyboard.isKeyDown(Keyboard.KEY_LMENU) || Keyboard.isKeyDown(Keyboard.KEY_RMENU);
-        boolean rmbHeld = org.lwjgl.input.Mouse.isButtonDown(KeyConstants.RMB) && !fs.rmbDragging && !altDown;
-        if (rmbHeld) {
+        if (Mouse.isButtonDown(KeyConstants.RMB) && !fs.isMoving()) {
             lasso.dragging = true;
-            float cx = (float) fs.cursorX, cy = (float) fs.cursorY;
+            float cx = fs.cursorX, cy = fs.cursorY;
             if (lasso.polygonPoints.isEmpty()) {
                 lasso.polygonPoints.add(new float[] { cx, cy });
             } else {

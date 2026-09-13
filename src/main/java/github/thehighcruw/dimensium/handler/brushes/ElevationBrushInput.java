@@ -10,7 +10,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.util.MovingObjectPosition;
 
-import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
 import cpw.mods.fml.relauncher.Side;
@@ -49,8 +48,7 @@ public class ElevationBrushInput implements BrushInput {
     @Override
     public boolean onDragTick(Minecraft mc, int sw, int sh) {
         FreecamState fs = FreecamState.INSTANCE;
-        boolean altDown = Keyboard.isKeyDown(Keyboard.KEY_LMENU) || Keyboard.isKeyDown(Keyboard.KEY_RMENU);
-        if (fs.rmbDragging || altDown) return true;
+        if (fs.isMoving()) return true;
 
         if (!Mouse.isButtonDown(KeyConstants.RMB)) {
             if (dragActive) {

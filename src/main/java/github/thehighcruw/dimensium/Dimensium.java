@@ -127,6 +127,7 @@ public class Dimensium {
     public static int gizmoNudgeLeftMods = 0;
     public static int gizmoNudgeUpMods = 0;
     public static int gizmoNudgeDownMods = 0;
+    public static int actionOrbitCrosshairMods = 0;
 
     private static EnumMap<Tool, KeyBinding> buildToolKeybinds() {
         EnumMap<Tool, KeyBinding> map = new EnumMap<>(Tool.class);

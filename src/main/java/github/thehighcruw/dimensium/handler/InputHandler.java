@@ -5,6 +5,7 @@
 package github.thehighcruw.dimensium.handler;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.MouseEvent;
@@ -68,11 +69,7 @@ public class InputHandler {
                     event.setCanceled(true);
                     return;
                 }
-                if (fs.walkMode) {
-                    fs.adjustSpeed(event.dwheel > 0);
-                } else {
-                    fs.zoom((event.dwheel > 0 ? 1 : -1) * fs.speed * 3f * DimensiumConfig.worldScrollSpeedModifier);
-                }
+                fs.zoom((event.dwheel > 0 ? 1 : -1) * fs.speed * 3f * DimensiumConfig.worldScrollSpeedModifier);
                 event.setCanceled(true);
                 return;
             }
@@ -81,28 +78,42 @@ public class InputHandler {
                 if (event.buttonstate) {
                     if (onPanel) {
                         GuiDimensiumOverlay.handleClick(mx, my, sw, sh, event.button);
-                    } else if (!fs.walkMode) {
-                        if (isAltDown()) {
-                            if (event.button == KeyConstants.LMB) fs.lmbDragging = true;
-                            if (event.button == KeyConstants.RMB) fs.rmbDragging = true;
-                            if (event.button == KeyConstants.MMB) fs.mmbDragging = true;
-                        } else {
+                    } else if (event.button == KeyConstants.LMB) {
+                        if (isCameraModDown()) {
+                            // Camera modifier + LMB = orbit; activate flag and suppress tool click.
+                            fs.cameraLmbDragActive = true;
+                        } else if (!FreecamState.INSTANCE.isMoving()) {
+                            fs.lmbPressing = true;
+                            fs.lmbPressX = fs.cursorX;
+                            fs.lmbPressY = fs.cursorY;
                             GuiDimensiumOverlay.handleClick(mx, my, sw, sh, event.button);
                         }
-                    } else {
+                    } else if (event.button == KeyConstants.RMB) {
+                        if (isCameraModDown()) {
+                            // Camera modifier + RMB = pan; activate flag and suppress tool click.
+                            fs.cameraRmbDragActive = true;
+                            fs.rmbPressing = true;
+                            fs.rmbPressX = fs.cursorX;
+                            fs.rmbPressY = fs.cursorY;
+                        } else if (!FreecamState.INSTANCE.isMoving()) {
+                            GuiDimensiumOverlay.handleClick(mx, my, sw, sh, event.button);
+                        }
+                    } else if (!FreecamState.INSTANCE.isMoving()) {
                         GuiDimensiumOverlay.handleClick(mx, my, sw, sh, event.button);
                     }
                 } else {
-                    if (event.button == KeyConstants.LMB) fs.lmbDragging = false;
-                    if (event.button == KeyConstants.RMB) {
-                        fs.rmbWasDragging = fs.rmbDragging;
-                        fs.rmbDragging = false;
-                    }
-                    if (event.button == KeyConstants.MMB) {
-                        fs.mmbDragging = false;
+                    if (event.button == KeyConstants.LMB) {
+                        fs.cameraLmbDragActive = false;
+                        fs.lmbPressing = false;
+                        fs.lmbDragging = false;
                         fs.orbiting = false;
                     }
-                    GuiDimensiumOverlay.handleRelease(mx, my, event.button);
+                    if (event.button == KeyConstants.RMB) {
+                        fs.cameraRmbDragActive = false;
+                        fs.rmbPressing = false;
+                        fs.rmbDragging = false;
+                    }
+                    GuiDimensiumOverlay.handleRelease(event.button);
                 }
                 event.setCanceled(true);
                 return;
@@ -130,6 +141,7 @@ public class InputHandler {
         // ── Tool-specific click handling ──────────────────────────────────────
         if (DimensiumMode.INSTANCE.isActive() && event.button >= 0
             && event.buttonstate
+            && !FreecamState.INSTANCE.isMoving()
             && !ImGuiManager.INSTANCE.wantCaptureMouse()) {
             BrushInput input = BrushInputRegistry.get(DimensiumMode.INSTANCE.selectedTool);
             if (input != null) {
@@ -234,4 +246,14 @@ public class InputHandler {
     public static boolean isCtrlDown() {
         return Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) || Keyboard.isKeyDown(Keyboard.KEY_RCONTROL);
     }
+
+    /** Camera modifier: Ctrl on Windows/Linux, Option (Alt) on macOS. */
+    public static boolean isCameraModDown() {
+        if (IS_MAC) return isAltDown();
+        return isCtrlDown();
+    }
+
+    private static final boolean IS_MAC = System.getProperty("os.name", "")
+        .toLowerCase()
+        .contains("mac");
 }

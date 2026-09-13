@@ -85,7 +85,6 @@ public final class ViewportRegistry {
         // Save per-viewport state from FreecamState into the old viewport.
         ViewportState old = viewports.get(activeIndex);
         old.speed = fs.speed;
-        old.walkMode = fs.walkMode;
         old.orbiting = fs.orbiting;
         old.pivotX = fs.pivotX;
         old.pivotY = fs.pivotY;
@@ -97,7 +96,6 @@ public final class ViewportRegistry {
 
         // Restore per-viewport state into FreecamState.
         fs.speed = next.speed;
-        fs.walkMode = next.walkMode;
         fs.orbiting = next.orbiting;
         fs.pivotX = next.pivotX;
         fs.pivotY = next.pivotY;
@@ -105,10 +103,12 @@ public final class ViewportRegistry {
         fs.orbitDist = next.orbitDist;
 
         // Clear drag state — don't carry over an in-progress drag from the old viewport.
+        fs.lmbPressing = false;
         fs.lmbDragging = false;
+        fs.rmbPressing = false;
         fs.rmbDragging = false;
-        fs.mmbDragging = false;
-        fs.rmbWasDragging = false;
+        fs.cameraLmbDragActive = false;
+        fs.cameraRmbDragActive = false;
 
         fs.cameraEntity = next.cameraEntity;
         Minecraft.getMinecraft().renderViewEntity = next.cameraEntity;
@@ -132,16 +132,15 @@ public final class ViewportRegistry {
             FreecamState fs = FreecamState.INSTANCE;
             ViewportState next = viewports.get(newActive);
             fs.speed = next.speed;
-            fs.walkMode = next.walkMode;
             fs.orbiting = next.orbiting;
             fs.pivotX = next.pivotX;
             fs.pivotY = next.pivotY;
             fs.pivotZ = next.pivotZ;
             fs.orbitDist = next.orbitDist;
+            fs.lmbPressing = false;
             fs.lmbDragging = false;
+            fs.rmbPressing = false;
             fs.rmbDragging = false;
-            fs.mmbDragging = false;
-            fs.rmbWasDragging = false;
             fs.cameraEntity = next.cameraEntity;
             Minecraft.getMinecraft().renderViewEntity = next.cameraEntity;
         } else if (index < activeIndex) {
@@ -160,7 +159,6 @@ public final class ViewportRegistry {
         FreecamState fs = FreecamState.INSTANCE;
         ViewportState vp = viewports.get(activeIndex);
         vp.speed = fs.speed;
-        vp.walkMode = fs.walkMode;
         vp.orbiting = false; // don't persist mid-orbit
         vp.pivotX = fs.pivotX;
         vp.pivotY = fs.pivotY;
@@ -177,16 +175,17 @@ public final class ViewportRegistry {
         FreecamState fs = FreecamState.INSTANCE;
         ViewportState vp = viewports.get(activeIndex);
         fs.speed = vp.speed;
-        fs.walkMode = vp.walkMode;
         fs.orbiting = false;
         fs.pivotX = vp.pivotX;
         fs.pivotY = vp.pivotY;
         fs.pivotZ = vp.pivotZ;
         fs.orbitDist = vp.orbitDist;
+        fs.lmbPressing = false;
         fs.lmbDragging = false;
+        fs.rmbPressing = false;
         fs.rmbDragging = false;
-        fs.mmbDragging = false;
-        fs.rmbWasDragging = false;
+        fs.cameraLmbDragActive = false;
+        fs.cameraRmbDragActive = false;
         fs.cameraEntity = vp.cameraEntity;
         Minecraft.getMinecraft().renderViewEntity = vp.cameraEntity;
     }

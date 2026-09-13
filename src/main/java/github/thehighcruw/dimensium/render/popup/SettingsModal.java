@@ -40,6 +40,8 @@ public class SettingsModal {
     private final float[] pendingWorldScrollSpeed = { 1.0f };
     private final float[] pendingUiScrollSpeed = { 1.0f };
     private final float[] pendingRotationSnap = { 1.0f };
+    private final float[] pendingMovementSpeed = { 1.0f };
+    private final ImBoolean pendingOrbitUseCursor = new ImBoolean(true);
 
     // Tool keybind capture: which Tool is being re-bound, null = not capturing a tool bind.
     private Tool capturingTool = null;
@@ -159,6 +161,8 @@ public class SettingsModal {
         pendingWorldScrollSpeed[0] = DimensiumConfig.worldScrollSpeedModifier;
         pendingUiScrollSpeed[0] = DimensiumConfig.uiScrollSpeedModifier;
         pendingRotationSnap[0] = DimensiumConfig.rotationSnapDegrees;
+        pendingMovementSpeed[0] = DimensiumConfig.movementSpeedMultiplier;
+        pendingOrbitUseCursor.set(DimensiumConfig.orbitUseCursor);
         capturingTool = null;
         capturingActionIndex = -1;
     }
@@ -421,6 +425,7 @@ public class SettingsModal {
             // ── Left: category list ───────────────────────────────────────────
             ImGui.beginChild("##settings_cats", sidebarW, innerH, true);
             String[] categories = { I18n.format("dimensium.settings.category.general"),
+                I18n.format("dimensium.settings.category.navigation"),
                 I18n.format("dimensium.settings.category.keybinds"), };
             for (int i = 0; i < categories.length; i++) {
                 if (ImGui.selectable(categories[i] + "##cat_" + i, selectedCategory == i)) {
@@ -438,6 +443,8 @@ public class SettingsModal {
             if (selectedCategory == 0) {
                 renderGeneralSettings(contentW);
             } else if (selectedCategory == 1) {
+                renderNavigationSettings(contentW);
+            } else if (selectedCategory == 2) {
                 renderKeybindSettings(contentW);
             }
             ImGui.endChild();
@@ -454,7 +461,9 @@ public class SettingsModal {
             boolean hasChanges = pendingScale[0] != ImGuiManager.INSTANCE.getUIScale()
                 || pendingWorldScrollSpeed[0] != DimensiumConfig.worldScrollSpeedModifier
                 || pendingUiScrollSpeed[0] != DimensiumConfig.uiScrollSpeedModifier
-                || pendingRotationSnap[0] != DimensiumConfig.rotationSnapDegrees;
+                || pendingRotationSnap[0] != DimensiumConfig.rotationSnapDegrees
+                || pendingMovementSpeed[0] != DimensiumConfig.movementSpeedMultiplier
+                || pendingOrbitUseCursor.get() != DimensiumConfig.orbitUseCursor;
             ImGui.setCursorPosX(modalW - applyW - closeW - gap - 16f * scale);
             if (hasChanges) {
                 ImGui.pushStyleColor(ImGuiCol.Button, 0.18f, 0.42f, 0.90f, 1.00f);
@@ -466,6 +475,8 @@ public class SettingsModal {
                 DimensiumConfig.setWorldScrollSpeedModifier(pendingWorldScrollSpeed[0]);
                 DimensiumConfig.setUiScrollSpeedModifier(pendingUiScrollSpeed[0]);
                 DimensiumConfig.setRotationSnapDegrees(pendingRotationSnap[0]);
+                DimensiumConfig.setMovementSpeedMultiplier(pendingMovementSpeed[0]);
+                DimensiumConfig.setOrbitUseCursor(pendingOrbitUseCursor.get());
                 try {
                     ConfigurationManager.save(DimensiumConfig.class);
                 } catch (Exception e) {
@@ -495,11 +506,6 @@ public class SettingsModal {
         ImGui.sliderFloat("##ui_scale_slider", pendingScale, 0.5f, 3.0f, "%.2f");
 
         ImGui.spacing();
-        ImGui.text(I18n.format("dimensium.settings.general.world_scroll_speed"));
-        ImGui.setNextItemWidth(width - 4f);
-        ImGui.sliderFloat("##world_scroll_speed_slider", pendingWorldScrollSpeed, 0.1f, 10.0f, "%.1f");
-
-        ImGui.spacing();
         ImGui.text(I18n.format("dimensium.settings.general.ui_scroll_speed"));
         ImGui.setNextItemWidth(width - 4f);
         ImGui.sliderFloat("##ui_scroll_speed_slider", pendingUiScrollSpeed, 0.1f, 10.0f, "%.1f");
@@ -508,6 +514,23 @@ public class SettingsModal {
         ImGui.text(I18n.format("dimensium.settings.general.rotation_snap"));
         ImGui.setNextItemWidth(width - 4f);
         ImGui.sliderFloat("##rotation_snap_slider", pendingRotationSnap, 0.0f, 45.0f, "%.1f°");
+    }
+
+    private void renderNavigationSettings(float width) {
+        ImGui.text(I18n.format("dimensium.settings.navigation.world_scroll_speed"));
+        ImGui.setNextItemWidth(width - 4f);
+        ImGui.sliderFloat("##world_scroll_speed_slider", pendingWorldScrollSpeed, 0.1f, 10.0f, "%.1f");
+
+        ImGui.spacing();
+        ImGui.text(I18n.format("dimensium.settings.navigation.movement_speed"));
+        ImGui.setNextItemWidth(width - 4f);
+        ImGui.sliderFloat("##movement_speed_slider", pendingMovementSpeed, 0.1f, 20.0f, "%.1fx");
+
+        ImGui.spacing();
+        ImGui.checkbox(
+            I18n.format("dimensium.settings.navigation.orbit_use_cursor") + "##orbit_use_cursor",
+            pendingOrbitUseCursor);
+        ImGui.textDisabled(I18n.format("dimensium.settings.navigation.orbit_use_cursor.hint"));
     }
 
     private void renderKeybindSettings(float width) {

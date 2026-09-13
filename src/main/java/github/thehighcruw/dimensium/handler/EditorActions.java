@@ -34,7 +34,7 @@ public final class EditorActions {
             ConflictPopup.INSTANCE.show(mismatches, () -> {
                 history.commitUndo();
                 BlockSender.sendChunkedSkipHistory(before);
-            }, () -> history.commitUndo());
+            }, history::commitUndo);
         } else {
             history.commitUndo();
             BlockSender.sendChunkedSkipHistory(before);
@@ -51,7 +51,7 @@ public final class EditorActions {
             ConflictPopup.INSTANCE.show(mismatches, () -> {
                 history.commitRedo();
                 BlockSender.sendChunkedSkipHistory(after);
-            }, () -> history.commitRedo());
+            }, history::commitRedo);
         } else {
             history.commitRedo();
             BlockSender.sendChunkedSkipHistory(after);

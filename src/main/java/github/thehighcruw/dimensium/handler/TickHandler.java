@@ -17,6 +17,8 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import github.thehighcruw.dimensium.Dimensium;
+import github.thehighcruw.dimensium.DimensiumConfig;
 import github.thehighcruw.dimensium.freecam.FreecamEntity;
 import github.thehighcruw.dimensium.freecam.FreecamState;
 import github.thehighcruw.dimensium.handler.brushes.BrushInput;
@@ -24,10 +26,10 @@ import github.thehighcruw.dimensium.handler.brushes.BrushInputRegistry;
 import github.thehighcruw.dimensium.handler.brushes.ElevationBrushInput;
 import github.thehighcruw.dimensium.handler.brushes.SmoothBrushInput;
 import github.thehighcruw.dimensium.render.GuiDimensiumOverlay;
+import github.thehighcruw.dimensium.render.UICoords;
 import github.thehighcruw.dimensium.render.HandRenderer;
 import github.thehighcruw.dimensium.render.MenuBar;
 import github.thehighcruw.dimensium.render.OverlayRenderer;
-import github.thehighcruw.dimensium.render.UICoords;
 import github.thehighcruw.dimensium.render.imgui.ImGuiManager;
 import github.thehighcruw.dimensium.render.world.RotationGizmo;
 import github.thehighcruw.dimensium.render.world.ScaleGizmo;
@@ -56,6 +58,12 @@ public class TickHandler {
     public TickHandler() {
         INSTANCE = this;
     }
+
+    // Drag threshold: squared scaled-pixel distance before a button-press becomes a camera drag.
+    private static final float DRAG_THRESHOLD_SQ = 3.0f * 3.0f;
+
+    // Normal Minecraft player walk speed in blocks per client tick (~0.215 blocks/tick = ~4.3 blocks/s).
+    private static final float BASE_MOVEMENT_SPEED = 0.215f;
 
     // Last block position where freehand paint was sent — used to deduplicate
     // per-render-frame packets so each block gets exactly one packet per drag pass.
@@ -116,33 +124,44 @@ public class TickHandler {
         float sens = mc.gameSettings.mouseSensitivity * 0.6f + 0.2f;
         float scale = sens * sens * sens * 8.0f;
 
-        boolean ctrl = isCtrlDown();
-        boolean lmb = Mouse.isButtonDown(0);
-        boolean mmb = Mouse.isButtonDown(2);
-
-        // Ctrl+LMB = orbit regardless of mode.
-        if (ctrl && lmb) {
-            if (!fs.orbiting) startOrbit(fs, cam, mc, false);
-            applyOrbit(fs, cam, rawDX, rawDY, scale);
-            return;
+        // Promote pressing → dragging once cursor moves past the threshold.
+        if (fs.lmbPressing) {
+            float ddx = fs.cursorX - fs.lmbPressX;
+            float ddy = fs.cursorY - fs.lmbPressY;
+            if (ddx * ddx + ddy * ddy > DRAG_THRESHOLD_SQ) {
+                fs.lmbDragging = true;
+                fs.lmbPressing = false;
+            }
+        }
+        if (fs.rmbPressing) {
+            float ddx = fs.cursorX - fs.rmbPressX;
+            float ddy = fs.cursorY - fs.rmbPressY;
+            if (ddx * ddx + ddy * ddy > DRAG_THRESHOLD_SQ) {
+                fs.rmbDragging = true;
+                fs.rmbPressing = false;
+            }
         }
 
-        // Alt+MMB = orbit around the block under the crosshair at drag start.
-        if (fs.mmbDragging && mmb) {
-            if (!fs.orbiting) startOrbit(fs, cam, mc, false);
-            applyOrbit(fs, cam, rawDX, rawDY, scale);
-            return;
+        boolean lmb = Mouse.isButtonDown(KeyConstants.LMB);
+
+        // CameraMod+LMB orbit: persists until LMB is released (cameraLmbDragActive cleared on release).
+        if (fs.cameraLmbDragActive) {
+            if (lmb) {
+                if (!fs.orbiting) startOrbit(fs, cam, mc, DimensiumConfig.orbitUseCursor);
+                applyOrbit(fs, cam, rawDX, rawDY, scale);
+                return;
+            }
+            // LMB released but flag not yet cleared by InputHandler — clear it now.
+            fs.cameraLmbDragActive = false;
         }
 
         fs.orbiting = false;
 
-        if (fs.walkMode) {
-            // Walk mode: mouse always rotates camera (first-person look).
+        // LMB drag = rotate camera; suppress when a tool gizmo is being dragged.
+        if (fs.lmbDragging && !GuiDimensiumOverlay.anyGizmoDragging()) {
             applyRotate(cam, rawDX, rawDY, scale);
-        } else {
-            // CAD viewport mode.
-            if (fs.lmbDragging) applyRotate(cam, rawDX, rawDY, scale); // Alt+LMB
-            else if (fs.rmbDragging) applyPan(cam, rawDX, rawDY); // Alt+RMB
+        } else if (fs.rmbDragging) {
+            applyPan(cam, rawDX, rawDY);
         }
     }
 
@@ -179,39 +198,36 @@ public class TickHandler {
             mc.thePlayer.rotationPitch = cam.rotationPitch;
         }
 
-        if (!fs.walkMode || fs.orbiting) return;
+        if (fs.orbiting) return;
         if (mc.thePlayer == null) return;
 
-        float speed = fs.speed;
+        float speed = BASE_MOVEMENT_SPEED * DimensiumConfig.movementSpeedMultiplier;
         if (isSprinting(mc)) speed *= 5.0f;
-        else if (isSneaking(mc)) speed *= 0.2f;
 
         double yaw = Math.toRadians(cam.rotationYaw);
-        double pitch = Math.toRadians(cam.rotationPitch);
-        double fwdX = -Math.sin(yaw) * Math.cos(pitch);
-        double fwdY = -Math.sin(pitch);
-        double fwdZ = Math.cos(yaw) * Math.cos(pitch);
+        // Flat XZ forward — W/S move horizontally regardless of pitch.
+        double flatFwdX = -Math.sin(yaw);
+        double flatFwdZ = Math.cos(yaw);
+        // Strafe right = 90° CW from forward in XZ.
         double rgtX = Math.cos(yaw);
         double rgtZ = Math.sin(yaw);
 
         double dx = 0, dy = 0, dz = 0;
         if (Keyboard.isKeyDown(mc.gameSettings.keyBindForward.getKeyCode())) {
-            dx += fwdX;
-            dy += fwdY;
-            dz += fwdZ;
+            dx += flatFwdX;
+            dz += flatFwdZ;
         }
         if (Keyboard.isKeyDown(mc.gameSettings.keyBindBack.getKeyCode())) {
-            dx -= fwdX;
-            dy -= fwdY;
-            dz -= fwdZ;
+            dx -= flatFwdX;
+            dz -= flatFwdZ;
         }
         if (Keyboard.isKeyDown(mc.gameSettings.keyBindRight.getKeyCode())) {
-            dx += rgtX;
-            dz += rgtZ;
-        }
-        if (Keyboard.isKeyDown(mc.gameSettings.keyBindLeft.getKeyCode())) {
             dx -= rgtX;
             dz -= rgtZ;
+        }
+        if (Keyboard.isKeyDown(mc.gameSettings.keyBindLeft.getKeyCode())) {
+            dx += rgtX;
+            dz += rgtZ;
         }
         if (Keyboard.isKeyDown(mc.gameSettings.keyBindJump.getKeyCode())) dy += 1.0;
         if (Keyboard.isKeyDown(mc.gameSettings.keyBindSneak.getKeyCode())) dy -= 1.0;
@@ -258,9 +274,8 @@ public class TickHandler {
             lastFreehandX = Integer.MIN_VALUE;
             return;
         }
-        // Alt+RMB = camera pan in CAD mode (rmbDragging set at press time).
-        // Also guard by isAltDown() for walk mode, where rmbDragging is never set.
-        if (fs.rmbDragging || InputHandler.isAltDown()) return;
+        // Suppress paint during any camera movement (pan, orbit, LMB drag).
+        if (fs.isMoving()) return;
         if (!Mouse.isButtonDown(KeyConstants.RMB)) {
             // RMB released — let tool handle release, then flush accumulated proposal.
             PerfTrace.begin("brushRelease tool=" + tool);
@@ -526,32 +541,54 @@ public class TickHandler {
             rdx /= len;
             rdy /= len;
             rdz /= len;
+
+            Vec3 start = Vec3.createVectorHelper(cam.posX, cam.posY, cam.posZ);
+            Vec3 end = Vec3.createVectorHelper(cam.posX + rdx * 512, cam.posY + rdy * 512, cam.posZ + rdz * 512);
+            MovingObjectPosition hit = mc.theWorld.rayTraceBlocks(start, end, false);
+            if (hit != null && hit.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+                fs.pivotX = hit.blockX + 0.5;
+                fs.pivotY = hit.blockY + 0.5;
+                fs.pivotZ = hit.blockZ + 0.5;
+            } else {
+                fs.pivotX = cam.posX + rdx * 20;
+                fs.pivotY = cam.posY + rdy * 20;
+                fs.pivotZ = cam.posZ + rdz * 20;
+            }
         } else {
             double yaw = Math.toRadians(cam.rotationYaw);
             double pitch = Math.toRadians(cam.rotationPitch);
             rdx = -Math.sin(yaw) * Math.cos(pitch);
             rdy = -Math.sin(pitch);
             rdz = Math.cos(yaw) * Math.cos(pitch);
-        }
 
-        Vec3 start = Vec3.createVectorHelper(cam.posX, cam.posY, cam.posZ);
-        Vec3 end = Vec3.createVectorHelper(cam.posX + rdx * 512, cam.posY + rdy * 512, cam.posZ + rdz * 512);
-        MovingObjectPosition hit = mc.theWorld.rayTraceBlocks(start, end, false);
+            Vec3 start = Vec3.createVectorHelper(cam.posX, cam.posY, cam.posZ);
+            Vec3 end = Vec3.createVectorHelper(cam.posX + rdx * 512, cam.posY + rdy * 512, cam.posZ + rdz * 512);
+            MovingObjectPosition hit = mc.theWorld.rayTraceBlocks(start, end, false);
 
-        if (hit != null && hit.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-            fs.pivotX = hit.blockX + 0.5;
-            fs.pivotY = hit.blockY + 0.5;
-            fs.pivotZ = hit.blockZ + 0.5;
-        } else {
-            fs.pivotX = cam.posX + rdx * 20;
-            fs.pivotY = cam.posY + rdy * 20;
-            fs.pivotZ = cam.posZ + rdz * 20;
+            if (hit != null && hit.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+                fs.pivotX = hit.blockX + 0.5;
+                fs.pivotY = hit.blockY + 0.5;
+                fs.pivotZ = hit.blockZ + 0.5;
+            } else {
+                fs.pivotX = cam.posX + rdx * 20;
+                fs.pivotY = cam.posY + rdy * 20;
+                fs.pivotZ = cam.posZ + rdz * 20;
+            }
         }
 
         double ox = cam.posX - fs.pivotX;
         double oy = cam.posY - fs.pivotY;
         double oz = cam.posZ - fs.pivotZ;
         fs.orbitDist = Math.max(1.0, Math.sqrt(ox * ox + oy * oy + oz * oz));
+
+        // Store the angular offset from camera look direction to pivot direction so the
+        // pivot stays at the same screen-space position throughout the orbit.
+        double pivotDist = fs.orbitDist;
+        double pivotYawRad = Math.atan2(ox, -oz);
+        double pivotPitchRad = Math.asin(Math.max(-1.0, Math.min(1.0, oy / pivotDist)));
+        fs.pivotOffsetYaw = (float) Math.toDegrees(pivotYawRad) - cam.rotationYaw;
+        fs.pivotOffsetPitch = (float) Math.toDegrees(pivotPitchRad) - cam.rotationPitch;
+
         fs.orbiting = true;
     }
 
@@ -560,15 +597,17 @@ public class TickHandler {
         cam.rotationPitch -= rawDY * scale * 0.15f;
         cam.rotationPitch = Math.max(-89.9f, Math.min(89.9f, cam.rotationPitch));
 
-        double yaw = Math.toRadians(cam.rotationYaw);
-        double pitch = Math.toRadians(cam.rotationPitch);
-        double fwdX = -Math.sin(yaw) * Math.cos(pitch);
-        double fwdY = -Math.sin(pitch);
-        double fwdZ = Math.cos(yaw) * Math.cos(pitch);
+        // Pivot direction = camera look direction + fixed angular offset recorded at drag start.
+        // This keeps the pivot at the same screen position as the orbit rotates.
+        double pivotYaw = Math.toRadians(cam.rotationYaw + fs.pivotOffsetYaw);
+        double pivotPitch = Math.toRadians(cam.rotationPitch + fs.pivotOffsetPitch);
+        double pFwdX = -Math.sin(pivotYaw) * Math.cos(pivotPitch);
+        double pFwdY = -Math.sin(pivotPitch);
+        double pFwdZ = Math.cos(pivotYaw) * Math.cos(pivotPitch);
 
-        cam.posX = fs.pivotX - fwdX * fs.orbitDist;
-        cam.posY = fs.pivotY - fwdY * fs.orbitDist;
-        cam.posZ = fs.pivotZ - fwdZ * fs.orbitDist;
+        cam.posX = fs.pivotX - pFwdX * fs.orbitDist;
+        cam.posY = fs.pivotY - pFwdY * fs.orbitDist;
+        cam.posZ = fs.pivotZ - pFwdZ * fs.orbitDist;
 
         // Orbit updates position every render tick, but prevPos and lastTickPos are
         // normally only synced in client ticks. EntityRenderer uses lastTickPos for
@@ -598,12 +637,15 @@ public class TickHandler {
         return Keyboard.isKeyDown(mc.gameSettings.keyBindSprint.getKeyCode());
     }
 
-    private boolean isSneaking(Minecraft mc) {
-        return Keyboard.isKeyDown(mc.gameSettings.keyBindSneak.getKeyCode());
-    }
-
-    private boolean isCtrlDown() {
-        return Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) || Keyboard.isKeyDown(Keyboard.KEY_RCONTROL);
+    private boolean isKeyComboDown(int key, int mods) {
+        if (!Keyboard.isKeyDown(key)) return false;
+        boolean ctrl = Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) || Keyboard.isKeyDown(Keyboard.KEY_RCONTROL);
+        boolean shift = Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT);
+        boolean alt = Keyboard.isKeyDown(Keyboard.KEY_LMENU) || Keyboard.isKeyDown(Keyboard.KEY_RMENU);
+        boolean needCtrl = (mods & Dimensium.MOD_CTRL) != 0;
+        boolean needShift = (mods & Dimensium.MOD_SHIFT) != 0;
+        boolean needAlt = (mods & Dimensium.MOD_ALT) != 0;
+        return ctrl == needCtrl && shift == needShift && alt == needAlt;
     }
 
     private static String toolActionName(Tool tool) {

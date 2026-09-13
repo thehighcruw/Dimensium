@@ -55,7 +55,6 @@ public final class ViewportState {
 
     // Per-viewport camera control state. Swapped into/out of FreecamState on tab switch.
     public float speed = 0.5f;
-    public boolean walkMode = false;
     public boolean orbiting = false;
     public double pivotX, pivotY, pivotZ, orbitDist;
 

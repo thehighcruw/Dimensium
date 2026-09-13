@@ -4,6 +4,9 @@
  */
 package github.thehighcruw.dimensium.handler.brushes;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import net.minecraft.block.Block;
@@ -87,8 +90,8 @@ public class FillBrushInput implements BrushInput {
     private static void sendFillPackets() {
         ChangeProposal p = BuilderToolState.INSTANCE.fillPreview;
         if (p == null) return;
-        java.util.List<int[]> positions = new java.util.ArrayList<>(p.proposed.size());
-        for (java.util.Map.Entry<Long, int[]> e : p.proposed.entrySet()) {
+        List<int[]> positions = new ArrayList<>(p.proposed.size());
+        for (Map.Entry<Long, int[]> e : p.proposed.entrySet()) {
             long key = e.getKey();
             int[] bm = e.getValue();
             positions.add(

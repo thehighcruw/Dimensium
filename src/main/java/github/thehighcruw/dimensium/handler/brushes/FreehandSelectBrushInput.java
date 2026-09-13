@@ -11,7 +11,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.MovingObjectPosition;
 
-import org.lwjgl.input.Keyboard;
+import org.lwjgl.input.Mouse;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -35,9 +35,8 @@ public class FreehandSelectBrushInput implements BrushInput {
     @Override
     public boolean onDragTick(Minecraft mc, int sw, int sh) {
         FreecamState fs = FreecamState.INSTANCE;
-        boolean altDown = Keyboard.isKeyDown(Keyboard.KEY_LMENU) || Keyboard.isKeyDown(Keyboard.KEY_RMENU);
         int heldButton = -1;
-        if (org.lwjgl.input.Mouse.isButtonDown(KeyConstants.RMB) && !fs.rmbDragging && !altDown) {
+        if (Mouse.isButtonDown(KeyConstants.RMB) && !fs.isMoving()) {
             heldButton = KeyConstants.RMB;
         }
         if (heldButton >= 0) {

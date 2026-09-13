@@ -16,11 +16,8 @@ public class FreecamState {
 
     public boolean active = false;
 
-    // CAD camera speed (blocks per scroll step / walk tick).
+    // Camera zoom speed (blocks per scroll step).
     public float speed = 0.5f;
-
-    // Walk mode (C): WASD + always-on mouse look. Default (false) = CAD viewport mode.
-    public boolean walkMode = false;
 
     // Software cursor position in scaled pixels.
     public float cursorX = 0, cursorY = 0;
@@ -31,17 +28,28 @@ public class FreecamState {
     public float projTanHY = (float) Math.tan(Math.toRadians(35));
 
     // Camera drag state set by InputHandler; read by TickHandler each render frame.
+    // "pressing" = button held but drag threshold not yet reached.
+    // "dragging" = threshold exceeded, camera operation is active.
+    public boolean lmbPressing = false;
     public boolean lmbDragging = false;
+    public float lmbPressX, lmbPressY;
+    public boolean rmbPressing = false;
     public boolean rmbDragging = false;
-    public boolean mmbDragging = false;
-    // True for the one frame after an alt+RMB camera-pan drag ends, so handleRelease
-    // can distinguish a paint release from a drag release.
-    public boolean rmbWasDragging = false;
+    public float rmbPressX, rmbPressY;
 
-    // Orbit state — Ctrl+LMB.
+    // True from CameraMod+LMB/RMB press until the button is physically released.
+    // Persists even if the modifier key is released mid-drag.
+    public boolean cameraLmbDragActive = false;
+    public boolean cameraRmbDragActive = false;
+
+    // Orbit state — CameraMod+LMB or orbit-crosshair keybinding.
     public boolean orbiting = false;
     public double pivotX, pivotY, pivotZ;
     public double orbitDist;
+    // Angular offset (degrees) from the camera look direction to the pivot direction at orbit start.
+    // Kept constant throughout the orbit so the pivot stays at the same screen position.
+    public float pivotOffsetYaw = 0;
+    public float pivotOffsetPitch = 0;
 
     private EntityLivingBase savedViewEntity = null;
     public FreecamEntity cameraEntity = null;
@@ -55,11 +63,12 @@ public class FreecamState {
         cursorX = sr.getScaledWidth() / 2f;
         cursorY = sr.getScaledHeight() / 2f;
 
+        lmbPressing = false;
         lmbDragging = false;
+        rmbPressing = false;
         rmbDragging = false;
-        rmbWasDragging = false;
-        mmbDragging = false;
-
+        cameraLmbDragActive = false;
+        cameraRmbDragActive = false;
         savedViewEntity = mc.renderViewEntity;
 
         if (!ViewportRegistry.INSTANCE.viewports.isEmpty()) {
@@ -81,7 +90,6 @@ public class FreecamState {
             cameraEntity.lastTickPosY = cameraEntity.posY;
             cameraEntity.lastTickPosZ = cameraEntity.posZ;
 
-            walkMode = false;
             orbiting = false;
 
             mc.renderViewEntity = cameraEntity;
@@ -103,11 +111,12 @@ public class FreecamState {
         cameraEntity = null;
         // Do NOT clear ViewportRegistry — viewports persist across toggles.
         // ViewportRegistry.INSTANCE.clear() is called on world disconnect (DimensiumMode.fullReset).
-        walkMode = false;
+        lmbPressing = false;
         lmbDragging = false;
+        rmbPressing = false;
         rmbDragging = false;
-        rmbWasDragging = false;
-        mmbDragging = false;
+        cameraLmbDragActive = false;
+        cameraRmbDragActive = false;
         orbiting = false;
         active = false;
     }
@@ -123,7 +132,7 @@ public class FreecamState {
         cam.posZ += Math.cos(yaw) * Math.cos(pitch) * amount;
     }
 
-    public void adjustSpeed(boolean faster) {
-        speed = faster ? Math.min(speed * 1.5f, 20.0f) : Math.max(speed / 1.5f, 0.05f);
+    public boolean isMoving() {
+        return orbiting || lmbDragging || rmbDragging || cameraLmbDragActive || cameraRmbDragActive;
     }
 }

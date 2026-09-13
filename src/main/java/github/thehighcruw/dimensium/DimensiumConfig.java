@@ -287,6 +287,21 @@ public class DimensiumConfig {
     @Config.Comment("Gizmo: Nudge down (-Y) — modifier mask")
     public static int modsGizmoNudgeDown = 0;
 
+    @Config.Comment("Camera movement speed multiplier. 1.0 = normal player walk speed.")
+    @Config.RangeFloat(min = 0.1f, max = 20.0f)
+    public static float movementSpeedMultiplier = 1.0f;
+
+    public static void setMovementSpeedMultiplier(float value) {
+        movementSpeedMultiplier = value;
+    }
+
+    @Config.Comment("When true, Ctrl/Option+LMB orbits around the block under the cursor. When false, orbits around the block at the crosshair (screen center).")
+    public static boolean orbitUseCursor = true;
+
+    public static void setOrbitUseCursor(boolean value) {
+        orbitUseCursor = value;
+    }
+
     // ── Window open state — persisted across restarts ──
     @Config.Comment("History window open state.")
     public static boolean windowHistoryOpen = true;
