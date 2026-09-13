@@ -20,7 +20,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.DimensiumConfig;
 import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
-import github.thehighcruw.dimensium.editor.window.imgui.ImGuiWindow;
+import github.thehighcruw.dimensium.editor.window.imgui.ToggleableWindow;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import imgui.ImGui;
 import imgui.flag.ImGuiTableFlags;
@@ -28,24 +28,17 @@ import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
 
 @SideOnly(Side.CLIENT)
-public class AnalyzeWindow extends ImGuiWindow {
+public class AnalyzeWindow extends ToggleableWindow {
 
     public static final AnalyzeWindow INSTANCE = new AnalyzeWindow();
 
     private static final String WINDOW_ID = "###analyze_window";
-
-    private boolean open = false;
 
     private final List<String> blockNames = new ArrayList<>();
     private final List<Integer> blockCounts = new ArrayList<>();
     private int totalBlocks = 0;
 
     private AnalyzeWindow() {}
-
-    @Override
-    public boolean isOpen() {
-        return open;
-    }
 
     public void setOpen(boolean value) {
         open = value;

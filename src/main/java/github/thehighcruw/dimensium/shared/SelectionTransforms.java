@@ -24,6 +24,9 @@ public final class SelectionTransforms {
     private SelectionTransforms() {}
 
     private static final int MAX_SMOOTH_DIM = 256;
+    private static final int[] FACE_DX = { 1, -1, 0, 0, 0, 0 };
+    private static final int[] FACE_DY = { 0, 0, 1, -1, 0, 0 };
+    private static final int[] FACE_DZ = { 0, 0, 0, 0, 1, -1 };
 
     public static Set<Long> move(Set<Long> blocks, int dx, int dy, int dz) {
         Set<Long> result = new HashSet<>(blocks.size());
@@ -40,9 +43,6 @@ public final class SelectionTransforms {
     public static Set<Long> expand(Set<Long> blocks, int offset) {
         if (offset <= 0) return new HashSet<>(blocks);
         Set<Long> result = new HashSet<>(blocks);
-        int[] dx = { 1, -1, 0, 0, 0, 0 };
-        int[] dy = { 0, 0, 1, -1, 0, 0 };
-        int[] dz = { 0, 0, 0, 0, 1, -1 };
         Set<Long> frontier = new HashSet<>(blocks);
         for (int step = 0; step < offset; step++) {
             Set<Long> next = new HashSet<>();
@@ -51,9 +51,9 @@ public final class SelectionTransforms {
                 int y = SelectionState.unpackY(key);
                 int z = SelectionState.unpackZ(key);
                 for (int d = 0; d < 6; d++) {
-                    int ny = y + dy[d];
+                    int ny = y + FACE_DY[d];
                     if (ny < 0 || ny > 255) continue;
-                    long nk = SelectionState.pack(x + dx[d], ny, z + dz[d]);
+                    long nk = SelectionState.pack(x + FACE_DX[d], ny, z + FACE_DZ[d]);
                     if (result.add(nk)) next.add(nk);
                 }
             }
@@ -65,9 +65,6 @@ public final class SelectionTransforms {
     public static Set<Long> shrink(Set<Long> blocks, int offset) {
         if (offset <= 0) return new HashSet<>(blocks);
         Set<Long> result = new HashSet<>(blocks);
-        int[] dx = { 1, -1, 0, 0, 0, 0 };
-        int[] dy = { 0, 0, 1, -1, 0, 0 };
-        int[] dz = { 0, 0, 0, 0, 1, -1 };
         for (int step = 0; step < offset; step++) {
             Set<Long> toRemove = new HashSet<>();
             for (long key : result) {
@@ -75,8 +72,9 @@ public final class SelectionTransforms {
                 int y = SelectionState.unpackY(key);
                 int z = SelectionState.unpackZ(key);
                 for (int d = 0; d < 6; d++) {
-                    int ny = y + dy[d];
-                    if (ny < 0 || ny > 255 || !result.contains(SelectionState.pack(x + dx[d], ny, z + dz[d]))) {
+                    int ny = y + FACE_DY[d];
+                    if (ny < 0 || ny > 255
+                        || !result.contains(SelectionState.pack(x + FACE_DX[d], ny, z + FACE_DZ[d]))) {
                         toRemove.add(key);
                         break;
                     }
@@ -115,17 +113,9 @@ public final class SelectionTransforms {
     public static Set<Long> smooth(Set<Long> blocks, int strength, float threshold) {
         if (blocks.isEmpty()) return new HashSet<>();
 
-        int mnX = Integer.MAX_VALUE, mnY = Integer.MAX_VALUE, mnZ = Integer.MAX_VALUE;
-        int mxX = Integer.MIN_VALUE, mxY = Integer.MIN_VALUE, mxZ = Integer.MIN_VALUE;
-        for (long key : blocks) {
-            int x = SelectionState.unpackX(key), y = SelectionState.unpackY(key), z = SelectionState.unpackZ(key);
-            if (x < mnX) mnX = x;
-            if (x > mxX) mxX = x;
-            if (y < mnY) mnY = y;
-            if (y > mxY) mxY = y;
-            if (z < mnZ) mnZ = z;
-            if (z > mxZ) mxZ = z;
-        }
+        int[] bb = SelectionState.computeBounds(blocks);
+        int mnX = bb[0], mnY = bb[1], mnZ = bb[2];
+        int mxX = bb[3], mxY = bb[4], mxZ = bb[5];
 
         GaussianKernel kernel = GaussianKernel.build(strength * 0.5f + 0.5f);
         int margin = kernel.kR;

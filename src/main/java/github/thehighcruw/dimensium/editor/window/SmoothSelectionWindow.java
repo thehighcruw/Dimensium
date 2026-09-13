@@ -11,7 +11,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.tool.manipulating.smooth.SmoothToolState;
 import github.thehighcruw.dimensium.editor.tool.selecting.BooleanOp;
 import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
-import github.thehighcruw.dimensium.editor.window.imgui.ImGuiWindow;
+import github.thehighcruw.dimensium.editor.window.imgui.ToggleableWindow;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.SelectionTransforms;
 import imgui.ImGui;
@@ -19,11 +19,9 @@ import imgui.flag.ImGuiCond;
 import imgui.type.ImBoolean;
 
 @SideOnly(Side.CLIENT)
-public class SmoothSelectionWindow extends ImGuiWindow {
+public class SmoothSelectionWindow extends ToggleableWindow {
 
     public static final SmoothSelectionWindow INSTANCE = new SmoothSelectionWindow();
-
-    private boolean open = false;
 
     private final int[] strength = { 2 };
     private final float[] threshold = { 0.5f };
@@ -36,11 +34,6 @@ public class SmoothSelectionWindow extends ImGuiWindow {
         strength[0] = SmoothToolState.INSTANCE.smoothStrength;
         threshold[0] = 0.5f;
         open = true;
-    }
-
-    @Override
-    public boolean isOpen() {
-        return open;
     }
 
     public void close() {

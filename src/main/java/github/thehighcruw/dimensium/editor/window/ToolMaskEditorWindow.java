@@ -37,7 +37,7 @@ import github.thehighcruw.dimensium.editor.tool.mask.ToolMaskRegistry;
 import github.thehighcruw.dimensium.editor.tool.mask.YMask;
 import github.thehighcruw.dimensium.editor.window.imgui.DeferredItemRender;
 import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
-import github.thehighcruw.dimensium.editor.window.imgui.ImGuiWindow;
+import github.thehighcruw.dimensium.editor.window.imgui.ToggleableWindow;
 import imgui.ImDrawList;
 import imgui.ImGui;
 import imgui.ImVec2;
@@ -49,13 +49,12 @@ import imgui.type.ImInt;
 import imgui.type.ImString;
 
 @SideOnly(Side.CLIENT)
-public class ToolMaskEditorWindow extends ImGuiWindow {
+public class ToolMaskEditorWindow extends ToggleableWindow {
 
     public static final ToolMaskEditorWindow INSTANCE = new ToolMaskEditorWindow();
 
     private static final String WINDOW_ID = "###tool_mask_editor";
 
-    private boolean open = false;
     private ToolMask editingMask = null;
     private MaskNode selectedNode = null;
 
@@ -77,11 +76,6 @@ public class ToolMaskEditorWindow extends ImGuiWindow {
     public void setOpen(boolean value) {
         open = value;
         DimensiumConfig.setWindowToolMaskEditorOpen(value);
-    }
-
-    @Override
-    public boolean isOpen() {
-        return open;
     }
 
     public void renderImGui() {

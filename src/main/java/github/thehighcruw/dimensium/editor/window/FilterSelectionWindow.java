@@ -21,7 +21,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.tool.selecting.BooleanOp;
 import github.thehighcruw.dimensium.editor.window.imgui.DeferredItemRender;
 import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
-import github.thehighcruw.dimensium.editor.window.imgui.ImGuiWindow;
+import github.thehighcruw.dimensium.editor.window.imgui.ToggleableWindow;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.SelectionTransforms;
 import imgui.ImGui;
@@ -29,11 +29,9 @@ import imgui.flag.ImGuiCond;
 import imgui.type.ImBoolean;
 
 @SideOnly(Side.CLIENT)
-public class FilterSelectionWindow extends ImGuiWindow {
+public class FilterSelectionWindow extends ToggleableWindow {
 
     public static final FilterSelectionWindow INSTANCE = new FilterSelectionWindow();
-
-    private boolean open = false;
 
     private boolean keepMatching = true;
     private boolean exactMeta = false;
@@ -75,11 +73,6 @@ public class FilterSelectionWindow extends ImGuiWindow {
                 if (selectionBlocks.size() >= COLS * MAX_ROWS) break;
             }
         }
-    }
-
-    @Override
-    public boolean isOpen() {
-        return open;
     }
 
     public void close() {

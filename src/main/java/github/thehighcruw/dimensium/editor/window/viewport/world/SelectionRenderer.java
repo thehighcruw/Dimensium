@@ -712,33 +712,7 @@ public class SelectionRenderer {
 
         // Textured pass — fully opaque, exterior faces only.
         GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-        t.startDrawingQuads();
-        int batched = 0;
-        for (Map.Entry<Long, int[]> e : preview.proposed.entrySet()) {
-            long key = e.getKey();
-            int[] bm = e.getValue();
-            Block blk = Block.getBlockById(bm[0]);
-            if (blk == null || blk == Blocks.air || blk.getRenderType() != 0) continue;
-            int bx = ChangeProposal.unpackX(key);
-            int by = ChangeProposal.unpackY(key);
-            int bz = ChangeProposal.unpackZ(key);
-            int tint = 0xFFFFFF;
-            try {
-                tint = blk.colorMultiplier(mc.theWorld, bx, by, bz);
-            } catch (Exception ignored) {}
-            for (int face = 0; face < 6; face++) {
-                long nk = ChangeProposal
-                    .packKey(bx + GhostRenderer.NX[face], by + GhostRenderer.NY[face], bz + GhostRenderer.NZ[face]);
-                if (!preview.proposed.containsKey(nk)) {
-                    GhostRenderer.addTexturedFace(t, bx, by, bz, blk, bm[1], face, tint);
-                    if (++batched % 2048 == 0) {
-                        t.draw();
-                        t.startDrawingQuads();
-                    }
-                }
-            }
-        }
-        t.draw();
+        drawBatchedTexturedFaces(t, preview.proposed, mc);
 
         // Glow — slightly more negative offset so no z-fighting with opaque pass.
         GL11.glPolygonOffset(-2.0f, -2.0f);
@@ -757,17 +731,7 @@ public class SelectionRenderer {
         GL11.glDisable(GL11.GL_CULL_FACE);
 
         // Wireframe pass.
-        rebuildProposalWireIfNeeded(preview);
-        if (preview.cachedWire != null && preview.cachedWire.length > 0) {
-            GL11.glDisable(GL11.GL_TEXTURE_2D);
-            GL11.glColor4f(0.40f, 1.0f, 0.55f, 0.70f + 0.20f * pulse);
-            GL11.glPushMatrix();
-            GL11.glTranslated(preview.wireOrigin[0], preview.wireOrigin[1], preview.wireOrigin[2]);
-            // Outer translate: (-rx,-ry,-rz). Inner: wireOrigin. Eye in local = rx-wireOrigin[0], etc.
-            WorldLines.setEye(rx - preview.wireOrigin[0], ry - preview.wireOrigin[1], rz - preview.wireOrigin[2]);
-            GhostRenderer.drawWireframeCache(t, preview.cachedWire);
-            GL11.glPopMatrix();
-        }
+        drawProposalWireframe(preview, t, rx, ry, rz, 0.40f, 1.0f, 0.55f, pulse);
 
         GL11.glPopMatrix();
     }
@@ -858,29 +822,7 @@ public class SelectionRenderer {
         mc.getTextureManager()
             .bindTexture(TextureMap.locationBlocksTexture);
         GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-        t.startDrawingQuads();
-        int batched = 0;
-        for (Map.Entry<Long, int[]> e : drag.proposed.entrySet()) {
-            long key = e.getKey();
-            int[] bm = e.getValue();
-            Block blk = Block.getBlockById(bm[0]);
-            if (blk == null || blk == Blocks.air || blk.getRenderType() != 0) continue;
-            int bx = ChangeProposal.unpackX(key);
-            int by = ChangeProposal.unpackY(key);
-            int bz = ChangeProposal.unpackZ(key);
-            for (int face = 0; face < 6; face++) {
-                long nk = ChangeProposal
-                    .packKey(bx + GhostRenderer.NX[face], by + GhostRenderer.NY[face], bz + GhostRenderer.NZ[face]);
-                if (!drag.proposed.containsKey(nk)) {
-                    GhostRenderer.addTexturedFace(t, bx, by, bz, blk, bm[1], face);
-                    if (++batched % 2048 == 0) {
-                        t.draw();
-                        t.startDrawingQuads();
-                    }
-                }
-            }
-        }
-        t.draw();
+        drawBatchedTexturedFaces(t, drag.proposed, mc);
 
         // Pass 2: colored fallback for non-standard render type additions only, exterior faces only.
         GL11.glDisable(GL11.GL_TEXTURE_2D);
@@ -914,17 +856,7 @@ public class SelectionRenderer {
         GL11.glDisable(GL11.GL_CULL_FACE);
 
         // Pass 3: crease-edge wireframe around the exterior of the proposed shape.
-        rebuildProposalWireIfNeeded(drag);
-        if (drag.cachedWire != null && drag.cachedWire.length > 0) {
-            GL11.glDisable(GL11.GL_TEXTURE_2D);
-            GL11.glColor4f(0.75f, 0.90f, 1.0f, 0.70f + 0.20f * pulse);
-            GL11.glPushMatrix();
-            GL11.glTranslated(drag.wireOrigin[0], drag.wireOrigin[1], drag.wireOrigin[2]);
-            // Outer translate: (-rx,-ry,-rz). Inner: wireOrigin. Eye in local = rx-wireOrigin[0], etc.
-            WorldLines.setEye(rx - drag.wireOrigin[0], ry - drag.wireOrigin[1], rz - drag.wireOrigin[2]);
-            GhostRenderer.drawWireframeCache(t, drag.cachedWire);
-            GL11.glPopMatrix();
-        }
+        drawProposalWireframe(drag, t, rx, ry, rz, 0.75f, 0.90f, 1.0f, pulse);
 
         GL11.glPopMatrix();
     }
@@ -1090,6 +1022,55 @@ public class SelectionRenderer {
         Tessellator t = Tessellator.instance;
         t.startDrawingQuads();
         GhostRenderer.addBoxFaces(t, x2, y2, z2);
+        t.draw();
+    }
+
+    /** Draws the crease-edge wireframe for a proposal, rebuilding the cache if needed. */
+    private static void drawProposalWireframe(ChangeProposal proposal, Tessellator t, double rx, double ry, double rz,
+        float r, float g, float b, float pulse) {
+        rebuildProposalWireIfNeeded(proposal);
+        if (proposal.cachedWire == null || proposal.cachedWire.length == 0) return;
+        GL11.glDisable(GL11.GL_TEXTURE_2D);
+        GL11.glColor4f(r, g, b, 0.70f + 0.20f * pulse);
+        GL11.glPushMatrix();
+        GL11.glTranslated(proposal.wireOrigin[0], proposal.wireOrigin[1], proposal.wireOrigin[2]);
+        WorldLines.setEye(rx - proposal.wireOrigin[0], ry - proposal.wireOrigin[1], rz - proposal.wireOrigin[2]);
+        GhostRenderer.drawWireframeCache(t, proposal.cachedWire);
+        GL11.glPopMatrix();
+    }
+
+    /**
+     * Draws standard-render-type blocks in a proposal map as textured exterior faces,
+     * batching flushes every 2048 quads. Computes and applies per-block color tint.
+     * Caller must bind the block texture atlas and set GL color before calling.
+     */
+    private static void drawBatchedTexturedFaces(Tessellator t, Map<Long, int[]> proposed, Minecraft mc) {
+        t.startDrawingQuads();
+        int batched = 0;
+        for (Map.Entry<Long, int[]> e : proposed.entrySet()) {
+            long key = e.getKey();
+            int[] bm = e.getValue();
+            Block blk = Block.getBlockById(bm[0]);
+            if (blk == null || blk == Blocks.air || blk.getRenderType() != 0) continue;
+            int bx = ChangeProposal.unpackX(key);
+            int by = ChangeProposal.unpackY(key);
+            int bz = ChangeProposal.unpackZ(key);
+            int tint = 0xFFFFFF;
+            try {
+                tint = blk.colorMultiplier(mc.theWorld, bx, by, bz);
+            } catch (Exception ignored) {}
+            for (int face = 0; face < 6; face++) {
+                long nk = ChangeProposal
+                    .packKey(bx + GhostRenderer.NX[face], by + GhostRenderer.NY[face], bz + GhostRenderer.NZ[face]);
+                if (!proposed.containsKey(nk)) {
+                    GhostRenderer.addTexturedFace(t, bx, by, bz, blk, bm[1], face, tint);
+                    if (++batched % 2048 == 0) {
+                        t.draw();
+                        t.startDrawingQuads();
+                    }
+                }
+            }
+        }
         t.draw();
     }
 }

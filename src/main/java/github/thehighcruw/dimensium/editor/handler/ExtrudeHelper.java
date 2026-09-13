@@ -53,43 +53,15 @@ public class ExtrudeHelper {
             s.extrudeLimit,
             s.extrudeCorners);
 
-        List<int[]> ops = new ArrayList<>();
-        if (expand) {
-            for (int layer = 1; layer <= count; layer++) {
-                for (int[] pos : connected) {
-                    int nx = pos[0] + dir[0] * layer;
-                    int ny = pos[1] + dir[1] * layer;
-                    int nz = pos[2] + dir[2] * layer;
-                    if (world.getBlock(nx, ny, nz) == Blocks.air) {
-                        ops.add(new int[] { nx, ny, nz, Block.getIdFromBlock(targetBlock), targetMeta });
-                    }
-                }
-            }
-        } else {
-            for (int layer = 0; layer < count; layer++) {
-                for (int[] pos : connected) {
-                    int rx = pos[0] - dir[0] * layer;
-                    int ry = pos[1] - dir[1] * layer;
-                    int rz = pos[2] - dir[2] * layer;
-                    if (world.getBlock(rx, ry, rz) != Blocks.air) {
-                        ops.add(new int[] { rx, ry, rz, 0, 0 });
-                    }
-                }
-            }
-            if (s.extrudeDisplace) {
-                for (int[] pos : connected) {
-                    int lx = pos[0] - dir[0] * (count - 1);
-                    int ly = pos[1] - dir[1] * (count - 1);
-                    int lz = pos[2] - dir[2] * (count - 1);
-                    int bx = pos[0] - dir[0] * count;
-                    int by = pos[1] - dir[1] * count;
-                    int bz = pos[2] - dir[2] * count;
-                    if (world.getBlock(lx, ly, lz) != Blocks.air && world.getBlock(bx, by, bz) == Blocks.air) {
-                        ops.add(new int[] { bx, by, bz, Block.getIdFromBlock(targetBlock), targetMeta });
-                    }
-                }
-            }
-        }
+        List<int[]> ops = buildExtrudeOps(
+            world,
+            expand,
+            count,
+            s.extrudeDisplace,
+            connected,
+            dir,
+            targetBlock,
+            targetMeta);
 
         if (!ops.isEmpty()) BlockSender.sendChunked(
             ops,
@@ -144,6 +116,46 @@ public class ExtrudeHelper {
             { perp[0][0] - perp[1][0], perp[0][1] - perp[1][1], perp[0][2] - perp[1][2] },
             { -perp[0][0] + perp[1][0], -perp[0][1] + perp[1][1], -perp[0][2] + perp[1][2] },
             { -perp[0][0] - perp[1][0], -perp[0][1] - perp[1][1], -perp[0][2] - perp[1][2] } };
+    }
+
+    /** Returns ops as List of {x, y, z, blockId, meta}. blockId=0 means erase. */
+    private static List<int[]> buildExtrudeOps(World world, boolean expand, int count, boolean displace,
+        List<int[]> connected, int[] dir, Block targetBlock, int targetMeta) {
+        List<int[]> ops = new ArrayList<>();
+        int targetId = Block.getIdFromBlock(targetBlock);
+        if (expand) {
+            for (int layer = 1; layer <= count; layer++) {
+                for (int[] pos : connected) {
+                    int nx = pos[0] + dir[0] * layer;
+                    int ny = pos[1] + dir[1] * layer;
+                    int nz = pos[2] + dir[2] * layer;
+                    if (world.getBlock(nx, ny, nz) == Blocks.air)
+                        ops.add(new int[] { nx, ny, nz, targetId, targetMeta });
+                }
+            }
+        } else {
+            for (int layer = 0; layer < count; layer++) {
+                for (int[] pos : connected) {
+                    int rx = pos[0] - dir[0] * layer;
+                    int ry = pos[1] - dir[1] * layer;
+                    int rz = pos[2] - dir[2] * layer;
+                    if (world.getBlock(rx, ry, rz) != Blocks.air) ops.add(new int[] { rx, ry, rz, 0, 0 });
+                }
+            }
+            if (displace) {
+                for (int[] pos : connected) {
+                    int lx = pos[0] - dir[0] * (count - 1);
+                    int ly = pos[1] - dir[1] * (count - 1);
+                    int lz = pos[2] - dir[2] * (count - 1);
+                    int bx = pos[0] - dir[0] * count;
+                    int by = pos[1] - dir[1] * count;
+                    int bz = pos[2] - dir[2] * count;
+                    if (world.getBlock(lx, ly, lz) != Blocks.air && world.getBlock(bx, by, bz) == Blocks.air)
+                        ops.add(new int[] { bx, by, bz, targetId, targetMeta });
+                }
+            }
+        }
+        return ops;
     }
 
     public static int[] sideToOutwardDir(int side) {
@@ -221,40 +233,19 @@ public class ExtrudeHelper {
             s.extrudeCorners);
 
         ChangeProposal p = ChangeProposal.forPreview();
-        int targetId = Block.getIdFromBlock(targetBlock);
-
-        if (expand) {
-            for (int layer = 1; layer <= count; layer++) {
-                for (int[] pos : connected) {
-                    int nx = pos[0] + dir[0] * layer;
-                    int ny = pos[1] + dir[1] * layer;
-                    int nz = pos[2] + dir[2] * layer;
-                    if (mc.theWorld.getBlock(nx, ny, nz) == Blocks.air)
-                        p.proposed.put(ChangeProposal.packKey(nx, ny, nz), new int[] { targetId, targetMeta });
-                }
-            }
-        } else {
-            for (int layer = 0; layer < count; layer++) {
-                for (int[] pos : connected) {
-                    int px = pos[0] - dir[0] * layer;
-                    int py = pos[1] - dir[1] * layer;
-                    int pz = pos[2] - dir[2] * layer;
-                    if (mc.theWorld.getBlock(px, py, pz) != Blocks.air)
-                        p.proposed.put(ChangeProposal.packKey(px, py, pz), new int[] { 0, 0 });
-                }
-            }
-            if (s.extrudeDisplace) {
-                for (int[] pos : connected) {
-                    int lx = pos[0] - dir[0] * (count - 1);
-                    int ly = pos[1] - dir[1] * (count - 1);
-                    int lz = pos[2] - dir[2] * (count - 1);
-                    int bx = pos[0] - dir[0] * count;
-                    int by = pos[1] - dir[1] * count;
-                    int bz = pos[2] - dir[2] * count;
-                    if (mc.theWorld.getBlock(lx, ly, lz) != Blocks.air
-                        && mc.theWorld.getBlock(bx, by, bz) == Blocks.air)
-                        p.proposed.put(ChangeProposal.packKey(bx, by, bz), new int[] { targetId, targetMeta });
-                }
+        for (int[] op : buildExtrudeOps(
+            mc.theWorld,
+            expand,
+            count,
+            s.extrudeDisplace,
+            connected,
+            dir,
+            targetBlock,
+            targetMeta)) {
+            if (op[3] == 0) {
+                p.proposed.put(ChangeProposal.packKey(op[0], op[1], op[2]), new int[] { 0, 0 });
+            } else {
+                p.proposed.put(ChangeProposal.packKey(op[0], op[1], op[2]), new int[] { op[3], op[4] });
             }
         }
 

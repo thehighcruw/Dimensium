@@ -158,34 +158,18 @@ public class PacketShapePlacement implements IPacket {
         EntityPlayerMP player = handler.playerEntity;
         World world = player.worldObj;
 
-        int totalWeight = 0;
-        for (int wt : weights) totalWeight += wt;
+        int tw = 0;
+        for (int wt : weights) tw += wt;
+        final int totalWeight = tw;
         if (totalWeight == 0 || paletteCount == 0) return null;
 
         ShapeToolState.ShapeType type = ShapeToolState.ShapeType.values()[shapeTypeOrd];
 
         float[] R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
-        float ccx = w / 2f, ccy = h / 2f, ccz = d / 2f;
 
-        // AABB of rotated bounding box
-        float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE, minZ = Float.MAX_VALUE;
-        float maxX = -Float.MAX_VALUE, maxY = -Float.MAX_VALUE, maxZ = -Float.MAX_VALUE;
-        for (int mask = 0; mask < 8; mask++) {
-            float hx = ((mask & 1) != 0 ? w : 0) - ccx;
-            float hy = ((mask & 2) != 0 ? h : 0) - ccy;
-            float hz = ((mask & 4) != 0 ? d : 0) - ccz;
-            float wx2 = R[0] * hx + R[1] * hy + R[2] * hz + ccx;
-            float wy2 = R[3] * hx + R[4] * hy + R[5] * hz + ccy;
-            float wz2 = R[6] * hx + R[7] * hy + R[8] * hz + ccz;
-            if (wx2 < minX) minX = wx2;
-            if (wx2 > maxX) maxX = wx2;
-            if (wy2 < minY) minY = wy2;
-            if (wy2 > maxY) maxY = wy2;
-            if (wz2 < minZ) minZ = wz2;
-            if (wz2 > maxZ) maxZ = wz2;
-        }
-        int ix0 = (int) Math.floor(minX), iy0 = (int) Math.floor(minY), iz0 = (int) Math.floor(minZ);
-        int ix1 = (int) Math.ceil(maxX), iy1 = (int) Math.ceil(maxY), iz1 = (int) Math.ceil(maxZ);
+        int[] bounds = ShapeMath.computeRotatedBounds(R, w, h, d);
+        int ix0 = bounds[0], iy0 = bounds[1], iz0 = bounds[2];
+        int ix1 = bounds[3], iy1 = bounds[4], iz1 = bounds[5];
 
         long bboxVolume = (long) (ix1 - ix0 + 1) * (iy1 - iy0 + 1) * (iz1 - iz0 + 1);
         if (bboxVolume > 1_000_000L) {
@@ -198,54 +182,46 @@ public class PacketShapePlacement implements IPacket {
 
         Random rand = new Random();
         List<int[]> ops = new ArrayList<>();
-        for (int ox = ix0; ox <= ix1; ox++) {
-            for (int oy = iy0; oy <= iy1; oy++) {
-                for (int oz = iz0; oz <= iz1; oz++) {
-                    float dx0 = (ox + 0.5f) - ccx;
-                    float dy0 = (oy + 0.5f) - ccy;
-                    float dz0 = (oz + 0.5f) - ccz;
-                    float ldx = R[0] * dx0 + R[3] * dy0 + R[6] * dz0 + ccx;
-                    float ldy = R[1] * dx0 + R[4] * dy0 + R[7] * dz0 + ccy;
-                    float ldz = R[2] * dx0 + R[5] * dy0 + R[8] * dz0 + ccz;
-
-                    if (!ShapeMath.inShapeGeomF(
-                        type,
-                        ldx,
-                        ldy,
-                        ldz,
-                        w,
-                        h,
-                        d,
-                        hollow,
-                        exponent,
-                        torusRingR,
-                        torusRingRZ,
-                        torusTubeR,
-                        tubeWallThickness,
-                        supersphereExp,
-                        polygonSides,
-                        spiralSpacing,
-                        spiralTurns,
-                        DimensiumConfig.shapeThreshold)) continue;
-
-                    int bx = anchorX + ox, by = anchorY + oy, bz = anchorZ + oz;
-                    if (by < 0 || by >= world.getHeight()) continue;
-                    if (keepExisting && world.getBlock(bx, by, bz) != Blocks.air) continue;
-
-                    int roll = rand.nextInt(totalWeight), cum = 0, chosen = 0;
-                    for (int i = 0; i < weights.length; i++) {
-                        cum += weights[i];
-                        if (roll < cum) {
-                            chosen = i;
-                            break;
-                        }
+        ShapeMath.iterateRotatedShape(
+            type,
+            w,
+            h,
+            d,
+            hollow,
+            exponent,
+            torusRingR,
+            torusRingRZ,
+            torusTubeR,
+            tubeWallThickness,
+            supersphereExp,
+            polygonSides,
+            spiralSpacing,
+            spiralTurns,
+            DimensiumConfig.shapeThreshold,
+            R,
+            ix0,
+            iy0,
+            iz0,
+            ix1,
+            iy1,
+            iz1,
+            (ox, oy, oz) -> {
+                int bx = anchorX + ox, by = anchorY + oy, bz = anchorZ + oz;
+                if (by < 0 || by >= world.getHeight()) return true;
+                if (keepExisting && world.getBlock(bx, by, bz) != Blocks.air) return true;
+                int roll = rand.nextInt(totalWeight), cum = 0, chosen = 0;
+                for (int i = 0; i < weights.length; i++) {
+                    cum += weights[i];
+                    if (roll < cum) {
+                        chosen = i;
+                        break;
                     }
-                    Block blk = Block.getBlockById(blockIds[chosen]);
-                    if (blk != null && blk != Blocks.air)
-                        ops.add(new int[] { bx, by, bz, blockIds[chosen], metas[chosen] });
                 }
-            }
-        }
+                Block blk = Block.getBlockById(blockIds[chosen]);
+                if (blk != null && blk != Blocks.air)
+                    ops.add(new int[] { bx, by, bz, blockIds[chosen], metas[chosen] });
+                return true;
+            });
 
         if (!ops.isEmpty()) {
             String action = (hollow ? "Hollow " : "") + type.label;

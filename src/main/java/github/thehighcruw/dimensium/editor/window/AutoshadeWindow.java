@@ -23,7 +23,7 @@ import github.thehighcruw.dimensium.DimensiumConfig;
 import github.thehighcruw.dimensium.editor.overlay.OverlayRenderer;
 import github.thehighcruw.dimensium.editor.window.imgui.DeferredItemRender;
 import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
-import github.thehighcruw.dimensium.editor.window.imgui.ImGuiWindow;
+import github.thehighcruw.dimensium.editor.window.imgui.ToggleableWindow;
 import github.thehighcruw.dimensium.shared.BlockSender;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import imgui.ImGui;
@@ -33,7 +33,7 @@ import imgui.type.ImInt;
 import imgui.type.ImString;
 
 @SideOnly(Side.CLIENT)
-public class AutoshadeWindow extends ImGuiWindow {
+public class AutoshadeWindow extends ToggleableWindow {
 
     public static final AutoshadeWindow INSTANCE = new AutoshadeWindow();
 
@@ -41,8 +41,6 @@ public class AutoshadeWindow extends ImGuiWindow {
 
     private static final int LIGHT_MODE_PLAYER = 0;
     private static final int LIGHT_MODE_SUN = 1;
-
-    private boolean open = false;
 
     private boolean useSun = true;
     private final ImInt lightMode = new ImInt(LIGHT_MODE_PLAYER);
@@ -67,11 +65,6 @@ public class AutoshadeWindow extends ImGuiWindow {
 
     public void open() {
         setOpen(true);
-    }
-
-    @Override
-    public boolean isOpen() {
-        return open;
     }
 
     public void renderImGui() {

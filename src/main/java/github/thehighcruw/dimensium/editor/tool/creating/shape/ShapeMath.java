@@ -408,6 +408,86 @@ public class ShapeMath {
     }
 
     /**
+     * Functional interface for iterateRotatedShape — receives the offset of each voxel
+     * that passes the shape test. Return false to stop iteration early.
+     */
+    @FunctionalInterface
+    public interface ShapeVoxelConsumer {
+
+        boolean accept(int ox, int oy, int oz);
+    }
+
+    /**
+     * Computes the integer AABB of a shape's base bounding box after rotation.
+     * Returns int[6] = {ix0, iy0, iz0, ix1, iy1, iz1}.
+     */
+    public static int[] computeRotatedBounds(float[] R, int w, int h, int d) {
+        float ccx = w / 2f, ccy = h / 2f, ccz = d / 2f;
+        float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE, minZ = Float.MAX_VALUE;
+        float maxX = -Float.MAX_VALUE, maxY = -Float.MAX_VALUE, maxZ = -Float.MAX_VALUE;
+        for (int mask = 0; mask < 8; mask++) {
+            float hx = ((mask & 1) != 0 ? w : 0) - ccx;
+            float hy = ((mask & 2) != 0 ? h : 0) - ccy;
+            float hz = ((mask & 4) != 0 ? d : 0) - ccz;
+            float wx = R[0] * hx + R[1] * hy + R[2] * hz + ccx;
+            float wy = R[3] * hx + R[4] * hy + R[5] * hz + ccy;
+            float wz = R[6] * hx + R[7] * hy + R[8] * hz + ccz;
+            if (wx < minX) minX = wx;
+            if (wx > maxX) maxX = wx;
+            if (wy < minY) minY = wy;
+            if (wy > maxY) maxY = wy;
+            if (wz < minZ) minZ = wz;
+            if (wz > maxZ) maxZ = wz;
+        }
+        return new int[] { (int) Math.floor(minX), (int) Math.floor(minY), (int) Math.floor(minZ),
+            (int) Math.ceil(maxX), (int) Math.ceil(maxY), (int) Math.ceil(maxZ) };
+    }
+
+    /**
+     * Iterates all voxel offsets inside a (possibly rotated) shape, calling consumer for each.
+     * Consumer returns false to abort early. The inverse rotation (R^T) maps rotated coords
+     * back to local shape space before testing inShapeGeomF.
+     */
+    public static void iterateRotatedShape(ShapeToolState.ShapeType type, int w, int h, int d, boolean hollow,
+        float exponent, int torusRingR, int torusRingRZ, int torusTubeR, int tubeWallThickness, float supersphereExp,
+        int polygonSides, float spiralSpacing, float spiralTurns, float threshold, float[] R, int ix0, int iy0, int iz0,
+        int ix1, int iy1, int iz1, ShapeVoxelConsumer consumer) {
+        float ccx = w / 2f, ccy = h / 2f, ccz = d / 2f;
+        outer: for (int ox = ix0; ox <= ix1; ox++) {
+            for (int oy = iy0; oy <= iy1; oy++) {
+                for (int oz = iz0; oz <= iz1; oz++) {
+                    float dx0 = (ox + 0.5f) - ccx;
+                    float dy0 = (oy + 0.5f) - ccy;
+                    float dz0 = (oz + 0.5f) - ccz;
+                    float ldx = R[0] * dx0 + R[3] * dy0 + R[6] * dz0 + ccx;
+                    float ldy = R[1] * dx0 + R[4] * dy0 + R[7] * dz0 + ccy;
+                    float ldz = R[2] * dx0 + R[5] * dy0 + R[8] * dz0 + ccz;
+                    if (!inShapeGeomF(
+                        type,
+                        ldx,
+                        ldy,
+                        ldz,
+                        w,
+                        h,
+                        d,
+                        hollow,
+                        exponent,
+                        torusRingR,
+                        torusRingRZ,
+                        torusTubeR,
+                        tubeWallThickness,
+                        supersphereExp,
+                        polygonSides,
+                        spiralSpacing,
+                        spiralTurns,
+                        threshold)) continue;
+                    if (!consumer.accept(ox, oy, oz)) break outer;
+                }
+            }
+        }
+    }
+
+    /**
      * Multiply two row-major 3×3 matrices: C = A * B.
      */
     public static float[] multiplyRotationMatrices(float[] A, float[] B) {

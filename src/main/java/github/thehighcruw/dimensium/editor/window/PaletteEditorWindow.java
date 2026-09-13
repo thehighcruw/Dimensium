@@ -17,7 +17,7 @@ import github.thehighcruw.dimensium.editor.tool.state.PaletteRegistry;
 import github.thehighcruw.dimensium.editor.tool.state.PaletteRegistry.PaletteCategory;
 import github.thehighcruw.dimensium.editor.window.imgui.DeferredItemRender;
 import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
-import github.thehighcruw.dimensium.editor.window.imgui.ImGuiWindow;
+import github.thehighcruw.dimensium.editor.window.imgui.ToggleableWindow;
 import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImGuiCond;
@@ -27,11 +27,10 @@ import imgui.type.ImBoolean;
 import imgui.type.ImString;
 
 @SideOnly(Side.CLIENT)
-public class PaletteEditorWindow extends ImGuiWindow {
+public class PaletteEditorWindow extends ToggleableWindow {
 
     public static final PaletteEditorWindow INSTANCE = new PaletteEditorWindow();
 
-    public boolean open = false;
     private boolean skipFirstFrame = false;
 
     private int selectedCategory = -1;
@@ -51,11 +50,6 @@ public class PaletteEditorWindow extends ImGuiWindow {
     private float splitPx = -1f;
 
     private PaletteEditorWindow() {}
-
-    @Override
-    public boolean isOpen() {
-        return open;
-    }
 
     public void setOpen(boolean value) {
         if (value) {

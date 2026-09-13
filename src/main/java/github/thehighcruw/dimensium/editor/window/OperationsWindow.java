@@ -12,7 +12,7 @@ import github.thehighcruw.dimensium.DimensiumConfig;
 import github.thehighcruw.dimensium.editor.handler.EditorActions;
 import github.thehighcruw.dimensium.editor.handler.SelectionOps;
 import github.thehighcruw.dimensium.editor.tool.selecting.SelectedBlockState;
-import github.thehighcruw.dimensium.editor.window.imgui.ImGuiWindow;
+import github.thehighcruw.dimensium.editor.window.imgui.ToggleableWindow;
 import github.thehighcruw.dimensium.shared.BlockSender;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import imgui.ImGui;
@@ -20,20 +20,13 @@ import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
 
 @SideOnly(Side.CLIENT)
-public class OperationsWindow extends ImGuiWindow {
+public class OperationsWindow extends ToggleableWindow {
 
     public static final OperationsWindow INSTANCE = new OperationsWindow();
 
     private static final String WINDOW_ID = "###operations_window";
 
-    private boolean open = false;
-
     private OperationsWindow() {}
-
-    @Override
-    public boolean isOpen() {
-        return open;
-    }
 
     public void setOpen(boolean value) {
         open = value;

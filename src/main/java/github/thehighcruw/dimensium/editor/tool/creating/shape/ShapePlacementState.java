@@ -149,28 +149,11 @@ public class ShapePlacementState {
 
         float[] R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
 
-        // Compute AABB of the rotated base bounding box corners.
-        float ccx = w / 2f, ccy = h / 2f, ccz = d / 2f;
-        float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE, minZ = Float.MAX_VALUE;
-        float maxX = -Float.MAX_VALUE, maxY = -Float.MAX_VALUE, maxZ = -Float.MAX_VALUE;
-        for (int mask = 0; mask < 8; mask++) {
-            float hx = ((mask & 1) != 0 ? w : 0) - ccx;
-            float hy = ((mask & 2) != 0 ? h : 0) - ccy;
-            float hz = ((mask & 4) != 0 ? d : 0) - ccz;
-            float wx = R[0] * hx + R[1] * hy + R[2] * hz + ccx;
-            float wy = R[3] * hx + R[4] * hy + R[5] * hz + ccy;
-            float wz = R[6] * hx + R[7] * hy + R[8] * hz + ccz;
-            if (wx < minX) minX = wx;
-            if (wx > maxX) maxX = wx;
-            if (wy < minY) minY = wy;
-            if (wy > maxY) maxY = wy;
-            if (wz < minZ) minZ = wz;
-            if (wz > maxZ) maxZ = wz;
-        }
-        int ix0 = (int) Math.floor(minX), iy0 = (int) Math.floor(minY), iz0 = (int) Math.floor(minZ);
-        int ix1 = (int) Math.ceil(maxX), iy1 = (int) Math.ceil(maxY), iz1 = (int) Math.ceil(maxZ);
+        int[] bounds = ShapeMath.computeRotatedBounds(R, w, h, d);
+        int ix0 = bounds[0], iy0 = bounds[1], iz0 = bounds[2];
+        int ix1 = bounds[3], iy1 = bounds[4], iz1 = bounds[5];
 
-        ghostBlocks = buildGhostBlocks(s, w, h, d, R, ccx, ccy, ccz, ix0, iy0, iz0, ix1, iy1, iz1);
+        ghostBlocks = buildGhostBlocks(s, w, h, d, R, ix0, iy0, iz0, ix1, iy1, iz1);
         rebuildShapeProposal();
     }
 
@@ -205,48 +188,38 @@ public class ShapePlacementState {
         preview = p;
     }
 
-    private static List<int[]> buildGhostBlocks(ShapeToolState s, int w, int h, int d, float[] R, float ccx, float ccy,
-        float ccz, int ix0, int iy0, int iz0, int ix1, int iy1, int iz1) {
+    private static List<int[]> buildGhostBlocks(ShapeToolState s, int w, int h, int d, float[] R, int ix0, int iy0,
+        int iz0, int ix1, int iy1, int iz1) {
         int maxGhost = DimensiumConfig.maxGhostBlocks;
         List<int[]> blocks = new ArrayList<>();
-
-        for (int ox = ix0; ox <= ix1; ox++) {
-            for (int oy = iy0; oy <= iy1; oy++) {
-                for (int oz = iz0; oz <= iz1; oz++) {
-                    // Sample at block center; inverse-transform (R^T) back to local space.
-                    float dx0 = (ox + 0.5f) - ccx;
-                    float dy0 = (oy + 0.5f) - ccy;
-                    float dz0 = (oz + 0.5f) - ccz;
-                    float ldx = R[0] * dx0 + R[3] * dy0 + R[6] * dz0 + ccx;
-                    float ldy = R[1] * dx0 + R[4] * dy0 + R[7] * dz0 + ccy;
-                    float ldz = R[2] * dx0 + R[5] * dy0 + R[8] * dz0 + ccz;
-
-                    if (!ShapeMath.inShapeGeomF(
-                        s.shapeType,
-                        ldx,
-                        ldy,
-                        ldz,
-                        w,
-                        h,
-                        d,
-                        s.shapeHollow,
-                        s.shapeExponent,
-                        s.torusRingRadius,
-                        s.torusRingRadiusZ,
-                        s.torusTubeRadius,
-                        s.tubeWallThickness,
-                        s.shapeSupersphereExp,
-                        s.shapePolygonSides,
-                        s.shapeSpiralSpacing,
-                        s.shapeSpiralTurns,
-                        DimensiumConfig.shapeThreshold)) continue;
-
-                    if (blocks.size() >= maxGhost) return null;
-                    blocks.add(new int[] { ox, oy, oz });
-                }
-            }
-        }
-        return blocks;
+        ShapeMath.iterateRotatedShape(
+            s.shapeType,
+            w,
+            h,
+            d,
+            s.shapeHollow,
+            s.shapeExponent,
+            s.torusRingRadius,
+            s.torusRingRadiusZ,
+            s.torusTubeRadius,
+            s.tubeWallThickness,
+            s.shapeSupersphereExp,
+            s.shapePolygonSides,
+            s.shapeSpiralSpacing,
+            s.shapeSpiralTurns,
+            DimensiumConfig.shapeThreshold,
+            R,
+            ix0,
+            iy0,
+            iz0,
+            ix1,
+            iy1,
+            iz1,
+            (ox, oy, oz) -> {
+                blocks.add(new int[] { ox, oy, oz });
+                return blocks.size() < maxGhost;
+            });
+        return blocks.size() >= maxGhost ? null : blocks;
     }
 
     private String buildKey(ShapeToolState s) {

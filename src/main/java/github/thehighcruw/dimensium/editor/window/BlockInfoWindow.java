@@ -16,7 +16,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.DimensiumConfig;
 import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
-import github.thehighcruw.dimensium.editor.window.imgui.ImGuiWindow;
+import github.thehighcruw.dimensium.editor.window.imgui.ToggleableWindow;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
 import imgui.ImGui;
 import imgui.flag.ImGuiCond;
@@ -24,7 +24,7 @@ import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
 
 @SideOnly(Side.CLIENT)
-public class BlockInfoWindow extends ImGuiWindow {
+public class BlockInfoWindow extends ToggleableWindow {
 
     public static final BlockInfoWindow INSTANCE = new BlockInfoWindow();
 
@@ -32,14 +32,7 @@ public class BlockInfoWindow extends ImGuiWindow {
     private static final int FLAGS = ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar
         | ImGuiWindowFlags.NoScrollWithMouse;
 
-    private boolean open = false;
-
     private BlockInfoWindow() {}
-
-    @Override
-    public boolean isOpen() {
-        return open;
-    }
 
     public void setOpen(boolean value) {
         open = value;

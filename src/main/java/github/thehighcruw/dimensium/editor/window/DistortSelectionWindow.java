@@ -11,7 +11,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.tool.manipulating.distort.DistortToolState;
 import github.thehighcruw.dimensium.editor.tool.selecting.BooleanOp;
 import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
-import github.thehighcruw.dimensium.editor.window.imgui.ImGuiWindow;
+import github.thehighcruw.dimensium.editor.window.imgui.ToggleableWindow;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.SelectionTransforms;
 import imgui.ImGui;
@@ -19,11 +19,9 @@ import imgui.flag.ImGuiCond;
 import imgui.type.ImBoolean;
 
 @SideOnly(Side.CLIENT)
-public class DistortSelectionWindow extends ImGuiWindow {
+public class DistortSelectionWindow extends ToggleableWindow {
 
     public static final DistortSelectionWindow INSTANCE = new DistortSelectionWindow();
-
-    private boolean open = false;
 
     private final float[] scale = { 10f };
     private final float[] distX = { 3f };
@@ -43,11 +41,6 @@ public class DistortSelectionWindow extends ImGuiWindow {
         distZ[0] = s.distortDistanceZ;
         seed = s.distortSeed;
         open = true;
-    }
-
-    @Override
-    public boolean isOpen() {
-        return open;
     }
 
     public void close() {

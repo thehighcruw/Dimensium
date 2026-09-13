@@ -17,7 +17,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.overlay.OverlayRenderer;
 import github.thehighcruw.dimensium.editor.window.imgui.DeferredItemRender;
 import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
-import github.thehighcruw.dimensium.editor.window.imgui.ImGuiWindow;
+import github.thehighcruw.dimensium.editor.window.imgui.ToggleableWindow;
 import github.thehighcruw.dimensium.shared.BlockSender;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import imgui.ImGui;
@@ -26,7 +26,7 @@ import imgui.type.ImBoolean;
 import imgui.type.ImInt;
 
 @SideOnly(Side.CLIENT)
-public class FillSelectionWindow extends ImGuiWindow {
+public class FillSelectionWindow extends ToggleableWindow {
 
     public static final FillSelectionWindow INSTANCE = new FillSelectionWindow();
 
@@ -41,8 +41,6 @@ public class FillSelectionWindow extends ImGuiWindow {
     private static final int[][] FACE_DIRS = { { 1, 0, 0 }, { -1, 0, 0 }, { 0, 1, 0 }, { 0, -1, 0 }, { 0, 0, 1 },
         { 0, 0, -1 } };
 
-    private boolean open = false;
-
     private ItemStack selectedBlock = null;
     private final ImInt fillMode = new ImInt(MODE_FILL_ALL);
 
@@ -52,11 +50,6 @@ public class FillSelectionWindow extends ImGuiWindow {
         selectedBlock = null;
         fillMode.set(MODE_FILL_ALL);
         open = true;
-    }
-
-    @Override
-    public boolean isOpen() {
-        return open;
     }
 
     public void close() {

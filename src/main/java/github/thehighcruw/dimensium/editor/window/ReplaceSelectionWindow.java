@@ -18,7 +18,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.overlay.OverlayRenderer;
 import github.thehighcruw.dimensium.editor.window.imgui.DeferredItemRender;
 import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
-import github.thehighcruw.dimensium.editor.window.imgui.ImGuiWindow;
+import github.thehighcruw.dimensium.editor.window.imgui.ToggleableWindow;
 import github.thehighcruw.dimensium.shared.BlockSender;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import imgui.ImGui;
@@ -26,13 +26,11 @@ import imgui.flag.ImGuiCond;
 import imgui.type.ImBoolean;
 
 @SideOnly(Side.CLIENT)
-public class ReplaceSelectionWindow extends ImGuiWindow {
+public class ReplaceSelectionWindow extends ToggleableWindow {
 
     public static final ReplaceSelectionWindow INSTANCE = new ReplaceSelectionWindow();
 
     private static final String WINDOW_ID = "###replace_selection_window";
-
-    private boolean open = false;
 
     private ItemStack findBlock = null;
     private ItemStack replaceBlock = null;
@@ -45,11 +43,6 @@ public class ReplaceSelectionWindow extends ImGuiWindow {
         replaceBlock = null;
         exactMeta = false;
         open = true;
-    }
-
-    @Override
-    public boolean isOpen() {
-        return open;
     }
 
     public void close() {

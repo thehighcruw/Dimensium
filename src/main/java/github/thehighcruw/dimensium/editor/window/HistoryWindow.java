@@ -13,18 +13,17 @@ import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.DimensiumConfig;
 import github.thehighcruw.dimensium.editor.history.ClientEditHistory;
 import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
-import github.thehighcruw.dimensium.editor.window.imgui.ImGuiWindow;
+import github.thehighcruw.dimensium.editor.window.imgui.ToggleableWindow;
 import imgui.ImGui;
 import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
 
 @SideOnly(Side.CLIENT)
-public class HistoryWindow extends ImGuiWindow {
+public class HistoryWindow extends ToggleableWindow {
 
     public static final HistoryWindow INSTANCE = new HistoryWindow();
 
-    public boolean open = false;
     private boolean skipFirstFrame = false;
 
     public void setOpen(boolean value) {
@@ -40,11 +39,6 @@ public class HistoryWindow extends ImGuiWindow {
     private static final float[] C_SEP = { 1.0f, 1.0f, 1.0f, 0.06f };
 
     private HistoryWindow() {}
-
-    @Override
-    public boolean isOpen() {
-        return open;
-    }
 
     public void renderImGui() {
         if (!open) return;

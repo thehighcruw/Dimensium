@@ -83,23 +83,13 @@ public class SelectionState {
             boundsDirty = false;
             return;
         }
-        int mnX = Integer.MAX_VALUE, mnY = Integer.MAX_VALUE, mnZ = Integer.MAX_VALUE;
-        int mxX = Integer.MIN_VALUE, mxY = Integer.MIN_VALUE, mxZ = Integer.MIN_VALUE;
-        for (long key : selectedBlocks) {
-            int x = unpackX(key), y = unpackY(key), z = unpackZ(key);
-            if (x < mnX) mnX = x;
-            if (x > mxX) mxX = x;
-            if (y < mnY) mnY = y;
-            if (y > mxY) mxY = y;
-            if (z < mnZ) mnZ = z;
-            if (z > mxZ) mxZ = z;
-        }
-        cachedMinX = mnX;
-        cachedMinY = mnY;
-        cachedMinZ = mnZ;
-        cachedMaxX = mxX;
-        cachedMaxY = mxY;
-        cachedMaxZ = mxZ;
+        int[] b = computeBounds(selectedBlocks);
+        cachedMinX = b[0];
+        cachedMinY = b[1];
+        cachedMinZ = b[2];
+        cachedMaxX = b[3];
+        cachedMaxY = b[4];
+        cachedMaxZ = b[5];
         boundsDirty = false;
     }
 
@@ -342,6 +332,27 @@ public class SelectionState {
             }
         }
         clipboard = map;
+    }
+
+    // ── Bounds utility ────────────────────────────────────────────────────────
+
+    /**
+     * Returns int[6] = {minX, minY, minZ, maxX, maxY, maxZ} for an arbitrary block set.
+     * Caller must check that blocks is non-empty.
+     */
+    public static int[] computeBounds(Iterable<Long> keys) {
+        int mnX = Integer.MAX_VALUE, mnY = Integer.MAX_VALUE, mnZ = Integer.MAX_VALUE;
+        int mxX = Integer.MIN_VALUE, mxY = Integer.MIN_VALUE, mxZ = Integer.MIN_VALUE;
+        for (long key : keys) {
+            int x = unpackX(key), y = unpackY(key), z = unpackZ(key);
+            if (x < mnX) mnX = x;
+            if (x > mxX) mxX = x;
+            if (y < mnY) mnY = y;
+            if (y > mxY) mxY = y;
+            if (z < mnZ) mnZ = z;
+            if (z > mxZ) mxZ = z;
+        }
+        return new int[] { mnX, mnY, mnZ, mxX, mxY, mxZ };
     }
 
     // ── Coordinate packing ────────────────────────────────────────────────────

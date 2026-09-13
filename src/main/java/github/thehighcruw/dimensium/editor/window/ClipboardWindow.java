@@ -12,7 +12,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.DimensiumConfig;
 import github.thehighcruw.dimensium.editor.handler.EditorActions;
-import github.thehighcruw.dimensium.editor.window.imgui.ImGuiWindow;
+import github.thehighcruw.dimensium.editor.window.imgui.ToggleableWindow;
 import github.thehighcruw.dimensium.editor.window.popup.BlueprintBrowserPopup;
 import github.thehighcruw.dimensium.editor.window.popup.CreateBlueprintPopup;
 import github.thehighcruw.dimensium.editor.window.viewport.world.ClipboardRenderer;
@@ -24,23 +24,17 @@ import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
 
 @SideOnly(Side.CLIENT)
-public class ClipboardWindow extends ImGuiWindow {
+public class ClipboardWindow extends ToggleableWindow {
 
     public static final ClipboardWindow INSTANCE = new ClipboardWindow();
 
     private static final String WINDOW_ID = "###clipboard_window";
 
-    private boolean open = false;
     private boolean pendingBlueprintOpen = false;
 
     private final ClipboardRenderer clipRenderer = new ClipboardRenderer();
 
     private ClipboardWindow() {}
-
-    @Override
-    public boolean isOpen() {
-        return open;
-    }
 
     public void setOpen(boolean value) {
         open = value;

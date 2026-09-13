@@ -10,18 +10,16 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.handler.EditorActions;
 import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
-import github.thehighcruw.dimensium.editor.window.imgui.ImGuiWindow;
+import github.thehighcruw.dimensium.editor.window.imgui.ToggleableWindow;
 import github.thehighcruw.dimensium.shared.BlockColorCache;
 import imgui.ImGui;
 import imgui.flag.ImGuiCond;
 import imgui.type.ImBoolean;
 
 @SideOnly(Side.CLIENT)
-public class ColourFieldWindow extends ImGuiWindow {
+public class ColourFieldWindow extends ToggleableWindow {
 
     public static final ColourFieldWindow INSTANCE = new ColourFieldWindow();
-
-    private boolean open = false;
 
     private final ImBoolean includeSolid = new ImBoolean(true);
     private final ImBoolean includeTranslucent = new ImBoolean(false);
@@ -33,11 +31,6 @@ public class ColourFieldWindow extends ImGuiWindow {
 
     public void open() {
         open = true;
-    }
-
-    @Override
-    public boolean isOpen() {
-        return open;
     }
 
     public void close() {

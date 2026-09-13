@@ -12,7 +12,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.overlay.LayoutPresetRegistry;
 import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
-import github.thehighcruw.dimensium.editor.window.imgui.ImGuiWindow;
+import github.thehighcruw.dimensium.editor.window.imgui.ToggleableWindow;
 import imgui.ImGui;
 import imgui.flag.ImGuiInputTextFlags;
 import imgui.flag.ImGuiWindowFlags;
@@ -20,23 +20,17 @@ import imgui.type.ImBoolean;
 import imgui.type.ImString;
 
 @SideOnly(Side.CLIENT)
-public class LayoutPresetManageWindow extends ImGuiWindow {
+public class LayoutPresetManageWindow extends ToggleableWindow {
 
     public static final LayoutPresetManageWindow INSTANCE = new LayoutPresetManageWindow();
 
     private static final String WINDOW_ID = "###layout_preset_manage";
 
-    private boolean open = false;
     private int renamingIndex = -1;
     private boolean renamingFocused = false;
     private final ImString renameBuffer = new ImString(128);
 
     private LayoutPresetManageWindow() {}
-
-    @Override
-    public boolean isOpen() {
-        return open;
-    }
 
     public void open() {
         open = true;

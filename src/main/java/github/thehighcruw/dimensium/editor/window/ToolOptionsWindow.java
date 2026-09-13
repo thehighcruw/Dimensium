@@ -13,25 +13,20 @@ import github.thehighcruw.dimensium.DimensiumEditorMode;
 import github.thehighcruw.dimensium.editor.overlay.MenuBar;
 import github.thehighcruw.dimensium.editor.tool.ToolSection;
 import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
-import github.thehighcruw.dimensium.editor.window.imgui.ImGuiWindow;
+import github.thehighcruw.dimensium.editor.window.imgui.ToggleableWindow;
 import imgui.ImGui;
 import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiStyleVar;
 import imgui.type.ImBoolean;
 
 @SideOnly(Side.CLIENT)
-public class ToolOptionsWindow extends ImGuiWindow {
+public class ToolOptionsWindow extends ToggleableWindow {
 
     private final ToolWindow toolWindow;
-    private boolean open = true;
 
     public ToolOptionsWindow(ToolWindow toolWindow) {
+        super(true);
         this.toolWindow = toolWindow;
-    }
-
-    @Override
-    public boolean isOpen() {
-        return open;
     }
 
     public void setOpen(boolean value) {

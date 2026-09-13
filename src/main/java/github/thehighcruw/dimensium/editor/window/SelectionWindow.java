@@ -12,7 +12,7 @@ import github.thehighcruw.dimensium.DimensiumConfig;
 import github.thehighcruw.dimensium.DimensiumEditorMode;
 import github.thehighcruw.dimensium.editor.tool.Tool;
 import github.thehighcruw.dimensium.editor.tool.selecting.BooleanOp;
-import github.thehighcruw.dimensium.editor.window.imgui.ImGuiWindow;
+import github.thehighcruw.dimensium.editor.window.imgui.ToggleableWindow;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.SelectionTransforms;
 import imgui.ImGui;
@@ -20,20 +20,13 @@ import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
 
 @SideOnly(Side.CLIENT)
-public class SelectionWindow extends ImGuiWindow {
+public class SelectionWindow extends ToggleableWindow {
 
     public static final SelectionWindow INSTANCE = new SelectionWindow();
 
     private static final String WINDOW_ID = "###selection_window";
 
-    private boolean open = false;
-
     private SelectionWindow() {}
-
-    @Override
-    public boolean isOpen() {
-        return open;
-    }
 
     public void setOpen(boolean value) {
         open = value;
