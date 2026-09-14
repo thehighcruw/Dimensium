@@ -4,9 +4,8 @@
  */
 package github.thehighcruw.dimensium.editor.tool.creating.stamp;
 
-import java.util.Map;
+import java.util.ArrayList;
 
-import net.minecraft.block.Block;
 import net.minecraft.client.resources.I18n;
 
 import cpw.mods.fml.relauncher.Side;
@@ -47,8 +46,8 @@ public class StampSection implements ToolSection {
             StampEntry entry = state.blueprints.get(i);
             ImGui.pushID(i);
 
-            String label = entry.blueprint.name.isEmpty() ? I18n.format("dimensium.stamp.unnamed")
-                : entry.blueprint.name;
+            String label = entry.blueprint.name()
+                .isEmpty() ? I18n.format("dimensium.stamp.unnamed") : entry.blueprint.name();
             ImGui.text(label);
             ImGui.sameLine();
             if (ImGui.smallButton(I18n.format("dimensium.stamp.remove") + "##rm")) removeIdx = i;
@@ -129,19 +128,14 @@ public class StampSection implements ToolSection {
         SelectionState sel = SelectionState.INSTANCE;
         if (sel.clipboard == null || sel.clipboard.isEmpty()) return;
 
-        Blueprint bp = new Blueprint();
-        bp.name = I18n.format("dimensium.stamp.clipboard_name");
-        bp.clipW = sel.clipW;
-        bp.clipH = sel.clipH;
-        bp.clipD = sel.clipD;
-        for (Map.Entry<Long, SelectionState.BlockData> e : sel.clipboard.entrySet()) {
-            long key = e.getKey();
-            int lx = (int) (key >> 20) & 0xFFFFF;
-            int ly = (int) (key >> 10) & 0x3FF;
-            int lz = (int) key & 0x3FF;
-            SelectionState.BlockData bd = e.getValue();
-            bp.offsets.add(new int[] { lx, ly, lz, Block.getIdFromBlock(bd.block()), bd.meta() });
-        }
+        Blueprint bp = Blueprint.fromClipboard(
+            I18n.format("dimensium.stamp.clipboard_name"),
+            new ArrayList<>(),
+            sel.clipboard,
+            sel.clipW,
+            sel.clipH,
+            sel.clipD,
+            null);
         state.blueprints.add(new StampEntry(bp));
     }
 }

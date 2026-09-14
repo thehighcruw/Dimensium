@@ -20,6 +20,7 @@ import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
 import github.thehighcruw.dimensium.editor.window.imgui.ToggleableWindow;
 import github.thehighcruw.dimensium.shared.BlockSender;
 import github.thehighcruw.dimensium.shared.SelectionState;
+import github.thehighcruw.dimensium.shared.Vec3DInt;
 import imgui.ImGui;
 import imgui.flag.ImGuiCond;
 import imgui.type.ImBoolean;
@@ -149,9 +150,8 @@ public class FillSelectionWindow extends ToggleableWindow {
         List<int[]> ops = new ArrayList<>();
 
         for (long key : selected) {
-            int x = SelectionState.unpackX(key);
-            int y = SelectionState.unpackY(key);
-            int z = SelectionState.unpackZ(key);
+            Vec3DInt cv = SelectionState.unpack(key);
+            int x = cv.x(), y = cv.y(), z = cv.z();
             if (matchesFillMode(selected, x, y, z, fillMode.get())) {
                 ops.add(new int[] { x, y, z, blockId, blockMeta });
             }
@@ -165,16 +165,17 @@ public class FillSelectionWindow extends ToggleableWindow {
         return switch (mode) {
             case MODE_FILL_OUTLINE -> {
                 for (int[] f : FACE_DIRS) {
-                    if (!selected.contains(SelectionState.pack(x + f[0], y + f[1], z + f[2]))) yield true;
+                    if (!selected.contains(SelectionState.pack(Vec3DInt.from(x + f[0], y + f[1], z + f[2]))))
+                        yield true;
                 }
                 yield false;
             }
-            case MODE_FILL_WALLS -> !selected.contains(SelectionState.pack(x + 1, y, z))
-                || !selected.contains(SelectionState.pack(x - 1, y, z))
-                || !selected.contains(SelectionState.pack(x, y, z + 1))
-                || !selected.contains(SelectionState.pack(x, y, z - 1));
-            case MODE_FILL_TOP -> !selected.contains(SelectionState.pack(x, y + 1, z));
-            case MODE_FILL_BOTTOM -> !selected.contains(SelectionState.pack(x, y - 1, z));
+            case MODE_FILL_WALLS -> !selected.contains(SelectionState.pack(Vec3DInt.from(x + 1, y, z)))
+                || !selected.contains(SelectionState.pack(Vec3DInt.from(x - 1, y, z)))
+                || !selected.contains(SelectionState.pack(Vec3DInt.from(x, y, z + 1)))
+                || !selected.contains(SelectionState.pack(Vec3DInt.from(x, y, z - 1)));
+            case MODE_FILL_TOP -> !selected.contains(SelectionState.pack(Vec3DInt.from(x, y + 1, z)));
+            case MODE_FILL_BOTTOM -> !selected.contains(SelectionState.pack(Vec3DInt.from(x, y - 1, z)));
             default -> true;
         };
     }

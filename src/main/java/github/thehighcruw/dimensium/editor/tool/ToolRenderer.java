@@ -13,6 +13,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.overlay.OverlayRenderer;
 import github.thehighcruw.dimensium.editor.window.viewport.world.BrushPreviewRenderer;
 import github.thehighcruw.dimensium.editor.window.viewport.world.SelectionRenderer;
+import github.thehighcruw.dimensium.shared.Vec3DDouble;
 
 /**
  * Per-tool world-space rendering contract. Every tool must register one in
@@ -32,7 +33,7 @@ public interface ToolRenderer {
         }
 
         @Override
-        public boolean renderHover(MovingObjectPosition mop, double rx, double ry, double rz) {
+        public boolean renderHover(MovingObjectPosition mop, Vec3DDouble camPos) {
             return true;
         }
     };
@@ -46,8 +47,8 @@ public interface ToolRenderer {
         }
 
         @Override
-        public void renderWorldPreview(Minecraft mc, double rx, double ry, double rz) {
-            BrushPreviewRenderer.INSTANCE.render(this, mc, rx, ry, rz);
+        public void renderWorldPreview(Minecraft mc, Vec3DDouble camPos) {
+            BrushPreviewRenderer.INSTANCE.render(this, mc, camPos);
         }
     };
 
@@ -58,16 +59,16 @@ public interface ToolRenderer {
      * Optional extra in-world render (ruler lines, elevation circle, etc.).
      * Return true to suppress the standard brush wireframe entirely.
      */
-    default boolean renderHover(MovingObjectPosition mop, double rx, double ry, double rz) {
+    default boolean renderHover(MovingObjectPosition mop, Vec3DDouble camPos) {
         return false;
     }
 
     /**
      * Called from {@link SelectionRenderer} once per world-render tick
      * while this tool is active. Default is a no-op. Tools with a brush preview override this to call
-     * {@link BrushPreviewRenderer#render(ToolRenderer, net.minecraft.client.Minecraft, double, double, double)}.
+     * {@link BrushPreviewRenderer#render(ToolRenderer, Minecraft, Vec3DDouble)}.
      */
-    default void renderWorldPreview(Minecraft mc, double rx, double ry, double rz) {}
+    default void renderWorldPreview(Minecraft mc, Vec3DDouble camPos) {}
 
     /**
      * Per-frame overlay update called from {@link OverlayRenderer} once per render

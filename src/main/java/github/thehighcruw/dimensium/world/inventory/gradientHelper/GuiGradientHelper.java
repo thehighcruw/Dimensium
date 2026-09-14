@@ -23,6 +23,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.shared.BlockColorCache;
 import github.thehighcruw.dimensium.shared.KeyConstants;
+import github.thehighcruw.dimensium.world.inventory.CreativeGuiUtils;
 import github.thehighcruw.dimensium.world.inventory.GuiToggleButton;
 
 @SideOnly(Side.CLIENT)
@@ -80,12 +81,7 @@ public class GuiGradientHelper extends GuiContainer {
         buttonList.clear();
 
         // FSOT — top-right, aligned with title row
-        int fsotRightEdge = guiLeft + PANEL_W - 6;
-        int fsotY = guiTop + 5;
-        buttonList.add(new GuiToggleButton(BTN_T, fsotRightEdge - 16, fsotY, 16, 12, "T", filterSameTexture));
-        buttonList.add(new GuiToggleButton(BTN_O, fsotRightEdge - 35, fsotY, 16, 12, "O", filterOpaque));
-        buttonList.add(new GuiToggleButton(BTN_S, fsotRightEdge - 54, fsotY, 16, 12, "S", filterSolid));
-        buttonList.add(new GuiToggleButton(BTN_F, fsotRightEdge - 73, fsotY, 16, 12, "F", filterFullCube));
+        CreativeGuiUtils.addFsotButtons(buttonList, guiLeft, guiTop, PANEL_W);
 
         // Copy to Hotbar — centered between output row and hotbar
         int copyW = 80;

@@ -15,6 +15,7 @@ import net.minecraft.world.World;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.shared.SelectionState;
+import github.thehighcruw.dimensium.shared.Vec3DInt;
 
 @SideOnly(Side.CLIENT)
 public final class ToolMaskRegistry {
@@ -41,9 +42,8 @@ public final class ToolMaskRegistry {
         if (world == null) return keys;
         Set<Long> result = new HashSet<>(keys.size());
         for (long key : keys) {
-            int x = SelectionState.unpackX(key);
-            int y = SelectionState.unpackY(key);
-            int z = SelectionState.unpackZ(key);
+            Vec3DInt cv = SelectionState.unpack(key);
+            int x = cv.x(), y = cv.y(), z = cv.z();
             if (activeMask.test(world, x, y, z)) result.add(key);
         }
         return result;

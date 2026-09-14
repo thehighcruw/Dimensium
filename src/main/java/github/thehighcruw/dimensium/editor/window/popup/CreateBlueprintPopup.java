@@ -241,30 +241,17 @@ public class CreateBlueprintPopup {
             return;
         }
 
-        Blueprint bp = new Blueprint();
-        bp.name = name;
-        bp.clipW = sel.clipW;
-        bp.clipH = sel.clipH;
-        bp.clipD = sel.clipD;
-
+        byte[] thumbnail = null;
         if (clipRenderer != null) {
             clipRenderer.capturePng();
-            bp.thumbnailPng = clipRenderer.getLatestPng();
+            thumbnail = clipRenderer.getLatestPng();
         }
 
-        bp.tags.addAll(
-            parseTags(
-                tagsField.get()
-                    .trim()));
+        List<String> tags = parseTags(
+            tagsField.get()
+                .trim());
 
-        for (java.util.Map.Entry<Long, SelectionState.BlockData> e : sel.clipboard.entrySet()) {
-            long key = e.getKey();
-            int lx = (int) (key >> 20) & 0xFFFFF;
-            int ly = (int) (key >> 10) & 0x3FF;
-            int lz = (int) key & 0x3FF;
-            SelectionState.BlockData bd = e.getValue();
-            bp.offsets.add(new int[] { lx, ly, lz, net.minecraft.block.Block.getIdFromBlock(bd.block()), bd.meta() });
-        }
+        Blueprint bp = Blueprint.fromClipboard(name, tags, sel.clipboard, sel.clipW, sel.clipH, sel.clipD, thumbnail);
 
         try {
             BlueprintIO.save(bp, BlueprintIO.getBlueprintsDir());

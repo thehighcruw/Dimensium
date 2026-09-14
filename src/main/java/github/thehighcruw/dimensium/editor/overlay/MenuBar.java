@@ -6,8 +6,6 @@ package github.thehighcruw.dimensium.editor.overlay;
 
 import net.minecraft.client.resources.I18n;
 
-import org.lwjgl.input.Keyboard;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.Dimensium;
@@ -45,6 +43,7 @@ import github.thehighcruw.dimensium.editor.window.viewport.ViewportPanel;
 import github.thehighcruw.dimensium.editor.window.viewport.ViewportRegistry;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.SelectionTransforms;
+import github.thehighcruw.dimensium.shared.util.UIUtils;
 import imgui.ImGui;
 
 @SideOnly(Side.CLIENT)
@@ -354,7 +353,7 @@ public final class MenuBar {
             : I18n.format("dimensium.settings.keybind.undo");
         if (ImGui.menuItem(
             undoLabel,
-            shortcut(Dimensium.actionUndo.getKeyCode(), Dimensium.actionUndoMods),
+            UIUtils.getKeyShortcutName(Dimensium.actionUndo.getKeyCode(), Dimensium.actionUndoMods),
             false,
             undoName != null)) {
             EditorActions.undo();
@@ -365,7 +364,7 @@ public final class MenuBar {
             : I18n.format("dimensium.settings.keybind.redo");
         if (ImGui.menuItem(
             redoLabel,
-            shortcut(Dimensium.actionRedo.getKeyCode(), Dimensium.actionRedoMods),
+            UIUtils.getKeyShortcutName(Dimensium.actionRedo.getKeyCode(), Dimensium.actionRedoMods),
             false,
             redoName != null)) {
             EditorActions.redo();
@@ -377,7 +376,7 @@ public final class MenuBar {
 
         if (ImGui.menuItem(
             I18n.format("dimensium.settings.keybind.cut"),
-            shortcut(Dimensium.actionCut.getKeyCode(), Dimensium.actionCutMods),
+            UIUtils.getKeyShortcutName(Dimensium.actionCut.getKeyCode(), Dimensium.actionCutMods),
             false,
             hasSel)) {
             EditorActions.cut();
@@ -385,7 +384,7 @@ public final class MenuBar {
 
         if (ImGui.menuItem(
             I18n.format("dimensium.settings.keybind.copy"),
-            shortcut(Dimensium.actionCopy.getKeyCode(), Dimensium.actionCopyMods),
+            UIUtils.getKeyShortcutName(Dimensium.actionCopy.getKeyCode(), Dimensium.actionCopyMods),
             false,
             hasSel)) {
             EditorActions.copy();
@@ -397,7 +396,7 @@ public final class MenuBar {
         boolean hasClipboard = sel.clipboard != null && !sel.clipboard.isEmpty();
         if (ImGui.menuItem(
             I18n.format("dimensium.blueprint.save"),
-            shortcut(Dimensium.actionSaveBlueprint.getKeyCode(), Dimensium.actionSaveBlueprintMods),
+            UIUtils.getKeyShortcutName(Dimensium.actionSaveBlueprint.getKeyCode(), Dimensium.actionSaveBlueprintMods),
             false,
             hasClipboard)) {
             EditorActions.saveBlueprint();
@@ -519,14 +518,5 @@ public final class MenuBar {
             }
         }
         return null;
-    }
-
-    private static String shortcut(int key, int mods) {
-        StringBuilder sb = new StringBuilder();
-        if ((mods & Dimensium.MOD_CTRL) != 0) sb.append("Ctrl+");
-        if ((mods & Dimensium.MOD_SHIFT) != 0) sb.append("Shift+");
-        if ((mods & Dimensium.MOD_ALT) != 0) sb.append("Alt+");
-        sb.append(Keyboard.getKeyName(key));
-        return sb.toString();
     }
 }

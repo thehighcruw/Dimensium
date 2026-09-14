@@ -26,6 +26,8 @@ import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
 import github.thehighcruw.dimensium.editor.window.imgui.ToggleableWindow;
 import github.thehighcruw.dimensium.shared.BlockSender;
 import github.thehighcruw.dimensium.shared.SelectionState;
+import github.thehighcruw.dimensium.shared.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.Vec3DInt;
 import imgui.ImGui;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
@@ -195,25 +197,21 @@ public class AutoshadeWindow extends ToggleableWindow {
         Set<Long> selected = sel.getSelectedBlocks();
 
         // Build sun direction
-        double sunDirX, sunDirY, sunDirZ;
+        Vec3DDouble sunDir;
         if (useSun && lightMode.get() == LIGHT_MODE_SUN) {
             double yawRad = Math.toRadians(sunYaw[0]);
             double elevRad = Math.toRadians(sunElevation[0]);
-            sunDirX = Math.cos(elevRad) * Math.sin(yawRad);
-            sunDirY = Math.sin(elevRad);
-            sunDirZ = Math.cos(elevRad) * Math.cos(yawRad);
+            sunDir = Vec3DDouble
+                .from(Math.cos(elevRad) * Math.sin(yawRad), Math.sin(elevRad), Math.cos(elevRad) * Math.cos(yawRad));
         } else if (useSun) {
             EntityPlayer p = mc.thePlayer;
             if (p == null) return;
             double yawRad = Math.toRadians(p.rotationYaw);
             double elevRad = Math.toRadians(-p.rotationPitch);
-            sunDirX = Math.cos(elevRad) * -Math.sin(yawRad);
-            sunDirY = Math.sin(elevRad);
-            sunDirZ = Math.cos(elevRad) * Math.cos(yawRad);
+            sunDir = Vec3DDouble
+                .from(Math.cos(elevRad) * -Math.sin(yawRad), Math.sin(elevRad), Math.cos(elevRad) * Math.cos(yawRad));
         } else {
-            sunDirX = 0;
-            sunDirY = 1;
-            sunDirZ = 0;
+            sunDir = Vec3DDouble.from(0, 1, 0);
         }
 
         // Build cumulative weights for palette mapping
@@ -243,36 +241,32 @@ public class AutoshadeWindow extends ToggleableWindow {
         List<int[]> ops = new ArrayList<>();
 
         for (long key : selected) {
-            int x = SelectionState.unpackX(key);
-            int y = SelectionState.unpackY(key);
-            int z = SelectionState.unpackZ(key);
-            Block worldBlock = mc.theWorld.getBlock(x, y, z);
-            if (worldBlock == null || worldBlock == Blocks.air) continue;
+            SelectionState.BlockInfo info = SelectionState.unpackBlock(key);
+            if (info == null || info.block() == Blocks.air) continue;
 
             // Compute surface normal from empty face-neighbors
-            double nx = 0, ny = 0, nz = 0;
+            int x = info.coord()
+                .x(),
+                y = info.coord()
+                    .y(),
+                z = info.coord()
+                    .z();
+            Vec3DDouble normal = Vec3DDouble.ZERO;
             for (int[] f : FACE_DIRS) {
-                long neighborKey = SelectionState.pack(x + f[0], y + f[1], z + f[2]);
+                long neighborKey = SelectionState.pack(Vec3DInt.from(x + f[0], y + f[1], z + f[2]));
                 if (!selected.contains(neighborKey)) {
-                    nx += f[0];
-                    ny += f[1];
-                    nz += f[2];
+                    normal = normal.plus(Vec3DDouble.from(f[0], f[1], f[2]));
                 }
             }
-            double nLen = Math.sqrt(nx * nx + ny * ny + nz * nz);
-            if (nLen > 0) {
-                nx /= nLen;
-                ny /= nLen;
-                nz /= nLen;
-            }
+            if (normal.length() > 0) normal = normal.normalize();
 
             // Diffuse lighting
-            double diffuse = Math.max(0, nx * sunDirX + ny * sunDirY + nz * sunDirZ) * aoStrength[0];
+            double diffuse = Math.max(0, normal.dot(sunDir)) * aoStrength[0];
 
             // Ambient occlusion: fraction of 26 neighbors that are empty in selection
             int emptyNeighbors = 0;
             for (int[] nb : NEIGHBORS_26) {
-                if (!selected.contains(SelectionState.pack(x + nb[0], y + nb[1], z + nb[2]))) {
+                if (!selected.contains(SelectionState.pack(Vec3DInt.from(x + nb[0], y + nb[1], z + nb[2])))) {
                     emptyNeighbors++;
                 }
             }

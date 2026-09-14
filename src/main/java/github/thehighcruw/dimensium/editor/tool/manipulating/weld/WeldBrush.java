@@ -13,6 +13,7 @@ import github.thehighcruw.dimensium.editor.tool.brushes.BrushStrategy;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushUtil;
 import github.thehighcruw.dimensium.editor.tool.brushes.GaussianKernel;
 import github.thehighcruw.dimensium.editor.tool.selecting.SelectedBlockState;
+import github.thehighcruw.dimensium.shared.Vec3DInt;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 
 public class WeldBrush implements BrushStrategy {
@@ -40,7 +41,7 @@ public class WeldBrush implements BrushStrategy {
             int existing = snapId[(dx + sx + margin) * snStX + (dy + sy + margin) * snStY + (dz + sx + margin)];
             if (existing != 0 && !s.weldReplaceSolid) return;
             int ix = dx + sx + margin, iy = dy + sy + margin, iz = dz + sx + margin;
-            if (kernel.solidWeight(snapId, ix, iy, iz, snStX, snStY) / totalW > threshold) {
+            if (kernel.solidWeight(snapId, Vec3DInt.from(ix, iy, iz), snStX, snStY) / totalW > threshold) {
                 ChangeProposal.write(world, wx, wy, wz, paint, meta);
             }
         });

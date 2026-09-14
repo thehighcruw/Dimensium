@@ -46,6 +46,9 @@ import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
 import github.thehighcruw.dimensium.editor.window.viewport.world.ScalingGizmo;
 import github.thehighcruw.dimensium.shared.BlockSender;
 import github.thehighcruw.dimensium.shared.KeyConstants;
+import github.thehighcruw.dimensium.shared.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.Vec3DFloat;
+import github.thehighcruw.dimensium.shared.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.PerfTrace;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
@@ -67,9 +70,7 @@ public class TickHandler {
 
     // Last block position where freehand paint was sent — used to deduplicate
     // per-render-frame packets so each block gets exactly one packet per drag pass.
-    private int lastFreehandX = Integer.MIN_VALUE;
-    private int lastFreehandY = Integer.MIN_VALUE;
-    private int lastFreehandZ = Integer.MIN_VALUE;
+    private Vec3DInt lastFreehand = null;
 
     /** Read-only view of accumulated SMOOTH drag positions. */
     public java.util.Set<Long> getSmoothDragPositions() {
@@ -78,7 +79,7 @@ public class TickHandler {
 
     /** True while a brush paint drag is active (RMB held, first stroke fired). */
     public boolean isPaintDragging() {
-        return lastFreehandX != Integer.MIN_VALUE || ElevationBrushInput.INSTANCE.isPaintDragging();
+        return lastFreehand != null || ElevationBrushInput.INSTANCE.isPaintDragging();
     }
 
     // ── Mouse / camera ────────────────────────────────────────────────────────
@@ -232,16 +233,13 @@ public class TickHandler {
         if (Keyboard.isKeyDown(mc.gameSettings.keyBindJump.getKeyCode())) dy += 1.0;
         if (Keyboard.isKeyDown(mc.gameSettings.keyBindSneak.getKeyCode())) dy -= 1.0;
 
-        double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
-        if (len > 1.0) {
-            dx /= len;
-            dy /= len;
-            dz /= len;
-        }
+        Vec3DDouble move = Vec3DDouble.from(dx, dy, dz);
+        double len = move.length();
+        if (len > 1.0) move = move.divide(len);
 
-        cam.posX += dx * speed;
-        cam.posY += dy * speed;
-        cam.posZ += dz * speed;
+        cam.posX += move.x() * speed;
+        cam.posY += move.y() * speed;
+        cam.posZ += move.z() * speed;
     }
 
     // ── Hold-to-paint ─────────────────────────────────────────────────────────
@@ -271,7 +269,7 @@ public class TickHandler {
         if (!BrushInputRegistry.usesDragLoop(tool)) {
             // Tool switched mid-drag — discard any pending proposal.
             ChangeProposal.cancel();
-            lastFreehandX = Integer.MIN_VALUE;
+            lastFreehand = null;
             return;
         }
         // Suppress paint during any camera movement (pan, orbit, LMB drag).
@@ -282,7 +280,7 @@ public class TickHandler {
             PerfTrace.push("onBrushRelease");
             if (input != null) input.onBrushRelease(mc);
             PerfTrace.pop();
-            if (lastFreehandX != Integer.MIN_VALUE) {
+            if (lastFreehand != null) {
                 PerfTrace.push("flush");
                 java.util.List<int[]> ops = ChangeProposal.flush();
                 PerfTrace.pop();
@@ -291,7 +289,7 @@ public class TickHandler {
                 PerfTrace.pop();
             }
             PerfTrace.end(5);
-            lastFreehandX = Integer.MIN_VALUE;
+            lastFreehand = null;
             return;
         }
         if (mx * sf < OverlayRenderer.TOOL_WINDOW.getWidth() || my * sf < (int) MenuBar.INSTANCE.height()) return;
@@ -300,16 +298,15 @@ public class TickHandler {
         if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return;
 
         // Deduplicate: skip if cursor hasn't moved into a new block since last stroke.
-        if (mop.blockX == lastFreehandX && mop.blockY == lastFreehandY && mop.blockZ == lastFreehandZ) return;
+        Vec3DInt mopPos = Vec3DInt.from(mop.blockX, mop.blockY, mop.blockZ);
+        if (mopPos.equals(lastFreehand)) return;
 
-        if (lastFreehandX == Integer.MIN_VALUE) {
+        if (lastFreehand == null) {
             // First stroke of a new drag — open a fresh proposal.
             ChangeProposal.startDrag(ToolMaskRegistry.INSTANCE.getActiveMask());
             if (input != null) input.onBrushDragStart(mc, mop);
         }
-        lastFreehandX = mop.blockX;
-        lastFreehandY = mop.blockY;
-        lastFreehandZ = mop.blockZ;
+        lastFreehand = mopPos;
 
         // Let tool handle the stroke; fall back to BrushApplicator for standard brush tools.
         PerfTrace.begin("brushStroke tool=" + tool);
@@ -331,7 +328,7 @@ public class TickHandler {
                 || ps.getPlaneTranslationGizmo()
                     .isDragging()
                 || ps.viewPlaneGizmo.isDragging()) {
-                double[] anchor = ps.getAxisTranslationGizmo()
+                Vec3DDouble anchor = ps.getAxisTranslationGizmo()
                     .isDragging()
                         ? ps.getAxisTranslationGizmo()
                             .updateDrag(mx, my)
@@ -341,27 +338,27 @@ public class TickHandler {
                                     .updateDrag(mx, my)
                                 : ps.viewPlaneGizmo.updateDrag(mx, my);
                 if (anchor != null) {
-                    ps.anchorFX = AnchorSnap.toFloat(anchor[0], snap);
-                    ps.anchorFY = AnchorSnap.toFloat(anchor[1], snap);
-                    ps.anchorFZ = AnchorSnap.toFloat(anchor[2], snap);
-                    ps.anchorX = (int) Math.floor(ps.anchorFX);
-                    ps.anchorY = (int) Math.floor(ps.anchorFY);
-                    ps.anchorZ = (int) Math.floor(ps.anchorFZ);
+                    ps.anchorF = Vec3DFloat.from(
+                        AnchorSnap.toFloat(anchor.x(), snap),
+                        AnchorSnap.toFloat(anchor.y(), snap),
+                        AnchorSnap.toFloat(anchor.z(), snap));
+                    ps.anchor = Vec3DInt.from(
+                        (int) Math.floor(ps.anchorF.x()),
+                        (int) Math.floor(ps.anchorF.y()),
+                        (int) Math.floor(ps.anchorF.z()));
                 }
             } else if (ps.getRotationGizmo()
                 .isDragging()) {
                     float[] angles = AnchorSnap.applyRotGizmo(
                         ps.getRotationGizmo(),
-                        ps.rotDragBaseX,
-                        ps.rotDragBaseY,
-                        ps.rotDragBaseZ,
+                        ps.rotDragBase.x(),
+                        ps.rotDragBase.y(),
+                        ps.rotDragBase.z(),
                         mx,
                         my);
-                    if (Math.abs(angles[0] - ps.rotX) >= 0.5f || Math.abs(angles[1] - ps.rotY) >= 0.5f
-                        || Math.abs(angles[2] - ps.rotZ) >= 0.5f) {
-                        ps.rotX = angles[0];
-                        ps.rotY = angles[1];
-                        ps.rotZ = angles[2];
+                    if (Math.abs(angles[0] - ps.rot.x()) >= 0.5f || Math.abs(angles[1] - ps.rot.y()) >= 0.5f
+                        || Math.abs(angles[2] - ps.rot.z()) >= 0.5f) {
+                        ps.rot = Vec3DFloat.from(angles[0], angles[1], angles[2]);
                         ps.invalidateGhost();
                     }
                 } else if (ps.getScalingGizmo()
@@ -371,19 +368,21 @@ public class TickHandler {
                         if (result != null) {
                             ScalingGizmo.Axis axis = ps.getScalingGizmo()
                                 .getDragAxis();
-                            if (axis == ScalingGizmo.Axis.X) ps.scaleX = result[0];
-                            else if (axis == ScalingGizmo.Axis.Y) ps.scaleY = result[0];
-                            else ps.scaleZ = result[0];
+                            if (axis == ScalingGizmo.Axis.X)
+                                ps.scale = Vec3DFloat.from(result[0], ps.scale.y(), ps.scale.z());
+                            else if (axis == ScalingGizmo.Axis.Y)
+                                ps.scale = Vec3DFloat.from(ps.scale.x(), result[0], ps.scale.z());
+                            else ps.scale = Vec3DFloat.from(ps.scale.x(), ps.scale.y(), result[0]);
                             ShapeToolState sts = ShapeToolState.INSTANCE;
                             if (axis == ScalingGizmo.Axis.X) {
-                                sts.shapeWidth = Math.max(1, Math.round(ps.scaleDragBaseW * ps.scaleX));
-                                ps.scaleX = 1f;
+                                sts.shapeWidth = Math.max(1, Math.round(ps.scaleDragBaseW * ps.scale.x()));
+                                ps.scale = Vec3DFloat.from(1f, ps.scale.y(), ps.scale.z());
                             } else if (axis == ScalingGizmo.Axis.Y) {
-                                sts.shapeHeight = Math.max(1, Math.round(ps.scaleDragBaseH * ps.scaleY));
-                                ps.scaleY = 1f;
+                                sts.shapeHeight = Math.max(1, Math.round(ps.scaleDragBaseH * ps.scale.y()));
+                                ps.scale = Vec3DFloat.from(ps.scale.x(), 1f, ps.scale.z());
                             } else {
-                                sts.shapeDepth = Math.max(1, Math.round(ps.scaleDragBaseD * ps.scaleZ));
-                                ps.scaleZ = 1f;
+                                sts.shapeDepth = Math.max(1, Math.round(ps.scaleDragBaseD * ps.scale.z()));
+                                ps.scale = Vec3DFloat.from(ps.scale.x(), ps.scale.y(), 1f);
                             }
                             ps.invalidateGhost();
                         }
@@ -396,23 +395,24 @@ public class TickHandler {
                 .isDragging()
                 || cps.getPlaneTranslationGizmo()
                     .isDragging()) {
-                double[] anchor = cps.getAxisTranslationGizmo()
+                Vec3DDouble anchor = cps.getAxisTranslationGizmo()
                     .isDragging()
                         ? cps.getAxisTranslationGizmo()
                             .updateDrag(mx, my)
                         : cps.getPlaneTranslationGizmo()
                             .updateDrag(mx, my);
                 if (anchor != null) {
-                    cps.anchorFX = AnchorSnap.toFloat(anchor[0], snap);
-                    cps.anchorFY = AnchorSnap.toFloat(anchor[1], snap);
-                    cps.anchorFZ = AnchorSnap.toFloat(anchor[2], snap);
-                    int newAX = (int) Math.floor(cps.anchorFX);
-                    int newAY = (int) Math.floor(cps.anchorFY);
-                    int newAZ = (int) Math.floor(cps.anchorFZ);
-                    if (newAX != cps.anchorX || newAY != cps.anchorY || newAZ != cps.anchorZ) {
-                        cps.anchorX = newAX;
-                        cps.anchorY = newAY;
-                        cps.anchorZ = newAZ;
+                    Vec3DFloat newAnchorF = Vec3DFloat.from(
+                        AnchorSnap.toFloat(anchor.x(), snap),
+                        AnchorSnap.toFloat(anchor.y(), snap),
+                        AnchorSnap.toFloat(anchor.z(), snap));
+                    Vec3DInt newAnchor = Vec3DInt.from(
+                        (int) Math.floor(newAnchorF.x()),
+                        (int) Math.floor(newAnchorF.y()),
+                        (int) Math.floor(newAnchorF.z()));
+                    cps.anchorF = newAnchorF;
+                    if (!newAnchor.equals(cps.anchor)) {
+                        cps.anchor = newAnchor;
                         cps.rebuildPreview();
                     }
                 }
@@ -420,14 +420,12 @@ public class TickHandler {
                 .isDragging()) {
                     float[] angles = AnchorSnap.applyRotGizmo(
                         cps.getRotationGizmo(),
-                        cps.rotDragBaseX,
-                        cps.rotDragBaseY,
-                        cps.rotDragBaseZ,
+                        cps.rotDragBase.x(),
+                        cps.rotDragBase.y(),
+                        cps.rotDragBase.z(),
                         mx,
                         my);
-                    cps.rotX = angles[0];
-                    cps.rotY = angles[1];
-                    cps.rotZ = angles[2];
+                    cps.rot = Vec3DFloat.from(angles[0], angles[1], angles[2]);
                     cps.rebuildPreview();
                 }
         }
@@ -438,32 +436,31 @@ public class TickHandler {
                 .isDragging()
                 || ms.getPlaneTranslationGizmo()
                     .isDragging()) {
-                double[] anchor = ms.getAxisTranslationGizmo()
+                Vec3DDouble anchor = ms.getAxisTranslationGizmo()
                     .isDragging()
                         ? ms.getAxisTranslationGizmo()
                             .updateDrag(mx, my)
                         : ms.getPlaneTranslationGizmo()
                             .updateDrag(mx, my);
                 if (anchor != null) {
-                    ms.deltaFX = AnchorSnap.toFloat(anchor[0], snap) - ms.cmX;
-                    ms.deltaFY = AnchorSnap.toFloat(anchor[1], snap) - ms.cmY;
-                    ms.deltaFZ = AnchorSnap.toFloat(anchor[2], snap) - ms.cmZ;
+                    ms.delta = Vec3DFloat.from(
+                        AnchorSnap.toFloat(anchor.x(), snap) - ms.cm.x(),
+                        AnchorSnap.toFloat(anchor.y(), snap) - ms.cm.y(),
+                        AnchorSnap.toFloat(anchor.z(), snap) - ms.cm.z());
                     ms.invalidateGhost();
                 }
             } else if (ms.getRotationGizmo()
                 .isDragging()) {
                     float[] angles = AnchorSnap.applyRotGizmo(
                         ms.getRotationGizmo(),
-                        ms.rotDragBaseX,
-                        ms.rotDragBaseY,
-                        ms.rotDragBaseZ,
+                        ms.rotDragBase.x(),
+                        ms.rotDragBase.y(),
+                        ms.rotDragBase.z(),
                         mx,
                         my);
-                    if (Math.abs(angles[0] - ms.rotX) >= 0.5f || Math.abs(angles[1] - ms.rotY) >= 0.5f
-                        || Math.abs(angles[2] - ms.rotZ) >= 0.5f) {
-                        ms.rotX = angles[0];
-                        ms.rotY = angles[1];
-                        ms.rotZ = angles[2];
+                    if (Math.abs(angles[0] - ms.rot.x()) >= 0.5f || Math.abs(angles[1] - ms.rot.y()) >= 0.5f
+                        || Math.abs(angles[2] - ms.rot.z()) >= 0.5f) {
+                        ms.rot = Vec3DFloat.from(angles[0], angles[1], angles[2]);
                         ms.invalidateGhost();
                     }
                 }
@@ -479,75 +476,62 @@ public class TickHandler {
     }
 
     private void applyPan(FreecamEntity cam, float rawDX, float rawDY) {
-        double[][] basis = FreecamUtils.cameraBasis(cam.rotationYaw, cam.rotationPitch);
-        double[] rgt = basis[1], up = basis[2];
+        Vec3DDouble[] basis = FreecamUtils.cameraBasis(cam.rotationYaw, cam.rotationPitch);
+        Vec3DDouble rgt = basis[1], up = basis[2];
         float panScale = 0.05f;
-        cam.posX += rgt[0] * rawDX * panScale - up[0] * rawDY * panScale;
-        cam.posY += -up[1] * rawDY * panScale;
-        cam.posZ += rgt[2] * rawDX * panScale - up[2] * rawDY * panScale;
+        cam.posX += rgt.x() * rawDX * panScale - up.x() * rawDY * panScale;
+        cam.posY += -up.y() * rawDY * panScale;
+        cam.posZ += rgt.z() * rawDX * panScale - up.z() * rawDY * panScale;
     }
 
     private void startOrbit(FreecamState fs, FreecamEntity cam, Minecraft mc, boolean useCursor) {
-        double rdx, rdy, rdz;
-
         if (useCursor) {
             double ndcX = UICoords.guiToNdcX(fs.cursorX);
             double ndcY = UICoords.guiToNdcY(fs.cursorY);
 
-            double[][] basis = FreecamUtils.cameraBasis(cam.rotationYaw, cam.rotationPitch);
-            double[] fwd = basis[0], rgt = basis[1], up = basis[2];
+            Vec3DDouble[] basis = FreecamUtils.cameraBasis(cam.rotationYaw, cam.rotationPitch);
+            Vec3DDouble fwd = basis[0], rgt = basis[1], up = basis[2];
 
-            rdx = fwd[0] + ndcX * fs.projTanHX * rgt[0] + ndcY * fs.projTanHY * up[0];
-            rdy = fwd[1] + ndcY * fs.projTanHY * up[1];
-            rdz = fwd[2] + ndcX * fs.projTanHX * rgt[2] + ndcY * fs.projTanHY * up[2];
-            double len = Math.sqrt(rdx * rdx + rdy * rdy + rdz * rdz);
-            rdx /= len;
-            rdy /= len;
-            rdz /= len;
+            Vec3DDouble rd = Vec3DDouble
+                .from(
+                    fwd.x() + ndcX * fs.projTanHX * rgt.x() + ndcY * fs.projTanHY * up.x(),
+                    fwd.y() + ndcY * fs.projTanHY * up.y(),
+                    fwd.z() + ndcX * fs.projTanHX * rgt.z() + ndcY * fs.projTanHY * up.z())
+                .normalize();
 
             Vec3 start = Vec3.createVectorHelper(cam.posX, cam.posY, cam.posZ);
-            Vec3 end = Vec3.createVectorHelper(cam.posX + rdx * 512, cam.posY + rdy * 512, cam.posZ + rdz * 512);
+            Vec3 end = Vec3
+                .createVectorHelper(cam.posX + rd.x() * 512, cam.posY + rd.y() * 512, cam.posZ + rd.z() * 512);
             MovingObjectPosition hit = mc.theWorld.rayTraceBlocks(start, end, false);
             if (hit != null && hit.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-                fs.pivotX = hit.blockX + 0.5;
-                fs.pivotY = hit.blockY + 0.5;
-                fs.pivotZ = hit.blockZ + 0.5;
+                fs.pivot = Vec3DDouble.from(hit.blockX + 0.5, hit.blockY + 0.5, hit.blockZ + 0.5);
             } else {
-                fs.pivotX = cam.posX + rdx * 20;
-                fs.pivotY = cam.posY + rdy * 20;
-                fs.pivotZ = cam.posZ + rdz * 20;
+                fs.pivot = Vec3DDouble.from(cam.posX + rd.x() * 20, cam.posY + rd.y() * 20, cam.posZ + rd.z() * 20);
             }
         } else {
-            double[] fwd = FreecamUtils.cameraBasis(cam.rotationYaw, cam.rotationPitch)[0];
-            rdx = fwd[0];
-            rdy = fwd[1];
-            rdz = fwd[2];
+            Vec3DDouble rd = FreecamUtils.cameraBasis(cam.rotationYaw, cam.rotationPitch)[0];
 
             Vec3 start = Vec3.createVectorHelper(cam.posX, cam.posY, cam.posZ);
-            Vec3 end = Vec3.createVectorHelper(cam.posX + rdx * 512, cam.posY + rdy * 512, cam.posZ + rdz * 512);
+            Vec3 end = Vec3
+                .createVectorHelper(cam.posX + rd.x() * 512, cam.posY + rd.y() * 512, cam.posZ + rd.z() * 512);
             MovingObjectPosition hit = mc.theWorld.rayTraceBlocks(start, end, false);
 
             if (hit != null && hit.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-                fs.pivotX = hit.blockX + 0.5;
-                fs.pivotY = hit.blockY + 0.5;
-                fs.pivotZ = hit.blockZ + 0.5;
+                fs.pivot = Vec3DDouble.from(hit.blockX + 0.5, hit.blockY + 0.5, hit.blockZ + 0.5);
             } else {
-                fs.pivotX = cam.posX + rdx * 20;
-                fs.pivotY = cam.posY + rdy * 20;
-                fs.pivotZ = cam.posZ + rdz * 20;
+                fs.pivot = Vec3DDouble.from(cam.posX + rd.x() * 20, cam.posY + rd.y() * 20, cam.posZ + rd.z() * 20);
             }
         }
 
-        double ox = cam.posX - fs.pivotX;
-        double oy = cam.posY - fs.pivotY;
-        double oz = cam.posZ - fs.pivotZ;
-        fs.orbitDist = Math.max(1.0, Math.sqrt(ox * ox + oy * oy + oz * oz));
+        Vec3DDouble orbitOffset = Vec3DDouble.from(cam.posX, cam.posY, cam.posZ)
+            .minus(fs.pivot);
+        fs.orbitDist = Math.max(1.0, orbitOffset.length());
 
         // Store the angular offset from camera look direction to pivot direction so the
         // pivot stays at the same screen-space position throughout the orbit.
         double pivotDist = fs.orbitDist;
-        double pivotYawRad = Math.atan2(ox, -oz);
-        double pivotPitchRad = Math.asin(Math.max(-1.0, Math.min(1.0, oy / pivotDist)));
+        double pivotYawRad = Math.atan2(orbitOffset.x(), -orbitOffset.z());
+        double pivotPitchRad = Math.asin(Math.max(-1.0, Math.min(1.0, orbitOffset.y() / pivotDist)));
         fs.pivotOffsetYaw = (float) Math.toDegrees(pivotYawRad) - cam.rotationYaw;
         fs.pivotOffsetPitch = (float) Math.toDegrees(pivotPitchRad) - cam.rotationPitch;
 
@@ -567,9 +551,9 @@ public class TickHandler {
         double pFwdY = -Math.sin(pivotPitch);
         double pFwdZ = Math.cos(pivotYaw) * Math.cos(pivotPitch);
 
-        cam.posX = fs.pivotX - pFwdX * fs.orbitDist;
-        cam.posY = fs.pivotY - pFwdY * fs.orbitDist;
-        cam.posZ = fs.pivotZ - pFwdZ * fs.orbitDist;
+        cam.posX = fs.pivot.x() - pFwdX * fs.orbitDist;
+        cam.posY = fs.pivot.y() - pFwdY * fs.orbitDist;
+        cam.posZ = fs.pivot.z() - pFwdZ * fs.orbitDist;
 
         // Orbit updates position every render tick, but prevPos and lastTickPos are
         // normally only synced in client ticks. EntityRenderer uses lastTickPos for

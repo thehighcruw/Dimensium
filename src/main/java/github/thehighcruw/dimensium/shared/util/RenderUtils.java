@@ -8,6 +8,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.util.MovingObjectPosition;
 
+import org.lwjgl.opengl.GL11;
+
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.freecam.FreecamState;
@@ -50,5 +52,15 @@ public final class RenderUtils {
             (int) FreecamState.INSTANCE.cursorY,
             sr.getScaledWidth(),
             sr.getScaledHeight());
+    }
+
+    public static void unsetGhostRendering() {
+        GL11.glDepthMask(true);
+        GL11.glDepthFunc(GL11.GL_LESS);
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        GL11.glDisable(GL11.GL_POLYGON_OFFSET_FILL);
+        GL11.glPolygonOffset(0.0f, 0.0f);
+        GL11.glDisable(GL11.GL_DEPTH_TEST);
+        GL11.glDisable(GL11.GL_CULL_FACE);
     }
 }

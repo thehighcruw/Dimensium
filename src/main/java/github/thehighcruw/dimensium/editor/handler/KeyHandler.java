@@ -43,6 +43,8 @@ import github.thehighcruw.dimensium.editor.window.popup.CreateBlueprintPopup;
 import github.thehighcruw.dimensium.editor.window.popup.SettingsModal;
 import github.thehighcruw.dimensium.shared.BlockSender;
 import github.thehighcruw.dimensium.shared.SelectionState;
+import github.thehighcruw.dimensium.shared.Vec3DFloat;
+import github.thehighcruw.dimensium.shared.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
 import github.thehighcruw.dimensium.tool.BuilderToolState;
 import github.thehighcruw.dimensium.tool.BuilderToolState.Phase;
@@ -205,12 +207,7 @@ public class KeyHandler {
                 PathToolState pts = PathToolState.INSTANCE;
                 if (DimensiumEditorMode.INSTANCE.selectedTool == Tool.PATH && pts.selectedIndex >= 0
                     && !pts.points.isEmpty()) {
-                    int idx = pts.selectedIndex;
-                    pts.points.remove(idx);
-                    pts.selectedIndex = pts.points.isEmpty() ? -1 : Math.min(idx, pts.points.size() - 1);
-                    pts.getAxisTranslationGizmo()
-                        .reset();
-                    pts.invalidatePath();
+                    pts.removeCurrentPoint();
                     return;
                 }
                 ModellingToolState mts = ModellingToolState.INSTANCE;
@@ -269,8 +266,13 @@ public class KeyHandler {
                     List<int[]> ops = new ArrayList<>(sel.size());
                     for (long packed : sel.getSelectedBlocks()) {
                         ops.add(
-                            new int[] { SelectionState.unpackX(packed), SelectionState.unpackY(packed),
-                                SelectionState.unpackZ(packed), id, meta });
+                            new int[] { SelectionState.unpack(packed)
+                                .x(),
+                                SelectionState.unpack(packed)
+                                    .y(),
+                                SelectionState.unpack(packed)
+                                    .z(),
+                                id, meta });
                     }
                     BlockSender.sendChunked(ops, I18n.format("dimensium.action.fill"));
                 }
@@ -328,12 +330,8 @@ public class KeyHandler {
 
         if (tool == Tool.SHAPE && ShapePlacementState.INSTANCE.active) {
             ShapePlacementState sps = ShapePlacementState.INSTANCE;
-            sps.anchorX += delta[0];
-            sps.anchorY += delta[1];
-            sps.anchorZ += delta[2];
-            sps.anchorFX = sps.anchorX;
-            sps.anchorFY = sps.anchorY;
-            sps.anchorFZ = sps.anchorZ;
+            sps.anchor = sps.anchor.plus(Vec3DInt.from(delta[0], delta[1], delta[2]));
+            sps.anchorF = Vec3DFloat.from(sps.anchor.x(), sps.anchor.y(), sps.anchor.z());
             sps.invalidateGhost();
             sps.rebuildIfNeeded();
             return true;
@@ -341,21 +339,15 @@ public class KeyHandler {
 
         if (ClipboardPlacementState.INSTANCE.active) {
             ClipboardPlacementState cps = ClipboardPlacementState.INSTANCE;
-            cps.anchorX += delta[0];
-            cps.anchorY += delta[1];
-            cps.anchorZ += delta[2];
-            cps.anchorFX = cps.anchorX;
-            cps.anchorFY = cps.anchorY;
-            cps.anchorFZ = cps.anchorZ;
+            cps.anchor = cps.anchor.plus(Vec3DInt.from(delta[0], delta[1], delta[2]));
+            cps.anchorF = Vec3DFloat.from(cps.anchor.x(), cps.anchor.y(), cps.anchor.z());
             cps.rebuildPreview();
             return true;
         }
 
         if (tool == Tool.MOVE && MoveToolState.INSTANCE.active) {
             MoveToolState mts = MoveToolState.INSTANCE;
-            mts.deltaFX += delta[0];
-            mts.deltaFY += delta[1];
-            mts.deltaFZ += delta[2];
+            mts.delta = mts.delta.plus(Vec3DFloat.from(delta[0], delta[1], delta[2]));
             mts.invalidateGhost();
             mts.rebuildIfNeeded();
             return true;
@@ -365,9 +357,7 @@ public class KeyHandler {
             PathToolState pts = PathToolState.INSTANCE;
             PathToolState.PathPoint pt = pts.selectedPoint();
             if (pt != null) {
-                pt.x += delta[0];
-                pt.y += delta[1];
-                pt.z += delta[2];
+                pt.pos = pt.pos.plus(Vec3DInt.from(delta[0], delta[1], delta[2]));
                 pts.getAxisTranslationGizmo()
                     .reset();
                 pts.invalidatePath();
@@ -379,9 +369,7 @@ public class KeyHandler {
             ModellingToolState modts = ModellingToolState.INSTANCE;
             ModellingToolState.ModelPoint pt = modts.selectedPointObj();
             if (pt != null) {
-                pt.x += delta[0];
-                pt.y += delta[1];
-                pt.z += delta[2];
+                pt.pos = pt.pos.plus(Vec3DInt.from(delta[0], delta[1], delta[2]));
                 modts.getAxisTranslationGizmo()
                     .reset();
                 modts.invalidate();

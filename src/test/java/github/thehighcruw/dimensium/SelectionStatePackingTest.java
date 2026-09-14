@@ -9,6 +9,7 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 
 import github.thehighcruw.dimensium.shared.SelectionState;
+import github.thehighcruw.dimensium.shared.Vec3DInt;
 
 /**
  * Tests SelectionState coordinate packing in isolation (no Minecraft deps).
@@ -20,65 +21,73 @@ public class SelectionStatePackingTest {
 
     @Test
     public void roundTripOrigin() {
-        long key = SelectionState.pack(0, 0, 0);
-        assertEquals(0, SelectionState.unpackX(key));
-        assertEquals(0, SelectionState.unpackY(key));
-        assertEquals(0, SelectionState.unpackZ(key));
+        long key = SelectionState.pack(Vec3DInt.from(0, 0, 0));
+        Vec3DInt v = SelectionState.unpack(key);
+        assertEquals(0, v.x());
+        assertEquals(0, v.y());
+        assertEquals(0, v.z());
     }
 
     @Test
     public void roundTripArbitrary() {
-        long key = SelectionState.pack(1024, 128, 2048);
-        assertEquals(1024, SelectionState.unpackX(key));
-        assertEquals(128, SelectionState.unpackY(key));
-        assertEquals(2048, SelectionState.unpackZ(key));
+        long key = SelectionState.pack(Vec3DInt.from(1024, 128, 2048));
+        Vec3DInt v = SelectionState.unpack(key);
+        assertEquals(1024, v.x());
+        assertEquals(128, v.y());
+        assertEquals(2048, v.z());
     }
 
     @Test
     public void roundTripNegativeCoords() {
-        long key = SelectionState.pack(-8000000, 64, -15000000);
-        assertEquals(-8000000, SelectionState.unpackX(key));
-        assertEquals(64, SelectionState.unpackY(key));
-        assertEquals(-15000000, SelectionState.unpackZ(key));
+        long key = SelectionState.pack(Vec3DInt.from(-8000000, 64, -15000000));
+        Vec3DInt v = SelectionState.unpack(key);
+        assertEquals(-8000000, v.x());
+        assertEquals(64, v.y());
+        assertEquals(-15000000, v.z());
     }
 
     @Test
     public void roundTripMaxY() {
-        long key = SelectionState.pack(0, 255, 0);
-        assertEquals(255, SelectionState.unpackY(key));
+        long key = SelectionState.pack(Vec3DInt.from(0, 255, 0));
+        assertEquals(
+            255,
+            SelectionState.unpack(key)
+                .y());
     }
 
     @Test
     public void roundTripMaxCoords() {
-        long key = SelectionState.pack(29_999_999, 255, 29_999_999);
-        assertEquals(29_999_999, SelectionState.unpackX(key));
-        assertEquals(255, SelectionState.unpackY(key));
-        assertEquals(29_999_999, SelectionState.unpackZ(key));
+        long key = SelectionState.pack(Vec3DInt.from(29_999_999, 255, 29_999_999));
+        Vec3DInt v = SelectionState.unpack(key);
+        assertEquals(29_999_999, v.x());
+        assertEquals(255, v.y());
+        assertEquals(29_999_999, v.z());
     }
 
     @Test
     public void roundTripNegativeExtreme() {
-        long key = SelectionState.pack(-29_999_999, 0, -29_999_999);
-        assertEquals(-29_999_999, SelectionState.unpackX(key));
-        assertEquals(0, SelectionState.unpackY(key));
-        assertEquals(-29_999_999, SelectionState.unpackZ(key));
+        long key = SelectionState.pack(Vec3DInt.from(-29_999_999, 0, -29_999_999));
+        Vec3DInt v = SelectionState.unpack(key);
+        assertEquals(-29_999_999, v.x());
+        assertEquals(0, v.y());
+        assertEquals(-29_999_999, v.z());
     }
 
     // ── distinctness: different positions produce different keys ──────────────
 
     @Test
     public void distinctXProducesDifferentKeys() {
-        assertNotEquals(SelectionState.pack(0, 64, 0), SelectionState.pack(1, 64, 0));
+        assertNotEquals(SelectionState.pack(Vec3DInt.from(0, 64, 0)), SelectionState.pack(Vec3DInt.from(1, 64, 0)));
     }
 
     @Test
     public void distinctYProducesDifferentKeys() {
-        assertNotEquals(SelectionState.pack(0, 64, 0), SelectionState.pack(0, 65, 0));
+        assertNotEquals(SelectionState.pack(Vec3DInt.from(0, 64, 0)), SelectionState.pack(Vec3DInt.from(0, 65, 0)));
     }
 
     @Test
     public void distinctZProducesDifferentKeys() {
-        assertNotEquals(SelectionState.pack(0, 64, 0), SelectionState.pack(0, 64, 1));
+        assertNotEquals(SelectionState.pack(Vec3DInt.from(0, 64, 0)), SelectionState.pack(Vec3DInt.from(0, 64, 1)));
     }
 
     // ── clipboardKey encoding ─────────────────────────────────────────────────

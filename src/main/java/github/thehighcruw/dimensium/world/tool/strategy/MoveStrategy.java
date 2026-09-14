@@ -22,7 +22,7 @@ public class MoveStrategy implements BuilderToolStrategy {
     @Override
     public void confirm(BuilderToolState bts, SelectionState sel) {
         int ox = sel.minX(), oy = sel.minY(), oz = sel.minZ();
-        int dx = bts.offsetX, dy = bts.offsetY, dz = bts.offsetZ;
+        int dx = bts.offset.x(), dy = bts.offset.y(), dz = bts.offset.z();
 
         // Snapshot air ops now — clearSelection() runs right after confirm() returns.
         final List<int[]> airOps = SelectionOps.selectionToAirOps(sel);

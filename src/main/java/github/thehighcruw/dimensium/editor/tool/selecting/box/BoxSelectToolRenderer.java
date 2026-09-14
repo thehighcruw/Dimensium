@@ -14,6 +14,7 @@ import github.thehighcruw.dimensium.editor.tool.ToolRenderer;
 import github.thehighcruw.dimensium.editor.window.viewport.world.SelectionRenderer;
 import github.thehighcruw.dimensium.editor.window.viewport.world.TranslationGizmo;
 import github.thehighcruw.dimensium.shared.SelectionState;
+import github.thehighcruw.dimensium.shared.Vec3DDouble;
 
 @SideOnly(Side.CLIENT)
 public class BoxSelectToolRenderer implements ToolRenderer {
@@ -28,7 +29,7 @@ public class BoxSelectToolRenderer implements ToolRenderer {
     }
 
     @Override
-    public boolean renderHover(MovingObjectPosition mop, double rx, double ry, double rz) {
+    public boolean renderHover(MovingObjectPosition mop, Vec3DDouble camPos) {
         return true;
     }
 
@@ -41,16 +42,24 @@ public class BoxSelectToolRenderer implements ToolRenderer {
             || SelectionRenderer.boxCenterViewPlaneGizmo.isDragging()
             || SelectionRenderer.boxCenterGizmo.isDragging();
         if (!anyDragging) {
-            SelectionRenderer.boxPos1Gizmo
-                .updateHover(mx, my, bxEye, bxSel.pendingX + 0.5, bxSel.pendingY + 0.5, bxSel.pendingZ + 0.5, 0, 0, 0);
+            SelectionRenderer.boxPos1Gizmo.updateHover(
+                mx,
+                my,
+                bxEye,
+                bxSel.pendingPos.x() + 0.5,
+                bxSel.pendingPos.y() + 0.5,
+                bxSel.pendingPos.z() + 0.5,
+                0,
+                0,
+                0);
             if (SelectionRenderer.boxPos1Gizmo.hoveredAxis == TranslationGizmo.Axis.NONE) {
                 SelectionRenderer.boxPos2Gizmo.updateHover(
                     mx,
                     my,
                     bxEye,
-                    bxSel.pendingX2 + 0.5,
-                    bxSel.pendingY2 + 0.5,
-                    bxSel.pendingZ2 + 0.5,
+                    bxSel.pendingPos2.x() + 0.5,
+                    bxSel.pendingPos2.y() + 0.5,
+                    bxSel.pendingPos2.z() + 0.5,
                     0,
                     0,
                     0);
@@ -59,9 +68,9 @@ public class BoxSelectToolRenderer implements ToolRenderer {
             }
             if (SelectionRenderer.boxPos1Gizmo.hoveredAxis == TranslationGizmo.Axis.NONE
                 && SelectionRenderer.boxPos2Gizmo.hoveredAxis == TranslationGizmo.Axis.NONE) {
-                double cxW = (bxSel.pendingX + bxSel.pendingX2) / 2.0 + 0.5;
-                double cyW = (bxSel.pendingY + bxSel.pendingY2) / 2.0 + 0.5;
-                double czW = (bxSel.pendingZ + bxSel.pendingZ2) / 2.0 + 0.5;
+                double cxW = (bxSel.pendingPos.x() + bxSel.pendingPos2.x()) / 2.0 + 0.5;
+                double cyW = (bxSel.pendingPos.y() + bxSel.pendingPos2.y()) / 2.0 + 0.5;
+                double czW = (bxSel.pendingPos.z() + bxSel.pendingPos2.z()) / 2.0 + 0.5;
                 SelectionRenderer.boxCenterViewPlaneGizmo.updateHover(mx, my, bxEye, cxW, cyW, czW);
                 SelectionRenderer.boxCenterGizmo.updateHover(mx, my, bxEye, cxW, cyW, czW, 0, 0, 0);
             } else {

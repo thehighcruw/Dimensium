@@ -63,7 +63,7 @@ public class ModellingSection implements ToolSection {
             ImGui.separator();
             ImGui.dummy(0f, 2f);
             ImGui.text(I18n.format("dimensium.ui.modelling.selected_point"));
-            ImGui.textDisabled(selPt.x + ", " + selPt.y + ", " + selPt.z);
+            ImGui.textDisabled(selPt.pos.x() + ", " + selPt.pos.y() + ", " + selPt.pos.z());
             ImGui.pushStyleColor(ImGuiCol.Button, 0.65f, 0.10f, 0.10f, 1.0f);
             ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.80f, 0.20f, 0.20f, 1.0f);
             ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0.50f, 0.05f, 0.05f, 1.0f);

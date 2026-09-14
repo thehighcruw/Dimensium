@@ -12,6 +12,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.tool.ToolSection;
 import github.thehighcruw.dimensium.editor.tool.utility.ruler.RulerToolState.Mode;
+import github.thehighcruw.dimensium.shared.Vec3DDouble;
 import imgui.ImGui;
 import imgui.type.ImInt;
 
@@ -42,12 +43,10 @@ public class RulerSection implements ToolSection {
         if (pts.size() >= 2) {
             int[] a = pts.get(0);
             int[] b = pts.get(pts.size() - 1);
-            double dx = b[0] - a[0];
-            double dy = b[1] - a[1];
-            double dz = b[2] - a[2];
-            double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
-            ImGui.text(I18n.format("dimensium.ui.ruler.distance") + ": " + String.format("%.2f", dist));
-            ImGui.textDisabled("(" + (int) Math.abs(dx) + ", " + (int) Math.abs(dy) + ", " + (int) Math.abs(dz) + ")");
+            Vec3DDouble delta = Vec3DDouble.from(b[0] - a[0], b[1] - a[1], b[2] - a[2]);
+            ImGui.text(I18n.format("dimensium.ui.ruler.distance") + ": " + String.format("%.2f", delta.length()));
+            Vec3DDouble abs = delta.abs();
+            ImGui.textDisabled("(" + (int) abs.x() + ", " + (int) abs.y() + ", " + (int) abs.z() + ")");
         } else {
             ImGui.textDisabled(I18n.format("dimensium.ui.ruler.hint"));
         }

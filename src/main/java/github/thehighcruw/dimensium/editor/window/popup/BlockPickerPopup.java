@@ -10,19 +10,16 @@ import java.util.function.Consumer;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.init.Blocks;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.oredict.OreDictionary;
 
-import codechicken.nei.api.ItemInfo;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.window.RecentBlockHistory;
 import github.thehighcruw.dimensium.editor.window.imgui.DeferredItemRender;
 import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
 import github.thehighcruw.dimensium.editor.window.imgui.ItemGrid;
+import github.thehighcruw.dimensium.shared.util.BlockUtils;
 import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImGuiCond;
@@ -70,7 +67,6 @@ public class BlockPickerPopup {
     // ── Search / block cache ──────────────────────────────────────────────────
     private List<ItemStack> cachedResults = new ArrayList<>();
     private String cachedQuery = null;
-    private List<ItemStack> allBlocks = null;
 
     // ── Public API ────────────────────────────────────────────────────────────
 
@@ -212,14 +208,7 @@ public class BlockPickerPopup {
         ImGui.endChild();
 
         if (clicked >= 0 && clicked < results.size()) {
-            ItemStack picked = results.get(clicked)
-                .copy();
-            RecentBlockHistory.add(picked);
-            if (callback != null) callback.accept(picked);
-            ImGui.closeCurrentPopup();
-            open = false;
-            callback = null;
-            initialSelection = null;
+            confirmSelection(results, clicked);
             ImGui.endPopup();
             return;
         }
@@ -233,20 +222,24 @@ public class BlockPickerPopup {
         ImGui.endChild();
 
         if (recentClicked >= 0 && recentClicked < recent.size()) {
-            ItemStack picked = recent.get(recentClicked)
-                .copy();
-            RecentBlockHistory.add(picked);
-            if (callback != null) callback.accept(picked);
-            ImGui.closeCurrentPopup();
-            open = false;
-            callback = null;
-            initialSelection = null;
+            confirmSelection(recent, recentClicked);
             initialIsAir = false;
             ImGui.endPopup();
             return;
         }
 
         ImGui.endPopup();
+    }
+
+    private void confirmSelection(List<ItemStack> results, int clicked) {
+        ItemStack picked = results.get(clicked)
+            .copy();
+        RecentBlockHistory.add(picked);
+        if (callback != null) callback.accept(picked);
+        ImGui.closeCurrentPopup();
+        open = false;
+        callback = null;
+        initialSelection = null;
     }
 
     // ── Search ────────────────────────────────────────────────────────────────
@@ -258,65 +251,13 @@ public class BlockPickerPopup {
         cachedResults = new ArrayList<>();
         String q = query.toLowerCase()
             .trim();
-        for (ItemStack stack : getAllBlocks()) {
+        for (ItemStack stack : BlockUtils.collectPlaceableBlocks()) {
             if (q.isEmpty() || matchesStack(stack, q)) {
                 cachedResults.add(stack);
                 if (cachedResults.size() >= 500) break;
             }
         }
         return cachedResults;
-    }
-
-    @SuppressWarnings("unchecked")
-    private List<ItemStack> getAllBlocks() {
-        if (allBlocks != null) return allBlocks;
-
-        allBlocks = new ArrayList<>();
-
-        for (Item item : (Iterable<Item>) Item.itemRegistry) {
-            if (item == null) continue;
-            if (!(item instanceof ItemBlock)) continue;
-
-            List<ItemStack> permutations = new ArrayList<>(ItemInfo.itemOverrides.get(item));
-
-            if (permutations.isEmpty()) {
-                item.getSubItems(item, null, permutations);
-            }
-
-            permutations.addAll(ItemInfo.itemVariants.get(item));
-
-            permutations.removeIf(itemStack -> {
-                if (itemStack == null || itemStack.getItem() == null) return true;
-                if (itemStack.getItemDamage() == OreDictionary.WILDCARD_VALUE) return true;
-                Block block = Block.getBlockFromItem(itemStack.getItem());
-                return block == null || Blocks.air == block;
-            });
-
-            allBlocks.addAll(permutations);
-        }
-
-        addGT5Machines(allBlocks);
-
-        return allBlocks;
-    }
-
-    private static void addGT5Machines(List<ItemStack> out) {
-        try {
-            gregtech.api.interfaces.metatileentity.IMetaTileEntity[] mtes = gregtech.api.GregTechAPI.METATILEENTITIES;
-            Block blockMachines = gregtech.api.GregTechAPI.sBlockMachines;
-            if (blockMachines == null) return;
-            Item blockItem = Item.getItemFromBlock(blockMachines);
-            if (blockItem == null) return;
-            java.util.BitSet covered = new java.util.BitSet();
-            for (ItemStack s : out) {
-                if (s != null && s.getItem() == blockItem) covered.set(s.getItemDamage());
-            }
-            for (int meta = 0; meta < mtes.length; meta++) {
-                if (mtes[meta] == null) continue;
-                if (covered.get(meta)) continue;
-                out.add(new ItemStack(blockItem, 1, meta));
-            }
-        } catch (Throwable ignored) {}
     }
 
     private static boolean stacksSameBlock(ItemStack a, ItemStack b) {

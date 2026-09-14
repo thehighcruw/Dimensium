@@ -11,6 +11,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.tool.ToolRenderer;
 import github.thehighcruw.dimensium.editor.tool.creating.rock.PathToolState;
+import github.thehighcruw.dimensium.shared.Vec3DDouble;
 
 @SideOnly(Side.CLIENT)
 public class PathToolRenderer implements ToolRenderer {
@@ -25,7 +26,7 @@ public class PathToolRenderer implements ToolRenderer {
     }
 
     @Override
-    public boolean renderHover(MovingObjectPosition mop, double rx, double ry, double rz) {
+    public boolean renderHover(MovingObjectPosition mop, Vec3DDouble camPos) {
         return true;
     }
 
@@ -40,9 +41,9 @@ public class PathToolRenderer implements ToolRenderer {
             && !pathState.getPlaneTranslationGizmo()
                 .isDragging()
             && mc.renderViewEntity != null) {
-            double pgx = selPt.x + 0.5, pgy = selPt.y + 0.5, pgz = selPt.z + 0.5;
+            Vec3DDouble gp = Vec3DDouble.from(selPt.pos.x() + 0.5, selPt.pos.y() + 0.5, selPt.pos.z() + 0.5);
             pathState.getAxisTranslationGizmo()
-                .updateHover(mx3d, my3d, mc.renderViewEntity, pgx, pgy, pgz, 0, 0, 0);
+                .updateHover(mx3d, my3d, mc.renderViewEntity, gp.x(), gp.y(), gp.z(), 0, 0, 0);
         }
     }
 }

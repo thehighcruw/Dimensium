@@ -4,16 +4,21 @@
  */
 package github.thehighcruw.dimensium.editor.blueprint;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-public class Blueprint {
+import com.github.bsideup.jabel.Desugar;
 
-    public String name = "";
-    public final List<String> tags = new ArrayList<>();
-    public int clipW, clipH, clipD;
-    /** Each entry: {lx, ly, lz, blockId, meta}. */
-    public List<int[]> offsets = new ArrayList<>();
-    /** PNG-encoded thumbnail bytes, may be null. */
-    public byte[] thumbnailPng;
+import github.thehighcruw.dimensium.editor.clipboard.ClipboardUtils;
+import github.thehighcruw.dimensium.shared.SelectionState;
+
+@Desugar
+public record Blueprint(String name, List<String> tags, int clipW, int clipH, int clipD, List<int[]> offsets,
+    byte[] thumbnailPng) {
+
+    public static Blueprint fromClipboard(String name, List<String> tags, Map<Long, SelectionState.BlockData> clipboard,
+        int clipW, int clipH, int clipD, byte[] thumbnailPng) {
+        List<int[]> offsets = ClipboardUtils.toOffsets(clipboard);
+        return new Blueprint(name, tags, clipW, clipH, clipD, offsets, thumbnailPng);
+    }
 }

@@ -21,6 +21,7 @@ import github.thehighcruw.dimensium.network.PacketCaptureRequest;
 import github.thehighcruw.dimensium.network.PacketHandler;
 import github.thehighcruw.dimensium.shared.KeyConstants;
 import github.thehighcruw.dimensium.shared.SelectionState;
+import github.thehighcruw.dimensium.shared.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.PerfTrace;
 import github.thehighcruw.dimensium.tool.BuilderTool;
 import github.thehighcruw.dimensium.tool.BuilderToolState;
@@ -56,9 +57,7 @@ public class BuilderToolsHandler {
         if (event.button == KeyConstants.RMB && bts.phase == Phase.IDLE && hitBlock) {
             SelectionState sel = SelectionState.INSTANCE;
             sel.pendingPos1 = true;
-            sel.pendingX = mop.blockX;
-            sel.pendingY = mop.blockY;
-            sel.pendingZ = mop.blockZ;
+            sel.pendingPos = Vec3DInt.from(mop.blockX, mop.blockY, mop.blockZ);
             sel.clearBlocks();
             bts.phase = Phase.SELECTING;
         }
@@ -90,7 +89,13 @@ public class BuilderToolsHandler {
             PerfTrace.begin("builder SELECTING release");
             PerfTrace.push("applyOp selSize=" + sel.size());
             sel.applyOp(
-                SelectionState.aabbBlocks(sel.pendingX, sel.pendingY, sel.pendingZ, mop.blockX, mop.blockY, mop.blockZ),
+                SelectionState.aabbBlocks(
+                    sel.pendingPos.x(),
+                    sel.pendingPos.y(),
+                    sel.pendingPos.z(),
+                    mop.blockX,
+                    mop.blockY,
+                    mop.blockZ),
                 BooleanOp.REPLACE);
             PerfTrace.pop();
             sel.pendingPos1 = false;

@@ -12,9 +12,9 @@ import java.util.Set;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.world.World;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -54,22 +54,17 @@ public class FilterSelectionWindow extends ToggleableWindow {
     private void scanSelectionBlocks() {
         SelectionState sel = SelectionState.INSTANCE;
         if (!sel.hasSelection()) return;
-        net.minecraft.world.World world = Minecraft.getMinecraft().theWorld;
+        World world = Minecraft.getMinecraft().theWorld;
         if (world == null) return;
         Set<String> seen = new HashSet<>();
         for (long key : sel.getSelectedBlocks()) {
-            int x = SelectionState.unpackX(key);
-            int y = SelectionState.unpackY(key);
-            int z = SelectionState.unpackZ(key);
-            Block b = world.getBlock(x, y, z);
-            if (b == null || b == Blocks.air) continue;
-            Item item = Item.getItemFromBlock(b);
-            if (item == null) continue;
-            int meta = world.getBlockMetadata(x, y, z);
-            String uid = Item.getIdFromItem(item) + ":" + meta;
+            SelectionState.BlockInfo info = SelectionState.unpackBlock(key);
+            if (info == null) continue;
+
+            String uid = Item.getIdFromItem(info.item()) + ":" + info.meta();
             if (!seen.contains(uid)) {
                 seen.add(uid);
-                selectionBlocks.add(new ItemStack(item, 1, meta));
+                selectionBlocks.add(new ItemStack(info.item(), 1, info.meta()));
                 if (selectionBlocks.size() >= COLS * MAX_ROWS) break;
             }
         }

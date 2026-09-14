@@ -9,12 +9,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.init.Blocks;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.world.World;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -58,23 +56,20 @@ public class AnalyzeWindow extends ToggleableWindow {
         SelectionState sel = SelectionState.INSTANCE;
         if (!sel.hasSelection()) return;
 
-        net.minecraft.world.World world = Minecraft.getMinecraft().theWorld;
+        World world = Minecraft.getMinecraft().theWorld;
         if (world == null) return;
 
         Map<String, Integer> counts = new HashMap<>();
         for (long key : sel.getSelectedBlocks()) {
-            int x = SelectionState.unpackX(key);
-            int y = SelectionState.unpackY(key);
-            int z = SelectionState.unpackZ(key);
-            Block b = world.getBlock(x, y, z);
-            if (b == null || b == Blocks.air) continue;
-            Item item = Item.getItemFromBlock(b);
-            int meta = world.getBlockMetadata(x, y, z);
+            SelectionState.BlockInfo info = SelectionState.unpackBlock(key);
+            if (info == null) continue;
+
             String name;
-            if (item != null) {
-                name = new ItemStack(item, 1, meta).getDisplayName();
+            if (info.item() != null) {
+                name = new ItemStack(info.item(), 1, info.meta()).getDisplayName();
             } else {
-                name = b.getLocalizedName();
+                name = info.block()
+                    .getLocalizedName();
             }
             counts.put(name, counts.getOrDefault(name, 0) + 1);
             totalBlocks++;

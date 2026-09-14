@@ -178,7 +178,7 @@ public class OverlayRenderer {
                 double ccx = cps.centerX(), ccy = cps.centerY(), ccz = cps.centerZ();
                 cps.getAxisTranslationGizmo()
                     .updateHover(mx, my, cEye, ccx, ccy, ccz, 0, 0, 0);
-                handleGizmoHover(cps, mx, my, cEye, ccx, ccy, ccz, cps.rotX, cps.rotY, cps.rotZ);
+                handleGizmoHover(cps, mx, my, cEye, ccx, ccy, ccz, cps.rot.x(), cps.rot.y(), cps.rot.z());
             }
 
             MoveToolState ms = MoveToolState.INSTANCE;
@@ -186,8 +186,8 @@ public class OverlayRenderer {
                 EntityLivingBase eye = mc.renderViewEntity;
                 double gx = ms.gizmoX(), gy = ms.gizmoY(), gz = ms.gizmoZ();
                 ms.getAxisTranslationGizmo()
-                    .updateHover(mx, my, eye, gx, gy, gz, ms.rotX, ms.rotY, ms.rotZ);
-                handleGizmoHover(ms, mx, my, eye, gx, gy, gz, ms.rotX, ms.rotY, ms.rotZ);
+                    .updateHover(mx, my, eye, gx, gy, gz, ms.rot.x(), ms.rot.y(), ms.rot.z());
+                handleGizmoHover(ms, mx, my, eye, gx, gy, gz, ms.rot.x(), ms.rot.y(), ms.rot.z());
             }
 
             // ── Box-select commit on tool change ─────────────────────────────
@@ -268,7 +268,7 @@ public class OverlayRenderer {
             return;
         }
         ps.getAxisTranslationGizmo()
-            .updateHover(mx, my, eye, cx, cy, cz, ps.rotX, ps.rotY, ps.rotZ);
+            .updateHover(mx, my, eye, cx, cy, cz, ps.rot.x(), ps.rot.y(), ps.rot.z());
         if (ps.getAxisTranslationGizmo().hoveredAxis != TranslationGizmo.Axis.NONE) {
             ps.getScalingGizmo().hoveredAxis = ScalingGizmo.Axis.NONE;
             ps.getRotationGizmo().hoveredAxis = RotationGizmo.Axis.NONE;
@@ -276,20 +276,20 @@ public class OverlayRenderer {
             return;
         }
         ps.getScalingGizmo()
-            .updateHover(mx, my, eye, cx, cy, cz, ps.rotX, ps.rotY, ps.rotZ);
+            .updateHover(mx, my, eye, cx, cy, cz, ps.rot.x(), ps.rot.y(), ps.rot.z());
         if (ps.getScalingGizmo().hoveredAxis != ScalingGizmo.Axis.NONE) {
             ps.getRotationGizmo().hoveredAxis = RotationGizmo.Axis.NONE;
             ps.getPlaneTranslationGizmo().hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
             return;
         }
         ps.getRotationGizmo()
-            .updateHover(mx, my, eye, cx, cy, cz, ps.rotX, ps.rotY, ps.rotZ);
+            .updateHover(mx, my, eye, cx, cy, cz, ps.rot.x(), ps.rot.y(), ps.rot.z());
         if (ps.getRotationGizmo().hoveredAxis != RotationGizmo.Axis.NONE) {
             ps.getPlaneTranslationGizmo().hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
             return;
         }
         ps.getPlaneTranslationGizmo()
-            .updateHover(mx, my, eye, cx, cy, cz, ps.rotX, ps.rotY, ps.rotZ);
+            .updateHover(mx, my, eye, cx, cy, cz, ps.rot.x(), ps.rot.y(), ps.rot.z());
     }
 
     private static <T extends WithAxisTranslationGizmo & WithPlaneTranslationGizmo & WithRotationGizmo> void handleGizmoHover(
@@ -376,7 +376,7 @@ public class OverlayRenderer {
             };
             String extra = "";
             if (bts.phase == Phase.MANIPULATING && bts.activeTool.equals(BuilderTool.STACK)) {
-                extra = " \247e" + bts.stackX + "," + bts.stackY + "," + bts.stackZ + "\247r";
+                extra = " \247e" + bts.stack.x() + "," + bts.stack.y() + "," + bts.stack.z() + "\247r";
             }
             // Draw tool name + phase above the bar (4px above it)
             mc.fontRenderer

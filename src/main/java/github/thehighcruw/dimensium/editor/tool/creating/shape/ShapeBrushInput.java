@@ -46,7 +46,8 @@ public class ShapeBrushInput implements BrushInput {
             double cx = ps.centerX(), cy = ps.centerY(), cz = ps.centerZ();
             EntityLivingBase eye = mc.renderViewEntity;
             if (ps.viewPlaneGizmo.hovered) {
-                ps.viewPlaneGizmo.startDrag(mouseX, mouseY, eye, cx, cy, cz, ps.anchorFX, ps.anchorFY, ps.anchorFZ);
+                ps.viewPlaneGizmo
+                    .startDrag(mouseX, mouseY, eye, cx, cy, cz, ps.anchorF.x(), ps.anchorF.y(), ps.anchorF.z());
             } else if (ps.getAxisTranslationGizmo().hoveredAxis != TranslationGizmo.Axis.NONE) {
                 ps.getAxisTranslationGizmo()
                     .startDrag(
@@ -55,27 +56,25 @@ public class ShapeBrushInput implements BrushInput {
                         cx,
                         cy,
                         cz,
-                        ps.anchorFX,
-                        ps.anchorFY,
-                        ps.anchorFZ,
-                        ps.rotX,
-                        ps.rotY,
-                        ps.rotZ);
+                        ps.anchorF.x(),
+                        ps.anchorF.y(),
+                        ps.anchorF.z(),
+                        ps.rot.x(),
+                        ps.rot.y(),
+                        ps.rot.z());
             } else if (ps.getRotationGizmo().hoveredAxis != RotationGizmo.Axis.NONE) {
-                ps.rotDragBaseX = ps.rotX;
-                ps.rotDragBaseY = ps.rotY;
-                ps.rotDragBaseZ = ps.rotZ;
+                ps.rotDragBase = ps.rot;
                 ps.getRotationGizmo()
-                    .startDrag(mouseX, mouseY, cx, cy, cz, ps.rotX, ps.rotY, ps.rotZ);
+                    .startDrag(mouseX, mouseY, cx, cy, cz, ps.rot.x(), ps.rot.y(), ps.rot.z());
             } else if (ps.getScalingGizmo().hoveredAxis != ScalingGizmo.Axis.NONE) {
-                float currentScale = ps.getScalingGizmo().hoveredAxis == ScalingGizmo.Axis.X ? ps.scaleX
-                    : ps.getScalingGizmo().hoveredAxis == ScalingGizmo.Axis.Y ? ps.scaleY : ps.scaleZ;
+                float currentScale = ps.getScalingGizmo().hoveredAxis == ScalingGizmo.Axis.X ? ps.scale.x()
+                    : ps.getScalingGizmo().hoveredAxis == ScalingGizmo.Axis.Y ? ps.scale.y() : ps.scale.z();
                 ShapeToolState sts = ShapeToolState.INSTANCE;
                 ps.scaleDragBaseW = sts.shapeWidth;
                 ps.scaleDragBaseH = sts.shapeHeight;
                 ps.scaleDragBaseD = sts.shapeDepth;
                 ps.getScalingGizmo()
-                    .startDrag(mouseX, mouseY, cx, cy, cz, currentScale, ps.rotX, ps.rotY, ps.rotZ);
+                    .startDrag(mouseX, mouseY, cx, cy, cz, currentScale, ps.rot.x(), ps.rot.y(), ps.rot.z());
             } else if (ps.getPlaneTranslationGizmo().hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
                 ps.getPlaneTranslationGizmo()
                     .startDrag(
@@ -84,12 +83,12 @@ public class ShapeBrushInput implements BrushInput {
                         cx,
                         cy,
                         cz,
-                        ps.anchorFX,
-                        ps.anchorFY,
-                        ps.anchorFZ,
-                        ps.rotX,
-                        ps.rotY,
-                        ps.rotZ);
+                        ps.anchorF.x(),
+                        ps.anchorF.y(),
+                        ps.anchorF.z(),
+                        ps.rot.x(),
+                        ps.rot.y(),
+                        ps.rot.z());
             }
         } else if (button == KeyConstants.RMB) {
             GuiDimensiumOverlay.confirmPlacement();

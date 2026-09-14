@@ -15,6 +15,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.freecam.FreecamEntity;
 import github.thehighcruw.dimensium.editor.overlay.ViewState;
+import github.thehighcruw.dimensium.shared.Vec3DDouble;
 
 @SideOnly(Side.CLIENT)
 public final class ViewportState {
@@ -57,7 +58,8 @@ public final class ViewportState {
     // Per-viewport camera control state. Swapped into/out of FreecamState on tab switch.
     public float speed = 0.5f;
     public boolean orbiting = false;
-    public double pivotX, pivotY, pivotZ, orbitDist;
+    public Vec3DDouble pivot = Vec3DDouble.ZERO;
+    public double orbitDist;
 
     public ViewportState(String label, FreecamEntity cameraEntity) {
         this.label = label;

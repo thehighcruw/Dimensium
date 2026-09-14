@@ -15,6 +15,7 @@ import github.thehighcruw.dimensium.editor.tool.gizmo.WithAxisTranslationGizmo;
 import github.thehighcruw.dimensium.editor.tool.gizmo.WithPlaneTranslationGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.PlaneTranslationGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.TranslationGizmo;
+import github.thehighcruw.dimensium.shared.Vec3DInt;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 
 public class PathToolState implements WithAxisTranslationGizmo, WithPlaneTranslationGizmo {
@@ -23,14 +24,12 @@ public class PathToolState implements WithAxisTranslationGizmo, WithPlaneTransla
 
     public static class PathPoint {
 
-        public int x, y, z;
+        public Vec3DInt pos;
         public int radius;
         public ItemStack block;
 
         public PathPoint(int x, int y, int z, int radius, ItemStack block) {
-            this.x = x;
-            this.y = y;
-            this.z = z;
+            this.pos = Vec3DInt.from(x, y, z);
             this.radius = radius;
             this.block = block;
         }
@@ -93,6 +92,14 @@ public class PathToolState implements WithAxisTranslationGizmo, WithPlaneTransla
     public void invalidatePath() {
         cachedKey = "";
         preview = null;
+    }
+
+    public void removeCurrentPoint() {
+        int idx = selectedIndex;
+        points.remove(idx);
+        selectedIndex = points.isEmpty() ? -1 : Math.min(idx, points.size() - 1);
+        getAxisTranslationGizmo().reset();
+        invalidatePath();
     }
 
     public boolean hasMultipleBlocks() {
@@ -159,11 +166,11 @@ public class PathToolState implements WithAxisTranslationGizmo, WithPlaneTransla
             .append(interpSeed)
             .append(',');
         for (PathPoint pt : points) {
-            sb.append(pt.x)
+            sb.append(pt.pos.x())
                 .append(',')
-                .append(pt.y)
+                .append(pt.pos.y())
                 .append(',')
-                .append(pt.z)
+                .append(pt.pos.z())
                 .append(',')
                 .append(pt.radius)
                 .append(',');

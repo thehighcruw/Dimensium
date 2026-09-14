@@ -9,21 +9,20 @@ import java.util.List;
 import java.util.Random;
 
 import github.thehighcruw.dimensium.editor.blueprint.Blueprint;
+import github.thehighcruw.dimensium.shared.Vec3DInt;
 
 public class StampScatter {
 
     public static class StampInstance {
 
         public final int entryIdx;
-        public final int anchorX, anchorY, anchorZ;
+        public final Vec3DInt anchor;
         public final float yaw;
         public final boolean flipX, flipZ;
 
         StampInstance(int entryIdx, int ax, int ay, int az, float yaw, boolean flipX, boolean flipZ) {
             this.entryIdx = entryIdx;
-            this.anchorX = ax;
-            this.anchorY = ay;
-            this.anchorZ = az;
+            this.anchor = Vec3DInt.from(ax, ay, az);
             this.yaw = yaw;
             this.flipX = flipX;
             this.flipZ = flipZ;
@@ -53,7 +52,7 @@ public class StampScatter {
             StampEntry entry = state.blueprints.get(entryIdx);
             Blueprint bp = entry.blueprint;
 
-            float minDist = state.minSpacingPct * Math.max(bp.clipW, bp.clipD);
+            float minDist = state.minSpacingPct * Math.max(bp.clipW(), bp.clipD());
             if (minDist > 0f && isTooClose(result, pos[0], pos[2], minDist)) continue;
 
             float yaw = state.randomYaw ? rng.nextFloat() * 360f : 0f;
@@ -78,8 +77,8 @@ public class StampScatter {
     private static boolean isTooClose(List<StampInstance> placed, int x, int z, float minDist) {
         float minDist2 = minDist * minDist;
         for (StampInstance inst : placed) {
-            int dx = x - inst.anchorX;
-            int dz = z - inst.anchorZ;
+            int dx = x - inst.anchor.x();
+            int dz = z - inst.anchor.z();
             if (dx * dx + dz * dz < minDist2) return true;
         }
         return false;

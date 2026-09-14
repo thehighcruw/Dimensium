@@ -31,11 +31,12 @@ public final class SelectionTransforms {
     public static Set<Long> move(Set<Long> blocks, int dx, int dy, int dz) {
         Set<Long> result = new HashSet<>(blocks.size());
         for (long key : blocks) {
-            int x = SelectionState.unpackX(key) + dx;
-            int y = SelectionState.unpackY(key) + dy;
-            int z = SelectionState.unpackZ(key) + dz;
+            Vec3DInt coord = SelectionState.unpack(key);
+            int x = coord.x() + dx;
+            int y = coord.y() + dy;
+            int z = coord.z() + dz;
             if (y < 0 || y > 255) continue;
-            result.add(SelectionState.pack(x, y, z));
+            result.add(SelectionState.pack(Vec3DInt.from(x, y, z)));
         }
         return result;
     }
@@ -47,13 +48,12 @@ public final class SelectionTransforms {
         for (int step = 0; step < offset; step++) {
             Set<Long> next = new HashSet<>();
             for (long key : frontier) {
-                int x = SelectionState.unpackX(key);
-                int y = SelectionState.unpackY(key);
-                int z = SelectionState.unpackZ(key);
+                Vec3DInt coord = SelectionState.unpack(key);
                 for (int d = 0; d < 6; d++) {
-                    int ny = y + FACE_DY[d];
+                    int ny = coord.y() + FACE_DY[d];
                     if (ny < 0 || ny > 255) continue;
-                    long nk = SelectionState.pack(x + FACE_DX[d], ny, z + FACE_DZ[d]);
+
+                    long nk = SelectionState.pack(Vec3DInt.from(coord.x() + FACE_DX[d], ny, coord.z() + FACE_DZ[d]));
                     if (result.add(nk)) next.add(nk);
                 }
             }
@@ -68,13 +68,12 @@ public final class SelectionTransforms {
         for (int step = 0; step < offset; step++) {
             Set<Long> toRemove = new HashSet<>();
             for (long key : result) {
-                int x = SelectionState.unpackX(key);
-                int y = SelectionState.unpackY(key);
-                int z = SelectionState.unpackZ(key);
+                Vec3DInt coord = SelectionState.unpack(key);
                 for (int d = 0; d < 6; d++) {
-                    int ny = y + FACE_DY[d];
+                    int ny = coord.y() + FACE_DY[d];
                     if (ny < 0 || ny > 255
-                        || !result.contains(SelectionState.pack(x + FACE_DX[d], ny, z + FACE_DZ[d]))) {
+                        || !result.contains(
+                            SelectionState.pack(Vec3DInt.from(coord.x() + FACE_DX[d], ny, coord.z() + FACE_DZ[d])))) {
                         toRemove.add(key);
                         break;
                     }
@@ -90,18 +89,16 @@ public final class SelectionTransforms {
         Set<Long> result = new HashSet<>(blocks.size());
         float invScale = scale > 0 ? 1f / scale : 1f;
         for (long key : blocks) {
-            int x = SelectionState.unpackX(key);
-            int y = SelectionState.unpackY(key);
-            int z = SelectionState.unpackZ(key);
-            float nx = x * invScale, ny = y * invScale, nz = z * invScale;
+            Vec3DInt coord = SelectionState.unpack(key);
+            float nx = coord.x() * invScale, ny = coord.y() * invScale, nz = coord.z() * invScale;
             float wx = NoiseSampler.rawSimplex3(nx, ny, nz, seed);
             float wy = NoiseSampler.rawSimplex3(nx + 31.7f, ny + 17.3f, nz + 53.1f, seed);
             float wz = NoiseSampler.rawSimplex3(nx + 67.9f, ny + 83.5f, nz + 11.3f, seed);
-            int rx = Math.round(x + wx * distX);
-            int ry = Math.round(y + wy * distY);
-            int rz = Math.round(z + wz * distZ);
+            int rx = Math.round(coord.x() + wx * distX);
+            int ry = Math.round(coord.y() + wy * distY);
+            int rz = Math.round(coord.z() + wz * distZ);
             if (ry < 0 || ry > 255) continue;
-            result.add(SelectionState.pack(rx, ry, rz));
+            result.add(SelectionState.pack(Vec3DInt.from(rx, ry, rz)));
         }
         return result;
     }
@@ -113,45 +110,52 @@ public final class SelectionTransforms {
     public static Set<Long> smooth(Set<Long> blocks, int strength, float threshold) {
         if (blocks.isEmpty()) return new HashSet<>();
 
-        int[] bb = SelectionState.computeBounds(blocks);
-        int mnX = bb[0], mnY = bb[1], mnZ = bb[2];
-        int mxX = bb[3], mxY = bb[4], mxZ = bb[5];
+        BoundingBox bb = SelectionState.computeBounds(blocks);
 
         GaussianKernel kernel = GaussianKernel.build(strength * 0.5f + 0.5f);
         int margin = kernel.kR;
-        int dimX = (mxX - mnX) + 2 * margin + 1;
-        int dimY = (mxY - mnY) + 2 * margin + 1;
-        int dimZ = (mxZ - mnZ) + 2 * margin + 1;
-        if (dimX > MAX_SMOOTH_DIM || dimY > MAX_SMOOTH_DIM || dimZ > MAX_SMOOTH_DIM) return new HashSet<>(blocks);
-        int snStX = dimY * dimZ;
 
-        int[] snap = new int[dimX * dimY * dimZ];
+        Vec3DInt dims = bb.maximum()
+            .minus(bb.minimum())
+            .plus(2 * margin + 1);
+        if (dims.any((x) -> x > MAX_SMOOTH_DIM)) return new HashSet<>(blocks);
+
+        int snStX = dims.y() * dims.z();
+        int[] snap = new int[dims.product()];
         for (long key : blocks) {
-            int x = SelectionState.unpackX(key) - mnX + margin;
-            int y = SelectionState.unpackY(key) - mnY + margin;
-            int z = SelectionState.unpackZ(key) - mnZ + margin;
-            snap[x * snStX + y * dimZ + z] = 1;
+            Vec3DInt coord = SelectionState.unpack(key);
+            Vec3DInt snapper = coord.minus(bb.minimum())
+                .plus(margin)
+                .plus(Vec3DInt.from(snStX, dims.z(), 1));
+            snap[snapper.sum()] = 1;
         }
 
         Set<Long> result = new HashSet<>();
         for (long key : blocks) {
-            int lx = SelectionState.unpackX(key) - mnX + margin;
-            int ly = SelectionState.unpackY(key) - mnY + margin;
-            int lz = SelectionState.unpackZ(key) - mnZ + margin;
-            float density = kernel.solidWeight(snap, lx, ly, lz, snStX, dimZ) / kernel.totalWeight;
+            Vec3DInt coord = SelectionState.unpack(key);
+            Vec3DInt localizedCoord = coord.minus(bb.minimum())
+                .plus(margin);
+            float density = kernel.solidWeight(snap, localizedCoord, snStX, dims.z()) / kernel.totalWeight;
             if (density >= threshold) result.add(key);
         }
         // Also check non-selected voxels in the bounding box that might grow in
-        for (int lx = margin; lx < dimX - margin; lx++) {
-            for (int ly = margin; ly < dimY - margin; ly++) {
-                for (int lz = margin; lz < dimZ - margin; lz++) {
-                    if (snap[lx * snStX + ly * dimZ + lz] != 0) continue; // already handled above
-                    float density = kernel.solidWeight(snap, lx, ly, lz, snStX, dimZ) / kernel.totalWeight;
+        for (int lx = margin; lx < dims.x() - margin; lx++) {
+            for (int ly = margin; ly < dims.y() - margin; ly++) {
+                for (int lz = margin; lz < dims.z() - margin; lz++) {
+                    Vec3DInt localizedCoord = Vec3DInt.from(lx, ly, lz);
+                    if (snap[lx * snStX + ly * dims.z() + lz] != 0) continue; // already handled above
+                    float density = kernel.solidWeight(snap, localizedCoord, snStX, dims.z()) / kernel.totalWeight;
                     if (density >= threshold) {
-                        int wx = lx - margin + mnX;
-                        int wy = ly - margin + mnY;
-                        int wz = lz - margin + mnZ;
-                        if (wy >= 0 && wy <= 255) result.add(SelectionState.pack(wx, wy, wz));
+                        int wx = lx - margin
+                            + bb.minimum()
+                                .x();
+                        int wy = ly - margin
+                            + bb.minimum()
+                                .y();
+                        int wz = lz - margin
+                            + bb.minimum()
+                                .z();
+                        if (wy >= 0 && wy <= 255) result.add(SelectionState.pack(Vec3DInt.from(wx, wy, wz)));
                     }
                 }
             }
@@ -163,11 +167,10 @@ public final class SelectionTransforms {
         boolean keepMatching, boolean exactMeta) {
         Set<Long> result = new HashSet<>();
         for (long key : blocks) {
-            int x = SelectionState.unpackX(key);
-            int y = SelectionState.unpackY(key);
-            int z = SelectionState.unpackZ(key);
-            Block b = world.getBlock(x, y, z);
-            boolean matches = exactMeta ? (b == targetBlock && world.getBlockMetadata(x, y, z) == targetMeta)
+            Vec3DInt coord = SelectionState.unpack(key);
+            Block b = world.getBlock(coord.x(), coord.y(), coord.z());
+            boolean matches = exactMeta
+                ? (b == targetBlock && world.getBlockMetadata(coord.x(), coord.y(), coord.z()) == targetMeta)
                 : (b == targetBlock);
             if (matches == keepMatching) result.add(key);
         }
@@ -179,8 +182,8 @@ public final class SelectionTransforms {
 
         List<ModelPoint> pts = new ArrayList<>(blocks.size());
         for (long key : blocks) {
-            pts.add(
-                new ModelPoint(SelectionState.unpackX(key), SelectionState.unpackY(key), SelectionState.unpackZ(key)));
+            Vec3DInt coord = SelectionState.unpack(key);
+            pts.add(new ModelPoint(coord.x(), coord.y(), coord.z()));
         }
 
         List<int[]> faces = ModellingMath.convexHull3DPublic(pts);
@@ -191,9 +194,9 @@ public final class SelectionTransforms {
         Map<Long, int[]> surfaceMap = new HashMap<>();
         double[][] P = new double[pts.size()][3];
         for (int i = 0; i < pts.size(); i++) {
-            P[i][0] = pts.get(i).x;
-            P[i][1] = pts.get(i).y;
-            P[i][2] = pts.get(i).z;
+            P[i][0] = pts.get(i).pos.x();
+            P[i][1] = pts.get(i).pos.y();
+            P[i][2] = pts.get(i).pos.z();
         }
         for (int[] f : faces) {
             ModellingMath.voxelizeTriangleDPublic(surfaceMap, P[f[0]], P[f[1]], P[f[2]], dummy);
@@ -202,9 +205,10 @@ public final class SelectionTransforms {
         // Scan-line fill: for each (x,z) column, fill from min to max Y in surface
         Map<Long, int[]> xzYRange = new HashMap<>();
         for (long key : surfaceMap.keySet()) {
-            int x = SelectionState.unpackX(key);
-            int y = SelectionState.unpackY(key);
-            int z = SelectionState.unpackZ(key);
+            Vec3DInt c = SelectionState.unpack(key);
+            int x = c.x();
+            int y = c.y();
+            int z = c.z();
             long xzKey = ((long) x << 32) | (z & 0xFFFFFFFFL);
             int[] range = xzYRange.get(xzKey);
             if (range == null) {
@@ -223,7 +227,7 @@ public final class SelectionTransforms {
             int z = (int) (xzKey);
             int[] range = e.getValue();
             for (int y = range[0]; y <= range[1]; y++) {
-                if (y >= 0 && y <= 255) result.add(SelectionState.pack(x, y, z));
+                if (y >= 0 && y <= 255) result.add(SelectionState.pack(Vec3DInt.from(x, y, z)));
             }
         }
         return result;

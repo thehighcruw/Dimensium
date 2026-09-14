@@ -48,15 +48,15 @@ public class PacketShapePlacement implements IPacket {
     public PacketShapePlacement() {}
 
     public PacketShapePlacement(ShapePlacementState ps, ShapeToolState s, SelectedBlockState sbs) {
-        anchorX = (int) Math.floor(ps.anchorFX);
-        anchorY = (int) Math.floor(ps.anchorFY);
-        anchorZ = (int) Math.floor(ps.anchorFZ);
+        anchorX = (int) Math.floor(ps.anchorF.x());
+        anchorY = (int) Math.floor(ps.anchorF.y());
+        anchorZ = (int) Math.floor(ps.anchorF.z());
         w = ps.baseW;
         h = ps.baseH;
         d = ps.baseD;
-        rotX = ps.rotX;
-        rotY = ps.rotY;
-        rotZ = ps.rotZ;
+        rotX = ps.rot.x();
+        rotY = ps.rot.y();
+        rotZ = ps.rot.z();
         shapeTypeOrd = s.shapeType.ordinal();
         hollow = s.shapeHollow;
         keepExisting = s.shapeKeepExisting;

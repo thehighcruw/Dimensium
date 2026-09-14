@@ -29,6 +29,7 @@ import github.thehighcruw.dimensium.editor.tool.brushes.BrushShape;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushState;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushUtil;
 import github.thehighcruw.dimensium.shared.KeyConstants;
+import github.thehighcruw.dimensium.shared.Vec3DDouble;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
 
 @SideOnly(Side.CLIENT)
@@ -46,18 +47,19 @@ public class BrushPreviewRenderer {
     private float[] cachedBrushWire = null;
     private HashSet<Long> cachedBrushSet = null;
 
-    public void render(ToolRenderer renderer, Minecraft mc, double rx, double ry, double rz) {
+    public void render(ToolRenderer renderer, Minecraft mc, Vec3DDouble camPos) {
         MovingObjectPosition mop = RenderUtils.raycastAtCursor();
         if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return;
 
         int bx = mop.blockX, by = mop.blockY, bz = mop.blockZ;
+        double rx = camPos.x(), ry = camPos.y(), rz = camPos.z();
         Tool activeTool = DimensiumEditorMode.INSTANCE.selectedTool;
         BrushState bs = BrushState.INSTANCE;
         int sx = bs.brushRadius;
         int sy = bs.brushShape.hasHeight ? bs.brushHeight : bs.brushRadius;
         BrushShape shape = bs.brushShape;
 
-        if (renderer.renderHover(mop, rx, ry, rz)) return;
+        if (renderer.renderHover(mop, camPos)) return;
 
         boolean buttonHeld = BrushInputRegistry.usesDragLoop(activeTool) && Mouse.isButtonDown(KeyConstants.RMB);
 
@@ -79,7 +81,7 @@ public class BrushPreviewRenderer {
                     GL11.glPushMatrix();
                     GL11.glTranslated(-rx, -ry, -rz);
                     // glTranslated(-rx,-ry,-rz) → eye in local (world) space = (rx,ry,rz)
-                    WorldLines.setEye(rx, ry, rz);
+                    WorldLines.setEye(Vec3DDouble.from(rx, ry, rz));
                     GhostRenderer.drawWireframeCache(Tessellator.instance, wire);
                     GL11.glPopMatrix();
                 }
@@ -129,8 +131,9 @@ public class BrushPreviewRenderer {
                     if (wire != null && wire.length > 0) {
                         GL11.glColor4f(0.50f, 0.85f, 1.0f, 0.9f);
                         GL11.glPushMatrix();
-                        GL11.glTranslated(bx - sx - rx, by - sy - ry, bz - sx - rz);
-                        WorldLines.setEyeForTranslation(bx - sx - rx, by - sy - ry, bz - sx - rz);
+                        Vec3DDouble brushTrans = Vec3DDouble.from(bx - sx - rx, by - sy - ry, bz - sx - rz);
+                        GL11.glTranslated(brushTrans.x(), brushTrans.y(), brushTrans.z());
+                        WorldLines.setEyeForTranslation(brushTrans);
                         GhostRenderer.drawWireframeCache(Tessellator.instance, wire);
                         GL11.glPopMatrix();
                     }
@@ -140,8 +143,9 @@ public class BrushPreviewRenderer {
             // Static brush-shape preview: transparent white faces + white crease edges
             float[] wire = getBrushWireframe(shape, sx, sy, sx);
             GL11.glPushMatrix();
-            GL11.glTranslated(bx - sx - rx, by - sy - ry, bz - sx - rz);
-            WorldLines.setEyeForTranslation(bx - sx - rx, by - sy - ry, bz - sx - rz);
+            Vec3DDouble shapeTrans = Vec3DDouble.from(bx - sx - rx, by - sy - ry, bz - sx - rz);
+            GL11.glTranslated(shapeTrans.x(), shapeTrans.y(), shapeTrans.z());
+            WorldLines.setEyeForTranslation(shapeTrans);
 
             // Outer faces — view-shaded transparent white.
             // Depth write enabled so overlapping faces don't accumulate (fixes corner glow).
@@ -150,13 +154,9 @@ public class BrushPreviewRenderer {
                 GL11.glDepthMask(true);
 
                 // View direction from brush center → normalized
-                double ecx = rx - bx, ecy = ry - by, ecz = rz - bz;
-                double elen = Math.sqrt(ecx * ecx + ecy * ecy + ecz * ecz);
-                if (elen > 0.001) {
-                    ecx /= elen;
-                    ecy /= elen;
-                    ecz /= elen;
-                }
+                Vec3DDouble viewDir = Vec3DDouble.from(rx - bx, ry - by, rz - bz);
+                if (viewDir.length() > 0.001) viewDir = viewDir.normalize();
+                double ecx = viewDir.x(), ecy = viewDir.y(), ecz = viewDir.z();
 
                 Tessellator tf = Tessellator.instance;
                 for (int faceDir = 0; faceDir < 6; faceDir++) {

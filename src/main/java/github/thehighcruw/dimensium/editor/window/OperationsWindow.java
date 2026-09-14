@@ -68,8 +68,13 @@ public class OperationsWindow extends ToggleableWindow {
                 java.util.List<int[]> ops = new java.util.ArrayList<>(_sel.size());
                 for (long key : _sel.getSelectedBlocks()) {
                     ops.add(
-                        new int[] { SelectionState.unpackX(key), SelectionState.unpackY(key),
-                            SelectionState.unpackZ(key), bid, meta });
+                        new int[] { SelectionState.unpack(key)
+                            .x(),
+                            SelectionState.unpack(key)
+                                .y(),
+                            SelectionState.unpack(key)
+                                .z(),
+                            bid, meta });
                 }
                 BlockSender.sendChunked(ops, I18n.format("dimensium.action.fill"));
             }

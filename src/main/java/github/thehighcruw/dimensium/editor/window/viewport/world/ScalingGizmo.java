@@ -9,6 +9,9 @@ import net.minecraft.entity.EntityLivingBase;
 import org.lwjgl.opengl.GL11;
 
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeMath;
+import github.thehighcruw.dimensium.shared.Vec2DDouble;
+import github.thehighcruw.dimensium.shared.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.Vec3DFloat;
 
 /**
  * Single-axis scale gizmo — a colored box at the tip of each axis arrow.
@@ -43,7 +46,8 @@ public class ScalingGizmo {
     private Axis dragAxis = Axis.NONE;
     private int dragStartMX, dragStartMY;
     private float startScale;
-    private double screenDx, screenDy, pixelsPerUnit;
+    private Vec2DDouble screenDir = Vec2DDouble.ZERO;
+    private double pixelsPerUnit;
 
     public boolean isDragging() {
         return dragAxis != Axis.NONE;
@@ -60,11 +64,10 @@ public class ScalingGizmo {
 
     // ── Rendering ─────────────────────────────────────────────────────────────
 
-    public void render(double gx, double gy, double gz, double rx, double ry, double rz, float rotX, float rotY,
-        float rotZ) {
-        proj.capture(rx, ry, rz);
-        float scale = RotationGizmo.computeScale(gx - rx, gy - ry, gz - rz);
-        RotationGizmo.setupGizmoMatrix(gx, gy, gz, rx, ry, rz, rotX, rotY, rotZ, scale);
+    public void render(double gx, double gy, double gz, Vec3DDouble camPos, float rotX, float rotY, float rotZ) {
+        proj.capture(camPos);
+        float scale = RotationGizmo.computeScale(gx - camPos.x(), gy - camPos.y(), gz - camPos.z());
+        RotationGizmo.setupGizmoMatrix(gx, gy, gz, camPos, rotX, rotY, rotZ, scale);
 
         for (int a = 0; a < 3; a++) {
             Axis axis = a == 0 ? Axis.X : a == 1 ? Axis.Y : Axis.Z;
@@ -73,47 +76,34 @@ public class ScalingGizmo {
             float[] dir = AXIS_DIR[a];
 
             // Box center along this axis
-            float bcx = dir[0] * BOX_CENTER, bcy = dir[1] * BOX_CENTER, bcz = dir[2] * BOX_CENTER;
+            Vec3DFloat bc = Vec3DFloat.from(dir[0] * BOX_CENTER, dir[1] * BOX_CENTER, dir[2] * BOX_CENTER);
             float h = BOX_HALF;
 
             // Per-axis perpendicular half-extents: for X axis, box extends in Y and Z, etc.
-            // Compute two perpendicular half-extents
-            float p1x, p1y, p1z, p2x, p2y, p2z;
+            Vec3DFloat p1, p2;
             if (a == 0) { // X axis: perp = Y, Z
-                p1x = 0;
-                p1y = h;
-                p1z = 0;
-                p2x = 0;
-                p2y = 0;
-                p2z = h;
+                p1 = Vec3DFloat.from(0, h, 0);
+                p2 = Vec3DFloat.from(0, 0, h);
             } else if (a == 1) { // Y axis: perp = X, Z
-                p1x = h;
-                p1y = 0;
-                p1z = 0;
-                p2x = 0;
-                p2y = 0;
-                p2z = h;
+                p1 = Vec3DFloat.from(h, 0, 0);
+                p2 = Vec3DFloat.from(0, 0, h);
             } else { // Z axis: perp = X, Y
-                p1x = h;
-                p1y = 0;
-                p1z = 0;
-                p2x = 0;
-                p2y = h;
-                p2z = 0;
+                p1 = Vec3DFloat.from(h, 0, 0);
+                p2 = Vec3DFloat.from(0, h, 0);
             }
             // Along-axis half extent
-            float p3x = dir[0] * h, p3y = dir[1] * h, p3z = dir[2] * h;
+            Vec3DFloat p3 = Vec3DFloat.from(dir[0] * h, dir[1] * h, dir[2] * h);
 
             float alpha = hot ? 0.95f : 0.6f;
             GL11.glColor4f(col[0], col[1], col[2], alpha);
 
             // 6 faces of the box
-            renderBoxFace(bcx - p3x, bcy - p3y, bcz - p3z, p1x, p1y, p1z, p2x, p2y, p2z); // back face
-            renderBoxFace(bcx + p3x, bcy + p3y, bcz + p3z, p2x, p2y, p2z, p1x, p1y, p1z); // front face
-            renderBoxFace(bcx - p1x, bcy - p1y, bcz - p1z, p3x, p3y, p3z, p2x, p2y, p2z); // left face
-            renderBoxFace(bcx + p1x, bcy + p1y, bcz + p1z, p2x, p2y, p2z, p3x, p3y, p3z); // right face
-            renderBoxFace(bcx - p2x, bcy - p2y, bcz - p2z, p1x, p1y, p1z, p3x, p3y, p3z); // bottom face
-            renderBoxFace(bcx + p2x, bcy + p2y, bcz + p2z, p3x, p3y, p3z, p1x, p1y, p1z); // top face
+            renderBoxFace(bc.minus(p3), p1, p2); // back face
+            renderBoxFace(bc.plus(p3), p2, p1); // front face
+            renderBoxFace(bc.minus(p1), p3, p2); // left face
+            renderBoxFace(bc.plus(p1), p2, p3); // right face
+            renderBoxFace(bc.minus(p2), p1, p3); // bottom face
+            renderBoxFace(bc.plus(p2), p3, p1); // top face
 
             // Outline
             if (hot) {
@@ -121,33 +111,40 @@ public class ScalingGizmo {
             } else {
                 GL11.glColor4f(col[0] * 0.7f, col[1] * 0.7f, col[2] * 0.7f, 0.9f);
             }
-            renderBoxEdges(bcx, bcy, bcz, p1x, p1y, p1z, p2x, p2y, p2z, p3x, p3y, p3z);
+            renderBoxEdges(bc, p1, p2, p3);
         }
 
         GL11.glPopMatrix();
     }
 
-    private static void renderBoxFace(float cx, float cy, float cz, float ax, float ay, float az, float bx, float by,
-        float bz) {
+    private static void renderBoxFace(Vec3DFloat center, Vec3DFloat a, Vec3DFloat b) {
         GL11.glBegin(GL11.GL_QUADS);
-        GL11.glVertex3f(cx - ax - bx, cy - ay - by, cz - az - bz);
-        GL11.glVertex3f(cx + ax - bx, cy + ay - by, cz + az - bz);
-        GL11.glVertex3f(cx + ax + bx, cy + ay + by, cz + az + bz);
-        GL11.glVertex3f(cx - ax + bx, cy - ay + by, cz - az + bz);
+        GL11.glVertex3f(center.x() - a.x() - b.x(), center.y() - a.y() - b.y(), center.z() - a.z() - b.z());
+        GL11.glVertex3f(center.x() + a.x() - b.x(), center.y() + a.y() - b.y(), center.z() + a.z() - b.z());
+        GL11.glVertex3f(center.x() + a.x() + b.x(), center.y() + a.y() + b.y(), center.z() + a.z() + b.z());
+        GL11.glVertex3f(center.x() - a.x() + b.x(), center.y() - a.y() + b.y(), center.z() - a.z() + b.z());
         GL11.glEnd();
     }
 
-    private static void renderBoxEdges(float cx, float cy, float cz, float p1x, float p1y, float p1z, float p2x,
-        float p2y, float p2z, float p3x, float p3y, float p3z) {
+    private static void renderBoxEdges(Vec3DFloat center, Vec3DFloat p1, Vec3DFloat p2, Vec3DFloat p3) {
         // 8 corners
-        float[][] v = { { cx - p1x - p2x - p3x, cy - p1y - p2y - p3y, cz - p1z - p2z - p3z },
-            { cx + p1x - p2x - p3x, cy + p1y - p2y - p3y, cz + p1z - p2z - p3z },
-            { cx + p1x + p2x - p3x, cy + p1y + p2y - p3y, cz + p1z + p2z - p3z },
-            { cx - p1x + p2x - p3x, cy - p1y + p2y - p3y, cz - p1z + p2z - p3z },
-            { cx - p1x - p2x + p3x, cy - p1y - p2y + p3y, cz - p1z - p2z + p3z },
-            { cx + p1x - p2x + p3x, cy + p1y - p2y + p3y, cz + p1z - p2z + p3z },
-            { cx + p1x + p2x + p3x, cy + p1y + p2y + p3y, cz + p1z + p2z + p3z },
-            { cx - p1x + p2x + p3x, cy - p1y + p2y + p3y, cz - p1z + p2z + p3z } };
+        float[][] v = {
+            { center.x() - p1.x() - p2.x() - p3.x(), center.y() - p1.y() - p2.y() - p3.y(),
+                center.z() - p1.z() - p2.z() - p3.z() },
+            { center.x() + p1.x() - p2.x() - p3.x(), center.y() + p1.y() - p2.y() - p3.y(),
+                center.z() + p1.z() - p2.z() - p3.z() },
+            { center.x() + p1.x() + p2.x() - p3.x(), center.y() + p1.y() + p2.y() - p3.y(),
+                center.z() + p1.z() + p2.z() - p3.z() },
+            { center.x() - p1.x() + p2.x() - p3.x(), center.y() - p1.y() + p2.y() - p3.y(),
+                center.z() - p1.z() + p2.z() - p3.z() },
+            { center.x() - p1.x() - p2.x() + p3.x(), center.y() - p1.y() - p2.y() + p3.y(),
+                center.z() - p1.z() - p2.z() + p3.z() },
+            { center.x() + p1.x() - p2.x() + p3.x(), center.y() + p1.y() - p2.y() + p3.y(),
+                center.z() + p1.z() - p2.z() + p3.z() },
+            { center.x() + p1.x() + p2.x() + p3.x(), center.y() + p1.y() + p2.y() + p3.y(),
+                center.z() + p1.z() + p2.z() + p3.z() },
+            { center.x() - p1.x() + p2.x() + p3.x(), center.y() - p1.y() + p2.y() + p3.y(),
+                center.z() - p1.z() + p2.z() + p3.z() } };
         GL11.glBegin(GL11.GL_LINES);
         // Bottom ring
         edge(v, 0, 1);
@@ -220,16 +217,14 @@ public class ScalingGizmo {
         double[] os = proj.project(gx, gy, gz);
         double[] ts = proj.project(gx + dir[0], gy + dir[1], gz + dir[2]);
         if (os == null || ts == null) {
-            screenDx = 1;
-            screenDy = 0;
+            screenDir = Vec2DDouble.from(1, 0);
             pixelsPerUnit = 50;
             return;
         }
-        double ddx = ts[0] - os[0], ddy = ts[1] - os[1];
-        double len = Math.sqrt(ddx * ddx + ddy * ddy);
+        Vec2DDouble dd = Vec2DDouble.from(ts[0] - os[0], ts[1] - os[1]);
+        double len = dd.length();
         pixelsPerUnit = Math.max(1.0, len);
-        screenDx = len > 0.001 ? ddx / len : 1;
-        screenDy = len > 0.001 ? ddy / len : 0;
+        screenDir = len > 0.001 ? dd.divide(len) : Vec2DDouble.from(1, 0);
     }
 
     /**
@@ -237,7 +232,8 @@ public class ScalingGizmo {
      */
     public float[] updateDrag(int mouseX, int mouseY) {
         if (dragAxis == Axis.NONE) return null;
-        double proj = (mouseX - dragStartMX) * screenDx + (mouseY - dragStartMY) * screenDy;
+        double proj = Vec2DDouble.from(mouseX - dragStartMX, mouseY - dragStartMY)
+            .dot(screenDir);
         float newScale = Math.max(0.1f, startScale + (float) (proj / pixelsPerUnit) * SCALE_SENSITIVITY);
         return new float[] { newScale };
     }

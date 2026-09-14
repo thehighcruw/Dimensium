@@ -52,6 +52,8 @@ import github.thehighcruw.dimensium.network.PacketShapePlacement;
 import github.thehighcruw.dimensium.shared.BlockSender;
 import github.thehighcruw.dimensium.shared.KeyConstants;
 import github.thehighcruw.dimensium.shared.SelectionState;
+import github.thehighcruw.dimensium.shared.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
 import github.thehighcruw.dimensium.tool.BuilderToolState;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
@@ -83,26 +85,24 @@ public final class GuiDimensiumOverlay {
         double tanHX = FreecamState.INSTANCE.projTanHX;
         double tanHY = FreecamState.INSTANCE.projTanHY;
 
-        double[][] basis = FreecamUtils.cameraBasis(eye.rotationYaw, eye.rotationPitch);
-        double[] fwd = basis[0], rgt = basis[1], up = basis[2];
+        Vec3DDouble[] basis = FreecamUtils.cameraBasis(eye.rotationYaw, eye.rotationPitch);
+        Vec3DDouble fwd = basis[0], rgt = basis[1], up = basis[2];
 
-        double rdx = fwd[0] + rgt[0] * ndcX * tanHX + up[0] * ndcY * tanHY;
-        double rdy = fwd[1] + up[1] * ndcY * tanHY;
-        double rdz = fwd[2] + rgt[2] * ndcX * tanHX + up[2] * ndcY * tanHY;
-        double len = Math.sqrt(rdx * rdx + rdy * rdy + rdz * rdz);
-        rdx /= len;
-        rdy /= len;
-        rdz /= len;
-
-        double eyeX = eye.posX;
-        double eyeY = eye.posY + eye.getEyeHeight();
-        double eyeZ = eye.posZ;
+        Vec3DDouble rd = Vec3DDouble
+            .from(
+                fwd.x() + rgt.x() * ndcX * tanHX + up.x() * ndcY * tanHY,
+                fwd.y() + up.y() * ndcY * tanHY,
+                fwd.z() + rgt.z() * ndcX * tanHX + up.z() * ndcY * tanHY)
+            .normalize();
+        Vec3DDouble eyePos = Vec3DDouble.from(eye.posX, eye.posY + eye.getEyeHeight(), eye.posZ);
 
         // Offset start slightly forward so the ray doesn't immediately hit the block the camera is inside.
         double near = github.thehighcruw.dimensium.DimensiumConfig.raycastNearClip;
         double far = github.thehighcruw.dimensium.DimensiumConfig.raycastDistance;
-        Vec3 start = Vec3.createVectorHelper(eyeX + rdx * near, eyeY + rdy * near, eyeZ + rdz * near);
-        Vec3 end = Vec3.createVectorHelper(eyeX + rdx * far, eyeY + rdy * far, eyeZ + rdz * far);
+        Vec3 start = Vec3
+            .createVectorHelper(eyePos.x() + rd.x() * near, eyePos.y() + rd.y() * near, eyePos.z() + rd.z() * near);
+        Vec3 end = Vec3
+            .createVectorHelper(eyePos.x() + rd.x() * far, eyePos.y() + rd.y() * far, eyePos.z() + rd.z() * far);
         return mc.theWorld.rayTraceBlocks(start, end);
     }
 
@@ -140,7 +140,18 @@ public final class GuiDimensiumOverlay {
                 double ccx = cps.centerX(), ccy = cps.centerY(), ccz = cps.centerZ();
                 if (eye != null && cps.getAxisTranslationGizmo().hoveredAxis != TranslationGizmo.Axis.NONE) {
                     cps.getAxisTranslationGizmo()
-                        .startDrag(mouseX, mouseY, ccx, ccy, ccz, cps.anchorFX, cps.anchorFY, cps.anchorFZ, 0, 0, 0);
+                        .startDrag(
+                            mouseX,
+                            mouseY,
+                            ccx,
+                            ccy,
+                            ccz,
+                            cps.anchorF.x(),
+                            cps.anchorF.y(),
+                            cps.anchorF.z(),
+                            0,
+                            0,
+                            0);
                 } else if (eye != null
                     && cps.getPlaneTranslationGizmo().hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
                         cps.getPlaneTranslationGizmo()
@@ -150,18 +161,16 @@ public final class GuiDimensiumOverlay {
                                 ccx,
                                 ccy,
                                 ccz,
-                                cps.anchorFX,
-                                cps.anchorFY,
-                                cps.anchorFZ,
-                                cps.rotX,
-                                cps.rotY,
-                                cps.rotZ);
+                                cps.anchorF.x(),
+                                cps.anchorF.y(),
+                                cps.anchorF.z(),
+                                cps.rot.x(),
+                                cps.rot.y(),
+                                cps.rot.z());
                     } else if (eye != null && cps.getRotationGizmo().hoveredAxis != RotationGizmo.Axis.NONE) {
-                        cps.rotDragBaseX = cps.rotX;
-                        cps.rotDragBaseY = cps.rotY;
-                        cps.rotDragBaseZ = cps.rotZ;
+                        cps.rotDragBase = cps.rot;
                         cps.getRotationGizmo()
-                            .startDrag(mouseX, mouseY, ccx, ccy, ccz, cps.rotX, cps.rotY, cps.rotZ);
+                            .startDrag(mouseX, mouseY, ccx, ccy, ccz, cps.rot.x(), cps.rot.y(), cps.rot.z());
                     }
             } else if (button == KeyConstants.RMB) {
                 cps.cancel();
@@ -272,9 +281,7 @@ public final class GuiDimensiumOverlay {
                 if (sel.pendingPos1) {
                     MovingObjectPosition mop = RenderUtils.raycastAtCursor();
                     if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-                        sel.pendingX2 = mop.blockX;
-                        sel.pendingY2 = mop.blockY;
-                        sel.pendingZ2 = mop.blockZ;
+                        sel.pendingPos2 = Vec3DInt.from(mop.blockX, mop.blockY, mop.blockZ);
                         sel.pendingPos1 = false;
                         sel.boxConfirmed = true;
                         SelectionRenderer.boxPos1Gizmo.reset();
@@ -311,7 +318,8 @@ public final class GuiDimensiumOverlay {
         for (int[] b : ms.ghostBlocks) {
             Block blk = Block.getBlockById(b[3]);
             if (blk != null && blk != Blocks.air) {
-                newSnap.put(SelectionState.pack(b[0], b[1], b[2]), new SelectionState.BlockData(blk, b[4]));
+                newSnap
+                    .put(SelectionState.pack(Vec3DInt.from(b[0], b[1], b[2])), new SelectionState.BlockData(blk, b[4]));
             }
             ncx += b[0] + 0.5f;
             ncy += b[1] + 0.5f;
@@ -454,8 +462,13 @@ public final class GuiDimensiumOverlay {
     /** Commits the pending box selection (boxConfirmed state) and clears gizmo state. */
     public static void commitBoxSelection(SelectionState sel, BoxSelectToolState ts) {
         sel.applyOp(
-            SelectionState
-                .aabbBlocks(sel.pendingX, sel.pendingY, sel.pendingZ, sel.pendingX2, sel.pendingY2, sel.pendingZ2),
+            SelectionState.aabbBlocks(
+                sel.pendingPos.x(),
+                sel.pendingPos.y(),
+                sel.pendingPos.z(),
+                sel.pendingPos2.x(),
+                sel.pendingPos2.y(),
+                sel.pendingPos2.z()),
             ts.booleanOp);
         sel.boxConfirmed = false;
         SelectionRenderer.boxPos1Gizmo.reset();

@@ -14,6 +14,7 @@ import net.minecraft.world.World;
 
 import github.thehighcruw.dimensium.editor.tool.ActiveDragState;
 import github.thehighcruw.dimensium.editor.tool.mask.ToolMask;
+import github.thehighcruw.dimensium.shared.Vec3DInt;
 
 /**
  * Accumulates block changes for a drag stroke before committing them to the server.
@@ -39,7 +40,7 @@ public class ChangeProposal {
 
     /** Crease-edge wireframe cache. Recomputed when proposed.size() changes. */
     public float[] cachedWire = null;
-    public final int[] wireOrigin = new int[3];
+    public Vec3DInt wireOrigin = Vec3DInt.ZERO;
     public int wireCacheSize = -1;
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────
@@ -96,6 +97,14 @@ public class ChangeProposal {
 
     public static long packKey(int x, int y, int z) {
         return ((long) (x + 30000000)) << 34 | ((long) (y & 0xFF)) << 26 | (long) (z + 30000000);
+    }
+
+    public static long packKey(Vec3DInt v) {
+        return packKey(v.x(), v.y(), v.z());
+    }
+
+    public static Vec3DInt unpackKey(long k) {
+        return new Vec3DInt(unpackX(k), unpackY(k), unpackZ(k));
     }
 
     public static int unpackX(long k) {

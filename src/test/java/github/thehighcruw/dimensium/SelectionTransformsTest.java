@@ -13,17 +13,18 @@ import org.junit.Test;
 
 import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.SelectionTransforms;
+import github.thehighcruw.dimensium.shared.Vec3DInt;
 
 public class SelectionTransformsTest {
 
     private static Set<Long> pack(int[][] coords) {
         Set<Long> s = new HashSet<>();
-        for (int[] c : coords) s.add(SelectionState.pack(c[0], c[1], c[2]));
+        for (int[] c : coords) s.add(SelectionState.pack(Vec3DInt.from(c[0], c[1], c[2])));
         return s;
     }
 
     private static boolean has(Set<Long> set, int x, int y, int z) {
-        return set.contains(SelectionState.pack(x, y, z));
+        return set.contains(SelectionState.pack(Vec3DInt.from(x, y, z)));
     }
 
     // ── move ─────────────────────────────────────────────────────────────────
@@ -107,7 +108,9 @@ public class SelectionTransformsTest {
         assertFalse(
             "should not produce y=256",
             result.stream()
-                .anyMatch(k -> SelectionState.unpackY(k) > 255));
+                .anyMatch(
+                    k -> SelectionState.unpack(k)
+                        .y() > 255));
     }
 
     @Test
@@ -139,7 +142,7 @@ public class SelectionTransformsTest {
         // Build a 3×3×3 cube centred at (5,64,5)
         Set<Long> blocks = new HashSet<>();
         for (int dx = -1; dx <= 1; dx++) for (int dy = -1; dy <= 1; dy++)
-            for (int dz = -1; dz <= 1; dz++) blocks.add(SelectionState.pack(5 + dx, 64 + dy, 5 + dz));
+            for (int dz = -1; dz <= 1; dz++) blocks.add(SelectionState.pack(Vec3DInt.from(5 + dx, 64 + dy, 5 + dz)));
 
         Set<Long> result = SelectionTransforms.shrink(blocks, 1);
         // Only the single interior block (5,64,5) survives
@@ -177,8 +180,8 @@ public class SelectionTransformsTest {
     public void smoothSolidCubeAtLowThresholdRetainsMostBlocks() {
         // 5×5×5 solid cube — smoothed at low threshold should keep most interior blocks
         Set<Long> blocks = new HashSet<>();
-        for (int x = 0; x < 5; x++)
-            for (int y = 64; y < 69; y++) for (int z = 0; z < 5; z++) blocks.add(SelectionState.pack(x, y, z));
+        for (int x = 0; x < 5; x++) for (int y = 64; y < 69; y++)
+            for (int z = 0; z < 5; z++) blocks.add(SelectionState.pack(Vec3DInt.from(x, y, z)));
 
         Set<Long> result = SelectionTransforms.smooth(blocks, 1, 0.1f);
         assertFalse("smooth of solid cube should not be empty", result.isEmpty());

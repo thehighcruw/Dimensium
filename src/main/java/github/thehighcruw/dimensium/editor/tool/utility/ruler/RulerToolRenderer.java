@@ -15,6 +15,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.tool.ToolRenderer;
 import github.thehighcruw.dimensium.editor.window.viewport.world.BrushPreviewRenderer;
+import github.thehighcruw.dimensium.shared.Vec3DDouble;
 
 @SideOnly(Side.CLIENT)
 public class RulerToolRenderer implements ToolRenderer {
@@ -25,17 +26,17 @@ public class RulerToolRenderer implements ToolRenderer {
     }
 
     @Override
-    public void renderWorldPreview(Minecraft mc, double rx, double ry, double rz) {
-        BrushPreviewRenderer.INSTANCE.render(this, mc, rx, ry, rz);
+    public void renderWorldPreview(Minecraft mc, Vec3DDouble camPos) {
+        BrushPreviewRenderer.INSTANCE.render(this, mc, camPos);
     }
 
     @Override
-    public boolean renderHover(MovingObjectPosition mop, double rx, double ry, double rz) {
+    public boolean renderHover(MovingObjectPosition mop, Vec3DDouble camPos) {
         List<int[]> points = RulerToolState.INSTANCE.points;
         int hx = mop.blockX, hy = mop.blockY, hz = mop.blockZ;
 
         GL11.glPushMatrix();
-        GL11.glTranslated(-rx, -ry, -rz);
+        GL11.glTranslated(-camPos.x(), -camPos.y(), -camPos.z());
         GL11.glDisable(GL11.GL_TEXTURE_2D);
         GL11.glDisable(GL11.GL_DEPTH_TEST);
         GL11.glLineWidth(2.0f);

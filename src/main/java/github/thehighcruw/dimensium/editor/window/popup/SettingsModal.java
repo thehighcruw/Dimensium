@@ -22,6 +22,7 @@ import github.thehighcruw.dimensium.DimensiumConfig;
 import github.thehighcruw.dimensium.editor.handler.InputState;
 import github.thehighcruw.dimensium.editor.tool.Tool;
 import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
+import github.thehighcruw.dimensium.shared.util.UIUtils;
 import imgui.ImGui;
 import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiKey;
@@ -350,15 +351,6 @@ public class SettingsModal {
         }
     }
 
-    private String comboString(int key, int mods) {
-        StringBuilder sb = new StringBuilder();
-        if ((mods & Dimensium.MOD_CTRL) != 0) sb.append("Ctrl+");
-        if ((mods & Dimensium.MOD_SHIFT) != 0) sb.append("Shift+");
-        if ((mods & Dimensium.MOD_ALT) != 0) sb.append("Alt+");
-        sb.append(Keyboard.getKeyName(key));
-        return sb.toString();
-    }
-
     private static final String POPUP_ID = "settings_modal";
 
     public void renderImGui() {
@@ -543,7 +535,7 @@ public class SettingsModal {
 
             boolean listening = capturingTool == tool;
             String btnLabel = (listening ? I18n.format("dimensium.settings.keybind.press_key_short")
-                : comboString(kb.getKeyCode(), mods)) + "##kbt_" + tool.name();
+                : UIUtils.getKeyShortcutName(kb.getKeyCode(), mods)) + "##kbt_" + tool.name();
 
             if (listening) ImGui.pushStyleColor(ImGuiCol.Button, 0.6f, 0.2f, 0.2f, 1.0f);
             if (ImGui.button(btnLabel, btnW, 0)) {
@@ -566,7 +558,7 @@ public class SettingsModal {
 
             boolean listening = capturingActionIndex == i;
             String btnLabel = (listening ? I18n.format("dimensium.settings.keybind.press_key_short")
-                : comboString(action.getKey(), action.getMods())) + "##kba_" + i;
+                : UIUtils.getKeyShortcutName(action.getKey(), action.getMods())) + "##kba_" + i;
 
             if (listening) ImGui.pushStyleColor(ImGuiCol.Button, 0.6f, 0.2f, 0.2f, 1.0f);
             if (ImGui.button(btnLabel, btnW, 0)) {

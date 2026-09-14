@@ -27,6 +27,7 @@ import org.lwjgl.opengl.GL11;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.shared.BlockColorCache;
+import github.thehighcruw.dimensium.world.inventory.CreativeGuiUtils;
 import github.thehighcruw.dimensium.world.inventory.GuiToggleButton;
 
 @SideOnly(Side.CLIENT)
@@ -145,14 +146,8 @@ public class GuiColourPicker extends GuiContainer {
         hexField.setTextColor(0xFFFFFFFF);
         hexField.setDisabledTextColour(0xFFAAAAAA);
 
-        // FSOT — top-right, matching gradient helper layout
-        int fsotRightEdge = guiLeft + PANEL_W - 6;
-        int fsotY = guiTop + 5;
         buttonList.clear();
-        buttonList.add(new GuiToggleButton(BTN_T, fsotRightEdge - 16, fsotY, 16, 12, "T", filterSameTexture));
-        buttonList.add(new GuiToggleButton(BTN_O, fsotRightEdge - 35, fsotY, 16, 12, "O", filterOpaque));
-        buttonList.add(new GuiToggleButton(BTN_S, fsotRightEdge - 54, fsotY, 16, 12, "S", filterSolid));
-        buttonList.add(new GuiToggleButton(BTN_F, fsotRightEdge - 73, fsotY, 16, 12, "F", filterFullCube));
+        CreativeGuiUtils.addFsotButtons(buttonList, guiLeft, guiTop, PANEL_W);
     }
 
     // ── Background rendering (called before slots/buttons) ────────────────────
@@ -689,20 +684,11 @@ public class GuiColourPicker extends GuiContainer {
     @Override
     protected void actionPerformed(GuiButton button) {
         switch (button.id) {
-            case BTN_F:
-                filterFullCube = toggle(button, filterFullCube);
-                break;
-            case BTN_S:
-                filterSolid = toggle(button, filterSolid);
-                break;
-            case BTN_O:
-                filterOpaque = toggle(button, filterOpaque);
-                break;
-            case BTN_T:
-                filterSameTexture = toggle(button, filterSameTexture);
-                break;
-            default:
-                break;
+            case BTN_F -> filterFullCube = toggle(button, filterFullCube);
+            case BTN_S -> filterSolid = toggle(button, filterSolid);
+            case BTN_O -> filterOpaque = toggle(button, filterOpaque);
+            case BTN_T -> filterSameTexture = toggle(button, filterSameTexture);
+            default -> {}
         }
         dirty = true;
     }

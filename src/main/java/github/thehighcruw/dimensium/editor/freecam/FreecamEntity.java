@@ -5,6 +5,7 @@
 package github.thehighcruw.dimensium.editor.freecam;
 
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 
@@ -49,20 +50,20 @@ public class FreecamEntity extends EntityLivingBase {
     }
 
     @Override
-    public net.minecraft.item.ItemStack[] getLastActiveItems() {
-        return new net.minecraft.item.ItemStack[0];
+    public ItemStack[] getLastActiveItems() {
+        return new ItemStack[0];
     }
 
     @Override
-    public void setCurrentItemOrArmor(int slot, net.minecraft.item.ItemStack stack) {}
+    public void setCurrentItemOrArmor(int slot, ItemStack stack) {}
 
     @Override
-    public net.minecraft.item.ItemStack getEquipmentInSlot(int slot) {
+    public ItemStack getEquipmentInSlot(int slot) {
         return null;
     }
 
     @Override
-    public net.minecraft.item.ItemStack getHeldItem() {
+    public ItemStack getHeldItem() {
         return null;
     }
 }

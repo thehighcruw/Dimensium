@@ -25,6 +25,7 @@ import github.thehighcruw.dimensium.editor.tool.selecting.SelectedBlockState;
 import github.thehighcruw.dimensium.shared.BlockSender;
 import github.thehighcruw.dimensium.shared.KeyConstants;
 import github.thehighcruw.dimensium.shared.SelectionState;
+import github.thehighcruw.dimensium.shared.Vec3DInt;
 import github.thehighcruw.dimensium.tool.BuilderToolState;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 
@@ -78,9 +79,8 @@ public class FillBrushInput implements BrushInput {
 
         ChangeProposal p = ChangeProposal.forPreview();
         for (long key : airBlocks) {
-            int bx = SelectionState.unpackX(key);
-            int by = SelectionState.unpackY(key);
-            int bz = SelectionState.unpackZ(key);
+            Vec3DInt bv = SelectionState.unpack(key);
+            int bx = bv.x(), by = bv.y(), bz = bv.z();
             p.proposed.put(ChangeProposal.packKey(bx, by, bz), new int[] { paintId, paintMeta });
         }
         BuilderToolState.INSTANCE.fillPreview = p;

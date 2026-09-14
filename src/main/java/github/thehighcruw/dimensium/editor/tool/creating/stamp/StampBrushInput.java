@@ -115,10 +115,10 @@ public final class StampBrushInput implements BrushInput {
         List<int[]> ops = new ArrayList<>();
         for (StampInstance inst : instances) {
             StampEntry entry = state.blueprints.get(inst.entryIdx);
-            List<int[]> offsets = entry.blueprint.offsets;
-            int clipW = entry.blueprint.clipW;
-            int clipH = entry.blueprint.clipH;
-            int clipD = entry.blueprint.clipD;
+            List<int[]> offsets = entry.blueprint.offsets();
+            int clipW = entry.blueprint.clipW();
+            int clipH = entry.blueprint.clipH();
+            int clipD = entry.blueprint.clipD();
 
             boolean rotated = inst.yaw != 0f;
             float[] R = rotated ? ShapeMath.buildRotationMatrix(0f, inst.yaw, 0f) : null;
@@ -133,13 +133,13 @@ public final class StampBrushInput implements BrushInput {
                 int wx, wy, wz;
                 if (rotated) {
                     float dx = lx + 0.5f - cx, dy = ly + 0.5f - cy, dz = lz + 0.5f - cz;
-                    wx = inst.anchorX + (int) Math.floor(R[0] * dx + R[1] * dy + R[2] * dz + cx);
-                    wy = inst.anchorY + (int) Math.floor(R[3] * dx + R[4] * dy + R[5] * dz + cy);
-                    wz = inst.anchorZ + (int) Math.floor(R[6] * dx + R[7] * dy + R[8] * dz + cz);
+                    wx = inst.anchor.x() + (int) Math.floor(R[0] * dx + R[1] * dy + R[2] * dz + cx);
+                    wy = inst.anchor.y() + (int) Math.floor(R[3] * dx + R[4] * dy + R[5] * dz + cy);
+                    wz = inst.anchor.z() + (int) Math.floor(R[6] * dx + R[7] * dy + R[8] * dz + cz);
                 } else {
-                    wx = inst.anchorX + lx;
-                    wy = inst.anchorY + ly;
-                    wz = inst.anchorZ + lz;
+                    wx = inst.anchor.x() + lx;
+                    wy = inst.anchor.y() + ly;
+                    wz = inst.anchor.z() + lz;
                 }
 
                 if (state.keepExisting) {

@@ -17,6 +17,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.DimensiumConfig;
 import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
 import github.thehighcruw.dimensium.editor.window.imgui.ToggleableWindow;
+import github.thehighcruw.dimensium.shared.Vec3DDouble;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
 import imgui.ImGui;
 import imgui.flag.ImGuiCond;
@@ -93,10 +94,12 @@ public class BlockInfoWindow extends ToggleableWindow {
 
                 EntityLivingBase eye = mc.renderViewEntity;
                 if (eye != null) {
-                    double dx = mop.blockX + 0.5 - eye.posX;
-                    double dy = mop.blockY + 0.5 - (eye.posY + eye.getEyeHeight());
-                    double dz = mop.blockZ + 0.5 - eye.posZ;
-                    double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+                    double dist = Vec3DDouble
+                        .from(
+                            mop.blockX + 0.5 - eye.posX,
+                            mop.blockY + 0.5 - (eye.posY + eye.getEyeHeight()),
+                            mop.blockZ + 0.5 - eye.posZ)
+                        .length();
                     ImGui.text(I18n.format("dimensium.block_info.distance") + " " + String.format("%.1f", dist) + " m");
                 }
             } else {

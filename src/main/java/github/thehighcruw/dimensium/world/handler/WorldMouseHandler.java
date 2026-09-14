@@ -17,6 +17,7 @@ import github.thehighcruw.dimensium.DimensiumEditorMode;
 import github.thehighcruw.dimensium.editor.freecam.FreecamUtils;
 import github.thehighcruw.dimensium.shared.InputHandler;
 import github.thehighcruw.dimensium.shared.SelectionState;
+import github.thehighcruw.dimensium.shared.Vec3DInt;
 import github.thehighcruw.dimensium.tool.BuilderTool;
 import github.thehighcruw.dimensium.tool.BuilderToolState;
 import github.thehighcruw.dimensium.tool.BuilderToolState.AxisLock;
@@ -108,11 +109,20 @@ public class WorldMouseHandler {
         double ay = Math.abs(facing.yCoord);
         double az = Math.abs(facing.zCoord);
         if (ax >= ay && ax >= az) {
-            bts.stackX = Math.max(-64, Math.min(64, bts.stackX + (int) Math.signum(facing.xCoord) * dir));
+            bts.stack = Vec3DInt.from(
+                Math.max(-64, Math.min(64, bts.stack.x() + (int) Math.signum(facing.xCoord) * dir)),
+                bts.stack.y(),
+                bts.stack.z());
         } else if (ay >= ax && ay >= az) {
-            bts.stackY = Math.max(-64, Math.min(64, bts.stackY + (int) Math.signum(facing.yCoord) * dir));
+            bts.stack = Vec3DInt.from(
+                bts.stack.x(),
+                Math.max(-64, Math.min(64, bts.stack.y() + (int) Math.signum(facing.yCoord) * dir)),
+                bts.stack.z());
         } else {
-            bts.stackZ = Math.max(-64, Math.min(64, bts.stackZ + (int) Math.signum(facing.zCoord) * dir));
+            bts.stack = Vec3DInt.from(
+                bts.stack.x(),
+                bts.stack.y(),
+                Math.max(-64, Math.min(64, bts.stack.z() + (int) Math.signum(facing.zCoord) * dir)));
         }
     }
 }

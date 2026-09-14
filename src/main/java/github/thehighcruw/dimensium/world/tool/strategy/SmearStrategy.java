@@ -18,6 +18,7 @@ import github.thehighcruw.dimensium.editor.freecam.FreecamUtils;
 import github.thehighcruw.dimensium.shared.BlockSender;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.SelectionState.BlockData;
+import github.thehighcruw.dimensium.shared.Vec3DInt;
 import github.thehighcruw.dimensium.tool.BuilderToolState;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 
@@ -32,7 +33,7 @@ public class SmearStrategy implements BuilderToolStrategy {
     public void confirm(BuilderToolState bts, SelectionState sel) {
         if (sel.clipboard == null) return;
         int ox = sel.minX(), oy = sel.minY(), oz = sel.minZ();
-        int dx = bts.offsetX, dy = bts.offsetY, dz = bts.offsetZ;
+        int dx = bts.offset.x(), dy = bts.offset.y(), dz = bts.offset.z();
         if (dx == 0 && dy == 0 && dz == 0) return;
 
         int stepX = 0, stepY = 0, stepZ = 0, steps;
@@ -82,9 +83,7 @@ public class SmearStrategy implements BuilderToolStrategy {
 
         int ox = sel.minX(), oy = sel.minY(), oz = sel.minZ();
         int dx = mop.blockX - ox, dy = mop.blockY - oy, dz = mop.blockZ - oz;
-        bts.offsetX = dx;
-        bts.offsetY = dy;
-        bts.offsetZ = dz;
+        bts.offset = Vec3DInt.from(dx, dy, dz);
         if (dx == 0 && dy == 0 && dz == 0) {
             bts.smearPreview = null;
             return;

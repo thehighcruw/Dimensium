@@ -112,12 +112,7 @@ public class PathSection implements ToolSection {
             ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.80f, 0.20f, 0.20f, 1.0f);
             ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0.50f, 0.05f, 0.05f, 1.0f);
             if (ImGui.button(I18n.format("dimensium.ui.path.remove_point") + "##path_rm_pt")) {
-                int idx = state.selectedIndex;
-                state.points.remove(idx);
-                state.selectedIndex = state.points.isEmpty() ? -1 : Math.min(idx, state.points.size() - 1);
-                state.getAxisTranslationGizmo()
-                    .reset();
-                state.invalidatePath();
+                state.removeCurrentPoint();
             }
             ImGui.popStyleColor(3);
         }

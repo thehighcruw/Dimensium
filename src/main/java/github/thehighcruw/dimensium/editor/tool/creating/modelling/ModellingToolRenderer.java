@@ -10,6 +10,7 @@ import net.minecraft.util.MovingObjectPosition;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.tool.ToolRenderer;
+import github.thehighcruw.dimensium.shared.Vec3DDouble;
 
 @SideOnly(Side.CLIENT)
 public class ModellingToolRenderer implements ToolRenderer {
@@ -24,7 +25,7 @@ public class ModellingToolRenderer implements ToolRenderer {
     }
 
     @Override
-    public boolean renderHover(MovingObjectPosition mop, double rx, double ry, double rz) {
+    public boolean renderHover(MovingObjectPosition mop, Vec3DDouble camPos) {
         return true;
     }
 
@@ -38,9 +39,9 @@ public class ModellingToolRenderer implements ToolRenderer {
             && !mts.getPlaneTranslationGizmo()
                 .isDragging()
             && mc.renderViewEntity != null) {
-            double mgx = mSelPt.x + 0.5, mgy = mSelPt.y + 0.5, mgz = mSelPt.z + 0.5;
+            Vec3DDouble gp = Vec3DDouble.from(mSelPt.pos.x() + 0.5, mSelPt.pos.y() + 0.5, mSelPt.pos.z() + 0.5);
             mts.getAxisTranslationGizmo()
-                .updateHover(mx3d, my3d, mc.renderViewEntity, mgx, mgy, mgz, 0, 0, 0);
+                .updateHover(mx3d, my3d, mc.renderViewEntity, gp.x(), gp.y(), gp.z(), 0, 0, 0);
         }
     }
 }

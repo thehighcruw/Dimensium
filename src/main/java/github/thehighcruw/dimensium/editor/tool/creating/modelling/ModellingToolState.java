@@ -13,6 +13,7 @@ import github.thehighcruw.dimensium.editor.tool.gizmo.WithAxisTranslationGizmo;
 import github.thehighcruw.dimensium.editor.tool.gizmo.WithPlaneTranslationGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.PlaneTranslationGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.TranslationGizmo;
+import github.thehighcruw.dimensium.shared.Vec3DInt;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 
 public class ModellingToolState implements WithAxisTranslationGizmo, WithPlaneTranslationGizmo {
@@ -54,12 +55,10 @@ public class ModellingToolState implements WithAxisTranslationGizmo, WithPlaneTr
 
     public static class ModelPoint {
 
-        public int x, y, z;
+        public Vec3DInt pos;
 
         public ModelPoint(int x, int y, int z) {
-            this.x = x;
-            this.y = y;
-            this.z = z;
+            this.pos = Vec3DInt.from(x, y, z);
         }
     }
 
@@ -192,11 +191,11 @@ public class ModellingToolState implements WithAxisTranslationGizmo, WithPlaneTr
         for (List<ModelPoint> row : rows) {
             sb.append('R');
             for (ModelPoint p : row) {
-                sb.append(p.x)
+                sb.append(p.pos.x())
                     .append(',')
-                    .append(p.y)
+                    .append(p.pos.y())
                     .append(',')
-                    .append(p.z)
+                    .append(p.pos.z())
                     .append(';');
             }
         }

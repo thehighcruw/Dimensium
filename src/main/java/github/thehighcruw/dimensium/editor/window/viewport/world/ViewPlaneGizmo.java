@@ -10,6 +10,9 @@ import org.lwjgl.opengl.GL11;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import github.thehighcruw.dimensium.editor.freecam.FreecamUtils;
+import github.thehighcruw.dimensium.shared.Vec2DDouble;
+import github.thehighcruw.dimensium.shared.Vec3DDouble;
 
 /**
  * View-plane translation gizmo — a white transparent cube at the gizmo origin.
@@ -26,11 +29,13 @@ public class ViewPlaneGizmo {
     public boolean hovered = false;
     private boolean dragging = false;
     private int dragStartMX, dragStartMY;
-    private double startAnchorX, startAnchorY, startAnchorZ;
-    private double scrRightX, scrRightY, pixelsPerUnitRight;
-    private double scrUpX, scrUpY, pixelsPerUnitUp;
-    private final double[] cameraRight = new double[3];
-    private final double[] cameraUp = new double[3];
+    private Vec3DDouble startAnchor = Vec3DDouble.ZERO;
+    private Vec2DDouble scrRight = Vec2DDouble.ZERO;
+    private double pixelsPerUnitRight;
+    private Vec2DDouble scrUp = Vec2DDouble.ZERO;
+    private double pixelsPerUnitUp;
+    private Vec3DDouble cameraRight = Vec3DDouble.ZERO;
+    private Vec3DDouble cameraUp = Vec3DDouble.ZERO;
 
     public boolean isDragging() {
         return dragging;
@@ -43,15 +48,15 @@ public class ViewPlaneGizmo {
 
     // ── Rendering ─────────────────────────────────────────────────────────────
 
-    public void render(double gx, double gy, double gz, double rx, double ry, double rz) {
-        proj.capture(rx, ry, rz);
-        float scale = RotationGizmo.computeScale(gx - rx, gy - ry, gz - rz);
+    public void render(double gx, double gy, double gz, Vec3DDouble camPos) {
+        proj.capture(camPos);
+        float scale = RotationGizmo.computeScale(gx - camPos.x(), gy - camPos.y(), gz - camPos.z());
         float h = CUBE_H * scale;
 
         GL11.glDisable(GL11.GL_TEXTURE_2D);
         GL11.glDisable(GL11.GL_ALPHA_TEST);
         GL11.glPushMatrix();
-        GL11.glTranslated(gx - rx, gy - ry, gz - rz);
+        GL11.glTranslated(gx - camPos.x(), gy - camPos.y(), gz - camPos.z());
 
         float fill = hovered ? 0.55f : 0.22f;
         float edge = hovered ? 1.0f : 0.70f;
@@ -144,58 +149,43 @@ public class ViewPlaneGizmo {
         dragging = true;
         dragStartMX = mouseX;
         dragStartMY = mouseY;
-        startAnchorX = anchorX;
-        startAnchorY = anchorY;
-        startAnchorZ = anchorZ;
+        startAnchor = Vec3DDouble.from(anchorX, anchorY, anchorZ);
 
-        // Camera right = (cos(yaw), 0, sin(yaw))
-        // Camera up = (-sin(pitch)*sin(yaw), cos(pitch), sin(pitch)*cos(yaw))
-        double yaw = Math.toRadians(player.rotationYaw);
-        double pitch = Math.toRadians(player.rotationPitch);
-        cameraRight[0] = Math.cos(yaw);
-        cameraRight[1] = 0;
-        cameraRight[2] = Math.sin(yaw);
-        cameraUp[0] = -Math.sin(pitch) * Math.sin(yaw);
-        cameraUp[1] = Math.cos(pitch);
-        cameraUp[2] = Math.sin(pitch) * Math.cos(yaw);
+        Vec3DDouble[] basis = FreecamUtils.cameraBasis(player.rotationYaw, player.rotationPitch);
+        cameraRight = basis[1];
+        cameraUp = basis[2];
 
         double[] s0 = proj.project(gx, gy, gz);
-        double[] sR = proj.project(gx + cameraRight[0], gy + cameraRight[1], gz + cameraRight[2]);
-        double[] sU = proj.project(gx + cameraUp[0], gy + cameraUp[1], gz + cameraUp[2]);
+        double[] sR = proj.project(gx + cameraRight.x(), gy + cameraRight.y(), gz + cameraRight.z());
+        double[] sU = proj.project(gx + cameraUp.x(), gy + cameraUp.y(), gz + cameraUp.z());
 
         if (s0 == null || sR == null) {
-            scrRightX = 1;
-            scrRightY = 0;
+            scrRight = Vec2DDouble.from(1, 0);
             pixelsPerUnitRight = 50;
         } else {
-            double dx = sR[0] - s0[0], dy = sR[1] - s0[1];
-            pixelsPerUnitRight = Math.max(1.0, Math.sqrt(dx * dx + dy * dy));
-            scrRightX = dx / pixelsPerUnitRight;
-            scrRightY = dy / pixelsPerUnitRight;
+            Vec2DDouble dr = Vec2DDouble.from(sR[0] - s0[0], sR[1] - s0[1]);
+            pixelsPerUnitRight = Math.max(1.0, dr.length());
+            scrRight = dr.divide(pixelsPerUnitRight);
         }
         if (s0 == null || sU == null) {
-            scrUpX = 0;
-            scrUpY = -1;
+            scrUp = Vec2DDouble.from(0, -1);
             pixelsPerUnitUp = 50;
         } else {
-            double dx = sU[0] - s0[0], dy = sU[1] - s0[1];
-            pixelsPerUnitUp = Math.max(1.0, Math.sqrt(dx * dx + dy * dy));
-            scrUpX = dx / pixelsPerUnitUp;
-            scrUpY = dy / pixelsPerUnitUp;
+            Vec2DDouble du = Vec2DDouble.from(sU[0] - s0[0], sU[1] - s0[1]);
+            pixelsPerUnitUp = Math.max(1.0, du.length());
+            scrUp = du.divide(pixelsPerUnitUp);
         }
     }
 
-    /**
-     * Returns updated [anchorX, anchorY, anchorZ] or null if not dragging.
-     */
-    public double[] updateDrag(int mouseX, int mouseY) {
+    /** Returns updated anchor, or null if not dragging. */
+    public Vec3DDouble updateDrag(int mouseX, int mouseY) {
         if (!dragging) return null;
-        double dmx = mouseX - dragStartMX, dmy = mouseY - dragStartMY;
-        double deltaRight = (dmx * scrRightX + dmy * scrRightY) / pixelsPerUnitRight;
-        double deltaUp = (dmx * scrUpX + dmy * scrUpY) / pixelsPerUnitUp;
-        return new double[] { startAnchorX + deltaRight * cameraRight[0] + deltaUp * cameraUp[0],
-            startAnchorY + deltaRight * cameraRight[1] + deltaUp * cameraUp[1],
-            startAnchorZ + deltaRight * cameraRight[2] + deltaUp * cameraUp[2] };
+        Vec2DDouble dm = Vec2DDouble.from(mouseX - dragStartMX, mouseY - dragStartMY);
+        double deltaRight = dm.dot(scrRight) / pixelsPerUnitRight;
+        double deltaUp = dm.dot(scrUp) / pixelsPerUnitUp;
+        Vec3DDouble delta = cameraRight.times(deltaRight)
+            .plus(cameraUp.times(deltaUp));
+        return startAnchor.plus(delta);
     }
 
     public void endDrag() {

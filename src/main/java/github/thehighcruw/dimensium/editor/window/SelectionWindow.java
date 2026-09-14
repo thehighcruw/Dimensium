@@ -54,7 +54,8 @@ public class SelectionWindow extends ToggleableWindow {
                 ImGui.textDisabled(I18n.format("dimensium.ui.hint.no_selection"));
             } else {
                 if (sel.pendingPos1) {
-                    ImGui.text(String.format("P1  %d, %d, %d", sel.pendingX, sel.pendingY, sel.pendingZ));
+                    ImGui.text(
+                        String.format("P1  %d, %d, %d", sel.pendingPos.x(), sel.pendingPos.y(), sel.pendingPos.z()));
                 }
                 if (hasSel) {
                     ImGui.text(String.format("Blocks  %d", sel.size()));

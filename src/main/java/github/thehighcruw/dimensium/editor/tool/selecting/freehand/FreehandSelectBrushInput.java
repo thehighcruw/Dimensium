@@ -24,6 +24,7 @@ import github.thehighcruw.dimensium.editor.tool.mask.ToolMaskRegistry;
 import github.thehighcruw.dimensium.editor.tool.selecting.BooleanOp;
 import github.thehighcruw.dimensium.shared.KeyConstants;
 import github.thehighcruw.dimensium.shared.SelectionState;
+import github.thehighcruw.dimensium.shared.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
 
 @SideOnly(Side.CLIENT)
@@ -77,7 +78,7 @@ public class FreehandSelectBrushInput implements BrushInput {
         BrushUtil.forBrush(bs, (dx, dy, dz) -> {
             int wx = cx + dx, wy = cy + dy, wz = cz + dz;
             if (includeAir || world.getBlock(wx, wy, wz) != Blocks.air) {
-                blocks.add(SelectionState.pack(wx, wy, wz));
+                blocks.add(SelectionState.pack(Vec3DInt.from(wx, wy, wz)));
             }
         });
         SelectionState.INSTANCE.applyOp(ToolMaskRegistry.INSTANCE.filterSelection(blocks), BooleanOp.ADD);

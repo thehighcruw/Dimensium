@@ -9,6 +9,7 @@ import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.entity.EntityLivingBase;
 
 import github.thehighcruw.dimensium.editor.window.viewport.ViewportRegistry;
+import github.thehighcruw.dimensium.shared.Vec3DDouble;
 
 public class FreecamState {
 
@@ -44,7 +45,7 @@ public class FreecamState {
 
     // Orbit state — CameraMod+LMB or orbit-crosshair keybinding.
     public boolean orbiting = false;
-    public double pivotX, pivotY, pivotZ;
+    public Vec3DDouble pivot = Vec3DDouble.ZERO;
     public double orbitDist;
     // Angular offset (degrees) from the camera look direction to the pivot direction at orbit start.
     // Kept constant throughout the orbit so the pivot stays at the same screen position.

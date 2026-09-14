@@ -4,6 +4,7 @@
  */
 package github.thehighcruw.dimensium.shared;
 
+import java.lang.reflect.Field;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -19,7 +20,6 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.IIcon;
 import net.minecraftforge.client.event.TextureStitchEvent;
@@ -30,10 +30,10 @@ import org.apache.logging.log4j.Logger;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 
-import codechicken.nei.api.ItemInfo;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import github.thehighcruw.dimensium.shared.util.BlockUtils;
 
 @SideOnly(Side.CLIENT)
 public class BlockColorCache {
@@ -259,7 +259,7 @@ public class BlockColorCache {
     // ── Phase 2: build candidates using ItemInfo ──────────────────────────────
 
     private void buildCandidates() {
-        List<ItemStack> allItems = collectPlaceableBlocks();
+        List<ItemStack> allItems = BlockUtils.collectPlaceableBlocks();
         LOG.info("buildCandidates: {} placeable stacks", allItems.size());
 
         Map<Integer, BitSet> seen = new HashMap<>();
@@ -367,51 +367,11 @@ public class BlockColorCache {
     }
 
     @SuppressWarnings("unchecked")
-    private List<ItemStack> collectPlaceableBlocks() {
-        List<ItemStack> result = new ArrayList<>();
-        for (Item item : (Iterable<Item>) Item.itemRegistry) {
-            if (!(item instanceof ItemBlock)) continue;
-
-            List<ItemStack> permutations = new ArrayList<>(ItemInfo.itemOverrides.get(item));
-            if (permutations.isEmpty()) {
-                item.getSubItems(item, null, permutations);
-            }
-            permutations.addAll(ItemInfo.itemVariants.get(item));
-            permutations.removeIf(
-                s -> s == null || s.getItem() == null
-                    || s.getItemDamage() == OreDictionary.WILDCARD_VALUE
-                    || Block.getBlockFromItem(s.getItem()) == null
-                    || Block.getBlockFromItem(s.getItem()) == Blocks.air);
-            result.addAll(permutations);
-        }
-        addGT5Machines(result);
-        return result;
-    }
-
-    private static void addGT5Machines(List<ItemStack> out) {
-        try {
-            gregtech.api.interfaces.metatileentity.IMetaTileEntity[] mtes = gregtech.api.GregTechAPI.METATILEENTITIES;
-            Block blockMachines = gregtech.api.GregTechAPI.sBlockMachines;
-            if (blockMachines == null) return;
-            Item blockItem = Item.getItemFromBlock(blockMachines);
-            if (blockItem == null) return;
-            BitSet covered = new BitSet(Short.MAX_VALUE);
-            for (ItemStack s : out) {
-                if (s != null && s.getItem() == blockItem) covered.set(s.getItemDamage());
-            }
-            for (int i = 0; i < mtes.length; i++) {
-                if (mtes[i] == null || covered.get(i)) continue;
-                out.add(new ItemStack(blockItem, 1, i));
-            }
-        } catch (Throwable ignored) {}
-    }
-
-    @SuppressWarnings("unchecked")
     private static Map<String, TextureAtlasSprite> getSpriteMap(TextureMap atlas) {
         // Try known MCP field names first (available after stitch).
         for (String fieldName : new String[] { "mapUploadedSprites", "mapRegisteredSprites" }) {
             try {
-                java.lang.reflect.Field f = TextureMap.class.getDeclaredField(fieldName);
+                Field f = TextureMap.class.getDeclaredField(fieldName);
                 f.setAccessible(true);
                 Object val = f.get(atlas);
                 if (val instanceof Map<?, ?>raw) {
@@ -421,7 +381,7 @@ public class BlockColorCache {
         }
         // GTNH/OptiFine may remap field names — scan all declared fields for a non-empty
         // Map whose first value is a TextureAtlasSprite.
-        for (java.lang.reflect.Field f : TextureMap.class.getDeclaredFields()) {
+        for (Field f : TextureMap.class.getDeclaredFields()) {
             if (!Map.class.isAssignableFrom(f.getType())) continue;
             try {
                 f.setAccessible(true);

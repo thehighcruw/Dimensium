@@ -14,8 +14,12 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
+import net.minecraft.item.Item;
 import net.minecraft.world.World;
 
 import com.github.bsideup.jabel.Desugar;
@@ -23,6 +27,7 @@ import com.github.bsideup.jabel.Desugar;
 import github.thehighcruw.dimensium.DimensiumConfig;
 import github.thehighcruw.dimensium.editor.tool.selecting.BooleanOp;
 import github.thehighcruw.dimensium.editor.tool.selecting.magic.MagicSelectToolState;
+import github.thehighcruw.dimensium.shared.util.WorldUtils;
 
 public class SelectionState {
 
@@ -32,14 +37,20 @@ public class SelectionState {
 
     private final Set<Long> selectedBlocks = new HashSet<>();
 
-    /** Cached bounding box; rebuilt lazily on first access after a mutation. */
-    private int cachedMinX, cachedMinY, cachedMinZ;
-    private int cachedMaxX, cachedMaxY, cachedMaxZ;
+    /**
+     * Cached bounding box; rebuilt lazily on first access after a mutation.
+     */
+    private Vec3DInt cachedMin = Vec3DInt.ZERO;
+    private Vec3DInt cachedMax = Vec3DInt.ZERO;
     private boolean boundsDirty = true;
 
-    /** Incremented on every block-set mutation; renderers use this to cache wireframes. */
+    /**
+     * Incremented on every block-set mutation; renderers use this to cache wireframes.
+     */
     public long renderVersion = 0L;
-    /** Incremented when the clipboard content changes; renderers use this to cache hologram wireframes. */
+    /**
+     * Incremented when the clipboard content changes; renderers use this to cache hologram wireframes.
+     */
     public int clipboardVersion = 0;
 
     // ── Box-select pending state ──────────────────────────────────────────────
@@ -48,12 +59,14 @@ public class SelectionState {
 
     public boolean pendingPos1 = false;
     public boolean boxConfirmed = false;
-    public int pendingX, pendingY, pendingZ;
-    public int pendingX2, pendingY2, pendingZ2;
+    public Vec3DInt pendingPos = Vec3DInt.ZERO;
+    public Vec3DInt pendingPos2 = Vec3DInt.ZERO;
 
     // ── Clipboard ─────────────────────────────────────────────────────────────
 
-    /** Sparse map: key = clipboardKey(x,y,z), value = non-air block. Air positions are absent. */
+    /**
+     * Sparse map: key = clipboardKey(x,y,z), value = non-air block. Air positions are absent.
+     */
     public Map<Long, BlockData> clipboard = null;
     public int clipW, clipH, clipD;
 
@@ -64,7 +77,7 @@ public class SelectionState {
     }
 
     public boolean contains(int x, int y, int z) {
-        return selectedBlocks.contains(pack(x, y, z));
+        return selectedBlocks.contains(pack(Vec3DInt.from(x, y, z)));
     }
 
     public Set<Long> getSelectedBlocks() {
@@ -83,44 +96,40 @@ public class SelectionState {
             boundsDirty = false;
             return;
         }
-        int[] b = computeBounds(selectedBlocks);
-        cachedMinX = b[0];
-        cachedMinY = b[1];
-        cachedMinZ = b[2];
-        cachedMaxX = b[3];
-        cachedMaxY = b[4];
-        cachedMaxZ = b[5];
+        BoundingBox b = computeBounds(selectedBlocks);
+        cachedMin = b.minimum();
+        cachedMax = b.maximum();
         boundsDirty = false;
     }
 
     public int minX() {
         rebuildBounds();
-        return cachedMinX;
+        return cachedMin.x();
     }
 
     public int minY() {
         rebuildBounds();
-        return cachedMinY;
+        return cachedMin.y();
     }
 
     public int minZ() {
         rebuildBounds();
-        return cachedMinZ;
+        return cachedMin.z();
     }
 
     public int maxX() {
         rebuildBounds();
-        return cachedMaxX;
+        return cachedMax.x();
     }
 
     public int maxY() {
         rebuildBounds();
-        return cachedMaxY;
+        return cachedMax.y();
     }
 
     public int maxZ() {
         rebuildBounds();
-        return cachedMaxZ;
+        return cachedMax.z();
     }
 
     public int width() {
@@ -145,7 +154,9 @@ public class SelectionState {
         renderVersion++;
     }
 
-    /** Clears only the committed block set; leaves pendingPos1 intact. */
+    /**
+     * Clears only the committed block set; leaves pendingPos1 intact.
+     */
     public void clearBlocks() {
         selectedBlocks.clear();
         boundsDirty = true;
@@ -190,19 +201,19 @@ public class SelectionState {
         int[][] allDirs = corners ? dirs26 : dirs6;
 
         Set<Long> visited = new HashSet<>();
-        Queue<long[]> queue = new LinkedList<>();
+        Queue<Vec3DInt> queue = new LinkedList<>();
         Set<Long> result = new HashSet<>();
 
-        visited.add(pack(sx, sy, sz));
-        queue.add(new long[] { sx, sy, sz });
+        Vec3DInt start = Vec3DInt.from(sx, sy, sz);
+        visited.add(pack(start));
+        queue.add(start);
 
         while (!queue.isEmpty() && result.size() < limit) {
-            long[] cur = queue.poll();
-            int cx = (int) cur[0], cy = (int) cur[1], cz = (int) cur[2];
+            Vec3DInt cur = queue.poll();
 
-            if (surfaceOnly && !isExposedToAir(world, cx, cy, cz, dirs6)) continue;
+            if (surfaceOnly && !isExposedToAir(world, cur.x(), cur.y(), cur.z(), dirs6)) continue;
 
-            result.add(pack(cx, cy, cz));
+            result.add(pack(cur));
 
             for (int r = 1; r <= range; r++) {
                 for (int[] d : allDirs) {
@@ -210,13 +221,13 @@ public class SelectionState {
                     if (direction == MagicSelectToolState.MagicDirection.UP_ONLY && d[1] < 0) continue;
                     if (direction == MagicSelectToolState.MagicDirection.DOWN_ONLY && d[1] > 0) continue;
 
-                    int nx = cx + d[0] * r, ny = cy + d[1] * r, nz = cz + d[2] * r;
-                    if (ny < 0 || ny > 255) continue;
-                    long nk = pack(nx, ny, nz);
+                    Vec3DInt nb = Vec3DInt.from(cur.x() + d[0] * r, cur.y() + d[1] * r, cur.z() + d[2] * r);
+                    if (nb.y() < 0 || nb.y() > 255) continue;
+                    long nk = pack(nb);
                     if (visited.contains(nk)) continue;
                     visited.add(nk);
-                    if (matches(world, nx, ny, nz, targetBlock, targetMeta, compareType)) {
-                        queue.add(new long[] { nx, ny, nz });
+                    if (matches(world, nb.x(), nb.y(), nb.z(), targetBlock, targetMeta, compareType)) {
+                        queue.add(nb);
                     }
                 }
             }
@@ -251,7 +262,9 @@ public class SelectionState {
         return list.toArray(new int[0][]);
     }
 
-    /** Flood-fill air blocks starting from an air block, optionally directional. */
+    /**
+     * Flood-fill air blocks starting from an air block, optionally directional.
+     */
     public static Set<Long> floodFillAir(World world, int sx, int sy, int sz, int limit, boolean goDown,
         boolean corners) {
         if (world.getBlock(sx, sy, sz) != Blocks.air) return new HashSet<>();
@@ -261,26 +274,26 @@ public class SelectionState {
         int[][] dirs = corners ? dirs26 : dirs6;
 
         Set<Long> visited = new HashSet<>();
-        Queue<long[]> queue = new LinkedList<>();
+        Queue<Vec3DInt> queue = new LinkedList<>();
         Set<Long> result = new HashSet<>();
 
-        visited.add(pack(sx, sy, sz));
-        queue.add(new long[] { sx, sy, sz });
+        Vec3DInt start2 = Vec3DInt.from(sx, sy, sz);
+        visited.add(pack(start2));
+        queue.add(start2);
 
         while (!queue.isEmpty() && result.size() < limit) {
-            long[] cur = queue.poll();
-            int cx = (int) cur[0], cy = (int) cur[1], cz = (int) cur[2];
-            result.add(pack(cx, cy, cz));
+            Vec3DInt cur = queue.poll();
+            result.add(pack(cur));
             for (int[] d : dirs) {
-                int nx = cx + d[0], ny = cy + d[1], nz = cz + d[2];
-                if (ny < 0 || ny > 255) continue;
-                if (goDown && ny > cy) continue;
-                if (!goDown && ny < cy) continue;
-                long nk = pack(nx, ny, nz);
+                Vec3DInt nb = Vec3DInt.from(cur.x() + d[0], cur.y() + d[1], cur.z() + d[2]);
+                if (nb.y() < 0 || nb.y() > 255) continue;
+                if (goDown && nb.y() > cur.y()) continue;
+                if (!goDown && nb.y() < cur.y()) continue;
+                long nk = pack(nb);
                 if (visited.contains(nk)) continue;
                 visited.add(nk);
-                if (world.getBlock(nx, ny, nz) == Blocks.air) {
-                    queue.add(new long[] { nx, ny, nz });
+                if (world.getBlock(nb.x(), nb.y(), nb.z()) == Blocks.air) {
+                    queue.add(nb);
                 }
             }
         }
@@ -293,7 +306,7 @@ public class SelectionState {
         int minZ = Math.min(z1, z2), maxZ = Math.max(z1, z2);
         Set<Long> set = new HashSet<>();
         for (int x = minX; x <= maxX; x++)
-            for (int y = minY; y <= maxY; y++) for (int z = minZ; z <= maxZ; z++) set.add(pack(x, y, z));
+            for (int y = minY; y <= maxY; y++) for (int z = minZ; z <= maxZ; z++) set.add(pack(Vec3DInt.from(x, y, z)));
         return set;
     }
 
@@ -303,14 +316,22 @@ public class SelectionState {
         return ((long) x << 20) | ((long) y << 10) | z;
     }
 
-    /** Returns the block at clipboard-local (x,y,z), or AIR if absent or out of bounds. */
+    public static Vec3DInt decodeClipboardKey(long key) {
+        return Vec3DInt.from((int) (key >> 20) & 0xFFFFF, (int) (key >> 10) & 0x3FF, (int) key & 0x3FF);
+    }
+
+    /**
+     * Returns the block at clipboard-local (x,y,z), or AIR if absent or out of bounds.
+     */
     public BlockData clipboardGet(int x, int y, int z) {
         if (clipboard == null) return BlockData.AIR;
         BlockData bd = clipboard.get(clipboardKey(x, y, z));
         return bd != null ? bd : BlockData.AIR;
     }
 
-    /** Snapshot block data from the client world into a sparse clipboard. */
+    /**
+     * Snapshot block data from the client world into a sparse clipboard.
+     */
     public void captureFromWorld(World world) {
         if (!hasSelection()) return;
         int limit = DimensiumConfig.maxCopyVolume;
@@ -340,19 +361,14 @@ public class SelectionState {
      * Returns int[6] = {minX, minY, minZ, maxX, maxY, maxZ} for an arbitrary block set.
      * Caller must check that blocks is non-empty.
      */
-    public static int[] computeBounds(Iterable<Long> keys) {
-        int mnX = Integer.MAX_VALUE, mnY = Integer.MAX_VALUE, mnZ = Integer.MAX_VALUE;
-        int mxX = Integer.MIN_VALUE, mxY = Integer.MIN_VALUE, mxZ = Integer.MIN_VALUE;
+    public static BoundingBox computeBounds(Iterable<Long> keys) {
+        Vec3DInt minimum = Vec3DInt.MAX_VALUE, maximum = Vec3DInt.MIN_VALUE;
         for (long key : keys) {
-            int x = unpackX(key), y = unpackY(key), z = unpackZ(key);
-            if (x < mnX) mnX = x;
-            if (x > mxX) mxX = x;
-            if (y < mnY) mnY = y;
-            if (y > mxY) mxY = y;
-            if (z < mnZ) mnZ = z;
-            if (z > mxZ) mxZ = z;
+            Vec3DInt coord = unpack(key);
+            minimum = minimum.min(coord);
+            maximum = maximum.max(coord);
         }
-        return new int[] { mnX, mnY, mnZ, mxX, mxY, mxZ };
+        return BoundingBox.from(minimum, maximum);
     }
 
     // ── Coordinate packing ────────────────────────────────────────────────────
@@ -361,21 +377,41 @@ public class SelectionState {
     // bits 33-26: Y ( 8 bits, values 0..255)
     // bits 25- 0: Z + 30_000_000 (26 bits, values 0..60M)
 
-    public static long pack(int x, int y, int z) {
-        return ((long) (x + 30_000_000)) << 34 | ((long) y) << 26 | (z + 30_000_000);
+    public static long pack(Vec3DInt coord) {
+        return ((long) (coord.x() + 30_000_000)) << 34 | ((long) coord.y()) << 26 | (coord.z() + 30_000_000);
     }
 
-    public static int unpackX(long key) {
+    public static Vec3DInt unpack(long key) {
+        return new Vec3DInt(unpackX(key), unpackY(key), unpackZ(key));
+    }
+
+    private static int unpackX(long key) {
         return (int) (key >> 34) - 30_000_000;
     }
 
-    public static int unpackY(long key) {
+    private static int unpackY(long key) {
         return (int) ((key >> 26) & 0xFF);
     }
 
-    public static int unpackZ(long key) {
+    private static int unpackZ(long key) {
         return (int) (key & 0x3FFFFFF) - 30_000_000;
     }
+
+    public static @Nullable BlockInfo unpackBlock(long key) {
+        Vec3DInt coord = SelectionState.unpack(key);
+
+        Block block = WorldUtils.getWorldBlock(coord);
+        if (block == null || block == Blocks.air) return null;
+
+        Item item = Item.getItemFromBlock(block);
+        if (item == null) return new BlockInfo(coord, block, null, -1);
+
+        int meta = WorldUtils.getWorldBlockMeta(coord);
+        return new BlockInfo(coord, block, item, meta);
+    }
+
+    @Desugar
+    public record BlockInfo(@Nonnull Vec3DInt coord, @Nonnull Block block, @Nullable Item item, int meta) {}
 
     // ── Inner types ───────────────────────────────────────────────────────────
 

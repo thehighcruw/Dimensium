@@ -48,23 +48,28 @@ public class BlueprintIO {
     }
 
     public static void save(Blueprint bp, File dir) throws IOException {
-        String filename = sanitize(bp.name.isEmpty() ? "blueprint" : bp.name) + ".dblueprint";
+        String filename = sanitize(
+            bp.name()
+                .isEmpty() ? "blueprint" : bp.name())
+            + ".dblueprint";
         File file = new File(dir, filename);
 
         NBTTagCompound headerTag = new NBTTagCompound();
-        headerTag.setString("name", bp.name);
+        headerTag.setString("name", bp.name());
         NBTTagList tagList = new NBTTagList();
-        for (String tg : bp.tags) tagList.appendTag(new NBTTagString(tg));
+        for (String tg : bp.tags()) tagList.appendTag(new NBTTagString(tg));
         headerTag.setTag("tags", tagList);
-        headerTag.setInteger("clipW", bp.clipW);
-        headerTag.setInteger("clipH", bp.clipH);
-        headerTag.setInteger("clipD", bp.clipD);
+        headerTag.setInteger("clipW", bp.clipW());
+        headerTag.setInteger("clipH", bp.clipH());
+        headerTag.setInteger("clipD", bp.clipD());
 
         NBTTagCompound bodyTag = new NBTTagCompound();
-        int n = bp.offsets.size();
+        int n = bp.offsets()
+            .size();
         int[] flat = new int[n * 5];
         for (int i = 0; i < n; i++) {
-            int[] o = bp.offsets.get(i);
+            int[] o = bp.offsets()
+                .get(i);
             flat[i * 5] = o[0];
             flat[i * 5 + 1] = o[1];
             flat[i * 5 + 2] = o[2];
@@ -84,40 +89,39 @@ public class BlueprintIO {
         CompressedStreamTools.writeCompressed(bodyTag, out);
         out.close();
 
-        if (bp.thumbnailPng != null) Files.write(sidecarFor(file).toPath(), bp.thumbnailPng);
+        if (bp.thumbnailPng() != null) Files.write(sidecarFor(file).toPath(), bp.thumbnailPng());
     }
 
     /** Reads only name/tags/dims. O(header size), not O(block count). Migrates old-format files on first read. */
     public static Blueprint loadHeader(File file) throws IOException {
         try (DataInputStream in = new DataInputStream(new FileInputStream(file))) {
-            int magic = in.readInt();
-            if (magic != MAGIC) {
-                in.close();
-                return migrateLegacy(file);
-            }
-            int headerLen = in.readInt();
-            byte[] headerBytes = new byte[headerLen];
-            readFully(in, headerBytes);
-            return parseHeader(new DataInputStream(new ByteArrayInputStream(headerBytes)));
+            return readHeader(in);
         }
     }
 
     /** Reads full blueprint including block offsets. */
     public static Blueprint load(File file) throws IOException {
         try (DataInputStream in = new DataInputStream(new FileInputStream(file))) {
-            int magic = in.readInt();
-            if (magic != MAGIC) {
-                in.close();
-                return migrateLegacy(file);
-            }
-            int headerLen = in.readInt();
-            byte[] headerBytes = new byte[headerLen];
-            readFully(in, headerBytes);
-            Blueprint bp = parseHeader(new DataInputStream(new ByteArrayInputStream(headerBytes)));
+            Blueprint header = readHeader(in);
             NBTTagCompound bodyTag = CompressedStreamTools.readCompressed(in);
-            bp.offsets = decodeOffsets(bodyTag.getIntArray("offsets"));
-            return bp;
+            return new Blueprint(
+                header.name(),
+                header.tags(),
+                header.clipW(),
+                header.clipH(),
+                header.clipD(),
+                decodeOffsets(bodyTag.getIntArray("offsets")),
+                null);
         }
+    }
+
+    private static Blueprint readHeader(DataInputStream in) throws IOException {
+        int magic = in.readInt();
+        if (magic != MAGIC) throw new IOException("trying to open blueprint file that is not a blueprint");
+        int headerLen = in.readInt();
+        byte[] headerBytes = new byte[headerLen];
+        readFully(in, headerBytes);
+        return parseHeader(new DataInputStream(new ByteArrayInputStream(headerBytes)));
     }
 
     public static File sidecarFor(File blueprintFile) {
@@ -146,7 +150,7 @@ public class BlueprintIO {
         for (File f : scanBlueprints(dir)) {
             try {
                 Blueprint bp = loadHeader(f);
-                for (String t : bp.tags) if (!all.contains(t)) all.add(t);
+                for (String t : bp.tags()) if (!all.contains(t)) all.add(t);
             } catch (Exception ignored) {}
         }
         Collections.sort(all);
@@ -160,14 +164,17 @@ public class BlueprintIO {
     }
 
     private static Blueprint fromHeaderTag(NBTTagCompound tag) {
-        Blueprint bp = new Blueprint();
-        bp.name = tag.getString("name");
         NBTTagList tagList = tag.getTagList("tags", 8);
-        for (int i = 0; i < tagList.tagCount(); i++) bp.tags.add(tagList.getStringTagAt(i));
-        bp.clipW = tag.getInteger("clipW");
-        bp.clipH = tag.getInteger("clipH");
-        bp.clipD = tag.getInteger("clipD");
-        return bp;
+        List<String> tags = new ArrayList<>(tagList.tagCount());
+        for (int i = 0; i < tagList.tagCount(); i++) tags.add(tagList.getStringTagAt(i));
+        return new Blueprint(
+            tag.getString("name"),
+            tags,
+            tag.getInteger("clipW"),
+            tag.getInteger("clipH"),
+            tag.getInteger("clipD"),
+            new ArrayList<>(),
+            null);
     }
 
     private static List<int[]> decodeOffsets(int[] flat) {
@@ -176,23 +183,6 @@ public class BlueprintIO {
             offsets.add(new int[] { flat[i], flat[i + 1], flat[i + 2], flat[i + 3], flat[i + 4] });
         }
         return offsets;
-    }
-
-    /** Reads an old gzip-NBT file, rewrites it in the new format, returns the header. */
-    private static Blueprint migrateLegacy(File file) throws IOException {
-        NBTTagCompound tag = CompressedStreamTools.read(file);
-        Blueprint bp = fromHeaderTag(tag);
-        bp.offsets = decodeOffsets(tag.getIntArray("offsets"));
-        // Extract legacy embedded thumbnail to sidecar before rewriting
-        File sidecar = sidecarFor(file);
-        if (!sidecar.exists() && tag.hasKey("thumbnail")) {
-            try {
-                Files.write(sidecar.toPath(), tag.getByteArray("thumbnail"));
-            } catch (IOException ignored) {}
-        }
-        // Rewrite in new format so next open is fast
-        save(bp, file.getParentFile());
-        return bp;
     }
 
     private static void readFully(DataInputStream in, byte[] buf) throws IOException {

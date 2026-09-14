@@ -17,7 +17,9 @@ import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.shared.BlockColorCache;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.SelectionState.BlockData;
+import github.thehighcruw.dimensium.shared.Vec3DDouble;
 import github.thehighcruw.dimensium.shared.util.PerfTrace;
+import github.thehighcruw.dimensium.shared.util.RenderUtils;
 import github.thehighcruw.dimensium.tool.BuilderTool;
 import github.thehighcruw.dimensium.tool.BuilderToolState;
 
@@ -29,7 +31,7 @@ class HologramRenderer {
     private int cachedClipVersion = -1;
     private float[] cachedClipWire = null;
 
-    void render(Minecraft mc, SelectionState sel, BuilderToolState bts, double rx, double ry, double rz) {
+    void render(Minecraft mc, SelectionState sel, BuilderToolState bts, Vec3DDouble camPos) {
         float pulse = 0.5f + 0.5f * (float) Math.sin(System.currentTimeMillis() / 400.0);
         boolean isMove = bts.activeTool == BuilderTool.MOVE;
         boolean isStack = bts.activeTool == BuilderTool.STACK;
@@ -40,15 +42,15 @@ class HologramRenderer {
 
         if (isMove) {
             PerfTrace.push("renderSourceDim");
-            renderSourceDim(sel, rx, ry, rz, pulse);
+            renderSourceDim(sel, camPos, pulse);
             PerfTrace.pop();
         }
 
         if (isStack) {
             int w = sel.width(), h = sel.height(), d = sel.depth();
-            int x0 = Math.min(bts.stackX, 0), x1 = Math.max(bts.stackX, 0);
-            int y0 = Math.min(bts.stackY, 0), y1 = Math.max(bts.stackY, 0);
-            int z0 = Math.min(bts.stackZ, 0), z1 = Math.max(bts.stackZ, 0);
+            int x0 = Math.min(bts.stack.x(), 0), x1 = Math.max(bts.stack.x(), 0);
+            int y0 = Math.min(bts.stack.y(), 0), y1 = Math.max(bts.stack.y(), 0);
+            int z0 = Math.min(bts.stack.z(), 0), z1 = Math.max(bts.stack.z(), 0);
             int total = (x1 - x0 + 1) * (y1 - y0 + 1) * (z1 - z0 + 1) - 1;
             int copyIdx = 0;
             PerfTrace.push("renderStack copies=" + total);
@@ -56,41 +58,29 @@ class HologramRenderer {
                 for (int iy = y0; iy <= y1; iy++) {
                     for (int iz = z0; iz <= z1; iz++) {
                         if (ix == 0 && iy == 0 && iz == 0) continue;
-                        renderDestination(
-                            mc,
-                            sel,
-                            ix * w,
-                            iy * h,
-                            iz * d,
-                            rx,
-                            ry,
-                            rz,
-                            pulse,
-                            perBlock,
-                            ++copyIdx,
-                            total);
+                        renderDestination(mc, sel, ix * w, iy * h, iz * d, camPos, pulse, perBlock, ++copyIdx, total);
                     }
                 }
             }
             PerfTrace.pop();
         } else if (isSmear) {
             PerfTrace.push("renderSmearVolume");
-            renderSmearVolume(sel, bts, rx, ry, rz, pulse);
+            renderSmearVolume(sel, bts, camPos, pulse);
             PerfTrace.pop();
         } else {
             PerfTrace.push("renderDestination perBlock=" + perBlock + " vol=" + volume);
-            renderDestination(mc, sel, bts.offsetX, bts.offsetY, bts.offsetZ, rx, ry, rz, pulse, perBlock, 1, 1);
+            renderDestination(mc, sel, bts.offset.x(), bts.offset.y(), bts.offset.z(), camPos, pulse, perBlock, 1, 1);
             PerfTrace.pop();
         }
 
         if (bts.axisLock != BuilderToolState.AxisLock.NONE && !isStack) {
-            drawAxisLine(sel, bts, rx, ry, rz);
+            drawAxisLine(sel, bts, camPos);
         }
     }
 
-    private void renderSourceDim(SelectionState sel, double rx, double ry, double rz, float pulse) {
+    private void renderSourceDim(SelectionState sel, Vec3DDouble camPos, float pulse) {
         GL11.glPushMatrix();
-        GL11.glTranslated(sel.minX() - rx, sel.minY() - ry, sel.minZ() - rz);
+        GL11.glTranslated(sel.minX() - camPos.x(), sel.minY() - camPos.y(), sel.minZ() - camPos.z());
         GL11.glColor4f(1.0f, 0.1f, 0.1f, 0.12f + pulse * 0.06f);
         SelectionRenderer.drawFilledBox(sel.width(), sel.height(), sel.depth());
         GL11.glColor4f(1.0f, 0.2f, 0.2f, 0.7f);
@@ -99,9 +89,8 @@ class HologramRenderer {
         GL11.glPopMatrix();
     }
 
-    private void renderSmearVolume(SelectionState sel, BuilderToolState bts, double rx, double ry, double rz,
-        float pulse) {
-        int dx = bts.offsetX, dy = bts.offsetY, dz = bts.offsetZ;
+    private void renderSmearVolume(SelectionState sel, BuilderToolState bts, Vec3DDouble camPos, float pulse) {
+        int dx = bts.offset.x(), dy = bts.offset.y(), dz = bts.offset.z();
 
         int sweptMinX = sel.minX() + Math.min(0, dx);
         int sweptMinY = sel.minY() + Math.min(0, dy);
@@ -111,7 +100,7 @@ class HologramRenderer {
         int sweptD = sel.depth() + Math.abs(dz);
 
         GL11.glPushMatrix();
-        GL11.glTranslated(sweptMinX - rx, sweptMinY - ry, sweptMinZ - rz);
+        GL11.glTranslated(sweptMinX - camPos.x(), sweptMinY - camPos.y(), sweptMinZ - camPos.z());
 
         GL11.glColor4f(0.0f, 0.8f, 0.9f, 0.08f + pulse * 0.04f);
         SelectionRenderer.drawFilledBox(sweptW, sweptH, sweptD);
@@ -139,11 +128,11 @@ class HologramRenderer {
         GL11.glPopMatrix();
     }
 
-    private void renderDestination(Minecraft mc, SelectionState sel, int ox, int oy, int oz, double rx, double ry,
-        double rz, float pulse, boolean perBlock, int copyIndex, int totalCopies) {
-        double hx = sel.minX() + ox - rx;
-        double hy = sel.minY() + oy - ry;
-        double hz = sel.minZ() + oz - rz;
+    private void renderDestination(Minecraft mc, SelectionState sel, int ox, int oy, int oz, Vec3DDouble camPos,
+        float pulse, boolean perBlock, int copyIndex, int totalCopies) {
+        double hx = sel.minX() + ox - camPos.x();
+        double hy = sel.minY() + oy - camPos.y();
+        double hz = sel.minZ() + oz - camPos.z();
         int w = sel.clipW, h = sel.clipH, d = sel.clipD;
 
         if (perBlock && sel.clipboard != null) {
@@ -171,16 +160,7 @@ class HologramRenderer {
                         if (bd.block() == Blocks.air || bd.block()
                             .getRenderType() != 0) continue;
                         for (int face = 0; face < 6; face++) {
-                            int nx = x + GhostRenderer.NX[face], ny = y + GhostRenderer.NY[face],
-                                nz = z + GhostRenderer.NZ[face];
-                            boolean occ = nx >= 0 && nx < w
-                                && ny >= 0
-                                && ny < h
-                                && nz >= 0
-                                && nz < d
-                                && sel.clipboardGet(nx, ny, nz)
-                                    .block() != Blocks.air;
-                            if (!occ) {
+                            if (isFacingAir(sel, face, x, y, z, w, h, d)) {
                                 GhostRenderer.addTexturedFace(t, x, y, z, bd.block(), bd.meta(), face);
                                 if (++batched % 2048 == 0) {
                                     t.draw();
@@ -211,16 +191,7 @@ class HologramRenderer {
                         float b = (rgb & 0xFF) / 255f;
                         GL11.glColor4f(r, g, b, 1.0f);
                         for (int face = 0; face < 6; face++) {
-                            int nx = x + GhostRenderer.NX[face], ny = y + GhostRenderer.NY[face],
-                                nz = z + GhostRenderer.NZ[face];
-                            boolean occ = nx >= 0 && nx < w
-                                && ny >= 0
-                                && ny < h
-                                && nz >= 0
-                                && nz < d
-                                && sel.clipboardGet(nx, ny, nz)
-                                    .block() != Blocks.air;
-                            if (!occ) {
+                            if (isFacingAir(sel, face, x, y, z, w, h, d)) {
                                 GhostRenderer.addSingleFace(t, x, y, z, face);
                                 if (++batched % 2048 == 0) {
                                     t.draw();
@@ -273,13 +244,7 @@ class HologramRenderer {
             }
             t.draw();
             PerfTrace.pop();
-            GL11.glDepthMask(true);
-            GL11.glDepthFunc(GL11.GL_LESS);
-            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-            GL11.glDisable(GL11.GL_POLYGON_OFFSET_FILL);
-            GL11.glPolygonOffset(0.0f, 0.0f);
-            GL11.glDisable(GL11.GL_DEPTH_TEST);
-            GL11.glDisable(GL11.GL_CULL_FACE);
+            RenderUtils.unsetGhostRendering();
 
             float alpha = 0.9f - (float) (copyIndex - 1) / Math.max(1, totalCopies) * 0.4f;
             GL11.glColor4f(0.2f, 1.0f, 0.4f, alpha);
@@ -303,6 +268,17 @@ class HologramRenderer {
         }
     }
 
+    private static boolean isFacingAir(SelectionState sel, int face, int x, int y, int z, int w, int h, int d) {
+        int nx = x + GhostRenderer.NX[face], ny = y + GhostRenderer.NY[face], nz = z + GhostRenderer.NZ[face];
+        return nx < 0 || nx >= w
+            || ny < 0
+            || ny >= h
+            || nz < 0
+            || nz >= d
+            || sel.clipboardGet(nx, ny, nz)
+                .block() == Blocks.air;
+    }
+
     private void ensureClipWireframeCache(SelectionState sel) {
         if (sel.clipboardVersion == cachedClipVersion && cachedClipWire != null) return;
         cachedClipWire = computeClipWireframe(sel);
@@ -321,14 +297,11 @@ class HologramRenderer {
         return GhostRenderer.creaseWireframeFromSet(set);
     }
 
-    private static void drawAxisLine(SelectionState sel, BuilderToolState bts, double rx, double ry, double rz) {
+    private static void drawAxisLine(SelectionState sel, BuilderToolState bts, Vec3DDouble camPos) {
         int w = sel.clipW, h = sel.clipH, d = sel.clipD;
-        double srcCx = sel.minX() + w / 2.0 - rx;
-        double srcCy = sel.minY() + h / 2.0 - ry;
-        double srcCz = sel.minZ() + d / 2.0 - rz;
-        double dstCx = srcCx + bts.offsetX;
-        double dstCy = srcCy + bts.offsetY;
-        double dstCz = srcCz + bts.offsetZ;
+        Vec3DDouble src = Vec3DDouble.from(sel.minX() + w / 2.0, sel.minY() + h / 2.0, sel.minZ() + d / 2.0)
+            .minus(camPos);
+        Vec3DDouble dst = src.plus(bts.offset.toDouble());
 
         float lr = bts.axisLock == BuilderToolState.AxisLock.X ? 1.0f : 0.3f;
         float lg = bts.axisLock == BuilderToolState.AxisLock.Y ? 1.0f : 0.3f;
@@ -336,9 +309,9 @@ class HologramRenderer {
 
         Tessellator t = Tessellator.instance;
         GL11.glColor4f(lr, lg, lb, 0.8f);
-        WorldLines.setEye(0, 0, 0); // vertices already camera-relative
+        WorldLines.setEye(Vec3DDouble.ZERO); // vertices already camera-relative
         t.startDrawingQuads();
-        WorldLines.addSegment(t, srcCx, srcCy, srcCz, dstCx, dstCy, dstCz, WorldLines.W_SEL);
+        WorldLines.addSegment(t, src, dst, WorldLines.W_SEL);
         t.draw();
     }
 }

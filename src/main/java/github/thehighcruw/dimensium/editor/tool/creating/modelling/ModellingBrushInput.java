@@ -23,6 +23,8 @@ import github.thehighcruw.dimensium.editor.tool.BrushInput;
 import github.thehighcruw.dimensium.editor.window.viewport.world.PlaneTranslationGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.TranslationGizmo;
 import github.thehighcruw.dimensium.shared.KeyConstants;
+import github.thehighcruw.dimensium.shared.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.Vec3DInt;
 
 @SideOnly(Side.CLIENT)
 public class ModellingBrushInput implements BrushInput {
@@ -68,7 +70,7 @@ public class ModellingBrushInput implements BrushInput {
                 for (int c = 0; c < row.size(); c++) {
                     if (r == mts.selectedRow && c == mts.selectedPoint) skipFlat = positions.size();
                     ModellingToolState.ModelPoint p = row.get(c);
-                    positions.add(new int[] { p.x, p.y, p.z });
+                    positions.add(new int[] { p.pos.x(), p.pos.y(), p.pos.z() });
                 }
             }
             int bestFlat = GuiDimensiumOverlay.findNearestPointOnScreen(
@@ -97,17 +99,21 @@ public class ModellingBrushInput implements BrushInput {
             } else if (mts.getAxisTranslationGizmo().hoveredAxis != TranslationGizmo.Axis.NONE
                 && mts.selectedPointObj() != null
                 && eye != null) {
-                    ModellingToolState.ModelPoint mSelPt = mts.selectedPointObj();
-                    double mgx = mSelPt.x + 0.5, mgy = mSelPt.y + 0.5, mgz = mSelPt.z + 0.5;
+                    Vec3DDouble gp = Vec3DDouble.from(
+                        mts.selectedPointObj().pos.x() + 0.5,
+                        mts.selectedPointObj().pos.y() + 0.5,
+                        mts.selectedPointObj().pos.z() + 0.5);
                     mts.getAxisTranslationGizmo()
-                        .startDrag(mouseX, mouseY, mgx, mgy, mgz, mgx, mgy, mgz, 0, 0, 0);
+                        .startDrag(mouseX, mouseY, gp.x(), gp.y(), gp.z(), gp.x(), gp.y(), gp.z(), 0, 0, 0);
                 } else if (mts.getPlaneTranslationGizmo().hoveredPlane != PlaneTranslationGizmo.Plane.NONE
                     && mts.selectedPointObj() != null
                     && eye != null) {
-                        ModellingToolState.ModelPoint mSelPt = mts.selectedPointObj();
-                        double mgx = mSelPt.x + 0.5, mgy = mSelPt.y + 0.5, mgz = mSelPt.z + 0.5;
+                        Vec3DDouble gp = Vec3DDouble.from(
+                            mts.selectedPointObj().pos.x() + 0.5,
+                            mts.selectedPointObj().pos.y() + 0.5,
+                            mts.selectedPointObj().pos.z() + 0.5);
                         mts.getPlaneTranslationGizmo()
-                            .startDrag(mouseX, mouseY, mgx, mgy, mgz, mgx, mgy, mgz, 0, 0, 0);
+                            .startDrag(mouseX, mouseY, gp.x(), gp.y(), gp.z(), gp.x(), gp.y(), gp.z(), 0, 0, 0);
                     }
         }
 
@@ -122,16 +128,17 @@ public class ModellingBrushInput implements BrushInput {
             .isDragging()
             || mts.getPlaneTranslationGizmo()
                 .isDragging()) {
-            double[] anchor = mts.getAxisTranslationGizmo()
+            Vec3DDouble anchor = mts.getAxisTranslationGizmo()
                 .isDragging()
                     ? mts.getAxisTranslationGizmo()
                         .updateDrag(mx, my)
                     : mts.getPlaneTranslationGizmo()
                         .updateDrag(mx, my);
             if (anchor != null) {
-                mSelPt.x = AnchorSnap.toInt(anchor[0], snap);
-                mSelPt.y = AnchorSnap.toInt(anchor[1], snap);
-                mSelPt.z = AnchorSnap.toInt(anchor[2], snap);
+                mSelPt.pos = Vec3DInt.from(
+                    AnchorSnap.toInt(anchor.x(), snap),
+                    AnchorSnap.toInt(anchor.y(), snap),
+                    AnchorSnap.toInt(anchor.z(), snap));
                 mts.invalidate();
             }
         }

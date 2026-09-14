@@ -8,8 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import net.minecraft.block.Block;
-
+import github.thehighcruw.dimensium.editor.clipboard.ClipboardUtils;
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeMath;
 import github.thehighcruw.dimensium.editor.tool.gizmo.WithAxisTranslationGizmo;
 import github.thehighcruw.dimensium.editor.tool.gizmo.WithPlaneTranslationGizmo;
@@ -19,6 +18,8 @@ import github.thehighcruw.dimensium.editor.window.viewport.world.RotationGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.TranslationGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.ViewPlaneGizmo;
 import github.thehighcruw.dimensium.shared.SelectionState;
+import github.thehighcruw.dimensium.shared.Vec3DFloat;
+import github.thehighcruw.dimensium.shared.Vec3DInt;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 
 public class ClipboardPlacementState implements WithAxisTranslationGizmo, WithPlaneTranslationGizmo, WithRotationGizmo {
@@ -26,11 +27,11 @@ public class ClipboardPlacementState implements WithAxisTranslationGizmo, WithPl
     public static final ClipboardPlacementState INSTANCE = new ClipboardPlacementState();
 
     public boolean active = false;
-    public int anchorX, anchorY, anchorZ;
-    public float anchorFX, anchorFY, anchorFZ;
+    public Vec3DInt anchor = Vec3DInt.ZERO;
+    public Vec3DFloat anchorF = Vec3DFloat.ZERO;
 
-    public float rotX = 0f, rotY = 0f, rotZ = 0f;
-    public float rotDragBaseX, rotDragBaseY, rotDragBaseZ;
+    public Vec3DFloat rot = Vec3DFloat.ZERO;
+    public Vec3DFloat rotDragBase = Vec3DFloat.ZERO;
 
     /** Clipboard local offsets as int[]{lx, ly, lz, blockId, meta}. */
     public List<int[]> offsets = null;
@@ -44,15 +45,15 @@ public class ClipboardPlacementState implements WithAxisTranslationGizmo, WithPl
     private final RotationGizmo rotGizmo = new RotationGizmo();
 
     public double centerX() {
-        return anchorFX + clipW / 2.0;
+        return anchorF.x() + clipW / 2.0;
     }
 
     public double centerY() {
-        return anchorFY + clipH / 2.0;
+        return anchorF.y() + clipH / 2.0;
     }
 
     public double centerZ() {
-        return anchorFZ + clipD / 2.0;
+        return anchorF.z() + clipD / 2.0;
     }
 
     public int clipW, clipH, clipD;
@@ -75,27 +76,13 @@ public class ClipboardPlacementState implements WithAxisTranslationGizmo, WithPl
     public void start(SelectionState sel, int x, int y, int z) {
         if (sel.clipboard == null) return;
         active = true;
-        anchorX = x;
-        anchorY = y;
-        anchorZ = z;
-        anchorFX = x;
-        anchorFY = y;
-        anchorFZ = z;
-        rotX = 0f;
-        rotY = 0f;
-        rotZ = 0f;
+        anchor = Vec3DInt.from(x, y, z);
+        anchorF = Vec3DFloat.from(x, y, z);
+        rot = Vec3DFloat.ZERO;
         clipW = sel.clipW;
         clipH = sel.clipH;
         clipD = sel.clipD;
-        offsets = new ArrayList<>(sel.clipboard.size());
-        for (Map.Entry<Long, SelectionState.BlockData> e : sel.clipboard.entrySet()) {
-            long key = e.getKey();
-            int lx = (int) (key >> 20) & 0xFFFFF;
-            int ly = (int) (key >> 10) & 0x3FF;
-            int lz = (int) key & 0x3FF;
-            SelectionState.BlockData bd = e.getValue();
-            offsets.add(new int[] { lx, ly, lz, Block.getIdFromBlock(bd.block()), bd.meta() });
-        }
+        offsets = ClipboardUtils.toOffsets(sel.clipboard);
         viewPlaneGizmo.reset();
         gizmo.reset();
         planeGizmo.reset();
@@ -120,13 +107,13 @@ public class ClipboardPlacementState implements WithAxisTranslationGizmo, WithPl
             return;
         }
         ChangeProposal p = ChangeProposal.forPreview();
-        if (rotX == 0f && rotY == 0f && rotZ == 0f) {
+        if (rot.equals(Vec3DFloat.ZERO)) {
             for (int[] o : offsets) {
-                long key = ChangeProposal.packKey(anchorX + o[0], anchorY + o[1], anchorZ + o[2]);
+                long key = ChangeProposal.packKey(anchor.x() + o[0], anchor.y() + o[1], anchor.z() + o[2]);
                 p.proposed.put(key, new int[] { o[3], o[4] });
             }
         } else {
-            float[] R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
+            float[] R = ShapeMath.buildRotationMatrix(rot.x(), rot.y(), rot.z());
             float cx = clipW / 2f, cy = clipH / 2f, cz = clipD / 2f;
             for (int[] o : offsets) {
                 float dx = o[0] + 0.5f - cx, dy = o[1] + 0.5f - cy, dz = o[2] + 0.5f - cz;
@@ -134,9 +121,9 @@ public class ClipboardPlacementState implements WithAxisTranslationGizmo, WithPl
                 float wy = R[3] * dx + R[4] * dy + R[5] * dz + cy;
                 float wz = R[6] * dx + R[7] * dy + R[8] * dz + cz;
                 long key = ChangeProposal.packKey(
-                    anchorX + (int) Math.floor(wx),
-                    anchorY + (int) Math.floor(wy),
-                    anchorZ + (int) Math.floor(wz));
+                    anchor.x() + (int) Math.floor(wx),
+                    anchor.y() + (int) Math.floor(wy),
+                    anchor.z() + (int) Math.floor(wz));
                 p.proposed.put(key, new int[] { o[3], o[4] });
             }
         }
@@ -158,7 +145,7 @@ public class ClipboardPlacementState implements WithAxisTranslationGizmo, WithPl
         }
         List<int[]> ops = new ArrayList<>(offsets.size());
         for (int[] o : offsets) {
-            ops.add(new int[] { anchorX + o[0], anchorY + o[1], anchorZ + o[2], o[3], o[4] });
+            ops.add(new int[] { anchor.x() + o[0], anchor.y() + o[1], anchor.z() + o[2], o[3], o[4] });
         }
         return ops;
     }

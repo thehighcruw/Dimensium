@@ -38,16 +38,14 @@ public class MoveBrushInput implements BrushInput {
             double gx = ms.gizmoX(), gy = ms.gizmoY(), gz = ms.gizmoZ();
             if (ms.getAxisTranslationGizmo().hoveredAxis != TranslationGizmo.Axis.NONE) {
                 ms.getAxisTranslationGizmo()
-                    .startDrag(mouseX, mouseY, gx, gy, gz, gx, gy, gz, ms.rotX, ms.rotY, ms.rotZ);
+                    .startDrag(mouseX, mouseY, gx, gy, gz, gx, gy, gz, ms.rot.x(), ms.rot.y(), ms.rot.z());
             } else if (ms.getPlaneTranslationGizmo().hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
                 ms.getPlaneTranslationGizmo()
-                    .startDrag(mouseX, mouseY, gx, gy, gz, gx, gy, gz, ms.rotX, ms.rotY, ms.rotZ);
+                    .startDrag(mouseX, mouseY, gx, gy, gz, gx, gy, gz, ms.rot.x(), ms.rot.y(), ms.rot.z());
             } else if (ms.getRotationGizmo().hoveredAxis != RotationGizmo.Axis.NONE) {
-                ms.rotDragBaseX = ms.rotX;
-                ms.rotDragBaseY = ms.rotY;
-                ms.rotDragBaseZ = ms.rotZ;
+                ms.rotDragBase = ms.rot;
                 ms.getRotationGizmo()
-                    .startDrag(mouseX, mouseY, gx, gy, gz, ms.rotX, ms.rotY, ms.rotZ);
+                    .startDrag(mouseX, mouseY, gx, gy, gz, ms.rot.x(), ms.rot.y(), ms.rot.z());
             }
         } else if (button == KeyConstants.RMB) {
             GuiDimensiumOverlay.confirmMove();

@@ -10,6 +10,8 @@ import org.lwjgl.opengl.GL11;
 
 import github.thehighcruw.dimensium.DimensiumConfig;
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeMath;
+import github.thehighcruw.dimensium.shared.Vec2DDouble;
+import github.thehighcruw.dimensium.shared.Vec3DDouble;
 
 /**
  * Rotation gizmo — 3 colored arcs, one per axis.
@@ -45,8 +47,9 @@ public class RotationGizmo {
     public Axis hoveredAxis = Axis.NONE;
     private Axis dragAxis = Axis.NONE;
     // Angular drag state
-    private double centerScrX, centerScrY;
-    private double e1x, e1y, e2x, e2y;
+    private Vec2DDouble centerScr = Vec2DDouble.ZERO;
+    private Vec2DDouble e1 = Vec2DDouble.ZERO;
+    private Vec2DDouble e2 = Vec2DDouble.ZERO;
     private double startAngle;
     private double dragSign;
 
@@ -65,11 +68,10 @@ public class RotationGizmo {
 
     // ── Render ────────────────────────────────────────────────────────────────
 
-    public void render(double gx, double gy, double gz, double rx, double ry, double rz, float rotX, float rotY,
-        float rotZ) {
-        proj.capture(rx, ry, rz);
-        float scale = computeScale(gx - rx, gy - ry, gz - rz);
-        setupGizmoMatrix(gx, gy, gz, rx, ry, rz, rotX, rotY, rotZ, scale);
+    public void render(double gx, double gy, double gz, Vec3DDouble camPos, float rotX, float rotY, float rotZ) {
+        proj.capture(camPos);
+        float scale = computeScale(gx - camPos.x(), gy - camPos.y(), gz - camPos.z());
+        setupGizmoMatrix(gx, gy, gz, camPos, rotX, rotY, rotZ, scale);
         net.minecraft.client.renderer.Tessellator wt = net.minecraft.client.renderer.Tessellator.instance;
 
         for (int a = 0; a < 3; a++) {
@@ -179,30 +181,25 @@ public class RotationGizmo {
             dragAxis = Axis.NONE;
             return;
         }
-        centerScrX = cScr[0];
-        centerScrY = cScr[1];
+        centerScr = Vec2DDouble.from(cScr[0], cScr[1]);
 
         // Screen-space direction of each arc basis vector (unit length)
         double[] s1 = proj.project(gx + rp1[0], gy + rp1[1], gz + rp1[2]);
         double[] s2 = proj.project(gx + rp2[0], gy + rp2[1], gz + rp2[2]);
 
         if (s1 == null || s2 == null) {
-            e1x = 1;
-            e1y = 0;
-            e2x = 0;
-            e2y = 1;
+            e1 = Vec2DDouble.from(1, 0);
+            e2 = Vec2DDouble.from(0, 1);
         } else {
-            double d1x = s1[0] - centerScrX, d1y = s1[1] - centerScrY;
-            double d2x = s2[0] - centerScrX, d2y = s2[1] - centerScrY;
-            double l1 = Math.sqrt(d1x * d1x + d1y * d1y), l2 = Math.sqrt(d2x * d2x + d2y * d2y);
-            e1x = l1 > 0.001 ? d1x / l1 : 1;
-            e1y = l1 > 0.001 ? d1y / l1 : 0;
-            e2x = l2 > 0.001 ? d2x / l2 : 0;
-            e2y = l2 > 0.001 ? d2y / l2 : 1;
+            Vec2DDouble d1 = Vec2DDouble.from(s1[0] - centerScr.x(), s1[1] - centerScr.y());
+            Vec2DDouble d2 = Vec2DDouble.from(s2[0] - centerScr.x(), s2[1] - centerScr.y());
+            double l1 = d1.length(), l2 = d2.length();
+            e1 = l1 > 0.001 ? d1.divide(l1) : Vec2DDouble.from(1, 0);
+            e2 = l2 > 0.001 ? d2.divide(l2) : Vec2DDouble.from(0, 1);
         }
 
-        double dmx = mouseX - centerScrX, dmy = mouseY - centerScrY;
-        startAngle = Math.atan2(dmx * e2x + dmy * e2y, dmx * e1x + dmy * e1y);
+        Vec2DDouble dm = Vec2DDouble.from(mouseX - centerScr.x(), mouseY - centerScr.y());
+        startAngle = Math.atan2(dm.dot(e2), dm.dot(e1));
     }
 
     /**
@@ -210,8 +207,8 @@ public class RotationGizmo {
      */
     public float updateDrag(int mouseX, int mouseY) {
         if (dragAxis == Axis.NONE) return 0f;
-        double dmx = mouseX - centerScrX, dmy = mouseY - centerScrY;
-        double currentAngle = Math.atan2(dmx * e2x + dmy * e2y, dmx * e1x + dmy * e1y);
+        Vec2DDouble dm = Vec2DDouble.from(mouseX - centerScr.x(), mouseY - centerScr.y());
+        double currentAngle = Math.atan2(dm.dot(e2), dm.dot(e1));
         double delta = currentAngle - startAngle;
         while (delta > Math.PI) delta -= 2 * Math.PI;
         while (delta < -Math.PI) delta += 2 * Math.PI;
@@ -232,18 +229,18 @@ public class RotationGizmo {
         return (float) (dist / GIZMO_REFERENCE_DIST);
     }
 
-    static void setupGizmoMatrix(double gx, double gy, double gz, double rx, double ry, double rz, float rotX,
-        float rotY, float rotZ, float scale) {
+    static void setupGizmoMatrix(double gx, double gy, double gz, Vec3DDouble camPos, float rotX, float rotY,
+        float rotZ, float scale) {
         GL11.glDisable(GL11.GL_TEXTURE_2D);
         GL11.glDisable(GL11.GL_ALPHA_TEST);
         GL11.glPushMatrix();
-        GL11.glTranslated(gx - rx, gy - ry, gz - rz);
+        GL11.glTranslated(gx - camPos.x(), gy - camPos.y(), gz - camPos.z());
         GL11.glRotatef(rotZ, 0, 0, 1);
         GL11.glRotatef(rotY, 0, 1, 0);
         GL11.glRotatef(rotX, 1, 0, 0);
         GL11.glScalef(scale, scale, scale);
         float[] R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
-        WorldLines.setEyeRotated(R, (gx - rx) / scale, (gy - ry) / scale, (gz - rz) / scale);
+        WorldLines.setEyeRotated(R, (gx - camPos.x()) / scale, (gy - camPos.y()) / scale, (gz - camPos.z()) / scale);
     }
 
     static float[] rotateVec(float[] v, float[] R) {

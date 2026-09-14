@@ -15,6 +15,7 @@ import github.thehighcruw.dimensium.editor.tool.brushes.BrushState;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushStrategy;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushUtil;
 import github.thehighcruw.dimensium.editor.tool.brushes.GaussianKernel;
+import github.thehighcruw.dimensium.shared.Vec3DInt;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 
 public class SmoothBrush implements BrushStrategy {
@@ -62,16 +63,14 @@ public class SmoothBrush implements BrushStrategy {
         }
 
         int maxPos = (2 * sx + 1) * (2 * sy + 1) * (2 * sx + 1);
-        int[] pdx = new int[maxPos], pdy = new int[maxPos], pdz = new int[maxPos];
+        Vec3DInt[] positions = new Vec3DInt[maxPos];
         int[] pCentre = new int[maxPos];
         int posCount = 0, originalSolid = 0;
         for (int dx = -sx; dx <= sx; dx++) for (int dy = -sy; dy <= sy; dy++) for (int dz = -sx; dz <= sx; dz++) {
             if (!BrushUtil.inShape(bs.brushShape, dx, dy, dz, sx, sy, sx)) continue;
             int ci = (dx + sx + margin) * snStX + (dy + sy + margin) * dimZ + (dz + sx + margin);
             if (snapId[ci] != 0) originalSolid++;
-            pdx[posCount] = dx;
-            pdy[posCount] = dy;
-            pdz[posCount] = dz;
+            positions[posCount] = Vec3DInt.from(dx, dy, dz);
             pCentre[posCount] = ci;
             posCount++;
         }
@@ -93,11 +92,12 @@ public class SmoothBrush implements BrushStrategy {
         float invSz = sx > 0 ? 1f / sx : 0f;
 
         for (int i = 0; i < posCount; i++) {
-            int dx = pdx[i], dy = pdy[i], dz = pdz[i];
+            Vec3DInt delta = positions[i];
+            int dx = delta.x(), dy = delta.y(), dz = delta.z();
             int ci = pCentre[i];
             int ix = dx + sx + margin, iy = dy + sy + margin, iz = dz + sx + margin;
 
-            float d = kernel.solidWeight(snapId, ix, iy, iz, snStX, dimZ) / kernel.totalWeight;
+            float d = kernel.solidWeight(snapId, Vec3DInt.from(ix, iy, iz), snStX, dimZ) / kernel.totalWeight;
 
             if (s.smoothFixEdges) {
                 float r = Math.max(Math.abs(dx) * invSx, Math.max(Math.abs(dy) * invSy, Math.abs(dz) * invSz));
@@ -176,6 +176,8 @@ public class SmoothBrush implements BrushStrategy {
             } else makeSolid = false;
 
             int ci = pCentre[i];
+            Vec3DInt wp = Vec3DInt.from(ox, oy, oz)
+                .plus(positions[i]);
             if (makeSolid && bestId[i] != 0 && solidAssigned < targetSolid) {
                 if (bestId[i] == snapId[ci]) {
                     solidAssigned++;
@@ -183,12 +185,12 @@ public class SmoothBrush implements BrushStrategy {
                 }
                 Block blk = Block.getBlockById(bestId[i]);
                 if (blk != null) {
-                    ChangeProposal.write(world, ox + pdx[i], oy + pdy[i], oz + pdz[i], blk, bestMeta[i]);
+                    ChangeProposal.write(world, wp.x(), wp.y(), wp.z(), blk, bestMeta[i]);
                     solidAssigned++;
                 }
             } else {
                 if (snapId[ci] == 0) continue;
-                ChangeProposal.write(world, ox + pdx[i], oy + pdy[i], oz + pdz[i], Blocks.air, 0);
+                ChangeProposal.write(world, wp.x(), wp.y(), wp.z(), Blocks.air, 0);
             }
         }
     }

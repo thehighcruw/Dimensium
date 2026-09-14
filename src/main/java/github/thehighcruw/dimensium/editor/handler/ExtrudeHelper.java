@@ -22,6 +22,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.tool.manipulating.extrude.ExtrudeToolState;
 import github.thehighcruw.dimensium.shared.BlockSender;
+import github.thehighcruw.dimensium.shared.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
 import github.thehighcruw.dimensium.tool.BuilderToolState;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
@@ -177,16 +178,14 @@ public class ExtrudeHelper {
     }
 
     public static long extrudeKey(int x, int y, int z) {
-        return ((long) (x + 30000000)) << 34 | ((long) (y & 0xFF)) << 26 | (long) (z + 30000000);
+        return ChangeProposal.packKey(x, y, z);
     }
 
-    private int lastExtrudeX = Integer.MIN_VALUE;
-    private int lastExtrudeY = Integer.MIN_VALUE;
-    private int lastExtrudeZ = Integer.MIN_VALUE;
+    private Vec3DInt lastExtrudePos = null;
     private int lastExtrudeSide = -1;
 
     public void resetExtrudeDedup() {
-        lastExtrudeX = Integer.MIN_VALUE;
+        lastExtrudePos = null;
     }
 
     /** Builds the extrude preview proposal for the block under the cursor. Called each render frame. */
@@ -196,16 +195,13 @@ public class ExtrudeHelper {
         BuilderToolState bts = BuilderToolState.INSTANCE;
         if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) {
             bts.extrudePreview = null;
-            lastExtrudeX = Integer.MIN_VALUE;
+            lastExtrudePos = null;
             return;
         }
 
-        if (mop.blockX == lastExtrudeX && mop.blockY == lastExtrudeY
-            && mop.blockZ == lastExtrudeZ
-            && mop.sideHit == lastExtrudeSide) return;
-        lastExtrudeX = mop.blockX;
-        lastExtrudeY = mop.blockY;
-        lastExtrudeZ = mop.blockZ;
+        Vec3DInt mopPos = Vec3DInt.from(mop.blockX, mop.blockY, mop.blockZ);
+        if (mopPos.equals(lastExtrudePos) && mop.sideHit == lastExtrudeSide) return;
+        lastExtrudePos = mopPos;
         lastExtrudeSide = mop.sideHit;
 
         int tx = mop.blockX, ty = mop.blockY, tz = mop.blockZ;

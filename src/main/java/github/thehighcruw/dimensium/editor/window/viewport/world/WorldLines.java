@@ -8,6 +8,8 @@ import net.minecraft.client.renderer.Tessellator;
 
 import org.lwjgl.opengl.GL11;
 
+import github.thehighcruw.dimensium.shared.Vec3DDouble;
+
 /**
  * Shader-compatible line rendering.
  *
@@ -38,24 +40,20 @@ public class WorldLines {
 
     // Eye (camera) position in the CURRENT GL local coordinate frame.
     // Must be set via setEyeForTranslation / setEye before any draw call.
-    static double eyeX, eyeY, eyeZ;
+    static Vec3DDouble eye = Vec3DDouble.ZERO;
 
     /**
-     * Set eye from the active glTranslated arguments.
-     * If glTranslated(tx,ty,tz) is the innermost active transform, the camera
-     * sits at local (-tx, -ty, -tz). For no active translate, pass (0,0,0).
+     * Set eye from the active glTranslated translation vector.
+     * If glTranslated(t) is the innermost active transform, the camera
+     * sits at local -t. For no active translate, pass Vec3DDouble.ZERO.
      */
-    static void setEyeForTranslation(double tx, double ty, double tz) {
-        eyeX = -tx;
-        eyeY = -ty;
-        eyeZ = -tz;
+    static void setEyeForTranslation(Vec3DDouble translation) {
+        eye = translation.negate();
     }
 
     /** Set eye directly in local coordinate space. */
-    static void setEye(double ex, double ey, double ez) {
-        eyeX = ex;
-        eyeY = ey;
-        eyeZ = ez;
+    static void setEye(Vec3DDouble eyePos) {
+        eye = eyePos;
     }
 
     /**
@@ -67,9 +65,10 @@ public class WorldLines {
     static void setEyeRotated(float[] R, double tx, double ty, double tz) {
         double ox = -tx, oy = -ty, oz = -tz;
         // R^T * (ox, oy, oz)
-        eyeX = R[0] * ox + R[3] * oy + R[6] * oz;
-        eyeY = R[1] * ox + R[4] * oy + R[7] * oz;
-        eyeZ = R[2] * ox + R[5] * oy + R[8] * oz;
+        eye = Vec3DDouble.from(
+            R[0] * ox + R[3] * oy + R[6] * oz,
+            R[1] * ox + R[4] * oy + R[7] * oz,
+            R[2] * ox + R[5] * oy + R[8] * oz);
     }
 
     /**
@@ -82,44 +81,34 @@ public class WorldLines {
         GL11.glDisable(GL11.GL_CULL_FACE);
     }
 
+    static void addSegment(Tessellator t, Vec3DDouble a, Vec3DDouble b, float halfW) {
+        addSegment(t, a.x(), a.y(), a.z(), b.x(), b.y(), b.z(), halfW);
+    }
+
     static void addSegment(Tessellator t, double ax, double ay, double az, double bx, double by, double bz,
         float halfW) {
         // Eye-to-midpoint direction
-        double mx = (ax + bx) * 0.5 - eyeX;
-        double my = (ay + by) * 0.5 - eyeY;
-        double mz = (az + bz) * 0.5 - eyeZ;
+        Vec3DDouble eyeToMid = Vec3DDouble
+            .from((ax + bx) * 0.5 - eye.x(), (ay + by) * 0.5 - eye.y(), (az + bz) * 0.5 - eye.z());
 
         // Segment direction (normalised)
-        double dx = bx - ax, dy = by - ay, dz = bz - az;
-        double segLen = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        Vec3DDouble seg = Vec3DDouble.from(bx - ax, by - ay, bz - az);
+        double segLen = seg.length();
         if (segLen < 1e-9) return;
-        dx /= segLen;
-        dy /= segLen;
-        dz /= segLen;
+        Vec3DDouble segDir = seg.divide(segLen);
 
         // Perpendicular = cross(segDir, eyeToMid) — points "up" relative to camera
-        double px = dy * mz - dz * my;
-        double py = dz * mx - dx * mz;
-        double pz = dx * my - dy * mx;
-        double pl = Math.sqrt(px * px + py * py + pz * pz);
+        Vec3DDouble perp = segDir.cross(eyeToMid);
+        double pl = perp.length();
         if (pl < 1e-9) {
             // Segment points directly at camera — choose any perpendicular
-            if (Math.abs(dx) < 0.9) {
-                px = 0;
-                py = dz;
-                pz = -dy;
-            } else {
-                px = dz;
-                py = 0;
-                pz = -dx;
-            }
-            pl = Math.sqrt(px * px + py * py + pz * pz);
+            perp = Math.abs(segDir.x()) < 0.9 ? Vec3DDouble.from(0, segDir.z(), -segDir.y())
+                : Vec3DDouble.from(segDir.z(), 0, -segDir.x());
+            pl = perp.length();
             if (pl < 1e-9) return;
         }
-        double s = halfW / pl;
-        px *= s;
-        py *= s;
-        pz *= s;
+        Vec3DDouble pw = perp.times(halfW / pl);
+        double px = pw.x(), py = pw.y(), pz = pw.z();
 
         // CW-from-camera winding — works whether GL_FRONT_FACE is CW or CCW
         // when combined with glDisable(GL_CULL_FACE) below.
@@ -187,7 +176,7 @@ public class WorldLines {
      * subtracted from each vertex (for SelectionRenderer's cached int[] wireframe).
      * Eye must already be set to (0,0,0) since the result is camera-relative.
      */
-    static void drawIntWireframeCache(int[] verts, double offX, double offY, double offZ) {
+    static void drawIntWireframeCache(int[] verts, Vec3DDouble offset) {
         if (verts == null || verts.length < 6) return;
         GL11.glDisable(GL11.GL_CULL_FACE);
         Tessellator.instance.startDrawingQuads();
@@ -195,12 +184,12 @@ public class WorldLines {
         for (int i = 0; i + 5 < verts.length; i += 6) {
             addSegment(
                 Tessellator.instance,
-                verts[i] - offX,
-                verts[i + 1] - offY,
-                verts[i + 2] - offZ,
-                verts[i + 3] - offX,
-                verts[i + 4] - offY,
-                verts[i + 5] - offZ,
+                verts[i] - offset.x(),
+                verts[i + 1] - offset.y(),
+                verts[i + 2] - offset.z(),
+                verts[i + 3] - offset.x(),
+                verts[i + 4] - offset.y(),
+                verts[i + 5] - offset.z(),
                 WorldLines.W_THIN);
             if (++batched % 2048 == 0) {
                 Tessellator.instance.draw();

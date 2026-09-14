@@ -20,6 +20,7 @@ import com.gtnewhorizon.gtnhlib.network.base.IPacket;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.shared.SelectionState;
+import github.thehighcruw.dimensium.shared.Vec3DInt;
 import github.thehighcruw.dimensium.tool.BuilderToolState;
 import github.thehighcruw.dimensium.tool.BuilderToolState.Phase;
 
@@ -154,9 +155,7 @@ public class PacketCaptureResponse implements IPacket {
         sel.clipboardVersion++;
 
         bts.phase = Phase.MANIPULATING;
-        bts.offsetX = 0;
-        bts.offsetY = 0;
-        bts.offsetZ = 0;
+        bts.offset = Vec3DInt.ZERO;
 
         return null;
     }

@@ -9,6 +9,8 @@ import net.minecraft.entity.EntityLivingBase;
 import org.lwjgl.opengl.GL11;
 
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeMath;
+import github.thehighcruw.dimensium.shared.Vec2DDouble;
+import github.thehighcruw.dimensium.shared.Vec3DDouble;
 
 /**
  * Plane-translation gizmo — 3 small colored squares between axis arrow pairs.
@@ -53,16 +55,18 @@ public class PlaneTranslationGizmo {
     private Plane dragPlane = Plane.NONE;
     private int dragStartMX;
     private int dragStartMY;
-    private double startAnchorX, startAnchorY, startAnchorZ;
+    private Vec3DDouble startAnchor = Vec3DDouble.ZERO;
     private float[] worldAxisA = new float[3];
     private float[] worldAxisB = new float[3];
-    private double screenAxisAX, screenAxisAY, pixelsPerUnitA;
-    private double screenAxisBX, screenAxisBY, pixelsPerUnitB;
+    private Vec2DDouble screenAxisA = Vec2DDouble.ZERO;
+    private double pixelsPerUnitA;
+    private Vec2DDouble screenAxisB = Vec2DDouble.ZERO;
+    private double pixelsPerUnitB;
     // Ray-based drag
     private boolean useRayDrag;
-    private double dragGizmoX, dragGizmoY, dragGizmoZ;
-    private double dragPlaneNX, dragPlaneNY, dragPlaneNZ;
-    private double dragStartHX, dragStartHY, dragStartHZ;
+    private Vec3DDouble dragGizmo = Vec3DDouble.ZERO;
+    private Vec3DDouble dragPlaneN = Vec3DDouble.ZERO;
+    private Vec3DDouble dragStartH = Vec3DDouble.ZERO;
 
     public boolean isDragging() {
         return dragPlane != Plane.NONE;
@@ -75,11 +79,10 @@ public class PlaneTranslationGizmo {
 
     // ── Rendering ─────────────────────────────────────────────────────────────
 
-    public void render(double gx, double gy, double gz, double rx, double ry, double rz, float rotX, float rotY,
-        float rotZ) {
-        proj.capture(rx, ry, rz);
-        float scale = RotationGizmo.computeScale(gx - rx, gy - ry, gz - rz);
-        RotationGizmo.setupGizmoMatrix(gx, gy, gz, rx, ry, rz, rotX, rotY, rotZ, scale);
+    public void render(double gx, double gy, double gz, Vec3DDouble camPos, float rotX, float rotY, float rotZ) {
+        proj.capture(camPos);
+        float scale = RotationGizmo.computeScale(gx - camPos.x(), gy - camPos.y(), gz - camPos.z());
+        RotationGizmo.setupGizmoMatrix(gx, gy, gz, camPos, rotX, rotY, rotZ, scale);
 
         for (int p = 0; p < 3; p++) {
             Plane plane = p == 0 ? Plane.XY : p == 1 ? Plane.XZ : Plane.YZ;
@@ -195,12 +198,8 @@ public class PlaneTranslationGizmo {
         dragPlane = hoveredPlane;
         dragStartMX = mouseX;
         dragStartMY = mouseY;
-        startAnchorX = anchorX;
-        startAnchorY = anchorY;
-        startAnchorZ = anchorZ;
-        dragGizmoX = gx;
-        dragGizmoY = gy;
-        dragGizmoZ = gz;
+        startAnchor = Vec3DDouble.from(anchorX, anchorY, anchorZ);
+        dragGizmo = Vec3DDouble.from(gx, gy, gz);
 
         int p = dragPlane == Plane.XY ? 0 : dragPlane == Plane.XZ ? 1 : 2;
         float[] R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
@@ -208,44 +207,48 @@ public class PlaneTranslationGizmo {
         worldAxisB = RotationGizmo.rotateVec(PLANE_B[p], R);
 
         // Plane normal = worldAxisA × worldAxisB
-        dragPlaneNX = (double) worldAxisA[1] * worldAxisB[2] - (double) worldAxisA[2] * worldAxisB[1];
-        dragPlaneNY = (double) worldAxisA[2] * worldAxisB[0] - (double) worldAxisA[0] * worldAxisB[2];
-        dragPlaneNZ = (double) worldAxisA[0] * worldAxisB[1] - (double) worldAxisA[1] * worldAxisB[0];
+        dragPlaneN = Vec3DDouble.from(
+            (double) worldAxisA[1] * worldAxisB[2] - (double) worldAxisA[2] * worldAxisB[1],
+            (double) worldAxisA[2] * worldAxisB[0] - (double) worldAxisA[0] * worldAxisB[2],
+            (double) worldAxisA[0] * worldAxisB[1] - (double) worldAxisA[1] * worldAxisB[0]);
 
         // Screen-based fallback setup
         double[] os = proj.project(gx, gy, gz);
         double[] tsA = proj.project(gx + worldAxisA[0], gy + worldAxisA[1], gz + worldAxisA[2]);
         double[] tsB = proj.project(gx + worldAxisB[0], gy + worldAxisB[1], gz + worldAxisB[2]);
         if (os == null || tsA == null || tsB == null) {
-            screenAxisAX = 1;
-            screenAxisAY = 0;
+            screenAxisA = Vec2DDouble.from(1, 0);
             pixelsPerUnitA = 50;
-            screenAxisBX = 0;
-            screenAxisBY = 1;
+            screenAxisB = Vec2DDouble.from(0, 1);
             pixelsPerUnitB = 50;
         } else {
-            double dax = tsA[0] - os[0], day = tsA[1] - os[1];
-            double lenA = Math.sqrt(dax * dax + day * day);
+            Vec2DDouble da = Vec2DDouble.from(tsA[0] - os[0], tsA[1] - os[1]);
+            double lenA = da.length();
             pixelsPerUnitA = Math.max(1.0, lenA);
-            screenAxisAX = lenA > 0.001 ? dax / lenA : 1;
-            screenAxisAY = lenA > 0.001 ? day / lenA : 0;
-            double dbx = tsB[0] - os[0], dby = tsB[1] - os[1];
-            double lenB = Math.sqrt(dbx * dbx + dby * dby);
+            screenAxisA = lenA > 0.001 ? da.divide(lenA) : Vec2DDouble.from(1, 0);
+            Vec2DDouble db = Vec2DDouble.from(tsB[0] - os[0], tsB[1] - os[1]);
+            double lenB = db.length();
             pixelsPerUnitB = Math.max(1.0, lenB);
-            screenAxisBX = lenB > 0.001 ? dbx / lenB : 0;
-            screenAxisBY = lenB > 0.001 ? dby / lenB : 1;
+            screenAxisB = lenB > 0.001 ? db.divide(lenB) : Vec2DDouble.from(0, 1);
         }
 
         // Ray-based drag: find initial hit on plane
         double[] ray = proj.unprojectRay(mouseX, mouseY);
-        double[] hit = ray != null ? rayPlaneIntersect(ray, gx, gy, gz, dragPlaneNX, dragPlaneNY, dragPlaneNZ) : null;
+        double[] hit = ray != null
+            ? rayPlaneIntersect(
+                ray,
+                dragGizmo.x(),
+                dragGizmo.y(),
+                dragGizmo.z(),
+                dragPlaneN.x(),
+                dragPlaneN.y(),
+                dragPlaneN.z())
+            : null;
         if (hit != null) {
-            dragStartHX = hit[0];
-            dragStartHY = hit[1];
-            dragStartHZ = hit[2];
+            dragStartH = Vec3DDouble.from(hit[0], hit[1], hit[2]);
             useRayDrag = true;
         } else {
-            dragStartHX = dragStartHY = dragStartHZ = 0;
+            dragStartH = Vec3DDouble.ZERO;
             useRayDrag = false;
         }
     }
@@ -258,35 +261,36 @@ public class PlaneTranslationGizmo {
         return new double[] { ray[0] + t * ray[3], ray[1] + t * ray[4], ray[2] + t * ray[5] };
     }
 
-    /**
-     * Returns double[3] {newAnchorX, newAnchorY, newAnchorZ} or null if not dragging.
-     */
-    public double[] updateDrag(int mouseX, int mouseY) {
+    /** Returns updated anchor, or null if not dragging. */
+    public Vec3DDouble updateDrag(int mouseX, int mouseY) {
         if (dragPlane == Plane.NONE) return null;
         if (useRayDrag) {
             double[] ray = proj.unprojectRay(mouseX, mouseY);
             if (ray != null) {
                 double[] hit = rayPlaneIntersect(
                     ray,
-                    dragGizmoX,
-                    dragGizmoY,
-                    dragGizmoZ,
-                    dragPlaneNX,
-                    dragPlaneNY,
-                    dragPlaneNZ);
+                    dragGizmo.x(),
+                    dragGizmo.y(),
+                    dragGizmo.z(),
+                    dragPlaneN.x(),
+                    dragPlaneN.y(),
+                    dragPlaneN.z());
                 if (hit != null) {
-                    return new double[] { startAnchorX + (hit[0] - dragStartHX), startAnchorY + (hit[1] - dragStartHY),
-                        startAnchorZ + (hit[2] - dragStartHZ) };
+                    return Vec3DDouble.from(
+                        startAnchor.x() + (hit[0] - dragStartH.x()),
+                        startAnchor.y() + (hit[1] - dragStartH.y()),
+                        startAnchor.z() + (hit[2] - dragStartH.z()));
                 }
             }
         }
         // Screen-based fallback
-        double dx = mouseX - dragStartMX, dy = mouseY - dragStartMY;
-        double deltaA = (dx * screenAxisAX + dy * screenAxisAY) / pixelsPerUnitA;
-        double deltaB = (dx * screenAxisBX + dy * screenAxisBY) / pixelsPerUnitB;
-        return new double[] { startAnchorX + deltaA * worldAxisA[0] + deltaB * worldAxisB[0],
-            startAnchorY + deltaA * worldAxisA[1] + deltaB * worldAxisB[1],
-            startAnchorZ + deltaA * worldAxisA[2] + deltaB * worldAxisB[2] };
+        Vec2DDouble dm = Vec2DDouble.from(mouseX - dragStartMX, mouseY - dragStartMY);
+        double deltaA = dm.dot(screenAxisA) / pixelsPerUnitA;
+        double deltaB = dm.dot(screenAxisB) / pixelsPerUnitB;
+        return Vec3DDouble.from(
+            startAnchor.x() + deltaA * worldAxisA[0] + deltaB * worldAxisB[0],
+            startAnchor.y() + deltaA * worldAxisA[1] + deltaB * worldAxisB[1],
+            startAnchor.z() + deltaA * worldAxisA[2] + deltaB * worldAxisB[2]);
     }
 
     public void endDrag() {

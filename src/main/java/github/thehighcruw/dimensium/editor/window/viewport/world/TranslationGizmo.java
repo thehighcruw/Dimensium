@@ -9,6 +9,8 @@ import net.minecraft.entity.EntityLivingBase;
 import org.lwjgl.opengl.GL11;
 
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeMath;
+import github.thehighcruw.dimensium.shared.Vec2DDouble;
+import github.thehighcruw.dimensium.shared.Vec3DDouble;
 
 /**
  * Reusable translation gizmo — any tool can instantiate this.
@@ -46,12 +48,13 @@ public class TranslationGizmo {
     private Axis dragAxis = Axis.NONE;
     private int dragStartMX;
     private int dragStartMY;
-    private double screenDx, screenDy, pixelsPerBlock;
-    private double startAnchorX, startAnchorY, startAnchorZ;
+    private Vec2DDouble screenDir = Vec2DDouble.ZERO;
+    private double pixelsPerBlock;
+    private Vec3DDouble startAnchor = Vec3DDouble.ZERO;
     private float[] rotatedAxisDir = new float[3];
     // Ray-based drag
     private boolean useRayDrag;
-    private double dragGizmoX, dragGizmoY, dragGizmoZ;
+    private Vec3DDouble dragGizmo = Vec3DDouble.ZERO;
     private double dragStartT;
 
     /** Per-axis sign: 1 = arrow points in +axis direction, -1 = flipped. */
@@ -80,11 +83,10 @@ public class TranslationGizmo {
      * @param gx/gy/gz world-space gizmo center
      * @param rx/ry/rz interpolated player eye position (for glTranslated offset)
      */
-    public void render(double gx, double gy, double gz, double rx, double ry, double rz, float rotX, float rotY,
-        float rotZ) {
-        proj.capture(rx, ry, rz);
-        float scale = RotationGizmo.computeScale(gx - rx, gy - ry, gz - rz);
-        RotationGizmo.setupGizmoMatrix(gx, gy, gz, rx, ry, rz, rotX, rotY, rotZ, scale);
+    public void render(double gx, double gy, double gz, Vec3DDouble camPos, float rotX, float rotY, float rotZ) {
+        proj.capture(camPos);
+        float scale = RotationGizmo.computeScale(gx - camPos.x(), gy - camPos.y(), gz - camPos.z());
+        RotationGizmo.setupGizmoMatrix(gx, gy, gz, camPos, rotX, rotY, rotZ, scale);
         net.minecraft.client.renderer.Tessellator wt = net.minecraft.client.renderer.Tessellator.instance;
 
         for (int a = 0; a < 3; a++) {
@@ -200,12 +202,8 @@ public class TranslationGizmo {
         dragAxis = hoveredAxis;
         dragStartMX = mouseX;
         dragStartMY = mouseY;
-        startAnchorX = anchorX;
-        startAnchorY = anchorY;
-        startAnchorZ = anchorZ;
-        dragGizmoX = gx;
-        dragGizmoY = gy;
-        dragGizmoZ = gz;
+        startAnchor = Vec3DDouble.from(anchorX, anchorY, anchorZ);
+        dragGizmo = Vec3DDouble.from(gx, gy, gz);
 
         float[] R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
         int a = dragAxis == Axis.X ? 0 : dragAxis == Axis.Y ? 1 : 2;
@@ -217,21 +215,19 @@ public class TranslationGizmo {
         double[] os = proj.project(gx, gy, gz);
         double[] ts = proj.project(gx + dir[0], gy + dir[1], gz + dir[2]);
         if (os == null || ts == null) {
-            screenDx = 1;
-            screenDy = 0;
+            screenDir = Vec2DDouble.from(1, 0);
             pixelsPerBlock = 50;
         } else {
-            double ddx = ts[0] - os[0], ddy = ts[1] - os[1];
-            double len = Math.sqrt(ddx * ddx + ddy * ddy);
+            Vec2DDouble dd = Vec2DDouble.from(ts[0] - os[0], ts[1] - os[1]);
+            double len = dd.length();
             pixelsPerBlock = Math.max(1.0, len);
-            screenDx = len > 0.001 ? ddx / len : 1;
-            screenDy = len > 0.001 ? ddy / len : 0;
+            screenDir = len > 0.001 ? dd.divide(len) : Vec2DDouble.from(1, 0);
         }
 
         // Ray-based drag: find initial parameter along axis
         double[] ray = proj.unprojectRay(mouseX, mouseY);
         if (ray != null) {
-            dragStartT = closestAxisT(ray, gx, gy, gz, dir);
+            dragStartT = closestAxisT(ray, dragGizmo.x(), dragGizmo.y(), dragGizmo.z(), dir);
             useRayDrag = true;
         } else {
             dragStartT = 0;
@@ -258,23 +254,28 @@ public class TranslationGizmo {
      * Returns updated [anchorX, anchorY, anchorZ] based on mouse delta.
      * Returns null if not dragging.
      */
-    /** Returns new float anchor [x, y, z], or null if not dragging. */
-    public double[] updateDrag(int mouseX, int mouseY) {
+    /** Returns updated anchor, or null if not dragging. */
+    public Vec3DDouble updateDrag(int mouseX, int mouseY) {
         if (dragAxis == Axis.NONE) return null;
         if (useRayDrag) {
             double[] ray = proj.unprojectRay(mouseX, mouseY);
             if (ray != null) {
-                double t = closestAxisT(ray, dragGizmoX, dragGizmoY, dragGizmoZ, rotatedAxisDir);
+                double t = closestAxisT(ray, dragGizmo.x(), dragGizmo.y(), dragGizmo.z(), rotatedAxisDir);
                 double delta = t - dragStartT;
-                return new double[] { startAnchorX + delta * rotatedAxisDir[0],
-                    startAnchorY + delta * rotatedAxisDir[1], startAnchorZ + delta * rotatedAxisDir[2] };
+                return Vec3DDouble.from(
+                    startAnchor.x() + delta * rotatedAxisDir[0],
+                    startAnchor.y() + delta * rotatedAxisDir[1],
+                    startAnchor.z() + delta * rotatedAxisDir[2]);
             }
         }
         // Screen-based fallback
-        double screenProj = (mouseX - dragStartMX) * screenDx + (mouseY - dragStartMY) * screenDy;
+        double screenProj = Vec2DDouble.from(mouseX - dragStartMX, mouseY - dragStartMY)
+            .dot(screenDir);
         double delta = screenProj / pixelsPerBlock;
-        return new double[] { startAnchorX + delta * rotatedAxisDir[0], startAnchorY + delta * rotatedAxisDir[1],
-            startAnchorZ + delta * rotatedAxisDir[2] };
+        return Vec3DDouble.from(
+            startAnchor.x() + delta * rotatedAxisDir[0],
+            startAnchor.y() + delta * rotatedAxisDir[1],
+            startAnchor.z() + delta * rotatedAxisDir[2]);
     }
 
     public void endDrag() {

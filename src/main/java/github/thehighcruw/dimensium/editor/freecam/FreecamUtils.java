@@ -11,6 +11,7 @@ import net.minecraft.util.Vec3;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import github.thehighcruw.dimensium.shared.Vec3DDouble;
 
 @SideOnly(Side.CLIENT)
 public class FreecamUtils {
@@ -47,13 +48,14 @@ public class FreecamUtils {
 
     /**
      * Orthonormal camera basis from yaw/pitch angles in degrees.
-     * Returns {{fwdX,fwdY,fwdZ}, {rgtX,0,rgtZ}, {upX,upY,upZ}}.
+     * Returns [fwd, rgt, up] as Vec3DDouble.
      */
-    public static double[][] cameraBasis(float yawDeg, float pitchDeg) {
+    public static Vec3DDouble[] cameraBasis(float yawDeg, float pitchDeg) {
         double yaw = Math.toRadians(yawDeg);
         double pitch = Math.toRadians(pitchDeg);
         double cp = Math.cos(pitch), sp = Math.sin(pitch);
         double cy = Math.cos(yaw), sy = Math.sin(yaw);
-        return new double[][] { { -sy * cp, -sp, cy * cp }, { cy, 0, sy }, { -sy * sp, cp, cy * sp } };
+        return new Vec3DDouble[] { Vec3DDouble.from(-sy * cp, -sp, cy * cp), Vec3DDouble.from(cy, 0, sy),
+            Vec3DDouble.from(-sy * sp, cp, cy * sp) };
     }
 }

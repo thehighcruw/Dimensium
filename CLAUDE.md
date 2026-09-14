@@ -2,6 +2,8 @@
 
 Minecraft 1.7.10 building mod. Java 8. RetroFuturaGradle. Main package: `github.thehighcruw.dimensium`.
 
+> **Java version note**: The header says Java 8 but the project uses [Jabel](https://github.com/bsideup/jabel) to compile modern Java syntax (records, sealed classes, switch expressions, etc.) down to Java 8 bytecode. Annotate records with `@com.github.bsideup.jabel.Desugar`. All modern syntax is fair game.
+
 ---
 
 ## Source Layout

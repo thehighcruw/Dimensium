@@ -4,6 +4,8 @@
  */
 package github.thehighcruw.dimensium.tool;
 
+import github.thehighcruw.dimensium.shared.Vec3DInt;
+
 public class BuilderToolState {
 
     public static final BuilderToolState INSTANCE = new BuilderToolState();
@@ -26,9 +28,7 @@ public class BuilderToolState {
     public Phase phase = Phase.IDLE;
 
     // ── Hologram offset from selection origin ─────────────────────────────────
-    public int offsetX = 0;
-    public int offsetY = 0;
-    public int offsetZ = 0;
+    public Vec3DInt offset = Vec3DInt.ZERO;
 
     // ── Axis lock (held X / Y / Z key during manipulation) ────────────────────
     public enum AxisLock {
@@ -48,17 +48,13 @@ public class BuilderToolState {
 
     // Signed repeat counts per axis. Positive = +axis direction, negative = -axis direction, 0 = none.
     // Step size along each axis is always the selection dimension (width/height/depth).
-    public int stackX = 0, stackY = 0, stackZ = 0;
+    public Vec3DInt stack = Vec3DInt.ZERO;
 
     public void resetPhase() {
         phase = Phase.IDLE;
-        offsetX = 0;
-        offsetY = 0;
-        offsetZ = 0;
+        offset = Vec3DInt.ZERO;
         axisLock = AxisLock.NONE;
-        stackX = 0;
-        stackY = 0;
-        stackZ = 0;
+        stack = Vec3DInt.ZERO;
     }
 
     /**
@@ -86,8 +82,6 @@ public class BuilderToolState {
                 else if (ay >= ax && ay >= az) dy = (int) Math.signum(facing.yCoord) * direction;
                 else dz = (int) Math.signum(facing.zCoord) * direction;
         }
-        offsetX += dx;
-        offsetY += dy;
-        offsetZ += dz;
+        offset = offset.plus(Vec3DInt.from(dx, dy, dz));
     }
 }

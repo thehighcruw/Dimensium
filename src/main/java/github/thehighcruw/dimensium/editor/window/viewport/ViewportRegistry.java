@@ -85,9 +85,7 @@ public final class ViewportRegistry {
         ViewportState old = viewports.get(activeIndex);
         old.speed = fs.speed;
         old.orbiting = fs.orbiting;
-        old.pivotX = fs.pivotX;
-        old.pivotY = fs.pivotY;
-        old.pivotZ = fs.pivotZ;
+        old.pivot = fs.pivot;
         old.orbitDist = fs.orbitDist;
 
         activeIndex = index;
@@ -96,9 +94,7 @@ public final class ViewportRegistry {
         // Restore per-viewport state into FreecamState.
         fs.speed = next.speed;
         fs.orbiting = next.orbiting;
-        fs.pivotX = next.pivotX;
-        fs.pivotY = next.pivotY;
-        fs.pivotZ = next.pivotZ;
+        fs.pivot = next.pivot;
         fs.orbitDist = next.orbitDist;
 
         // Clear drag state — don't carry over an in-progress drag from the old viewport.
@@ -132,9 +128,7 @@ public final class ViewportRegistry {
             ViewportState next = viewports.get(newActive);
             fs.speed = next.speed;
             fs.orbiting = next.orbiting;
-            fs.pivotX = next.pivotX;
-            fs.pivotY = next.pivotY;
-            fs.pivotZ = next.pivotZ;
+            fs.pivot = next.pivot;
             fs.orbitDist = next.orbitDist;
             fs.lmbPressing = false;
             fs.lmbDragging = false;
@@ -159,9 +153,7 @@ public final class ViewportRegistry {
         ViewportState vp = viewports.get(activeIndex);
         vp.speed = fs.speed;
         vp.orbiting = false; // don't persist mid-orbit
-        vp.pivotX = fs.pivotX;
-        vp.pivotY = fs.pivotY;
-        vp.pivotZ = fs.pivotZ;
+        vp.pivot = fs.pivot;
         vp.orbitDist = fs.orbitDist;
     }
 
@@ -175,9 +167,7 @@ public final class ViewportRegistry {
         ViewportState vp = viewports.get(activeIndex);
         fs.speed = vp.speed;
         fs.orbiting = false;
-        fs.pivotX = vp.pivotX;
-        fs.pivotY = vp.pivotY;
-        fs.pivotZ = vp.pivotZ;
+        fs.pivot = vp.pivot;
         fs.orbitDist = vp.orbitDist;
         fs.lmbPressing = false;
         fs.lmbDragging = false;

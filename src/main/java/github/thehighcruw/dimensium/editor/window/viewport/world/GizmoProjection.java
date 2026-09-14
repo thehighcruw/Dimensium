@@ -18,6 +18,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.window.viewport.ViewportRegistry;
 import github.thehighcruw.dimensium.editor.window.viewport.ViewportState;
+import github.thehighcruw.dimensium.shared.Vec3DDouble;
 
 /**
  * Captures GL modelview/projection/viewport matrices at render time and uses
@@ -28,7 +29,7 @@ import github.thehighcruw.dimensium.editor.window.viewport.ViewportState;
  * to the render offset. capture() stores (rx,ry,rz) so project() can subtract
  * it before calling gluProject, letting callers always pass absolute world coords.
  *
- * Call {@link #capture(double, double, double)} at the start of each gizmo render
+ * Call {@link #capture(Vec3DDouble)} at the start of each gizmo render
  * pass (before setupGizmoMatrix), then call {@link #project} in hit-detection code.
  */
 @SideOnly(Side.CLIENT)
@@ -40,17 +41,15 @@ public final class GizmoProjection {
     private final FloatBuffer win = BufferUtils.createFloatBuffer(3);
     private final FloatBuffer unprojectResult = BufferUtils.createFloatBuffer(3);
 
-    private double renderOffsetX, renderOffsetY, renderOffsetZ;
+    private Vec3DDouble renderOffset = Vec3DDouble.ZERO;
 
     /**
      * Call once per frame before any matrix push/pop, during world render.
      *
-     * @param rx/ry/rz interpolated camera render position (same values passed to setupGizmoMatrix)
+     * @param camPos interpolated camera render position (same values passed to setupGizmoMatrix)
      */
-    public void capture(double rx, double ry, double rz) {
-        renderOffsetX = rx;
-        renderOffsetY = ry;
-        renderOffsetZ = rz;
+    public void capture(Vec3DDouble camPos) {
+        renderOffset = camPos;
         modelview.rewind();
         projection.rewind();
         viewport.rewind();
@@ -70,9 +69,9 @@ public final class GizmoProjection {
         viewport.rewind();
         win.rewind();
         boolean ok = GLU.gluProject(
-            (float) (wx - renderOffsetX),
-            (float) (wy - renderOffsetY),
-            (float) (wz - renderOffsetZ),
+            (float) (wx - renderOffset.x()),
+            (float) (wy - renderOffset.y()),
+            (float) (wz - renderOffset.z()),
             modelview,
             projection,
             viewport,
@@ -132,9 +131,9 @@ public final class GizmoProjection {
         unprojectResult.rewind();
         boolean okNear = GLU.gluUnProject(winX, winY, 0f, modelview, projection, viewport, unprojectResult);
         if (!okNear) return null;
-        double nx = (double) unprojectResult.get(0) + renderOffsetX;
-        double ny = (double) unprojectResult.get(1) + renderOffsetY;
-        double nz = (double) unprojectResult.get(2) + renderOffsetZ;
+        double nx = (double) unprojectResult.get(0) + renderOffset.x();
+        double ny = (double) unprojectResult.get(1) + renderOffset.y();
+        double nz = (double) unprojectResult.get(2) + renderOffset.z();
 
         modelview.rewind();
         projection.rewind();
@@ -142,13 +141,14 @@ public final class GizmoProjection {
         unprojectResult.rewind();
         boolean okFar = GLU.gluUnProject(winX, winY, 1f, modelview, projection, viewport, unprojectResult);
         if (!okFar) return null;
-        double fx = (double) unprojectResult.get(0) + renderOffsetX;
-        double fy = (double) unprojectResult.get(1) + renderOffsetY;
-        double fz = (double) unprojectResult.get(2) + renderOffsetZ;
+        double fx = (double) unprojectResult.get(0) + renderOffset.x();
+        double fy = (double) unprojectResult.get(1) + renderOffset.y();
+        double fz = (double) unprojectResult.get(2) + renderOffset.z();
 
-        double dx = fx - nx, dy = fy - ny, dz = fz - nz;
-        double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        Vec3DDouble dir = Vec3DDouble.from(fx - nx, fy - ny, fz - nz);
+        double len = dir.length();
         if (len < 1e-10) return null;
-        return new double[] { nx, ny, nz, dx / len, dy / len, dz / len };
+        Vec3DDouble dirN = dir.divide(len);
+        return new double[] { nx, ny, nz, dirN.x(), dirN.y(), dirN.z() };
     }
 }

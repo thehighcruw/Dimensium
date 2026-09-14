@@ -163,7 +163,7 @@ public class BlueprintBrowserPopup {
                         .addText(pos.x + CELL * 0.5f - 4, pos.y + CELL * 0.5f - 8, 0xFF888877, spin);
                 }
 
-                String label = meta.name;
+                String label = meta.name();
                 ImGui.getWindowDrawList()
                     .addText(
                         pos.x + 2,
@@ -242,7 +242,8 @@ public class BlueprintBrowserPopup {
         List<Map.Entry<File, Blueprint>> result = new ArrayList<>();
         for (Map.Entry<File, Blueprint> e : all) {
             Blueprint meta = e.getValue();
-            boolean nameOk = nameQ.isEmpty() || meta.name.toLowerCase()
+            boolean nameOk = nameQ.isEmpty() || meta.name()
+                .toLowerCase()
                 .contains(nameQ);
             boolean tagOk = tagQ.isEmpty() || hasMatchingTag(meta, tagQ);
             if (nameOk && tagOk) result.add(e);
@@ -251,7 +252,7 @@ public class BlueprintBrowserPopup {
     }
 
     private static boolean hasMatchingTag(Blueprint meta, String tagQ) {
-        for (String tag : meta.tags) {
+        for (String tag : meta.tags()) {
             if (tag.toLowerCase()
                 .contains(tagQ)) return true;
         }
@@ -265,7 +266,8 @@ public class BlueprintBrowserPopup {
         tagCounts.clear();
         List<Map.Entry<File, Blueprint>> all = BlueprintRegistry.INSTANCE.getAll();
         for (Map.Entry<File, Blueprint> e : all) {
-            for (String tag : e.getValue().tags) {
+            for (String tag : e.getValue()
+                .tags()) {
                 tagCounts.put(tag, tagCounts.getOrDefault(tag, 0) + 1);
             }
         }
@@ -288,16 +290,18 @@ public class BlueprintBrowserPopup {
             return;
         }
         SelectionState sel = SelectionState.INSTANCE;
-        Map<Long, SelectionState.BlockData> clipboard = new HashMap<>(bp.offsets.size());
-        for (int[] o : bp.offsets) {
+        Map<Long, SelectionState.BlockData> clipboard = new HashMap<>(
+            bp.offsets()
+                .size());
+        for (int[] o : bp.offsets()) {
             Block block = Block.getBlockById(o[3]);
             if (block == null || block == Blocks.air) continue;
             clipboard.put(SelectionState.clipboardKey(o[0], o[1], o[2]), new SelectionState.BlockData(block, o[4]));
         }
         sel.clipboard = clipboard;
-        sel.clipW = bp.clipW;
-        sel.clipH = bp.clipH;
-        sel.clipD = bp.clipD;
+        sel.clipW = bp.clipW();
+        sel.clipH = bp.clipH();
+        sel.clipD = bp.clipD();
         sel.clipboardVersion++;
     }
 }

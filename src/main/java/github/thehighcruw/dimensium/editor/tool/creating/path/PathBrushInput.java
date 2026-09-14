@@ -24,6 +24,8 @@ import github.thehighcruw.dimensium.editor.window.viewport.world.PlaneTranslatio
 import github.thehighcruw.dimensium.editor.window.viewport.world.TranslationGizmo;
 import github.thehighcruw.dimensium.shared.InputHandler;
 import github.thehighcruw.dimensium.shared.KeyConstants;
+import github.thehighcruw.dimensium.shared.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.Vec3DInt;
 
 @SideOnly(Side.CLIENT)
 public class PathBrushInput implements BrushInput {
@@ -57,7 +59,8 @@ public class PathBrushInput implements BrushInput {
         if (button == KeyConstants.LMB) {
             EntityLivingBase eye = mc.renderViewEntity;
             List<int[]> ptPositions = new ArrayList<>(pts.points.size());
-            for (PathToolState.PathPoint pt : pts.points) ptPositions.add(new int[] { pt.x, pt.y, pt.z });
+            for (PathToolState.PathPoint pt : pts.points)
+                ptPositions.add(new int[] { pt.pos.x(), pt.pos.y(), pt.pos.z() });
             int bestIdx = GuiDimensiumOverlay.findNearestPointOnScreen(
                 ptPositions,
                 pts.selectedIndex,
@@ -73,17 +76,21 @@ public class PathBrushInput implements BrushInput {
             } else if (pts.getAxisTranslationGizmo().hoveredAxis != TranslationGizmo.Axis.NONE
                 && pts.selectedPoint() != null
                 && eye != null) {
-                    PathToolState.PathPoint sel = pts.selectedPoint();
-                    double pgx = sel.x + 0.5, pgy = sel.y + 0.5, pgz = sel.z + 0.5;
+                    Vec3DDouble gp = Vec3DDouble.from(
+                        pts.selectedPoint().pos.x() + 0.5,
+                        pts.selectedPoint().pos.y() + 0.5,
+                        pts.selectedPoint().pos.z() + 0.5);
                     pts.getAxisTranslationGizmo()
-                        .startDrag(mouseX, mouseY, pgx, pgy, pgz, pgx, pgy, pgz, 0, 0, 0);
+                        .startDrag(mouseX, mouseY, gp.x(), gp.y(), gp.z(), gp.x(), gp.y(), gp.z(), 0, 0, 0);
                 } else if (pts.getPlaneTranslationGizmo().hoveredPlane != PlaneTranslationGizmo.Plane.NONE
                     && pts.selectedPoint() != null
                     && eye != null) {
-                        PathToolState.PathPoint sel = pts.selectedPoint();
-                        double pgx = sel.x + 0.5, pgy = sel.y + 0.5, pgz = sel.z + 0.5;
+                        Vec3DDouble gp = Vec3DDouble.from(
+                            pts.selectedPoint().pos.x() + 0.5,
+                            pts.selectedPoint().pos.y() + 0.5,
+                            pts.selectedPoint().pos.z() + 0.5);
                         pts.getPlaneTranslationGizmo()
-                            .startDrag(mouseX, mouseY, pgx, pgy, pgz, pgx, pgy, pgz, 0, 0, 0);
+                            .startDrag(mouseX, mouseY, gp.x(), gp.y(), gp.z(), gp.x(), gp.y(), gp.z(), 0, 0, 0);
                     }
         }
 
@@ -98,16 +105,17 @@ public class PathBrushInput implements BrushInput {
             .isDragging()
             || pts.getPlaneTranslationGizmo()
                 .isDragging()) {
-            double[] anchor = pts.getAxisTranslationGizmo()
+            Vec3DDouble anchor = pts.getAxisTranslationGizmo()
                 .isDragging()
                     ? pts.getAxisTranslationGizmo()
                         .updateDrag(mx, my)
                     : pts.getPlaneTranslationGizmo()
                         .updateDrag(mx, my);
             if (anchor != null) {
-                selPt.x = AnchorSnap.toInt(anchor[0], snap);
-                selPt.y = AnchorSnap.toInt(anchor[1], snap);
-                selPt.z = AnchorSnap.toInt(anchor[2], snap);
+                selPt.pos = Vec3DInt.from(
+                    AnchorSnap.toInt(anchor.x(), snap),
+                    AnchorSnap.toInt(anchor.y(), snap),
+                    AnchorSnap.toInt(anchor.z(), snap));
                 pts.invalidatePath();
             }
         }

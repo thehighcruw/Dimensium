@@ -23,6 +23,8 @@ import github.thehighcruw.dimensium.editor.freecam.FreecamState;
 import github.thehighcruw.dimensium.editor.window.viewport.ViewportRegistry;
 import github.thehighcruw.dimensium.editor.window.viewport.ViewportState;
 import github.thehighcruw.dimensium.shared.SelectionState;
+import github.thehighcruw.dimensium.shared.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
 
 @SideOnly(Side.CLIENT)
@@ -46,9 +48,7 @@ public final class LassoComputer {
         if (mc.theWorld == null || mc.renderViewEntity == null || polygon.size() < 3) return result;
 
         EntityLivingBase eye = mc.renderViewEntity;
-        double eyeX = eye.posX;
-        double eyeY = eye.posY + eye.getEyeHeight();
-        double eyeZ = eye.posZ;
+        Vec3DDouble eyePos = Vec3DDouble.from(eye.posX, eye.posY + eye.getEyeHeight(), eye.posZ);
 
         double yaw = Math.toRadians(eye.rotationYaw);
         double pitch = Math.toRadians(eye.rotationPitch);
@@ -82,12 +82,12 @@ public final class LassoComputer {
             ndcCenterY = sh * 0.5;
         }
 
-        int minBX = (int) Math.floor(eyeX - RAY_MAX);
-        int maxBX = (int) Math.ceil(eyeX + RAY_MAX);
-        int minBY = Math.max(MIN_WORLD_Y, (int) Math.floor(eyeY - RAY_MAX));
-        int maxBY = Math.min(MAX_WORLD_Y, (int) Math.ceil(eyeY + RAY_MAX));
-        int minBZ = (int) Math.floor(eyeZ - RAY_MAX);
-        int maxBZ = (int) Math.ceil(eyeZ + RAY_MAX);
+        int minBX = (int) Math.floor(eyePos.x() - RAY_MAX);
+        int maxBX = (int) Math.ceil(eyePos.x() + RAY_MAX);
+        int minBY = Math.max(MIN_WORLD_Y, (int) Math.floor(eyePos.y() - RAY_MAX));
+        int maxBY = Math.min(MAX_WORLD_Y, (int) Math.ceil(eyePos.y() + RAY_MAX));
+        int minBZ = (int) Math.floor(eyePos.z() - RAY_MAX);
+        int maxBZ = (int) Math.ceil(eyePos.z() + RAY_MAX);
 
         // Map each screen-pixel column to the sorted list of (blockKey, fwd) candidates.
         // Column key = isx * sh + isy — a bijection for valid on-screen coords.
@@ -100,9 +100,9 @@ public final class LassoComputer {
                     if (block == Blocks.air) continue;
                     if (!includeNonSolid && !block.isOpaqueCube()) continue;
 
-                    double dx = bx + 0.5 - eyeX;
-                    double dy = by + 0.5 - eyeY;
-                    double dz = bz + 0.5 - eyeZ;
+                    double dx = bx + 0.5 - eyePos.x();
+                    double dy = by + 0.5 - eyePos.y();
+                    double dz = bz + 0.5 - eyePos.z();
 
                     double fwd = dx * lookX + dy * lookY + dz * lookZ;
                     if (fwd <= 0.0 || fwd > RAY_MAX) continue;
@@ -124,7 +124,7 @@ public final class LassoComputer {
                     if (!pointInPolygon(sx, sy, polygon)) continue;
 
                     long colKey = (long) isx * sh + isy;
-                    long blockKey = SelectionState.pack(bx, by, bz);
+                    long blockKey = SelectionState.pack(Vec3DInt.from(bx, by, bz));
 
                     colCandidates.computeIfAbsent(colKey, k -> new ArrayList<>())
                         .add(new long[] { blockKey, Double.doubleToRawLongBits(fwd) });

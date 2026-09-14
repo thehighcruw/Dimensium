@@ -21,6 +21,7 @@ import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
 import github.thehighcruw.dimensium.editor.window.imgui.ToggleableWindow;
 import github.thehighcruw.dimensium.shared.BlockSender;
 import github.thehighcruw.dimensium.shared.SelectionState;
+import github.thehighcruw.dimensium.shared.Vec3DInt;
 import imgui.ImGui;
 import imgui.flag.ImGuiCond;
 import imgui.type.ImBoolean;
@@ -161,9 +162,8 @@ public class TypeReplaceSelectionWindow extends ToggleableWindow {
 
         List<int[]> ops = new ArrayList<>();
         for (long key : sel.getSelectedBlocks()) {
-            int x = SelectionState.unpackX(key);
-            int y = SelectionState.unpackY(key);
-            int z = SelectionState.unpackZ(key);
+            Vec3DInt cv = SelectionState.unpack(key);
+            int x = cv.x(), y = cv.y(), z = cv.z();
             Block worldBlock = world.getBlock(x, y, z);
             if (worldBlock != srcBlock) continue;
             int outMeta = preserveProperties ? world.getBlockMetadata(x, y, z) : tgtMeta;

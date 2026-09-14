@@ -12,6 +12,8 @@ import net.minecraft.world.World;
 import github.thehighcruw.dimensium.editor.handler.ExtrudeHelper;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushState;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushStrategy;
+import github.thehighcruw.dimensium.shared.Vec3DFloat;
+import github.thehighcruw.dimensium.shared.Vec3DInt;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 
 public class SculptBrush implements BrushStrategy {
@@ -22,27 +24,27 @@ public class SculptBrush implements BrushStrategy {
         SculptToolState s = SculptToolState.INSTANCE;
         int cx = mop.blockX, centerY = mop.blockY, cz = mop.blockZ;
 
-        float[] normal;
+        Vec3DFloat normal;
         if (s.sculptMaskY) {
-            normal = new float[] { 0f, 1f, 0f };
+            normal = Vec3DFloat.from(0f, 1f, 0f);
         } else {
             normal = computeSobelNormal(world, cx, centerY, cz, Math.max(1, bs.brushRadius));
             if (normal == null) {
                 int[] rawN = ExtrudeHelper.sideToOutwardDir(mop.sideHit);
-                normal = new float[] { rawN[0], rawN[1], rawN[2] };
+                normal = Vec3DFloat.from(rawN[0], rawN[1], rawN[2]);
             }
         }
-        float fnx = normal[0], fny = normal[1], fnz = normal[2];
-
-        float[] pa1 = perp(normal, new float[] { 0f, 1f, 0f });
-        if (dot(pa1, pa1) < 0.001f) pa1 = perp(normal, new float[] { 1f, 0f, 0f });
-        pa1 = normalize(pa1);
-        float[] pa2 = normalize(cross(normal, pa1));
+        Vec3DFloat pa1 = normal.cross(Vec3DFloat.from(0f, 1f, 0f));
+        if (pa1.lengthSq() < 0.001f) pa1 = normal.cross(Vec3DFloat.from(1f, 0f, 0f));
+        pa1 = pa1.normalize();
+        Vec3DFloat pa2 = normal.cross(pa1)
+            .normalize();
 
         int radius = Math.max(1, bs.brushRadius);
         int dim = 2 * radius + 1;
         int[] disp = new int[dim * dim];
-        int[][] basePos = new int[dim * dim][3];
+        Vec3DInt[] basePos = new Vec3DInt[dim * dim];
+        Vec3DInt center = Vec3DInt.from(cx, centerY, cz);
 
         for (int d1 = -radius; d1 <= radius; d1++) {
             for (int d2 = -radius; d2 <= radius; d2++) {
@@ -54,9 +56,10 @@ public class SculptBrush implements BrushStrategy {
                 }
                 float falloff = (float) Math.sqrt(Math.max(0f, 1f - dist * dist));
                 disp[idx] = Math.max(0, Math.round(s.sculptStrength * falloff));
-                basePos[idx][0] = cx + Math.round(d1 * pa1[0] + d2 * pa2[0]);
-                basePos[idx][1] = centerY + Math.round(d1 * pa1[1] + d2 * pa2[1]);
-                basePos[idx][2] = cz + Math.round(d1 * pa1[2] + d2 * pa2[2]);
+                basePos[idx] = center.plus(
+                    pa1.times(d1)
+                        .plus(pa2.times(d2))
+                        .round());
             }
         }
 
@@ -89,42 +92,37 @@ public class SculptBrush implements BrushStrategy {
         int searchRange = radius + (int) Math.ceil(s.sculptStrength) + 2;
         for (int idx = 0; idx < dim * dim; idx++) {
             if (disp[idx] <= 0) continue;
-            int bx = basePos[idx][0], by = basePos[idx][1], bz = basePos[idx][2];
             int depth = disp[idx];
 
-            int[] surf = findSculptSurface(world, bx, by, bz, fnx, fny, fnz, searchRange);
+            Vec3DInt surf = findSculptSurface(world, basePos[idx], normal, searchRange);
             if (surf == null) continue;
 
             if (!s.sculptInvert) {
-                Block surfBlock = world.getBlock(surf[0], surf[1], surf[2]);
-                int surfMeta = world.getBlockMetadata(surf[0], surf[1], surf[2]);
+                Block surfBlock = world.getBlock(surf.x(), surf.y(), surf.z());
+                int surfMeta = world.getBlockMetadata(surf.x(), surf.y(), surf.z());
                 if (surfBlock == null || surfBlock == Blocks.air) surfBlock = Blocks.dirt;
-                int prevTx = surf[0], prevTy = surf[1], prevTz = surf[2];
+                Vec3DInt prev = surf;
                 for (int d = 1; d <= depth; d++) {
-                    int tx = surf[0] + Math.round(d * fnx);
-                    int ty = surf[1] + Math.round(d * fny);
-                    int tz = surf[2] + Math.round(d * fnz);
-                    if (ty < 0 || ty > 255) break;
-                    if (tx == prevTx && ty == prevTy && tz == prevTz) continue;
-                    prevTx = tx;
-                    prevTy = ty;
-                    prevTz = tz;
-                    if (world.getBlock(tx, ty, tz) != Blocks.air) break;
-                    ChangeProposal.write(world, tx, ty, tz, surfBlock, surfMeta);
+                    Vec3DInt t = surf.plus(
+                        normal.times(d)
+                            .round());
+                    if (t.y() < 0 || t.y() > 255) break;
+                    if (t.equals(prev)) continue;
+                    prev = t;
+                    if (world.getBlock(t.x(), t.y(), t.z()) != Blocks.air) break;
+                    ChangeProposal.write(world, t.x(), t.y(), t.z(), surfBlock, surfMeta);
                 }
             } else {
-                int prevTx = surf[0], prevTy = surf[1], prevTz = surf[2];
+                Vec3DInt prev = surf;
                 for (int d = 0; d < depth; d++) {
-                    int tx = surf[0] - Math.round(d * fnx);
-                    int ty = surf[1] - Math.round(d * fny);
-                    int tz = surf[2] - Math.round(d * fnz);
-                    if (ty < 0 || ty > 255) break;
-                    if (tx == prevTx && ty == prevTy && tz == prevTz) continue;
-                    prevTx = tx;
-                    prevTy = ty;
-                    prevTz = tz;
-                    if (world.getBlock(tx, ty, tz) == Blocks.air) break;
-                    ChangeProposal.write(world, tx, ty, tz, Blocks.air, 0);
+                    Vec3DInt t = surf.minus(
+                        normal.times(d)
+                            .round());
+                    if (t.y() < 0 || t.y() > 255) break;
+                    if (t.equals(prev)) continue;
+                    prev = t;
+                    if (world.getBlock(t.x(), t.y(), t.z()) == Blocks.air) break;
+                    ChangeProposal.write(world, t.x(), t.y(), t.z(), Blocks.air, 0);
                 }
             }
         }
@@ -135,7 +133,7 @@ public class SculptBrush implements BrushStrategy {
      * face-average normal when the gradient is too flat to be informative.
      * Returns null if no surface found at all.
      */
-    private static float[] computeSobelNormal(World world, int cx, int cy, int cz, int radius) {
+    private static Vec3DFloat computeSobelNormal(World world, int cx, int cy, int cz, int radius) {
         int search = radius + 8;
         float[] h = new float[9];
         boolean anyFound = false;
@@ -159,13 +157,13 @@ public class SculptBrush implements BrushStrategy {
 
         float gradMag = (float) Math.sqrt(dX * dX + dZ * dZ);
         if (gradMag < 0.15f) {
-            // Nearly flat — Sobel reliable, pure +Y
-            return new float[] { 0f, 1f, 0f };
+            return Vec3DFloat.from(0f, 1f, 0f);
         }
 
         // Normal from height gradient: surface z = h(x,z), tangents are (1,dX,0) and (0,dZ,1)
         // normal = cross(tangents) = (-dX, 1, -dZ) normalized
-        return normalize(new float[] { -dX, 1f, -dZ });
+        return Vec3DFloat.from(-dX, 1f, -dZ)
+            .normalize();
     }
 
     private static int findTopY(World world, int x, int z, int cy, int search) {
@@ -175,38 +173,18 @@ public class SculptBrush implements BrushStrategy {
         return Integer.MIN_VALUE;
     }
 
-    private static int[] findSculptSurface(World world, int bx, int by, int bz, float fnx, float fny, float fnz,
-        int range) {
-        int lastTx = Integer.MIN_VALUE, lastTy = Integer.MIN_VALUE, lastTz = Integer.MIN_VALUE;
+    private static Vec3DInt findSculptSurface(World world, Vec3DInt base, Vec3DFloat normal, int range) {
+        Vec3DInt last = null;
         for (float step = range; step >= -range; step -= 0.5f) {
-            int tx = bx + Math.round(step * fnx);
-            int ty = by + Math.round(step * fny);
-            int tz = bz + Math.round(step * fnz);
-            if (ty < 0 || ty > 255) continue;
-            if (tx == lastTx && ty == lastTy && tz == lastTz) continue;
-            lastTx = tx;
-            lastTy = ty;
-            lastTz = tz;
-            if (world.getBlock(tx, ty, tz) != Blocks.air) return new int[] { tx, ty, tz };
+            Vec3DInt t = base.plus(
+                normal.times(step)
+                    .round());
+            if (t.y() < 0 || t.y() > 255) continue;
+            if (t.equals(last)) continue;
+            last = t;
+            if (world.getBlock(t.x(), t.y(), t.z()) != Blocks.air) return t;
         }
         return null;
     }
 
-    private static float[] perp(float[] a, float[] b) {
-        return cross(a, b);
-    }
-
-    private static float[] cross(float[] a, float[] b) {
-        return new float[] { a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0] };
-    }
-
-    private static float dot(float[] a, float[] b) {
-        return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-    }
-
-    private static float[] normalize(float[] v) {
-        float len = (float) Math.sqrt(dot(v, v));
-        if (len < 0.001f) return v;
-        return new float[] { v[0] / len, v[1] / len, v[2] / len };
-    }
 }

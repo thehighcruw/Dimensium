@@ -24,6 +24,8 @@ import github.thehighcruw.dimensium.editor.window.viewport.world.ScalingGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.TranslationGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.ViewPlaneGizmo;
 import github.thehighcruw.dimensium.shared.SelectionState;
+import github.thehighcruw.dimensium.shared.Vec3DFloat;
+import github.thehighcruw.dimensium.shared.Vec3DInt;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 
 /**
@@ -41,15 +43,15 @@ public class MoveToolState
     public long capturedSelVersion = -2;
 
     /** Center of mass of the original selection (block centers averaged). */
-    public float cmX, cmY, cmZ;
+    public Vec3DFloat cm = Vec3DFloat.ZERO;
 
     /** Float translation delta applied by the gizmo drag. */
-    public float deltaFX = 0f, deltaFY = 0f, deltaFZ = 0f;
+    public Vec3DFloat delta = Vec3DFloat.ZERO;
 
     /** Rotation angles in degrees (X→Y→Z). */
-    public float rotX = 0f, rotY = 0f, rotZ = 0f;
+    public Vec3DFloat rot = Vec3DFloat.ZERO;
     /** Rotation snapshot at the start of a rotation drag. */
-    public float rotDragBaseX, rotDragBaseY, rotDragBaseZ;
+    public Vec3DFloat rotDragBase = Vec3DFloat.ZERO;
 
     /**
      * Own snapshot of blocks being moved: world-packed key → BlockData.
@@ -92,8 +94,8 @@ public class MoveToolState
     }
 
     // Cache keys for ghost rebuild
-    private float lastDFX = Float.NaN, lastDFY = Float.NaN, lastDFZ = Float.NaN;
-    private float lastRX = Float.NaN, lastRY = Float.NaN, lastRZ = Float.NaN;
+    private Vec3DFloat lastDelta = Vec3DFloat.from(Float.NaN, Float.NaN, Float.NaN);
+    private Vec3DFloat lastRot = Vec3DFloat.from(Float.NaN, Float.NaN, Float.NaN);
     private int snapshotVersion = -1;
     private int currentSnapshotVersion = 0;
 
@@ -113,9 +115,7 @@ public class MoveToolState
      */
     public void activateFromSnapshot(SelectionState sel, Map<Long, SelectionState.BlockData> snap, float newCmX,
         float newCmY, float newCmZ) {
-        cmX = newCmX;
-        cmY = newCmY;
-        cmZ = newCmZ;
+        cm = Vec3DFloat.from(newCmX, newCmY, newCmZ);
         snapshot = snap;
         currentSnapshotVersion++;
         reset();
@@ -135,19 +135,19 @@ public class MoveToolState
 
     /** World-space gizmo anchor = center of mass + translation delta. */
     public double gizmoX() {
-        return cmX + deltaFX;
+        return cm.x() + delta.x();
     }
 
     public double gizmoY() {
-        return cmY + deltaFY;
+        return cm.y() + delta.y();
     }
 
     public double gizmoZ() {
-        return cmZ + deltaFZ;
+        return cm.z() + delta.z();
     }
 
     public void invalidateGhost() {
-        lastDFX = Float.NaN;
+        lastDelta = Vec3DFloat.from(Float.NaN, Float.NaN, Float.NaN);
         ghostBlocks = null;
     }
 
@@ -157,41 +157,31 @@ public class MoveToolState
      */
     public void rebuildIfNeeded() {
         if (snapshot == null || snapshot.isEmpty()) return;
-        if (lastDFX == deltaFX && lastDFY == deltaFY
-            && lastDFZ == deltaFZ
-            && lastRX == rotX
-            && lastRY == rotY
-            && lastRZ == rotZ
-            && snapshotVersion == currentSnapshotVersion) return;
+        if (lastDelta.equals(delta) && lastRot.equals(rot) && snapshotVersion == currentSnapshotVersion) return;
 
-        lastDFX = deltaFX;
-        lastDFY = deltaFY;
-        lastDFZ = deltaFZ;
-        lastRX = rotX;
-        lastRY = rotY;
-        lastRZ = rotZ;
+        lastDelta = delta;
+        lastRot = rot;
         snapshotVersion = currentSnapshotVersion;
 
-        float[] R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
+        float[] R = ShapeMath.buildRotationMatrix(rot.x(), rot.y(), rot.z());
 
         List<int[]> blocks = new ArrayList<>(snapshot.size());
         for (Map.Entry<Long, SelectionState.BlockData> e : snapshot.entrySet()) {
             long k = e.getKey();
-            int wx = SelectionState.unpackX(k);
-            int wy = SelectionState.unpackY(k);
-            int wz = SelectionState.unpackZ(k);
+            Vec3DInt wv = SelectionState.unpack(k);
+            int wx = wv.x(), wy = wv.y(), wz = wv.z();
 
-            float dx = wx + 0.5f - cmX;
-            float dy = wy + 0.5f - cmY;
-            float dz = wz + 0.5f - cmZ;
+            float dx = wx + 0.5f - cm.x();
+            float dy = wy + 0.5f - cm.y();
+            float dz = wz + 0.5f - cm.z();
 
             float rx = R[0] * dx + R[1] * dy + R[2] * dz;
             float ry = R[3] * dx + R[4] * dy + R[5] * dz;
             float rz = R[6] * dx + R[7] * dy + R[8] * dz;
 
-            int nx = (int) Math.floor(cmX + deltaFX + rx);
-            int ny = (int) Math.floor(cmY + deltaFY + ry);
-            int nz = (int) Math.floor(cmZ + deltaFZ + rz);
+            int nx = (int) Math.floor(cm.x() + delta.x() + rx);
+            int ny = (int) Math.floor(cm.y() + delta.y() + ry);
+            int nz = (int) Math.floor(cm.z() + delta.z() + rz);
 
             SelectionState.BlockData bd = e.getValue();
             blocks.add(new int[] { nx, ny, nz, Block.getIdFromBlock(bd.block()), bd.meta() });
@@ -211,23 +201,21 @@ public class MoveToolState
         double sx = 0, sy = 0, sz = 0;
         int cnt = 0;
         for (long key : sel.getSelectedBlocks()) {
-            sx += SelectionState.unpackX(key) + 0.5;
-            sy += SelectionState.unpackY(key) + 0.5;
-            sz += SelectionState.unpackZ(key) + 0.5;
+            Vec3DInt cv = SelectionState.unpack(key);
+            sx += cv.x() + 0.5;
+            sy += cv.y() + 0.5;
+            sz += cv.z() + 0.5;
             cnt++;
         }
-        cmX = (float) (sx / cnt);
-        cmY = (float) (sy / cnt);
-        cmZ = (float) (sz / cnt);
+        cm = Vec3DFloat.from((float) (sx / cnt), (float) (sy / cnt), (float) (sz / cnt));
     }
 
     private void captureSnapshot(SelectionState sel, World world) {
         snapshot = new HashMap<>(sel.size());
         currentSnapshotVersion++;
         for (long key : sel.getSelectedBlocks()) {
-            int bx = SelectionState.unpackX(key);
-            int by = SelectionState.unpackY(key);
-            int bz = SelectionState.unpackZ(key);
+            Vec3DInt bv = SelectionState.unpack(key);
+            int bx = bv.x(), by = bv.y(), bz = bv.z();
             Block blk = world.getBlock(bx, by, bz);
             if (blk != null && blk != Blocks.air) {
                 int meta = world.getBlockMetadata(bx, by, bz);
@@ -237,19 +225,16 @@ public class MoveToolState
     }
 
     private void reset() {
-        deltaFX = 0f;
-        deltaFY = 0f;
-        deltaFZ = 0f;
-        rotX = 0f;
-        rotY = 0f;
-        rotZ = 0f;
+        delta = Vec3DFloat.ZERO;
+        rot = Vec3DFloat.ZERO;
         viewPlaneGizmo.reset();
         planeGizmo.reset();
         scalingGizmo.reset();
         gizmo.reset();
         rotGizmo.reset();
         ghostBlocks = null;
-        lastDFX = Float.NaN;
+        lastDelta = Vec3DFloat.from(Float.NaN, Float.NaN, Float.NaN);
+        lastRot = Vec3DFloat.from(Float.NaN, Float.NaN, Float.NaN);
     }
 
     public boolean isAnyGizmoDragging() {

@@ -4,6 +4,8 @@
  */
 package github.thehighcruw.dimensium.editor.tool.brushes;
 
+import github.thehighcruw.dimensium.shared.Vec3DInt;
+
 public final class GaussianKernel {
 
     public final float[] data;
@@ -35,16 +37,16 @@ public final class GaussianKernel {
         return new GaussianKernel(kernel, kR, total, stX, kDim);
     }
 
-    public float solidWeight(int[] snapId, int ix, int iy, int iz, int snStX, int snStY) {
+    public float solidWeight(int[] snapId, Vec3DInt index, int snStX, int snStY) {
         float solidW = 0f;
         for (int kx = -kR; kx <= kR; kx++) {
-            int nxBase = (ix + kx) * snStX;
+            int nxBase = (index.x() + kx) * snStX;
             int kxBase = (kx + kR) * strideX;
             for (int ky = -kR; ky <= kR; ky++) {
-                int nyBase = nxBase + (iy + ky) * snStY;
+                int nyBase = nxBase + (index.y() + ky) * snStY;
                 int kyBase = kxBase + (ky + kR) * strideY;
                 for (int kz = -kR; kz <= kR; kz++) {
-                    if (snapId[nyBase + iz + kz] != 0) solidW += data[kyBase + (kz + kR)];
+                    if (snapId[nyBase + index.z() + kz] != 0) solidW += data[kyBase + (kz + kR)];
                 }
             }
         }
