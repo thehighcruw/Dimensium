@@ -9,7 +9,6 @@ public class ShapeToolState {
     public static final ShapeToolState INSTANCE = new ShapeToolState();
 
     public enum ShapeType {
-
         CUBOID("dimensium.shape_type.cuboid"),
         SPHERE("dimensium.shape_type.sphere"),
         CYLINDER("dimensium.shape_type.cylinder"),

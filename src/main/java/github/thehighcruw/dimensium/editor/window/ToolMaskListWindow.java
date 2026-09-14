@@ -4,10 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.window;
 
-import java.util.List;
-
-import net.minecraft.client.resources.I18n;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.DimensiumConfig;
@@ -24,6 +20,8 @@ import imgui.flag.ImGuiTreeNodeFlags;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
 import imgui.type.ImString;
+import java.util.List;
+import net.minecraft.client.resources.I18n;
 
 @SideOnly(Side.CLIENT)
 public class ToolMaskListWindow extends ToggleableWindow {
@@ -208,12 +206,9 @@ public class ToolMaskListWindow extends ToggleableWindow {
             renameFocusPending = false;
         }
         boolean done = ImGui.inputText(
-            "##rename",
-            renameBuffer,
-            ImGuiInputTextFlags.EnterReturnsTrue | ImGuiInputTextFlags.AutoSelectAll);
+                "##rename", renameBuffer, ImGuiInputTextFlags.EnterReturnsTrue | ImGuiInputTextFlags.AutoSelectAll);
         if (done || ImGui.isItemDeactivated()) {
-            String newName = renameBuffer.get()
-                .trim();
+            String newName = renameBuffer.get().trim();
             if (!newName.isEmpty()) entry.setName(newName);
             renamingEntry = null;
             ToolMaskRegistry.INSTANCE.save();
@@ -230,7 +225,7 @@ public class ToolMaskListWindow extends ToggleableWindow {
         if (ImGui.beginDragDropSource()) {
             listDragEntry = entry;
             listDragSourceList = sourceList;
-            ImGui.setDragDropPayload("MASK_LIST_ENTRY", new byte[] { 1 });
+            ImGui.setDragDropPayload("MASK_LIST_ENTRY", new byte[] {1});
             ImGui.text(entry.getName());
             ImGui.endDragDropSource();
         }

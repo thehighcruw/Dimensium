@@ -4,15 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.handler;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ScaledResolution;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.util.MovingObjectPosition;
-import net.minecraft.util.Vec3;
-
-import org.lwjgl.input.Keyboard;
-import org.lwjgl.input.Mouse;
-
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.relauncher.Side;
@@ -52,6 +43,13 @@ import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.PerfTrace;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.util.Vec3;
+import org.lwjgl.input.Keyboard;
+import org.lwjgl.input.Mouse;
 
 @SideOnly(Side.CLIENT)
 public class TickHandler {
@@ -323,146 +321,107 @@ public class TickHandler {
     private void updatePlacementGizmos(int mx, int my, boolean snap) {
         ShapePlacementState ps = ShapePlacementState.INSTANCE;
         if (ps.active) {
-            if (ps.getAxisTranslationGizmo()
-                .isDragging()
-                || ps.getPlaneTranslationGizmo()
-                    .isDragging()
-                || ps.viewPlaneGizmo.isDragging()) {
-                Vec3DDouble anchor = ps.getAxisTranslationGizmo()
-                    .isDragging()
-                        ? ps.getAxisTranslationGizmo()
-                            .updateDrag(mx, my)
-                        : ps.getPlaneTranslationGizmo()
-                            .isDragging()
-                                ? ps.getPlaneTranslationGizmo()
-                                    .updateDrag(mx, my)
+            if (ps.getAxisTranslationGizmo().isDragging()
+                    || ps.getPlaneTranslationGizmo().isDragging()
+                    || ps.viewPlaneGizmo.isDragging()) {
+                Vec3DDouble anchor = ps.getAxisTranslationGizmo().isDragging()
+                        ? ps.getAxisTranslationGizmo().updateDrag(mx, my)
+                        : ps.getPlaneTranslationGizmo().isDragging()
+                                ? ps.getPlaneTranslationGizmo().updateDrag(mx, my)
                                 : ps.viewPlaneGizmo.updateDrag(mx, my);
                 if (anchor != null) {
                     ps.anchorF = Vec3DFloat.from(
-                        AnchorSnap.toFloat(anchor.x(), snap),
-                        AnchorSnap.toFloat(anchor.y(), snap),
-                        AnchorSnap.toFloat(anchor.z(), snap));
-                    ps.anchor = Vec3DInt.from(
-                        (int) Math.floor(ps.anchorF.x()),
-                        (int) Math.floor(ps.anchorF.y()),
-                        (int) Math.floor(ps.anchorF.z()));
+                            AnchorSnap.toFloat(anchor.x(), snap),
+                            AnchorSnap.toFloat(anchor.y(), snap),
+                            AnchorSnap.toFloat(anchor.z(), snap));
+                    ps.anchor = Vec3DInt.from((int) Math.floor(ps.anchorF.x()), (int) Math.floor(ps.anchorF.y()), (int)
+                            Math.floor(ps.anchorF.z()));
                 }
-            } else if (ps.getRotationGizmo()
-                .isDragging()) {
-                    Vec3DFloat angles = AnchorSnap.applyRotGizmo(
-                        ps.getRotationGizmo(),
-                        ps.rotDragBase.x(),
-                        ps.rotDragBase.y(),
-                        ps.rotDragBase.z(),
-                        mx,
-                        my);
-                    if (Math.abs(angles.x() - ps.rot.x()) >= 0.5f || Math.abs(angles.y() - ps.rot.y()) >= 0.5f
+            } else if (ps.getRotationGizmo().isDragging()) {
+                Vec3DFloat angles = AnchorSnap.applyRotGizmo(
+                        ps.getRotationGizmo(), ps.rotDragBase.x(), ps.rotDragBase.y(), ps.rotDragBase.z(), mx, my);
+                if (Math.abs(angles.x() - ps.rot.x()) >= 0.5f
+                        || Math.abs(angles.y() - ps.rot.y()) >= 0.5f
                         || Math.abs(angles.z() - ps.rot.z()) >= 0.5f) {
-                        ps.rot = angles;
-                        ps.invalidateGhost();
+                    ps.rot = angles;
+                    ps.invalidateGhost();
+                }
+            } else if (ps.getScalingGizmo().isDragging()) {
+                float[] result = ps.getScalingGizmo().updateDrag(mx, my);
+                if (result != null) {
+                    ScalingGizmo.Axis axis = ps.getScalingGizmo().getDragAxis();
+                    if (axis == ScalingGizmo.Axis.X) ps.scale = Vec3DFloat.from(result[0], ps.scale.y(), ps.scale.z());
+                    else if (axis == ScalingGizmo.Axis.Y)
+                        ps.scale = Vec3DFloat.from(ps.scale.x(), result[0], ps.scale.z());
+                    else ps.scale = Vec3DFloat.from(ps.scale.x(), ps.scale.y(), result[0]);
+                    ShapeToolState sts = ShapeToolState.INSTANCE;
+                    if (axis == ScalingGizmo.Axis.X) {
+                        sts.shapeWidth = Math.max(1, Math.round(ps.scaleDragBaseW * ps.scale.x()));
+                        ps.scale = Vec3DFloat.from(1f, ps.scale.y(), ps.scale.z());
+                    } else if (axis == ScalingGizmo.Axis.Y) {
+                        sts.shapeHeight = Math.max(1, Math.round(ps.scaleDragBaseH * ps.scale.y()));
+                        ps.scale = Vec3DFloat.from(ps.scale.x(), 1f, ps.scale.z());
+                    } else {
+                        sts.shapeDepth = Math.max(1, Math.round(ps.scaleDragBaseD * ps.scale.z()));
+                        ps.scale = Vec3DFloat.from(ps.scale.x(), ps.scale.y(), 1f);
                     }
-                } else if (ps.getScalingGizmo()
-                    .isDragging()) {
-                        float[] result = ps.getScalingGizmo()
-                            .updateDrag(mx, my);
-                        if (result != null) {
-                            ScalingGizmo.Axis axis = ps.getScalingGizmo()
-                                .getDragAxis();
-                            if (axis == ScalingGizmo.Axis.X)
-                                ps.scale = Vec3DFloat.from(result[0], ps.scale.y(), ps.scale.z());
-                            else if (axis == ScalingGizmo.Axis.Y)
-                                ps.scale = Vec3DFloat.from(ps.scale.x(), result[0], ps.scale.z());
-                            else ps.scale = Vec3DFloat.from(ps.scale.x(), ps.scale.y(), result[0]);
-                            ShapeToolState sts = ShapeToolState.INSTANCE;
-                            if (axis == ScalingGizmo.Axis.X) {
-                                sts.shapeWidth = Math.max(1, Math.round(ps.scaleDragBaseW * ps.scale.x()));
-                                ps.scale = Vec3DFloat.from(1f, ps.scale.y(), ps.scale.z());
-                            } else if (axis == ScalingGizmo.Axis.Y) {
-                                sts.shapeHeight = Math.max(1, Math.round(ps.scaleDragBaseH * ps.scale.y()));
-                                ps.scale = Vec3DFloat.from(ps.scale.x(), 1f, ps.scale.z());
-                            } else {
-                                sts.shapeDepth = Math.max(1, Math.round(ps.scaleDragBaseD * ps.scale.z()));
-                                ps.scale = Vec3DFloat.from(ps.scale.x(), ps.scale.y(), 1f);
-                            }
-                            ps.invalidateGhost();
-                        }
-                    }
+                    ps.invalidateGhost();
+                }
+            }
         }
 
         ClipboardPlacementState cps = ClipboardPlacementState.INSTANCE;
         if (cps.active) {
-            if (cps.getAxisTranslationGizmo()
-                .isDragging()
-                || cps.getPlaneTranslationGizmo()
-                    .isDragging()) {
-                Vec3DDouble anchor = cps.getAxisTranslationGizmo()
-                    .isDragging()
-                        ? cps.getAxisTranslationGizmo()
-                            .updateDrag(mx, my)
-                        : cps.getPlaneTranslationGizmo()
-                            .updateDrag(mx, my);
+            if (cps.getAxisTranslationGizmo().isDragging()
+                    || cps.getPlaneTranslationGizmo().isDragging()) {
+                Vec3DDouble anchor = cps.getAxisTranslationGizmo().isDragging()
+                        ? cps.getAxisTranslationGizmo().updateDrag(mx, my)
+                        : cps.getPlaneTranslationGizmo().updateDrag(mx, my);
                 if (anchor != null) {
                     Vec3DFloat newAnchorF = Vec3DFloat.from(
-                        AnchorSnap.toFloat(anchor.x(), snap),
-                        AnchorSnap.toFloat(anchor.y(), snap),
-                        AnchorSnap.toFloat(anchor.z(), snap));
-                    Vec3DInt newAnchor = Vec3DInt.from(
-                        (int) Math.floor(newAnchorF.x()),
-                        (int) Math.floor(newAnchorF.y()),
-                        (int) Math.floor(newAnchorF.z()));
+                            AnchorSnap.toFloat(anchor.x(), snap),
+                            AnchorSnap.toFloat(anchor.y(), snap),
+                            AnchorSnap.toFloat(anchor.z(), snap));
+                    Vec3DInt newAnchor =
+                            Vec3DInt.from((int) Math.floor(newAnchorF.x()), (int) Math.floor(newAnchorF.y()), (int)
+                                    Math.floor(newAnchorF.z()));
                     cps.anchorF = newAnchorF;
                     if (!newAnchor.equals(cps.anchor)) {
                         cps.anchor = newAnchor;
                         cps.rebuildPreview();
                     }
                 }
-            } else if (cps.getRotationGizmo()
-                .isDragging()) {
-                    cps.rot = AnchorSnap.applyRotGizmo(
-                        cps.getRotationGizmo(),
-                        cps.rotDragBase.x(),
-                        cps.rotDragBase.y(),
-                        cps.rotDragBase.z(),
-                        mx,
-                        my);
-                    cps.rebuildPreview();
-                }
+            } else if (cps.getRotationGizmo().isDragging()) {
+                cps.rot = AnchorSnap.applyRotGizmo(
+                        cps.getRotationGizmo(), cps.rotDragBase.x(), cps.rotDragBase.y(), cps.rotDragBase.z(), mx, my);
+                cps.rebuildPreview();
+            }
         }
 
         MoveToolState ms = MoveToolState.INSTANCE;
         if (ms.active) {
-            if (ms.getAxisTranslationGizmo()
-                .isDragging()
-                || ms.getPlaneTranslationGizmo()
-                    .isDragging()) {
-                Vec3DDouble anchor = ms.getAxisTranslationGizmo()
-                    .isDragging()
-                        ? ms.getAxisTranslationGizmo()
-                            .updateDrag(mx, my)
-                        : ms.getPlaneTranslationGizmo()
-                            .updateDrag(mx, my);
+            if (ms.getAxisTranslationGizmo().isDragging()
+                    || ms.getPlaneTranslationGizmo().isDragging()) {
+                Vec3DDouble anchor = ms.getAxisTranslationGizmo().isDragging()
+                        ? ms.getAxisTranslationGizmo().updateDrag(mx, my)
+                        : ms.getPlaneTranslationGizmo().updateDrag(mx, my);
                 if (anchor != null) {
                     ms.delta = Vec3DFloat.from(
-                        AnchorSnap.toFloat(anchor.x(), snap) - ms.cm.x(),
-                        AnchorSnap.toFloat(anchor.y(), snap) - ms.cm.y(),
-                        AnchorSnap.toFloat(anchor.z(), snap) - ms.cm.z());
+                            AnchorSnap.toFloat(anchor.x(), snap) - ms.cm.x(),
+                            AnchorSnap.toFloat(anchor.y(), snap) - ms.cm.y(),
+                            AnchorSnap.toFloat(anchor.z(), snap) - ms.cm.z());
                     ms.invalidateGhost();
                 }
-            } else if (ms.getRotationGizmo()
-                .isDragging()) {
-                    Vec3DFloat angles = AnchorSnap.applyRotGizmo(
-                        ms.getRotationGizmo(),
-                        ms.rotDragBase.x(),
-                        ms.rotDragBase.y(),
-                        ms.rotDragBase.z(),
-                        mx,
-                        my);
-                    if (Math.abs(angles.x() - ms.rot.x()) >= 0.5f || Math.abs(angles.y() - ms.rot.y()) >= 0.5f
+            } else if (ms.getRotationGizmo().isDragging()) {
+                Vec3DFloat angles = AnchorSnap.applyRotGizmo(
+                        ms.getRotationGizmo(), ms.rotDragBase.x(), ms.rotDragBase.y(), ms.rotDragBase.z(), mx, my);
+                if (Math.abs(angles.x() - ms.rot.x()) >= 0.5f
+                        || Math.abs(angles.y() - ms.rot.y()) >= 0.5f
                         || Math.abs(angles.z() - ms.rot.z()) >= 0.5f) {
-                        ms.rot = angles;
-                        ms.invalidateGhost();
-                    }
+                    ms.rot = angles;
+                    ms.invalidateGhost();
                 }
+            }
         }
     }
 
@@ -491,16 +450,15 @@ public class TickHandler {
             Vec3DDouble[] basis = FreecamUtils.cameraBasis(cam.rotationYaw, cam.rotationPitch);
             Vec3DDouble fwd = basis[0], rgt = basis[1], up = basis[2];
 
-            Vec3DDouble rd = Vec3DDouble
-                .from(
-                    fwd.x() + ndcX * fs.projTanHX * rgt.x() + ndcY * fs.projTanHY * up.x(),
-                    fwd.y() + ndcY * fs.projTanHY * up.y(),
-                    fwd.z() + ndcX * fs.projTanHX * rgt.z() + ndcY * fs.projTanHY * up.z())
-                .normalize();
+            Vec3DDouble rd = Vec3DDouble.from(
+                            fwd.x() + ndcX * fs.projTanHX * rgt.x() + ndcY * fs.projTanHY * up.x(),
+                            fwd.y() + ndcY * fs.projTanHY * up.y(),
+                            fwd.z() + ndcX * fs.projTanHX * rgt.z() + ndcY * fs.projTanHY * up.z())
+                    .normalize();
 
             Vec3 start = Vec3.createVectorHelper(cam.posX, cam.posY, cam.posZ);
-            Vec3 end = Vec3
-                .createVectorHelper(cam.posX + rd.x() * 512, cam.posY + rd.y() * 512, cam.posZ + rd.z() * 512);
+            Vec3 end =
+                    Vec3.createVectorHelper(cam.posX + rd.x() * 512, cam.posY + rd.y() * 512, cam.posZ + rd.z() * 512);
             MovingObjectPosition hit = mc.theWorld.rayTraceBlocks(start, end, false);
             if (hit != null && hit.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
                 fs.pivot = Vec3DDouble.from(hit.blockX + 0.5, hit.blockY + 0.5, hit.blockZ + 0.5);
@@ -511,8 +469,8 @@ public class TickHandler {
             Vec3DDouble rd = FreecamUtils.cameraBasis(cam.rotationYaw, cam.rotationPitch)[0];
 
             Vec3 start = Vec3.createVectorHelper(cam.posX, cam.posY, cam.posZ);
-            Vec3 end = Vec3
-                .createVectorHelper(cam.posX + rd.x() * 512, cam.posY + rd.y() * 512, cam.posZ + rd.z() * 512);
+            Vec3 end =
+                    Vec3.createVectorHelper(cam.posX + rd.x() * 512, cam.posY + rd.y() * 512, cam.posZ + rd.z() * 512);
             MovingObjectPosition hit = mc.theWorld.rayTraceBlocks(start, end, false);
 
             if (hit != null && hit.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
@@ -522,8 +480,7 @@ public class TickHandler {
             }
         }
 
-        Vec3DDouble orbitOffset = Vec3DDouble.from(cam.posX, cam.posY, cam.posZ)
-            .minus(fs.pivot);
+        Vec3DDouble orbitOffset = Vec3DDouble.from(cam.posX, cam.posY, cam.posZ).minus(fs.pivot);
         fs.orbitDist = Math.max(1.0, orbitOffset.length());
 
         // Store the angular offset from camera look direction to pivot direction so the
@@ -572,7 +529,7 @@ public class TickHandler {
 
     @SubscribeEvent
     public void onClientDisconnect(
-        cpw.mods.fml.common.network.FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
+            cpw.mods.fml.common.network.FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
         DimensiumEditorMode.INSTANCE.fullReset();
     }
 
@@ -584,16 +541,17 @@ public class TickHandler {
 
     private static String toolActionName(Tool tool) {
         return switch (tool) {
-            case FREEHAND_DRAW -> I18n
-                .format("dimensium.action.draw", I18n.format(BrushState.INSTANCE.brushShape.label));
+            case FREEHAND_DRAW ->
+                I18n.format("dimensium.action.draw", I18n.format(BrushState.INSTANCE.brushShape.label));
             case PAINTER -> I18n.format("dimensium.action.paint", I18n.format(BrushState.INSTANCE.brushShape.label));
-            case NOISE -> I18n
-                .format("dimensium.action.noise", I18n.format(NoiseToolState.INSTANCE.noiseParams.noiseType().label));
-            case GRADIENT -> I18n
-                .format("dimensium.action.gradient", I18n.format(GradientToolState.INSTANCE.gradientShape.label));
+            case NOISE ->
+                I18n.format(
+                        "dimensium.action.noise", I18n.format(NoiseToolState.INSTANCE.noiseParams.noiseType().label));
+            case GRADIENT ->
+                I18n.format("dimensium.action.gradient", I18n.format(GradientToolState.INSTANCE.gradientShape.label));
             case SMOOTH -> I18n.format("dimensium.action.smooth");
-            case ELEVATION -> I18n
-                .format("dimensium.action.elevation", I18n.format(ElevationToolState.INSTANCE.elevationMode.label));
+            case ELEVATION ->
+                I18n.format("dimensium.action.elevation", I18n.format(ElevationToolState.INSTANCE.elevationMode.label));
             case ROCK -> I18n.format("dimensium.action.rock");
             case SHATTER -> I18n.format("dimensium.action.shatter");
             default -> I18n.format("dimensium.action.edit");

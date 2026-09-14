@@ -4,13 +4,12 @@
  */
 package github.thehighcruw.dimensium.editor.tool.creating.modelling;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.util.MovingObjectPosition;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.tool.ToolRenderer;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
+import net.minecraft.client.Minecraft;
+import net.minecraft.util.MovingObjectPosition;
 
 @SideOnly(Side.CLIENT)
 public class ModellingToolRenderer implements ToolRenderer {
@@ -34,20 +33,12 @@ public class ModellingToolRenderer implements ToolRenderer {
         ModellingToolState mts = ModellingToolState.INSTANCE;
         ModellingToolState.ModelPoint mSelPt = mts.selectedPointObj();
         if (mSelPt == null) return;
-        if (!mts.getAxisTranslationGizmo()
-            .isDragging()
-            && !mts.getPlaneTranslationGizmo()
-                .isDragging()
-            && mc.renderViewEntity != null) {
+        if (!mts.getAxisTranslationGizmo().isDragging()
+                && !mts.getPlaneTranslationGizmo().isDragging()
+                && mc.renderViewEntity != null) {
             Vec3DDouble gp = Vec3DDouble.from(
-                mSelPt.pos()
-                    .x() + 0.5,
-                mSelPt.pos()
-                    .y() + 0.5,
-                mSelPt.pos()
-                    .z() + 0.5);
-            mts.getAxisTranslationGizmo()
-                .updateHover(mx3d, my3d, mc.renderViewEntity, gp.x(), gp.y(), gp.z(), 0, 0, 0);
+                    mSelPt.pos().x() + 0.5, mSelPt.pos().y() + 0.5, mSelPt.pos().z() + 0.5);
+            mts.getAxisTranslationGizmo().updateHover(mx3d, my3d, mc.renderViewEntity, gp.x(), gp.y(), gp.z(), 0, 0, 0);
         }
     }
 }

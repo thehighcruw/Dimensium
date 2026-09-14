@@ -6,9 +6,8 @@ package github.thehighcruw.dimensium;
 
 import static org.junit.Assert.*;
 
-import org.junit.Test;
-
 import github.thehighcruw.dimensium.tool.ChangeProposal;
+import org.junit.Test;
 
 /**
  * Verifies the Y-wrapping bug in ChangeProposal.packKey and the bounds guard in write().
@@ -36,7 +35,7 @@ public class WorldBoundsTest {
 
     @Test
     public void packKeyRoundTripXZ() {
-        int[] coords = { 0, 1, -1, 1000, -1000, 30000000, -30000000 };
+        int[] coords = {0, 1, -1, 1000, -1000, 30000000, -30000000};
         for (int c : coords) {
             long key = ChangeProposal.packKey(c, 64, 0);
             assertEquals("unpackX for x=" + c, c, ChangeProposal.unpackX(key));

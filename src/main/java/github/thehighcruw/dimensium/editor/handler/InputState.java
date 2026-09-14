@@ -4,11 +4,10 @@
  */
 package github.thehighcruw.dimensium.editor.handler;
 
-import org.lwjgl.input.Keyboard;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.Dimensium;
+import org.lwjgl.input.Keyboard;
 
 @SideOnly(Side.CLIENT)
 public class InputState {

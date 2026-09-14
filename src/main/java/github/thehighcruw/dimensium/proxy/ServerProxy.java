@@ -15,12 +15,9 @@ public class ServerProxy implements IProxy {
 
     @Override
     public void init() {
-        FMLCommonHandler.instance()
-            .bus()
-            .register(new PlayerHistoryEventHandler());
+        FMLCommonHandler.instance().bus().register(new PlayerHistoryEventHandler());
     }
 
     @Override
     public void postInit() {}
-
 }

@@ -4,9 +4,10 @@
  */
 package github.thehighcruw.dimensium.editor.history;
 
+import github.thehighcruw.dimensium.network.PacketHistoryEntry;
+import github.thehighcruw.dimensium.shared.util.PerfTrace;
 import java.util.List;
 import java.util.Set;
-
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
@@ -18,9 +19,6 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.common.util.FakePlayerFactory;
-
-import github.thehighcruw.dimensium.network.PacketHistoryEntry;
-import github.thehighcruw.dimensium.shared.util.PerfTrace;
 
 public class EditHistory {
 
@@ -48,17 +46,17 @@ public class EditHistory {
                 // Use the top face (side=1) as a neutral default; most mods use facing
                 // from the player entity, not the side parameter, for actual orientation.
                 itemBlock.placeBlockAt(
-                    stack,
-                    FakePlayerFactory.getMinecraft((WorldServer) world),
-                    world,
-                    x,
-                    y,
-                    z,
-                    1,
-                    0.5f,
-                    0.5f,
-                    0.5f,
-                    itemBlock.getMetadata(meta));
+                        stack,
+                        FakePlayerFactory.getMinecraft((WorldServer) world),
+                        world,
+                        x,
+                        y,
+                        z,
+                        1,
+                        0.5f,
+                        0.5f,
+                        0.5f,
+                        itemBlock.getMetadata(meta));
                 return;
             }
         }
@@ -143,8 +141,7 @@ public class EditHistory {
         if (blockMeta > 15) return blockMeta; // already "full" — shouldn't happen, but safe
         // Only check TileEntity NBT for blocks that have one; avoids a map lookup per block
         // for the common case (standard blocks with no TileEntity).
-        if (!world.getBlock(x, y, z)
-            .hasTileEntity(blockMeta)) return blockMeta;
+        if (!world.getBlock(x, y, z).hasTileEntity(blockMeta)) return blockMeta;
         TileEntity te;
         try {
             te = world.getTileEntity(x, y, z);
@@ -160,7 +157,8 @@ public class EditHistory {
                 int machineId = nbt.getShort("mID") & 0xFFFF;
                 if (machineId > 0) return machineId;
             }
-        } catch (Throwable ignored) {}
+        } catch (Throwable ignored) {
+        }
         return blockMeta;
     }
 
@@ -170,14 +168,15 @@ public class EditHistory {
      * Overload for server-originated ops (e.g. PacketShapePlacement) where the client
      * has no buffered after-state, so it must be sent explicitly.
      */
-    public static void record(World world, String action, List<int[]> ops, EntityPlayerMP player, int txId,
-        int[][] after) {
+    public static void record(
+            World world, String action, List<int[]> ops, EntityPlayerMP player, int txId, int[][] after) {
         int[][] before = new int[ops.size()][5];
         for (int i = 0; i < ops.size(); i++) {
             int[] op = ops.get(i);
             int x = op[0], y = op[1], z = op[2];
-            before[i] = new int[] { x, y, z, Block.getIdFromBlock(world.getBlock(x, y, z)),
-                getEffectiveMeta(world, x, y, z) };
+            before[i] =
+                    new int[] {x, y, z, Block.getIdFromBlock(world.getBlock(x, y, z)), getEffectiveMeta(world, x, y, z)
+                    };
         }
 
         for (int[] op : ops) {

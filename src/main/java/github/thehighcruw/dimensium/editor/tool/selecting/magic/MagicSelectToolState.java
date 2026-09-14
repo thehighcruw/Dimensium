@@ -9,7 +9,6 @@ public class MagicSelectToolState {
     public static final MagicSelectToolState INSTANCE = new MagicSelectToolState();
 
     public enum MagicCompareType {
-
         BLOCK_STATE("dimensium.magic_compare.block_state"),
         BLOCK("dimensium.magic_compare.block"),
         SOLID("dimensium.magic_compare.solid"),
@@ -23,7 +22,6 @@ public class MagicSelectToolState {
     }
 
     public enum MagicDirection {
-
         BOTH("dimensium.magic_dir.both"),
         UP_ONLY("dimensium.magic_dir.up_only"),
         DOWN_ONLY("dimensium.magic_dir.down_only");

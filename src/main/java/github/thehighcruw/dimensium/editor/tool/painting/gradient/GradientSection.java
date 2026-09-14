@@ -4,10 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.tool.painting.gradient;
 
-import java.util.concurrent.ThreadLocalRandom;
-
-import net.minecraft.client.resources.I18n;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.tool.ToolSection;
@@ -20,6 +16,8 @@ import github.thehighcruw.dimensium.editor.tool.state.PaletteState;
 import imgui.ImGui;
 import imgui.type.ImBoolean;
 import imgui.type.ImInt;
+import java.util.concurrent.ThreadLocalRandom;
+import net.minecraft.client.resources.I18n;
 
 @SideOnly(Side.CLIENT)
 public class GradientSection implements ToolSection {
@@ -73,8 +71,7 @@ public class GradientSection implements ToolSection {
         }
 
         if (ImGui.button(I18n.format("dimensium.ui.gradient.randomize_seed") + "##grad_seed")) {
-            state.gradientSeed = ThreadLocalRandom.current()
-                .nextLong();
+            state.gradientSeed = ThreadLocalRandom.current().nextLong();
         }
     }
 }

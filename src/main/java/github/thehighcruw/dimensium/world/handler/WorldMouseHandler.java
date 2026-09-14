@@ -4,13 +4,6 @@
  */
 package github.thehighcruw.dimensium.world.handler;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.Vec3;
-import net.minecraftforge.client.event.MouseEvent;
-
-import org.lwjgl.input.Keyboard;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.DimensiumEditorMode;
@@ -22,6 +15,11 @@ import github.thehighcruw.dimensium.tool.BuilderTool;
 import github.thehighcruw.dimensium.tool.BuilderToolState;
 import github.thehighcruw.dimensium.tool.BuilderToolState.AxisLock;
 import github.thehighcruw.dimensium.tool.BuilderToolState.Phase;
+import net.minecraft.client.Minecraft;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.Vec3;
+import net.minecraftforge.client.event.MouseEvent;
+import org.lwjgl.input.Keyboard;
 
 /**
  * Handles mouse input while the player is in-world (editor overlay closed).
@@ -110,19 +108,19 @@ public class WorldMouseHandler {
         double az = Math.abs(facing.zCoord);
         if (ax >= ay && ax >= az) {
             bts.stack = Vec3DInt.from(
-                Math.max(-64, Math.min(64, bts.stack.x() + (int) Math.signum(facing.xCoord) * dir)),
-                bts.stack.y(),
-                bts.stack.z());
+                    Math.max(-64, Math.min(64, bts.stack.x() + (int) Math.signum(facing.xCoord) * dir)),
+                    bts.stack.y(),
+                    bts.stack.z());
         } else if (ay >= ax && ay >= az) {
             bts.stack = Vec3DInt.from(
-                bts.stack.x(),
-                Math.max(-64, Math.min(64, bts.stack.y() + (int) Math.signum(facing.yCoord) * dir)),
-                bts.stack.z());
+                    bts.stack.x(),
+                    Math.max(-64, Math.min(64, bts.stack.y() + (int) Math.signum(facing.yCoord) * dir)),
+                    bts.stack.z());
         } else {
             bts.stack = Vec3DInt.from(
-                bts.stack.x(),
-                bts.stack.y(),
-                Math.max(-64, Math.min(64, bts.stack.z() + (int) Math.signum(facing.zCoord) * dir)));
+                    bts.stack.x(),
+                    bts.stack.y(),
+                    Math.max(-64, Math.min(64, bts.stack.z() + (int) Math.signum(facing.zCoord) * dir)));
         }
     }
 }

@@ -9,7 +9,6 @@ public class GradientToolState {
     public static final GradientToolState INSTANCE = new GradientToolState();
 
     public enum GradientShape {
-
         PLANE("dimensium.gradient_shape.plane"),
         SPHERE("dimensium.gradient_shape.sphere");
 
@@ -21,7 +20,6 @@ public class GradientToolState {
     }
 
     public enum GradientInterp {
-
         NEAREST("dimensium.gradient_interp.nearest"),
         LINEAR("dimensium.gradient_interp.linear"),
         BEZIER("dimensium.gradient_interp.bezier");
@@ -37,8 +35,7 @@ public class GradientToolState {
     public GradientInterp gradientInterp = GradientInterp.LINEAR;
     public boolean gradientMaskSurface = false;
     public boolean gradientClampToEdge = false;
-    public long gradientSeed = java.util.concurrent.ThreadLocalRandom.current()
-        .nextLong();
+    public long gradientSeed = java.util.concurrent.ThreadLocalRandom.current().nextLong();
     public boolean gradientHasPos1 = false;
     public int gradientPos1X = 0;
     public int gradientPos1Y = 0;

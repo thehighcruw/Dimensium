@@ -4,16 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.window;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.item.ItemStack;
-import net.minecraft.world.World;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.DimensiumConfig;
@@ -24,6 +14,14 @@ import imgui.ImGui;
 import imgui.flag.ImGuiTableFlags;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.item.ItemStack;
+import net.minecraft.world.World;
 
 @SideOnly(Side.CLIENT)
 public class AnalyzeWindow extends ToggleableWindow {
@@ -68,8 +66,7 @@ public class AnalyzeWindow extends ToggleableWindow {
             if (info.item() != null) {
                 name = new ItemStack(info.item(), 1, info.meta()).getDisplayName();
             } else {
-                name = info.block()
-                    .getLocalizedName();
+                name = info.block().getLocalizedName();
             }
             counts.put(name, counts.getOrDefault(name, 0) + 1);
             totalBlocks++;
@@ -89,8 +86,8 @@ public class AnalyzeWindow extends ToggleableWindow {
 
         float scale = ImGuiManager.INSTANCE.getUIScale();
         ImBoolean pOpen = new ImBoolean(true);
-        boolean visible = ImGui
-            .begin(I18n.format("dimensium.op.analyze.title") + WINDOW_ID, pOpen, ImGuiWindowFlags.None);
+        boolean visible =
+                ImGui.begin(I18n.format("dimensium.op.analyze.title") + WINDOW_ID, pOpen, ImGuiWindowFlags.None);
         captureBounds();
         if (visible && pOpen.get()) {
             if (!SelectionState.INSTANCE.hasSelection()) {

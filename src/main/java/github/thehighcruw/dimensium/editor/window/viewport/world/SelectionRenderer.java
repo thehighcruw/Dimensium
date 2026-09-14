@@ -4,27 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.window.viewport.world;
 
-import java.nio.FloatBuffer;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.annotation.Nonnull;
-
-import net.minecraft.block.Block;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.texture.TextureMap;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Blocks;
-import net.minecraft.util.MovingObjectPosition;
-import net.minecraftforge.client.event.RenderWorldLastEvent;
-
-import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.GL11;
-
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -70,6 +49,23 @@ import github.thehighcruw.dimensium.tool.BuilderToolState;
 import github.thehighcruw.dimensium.tool.BuilderToolState.Phase;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 import github.thehighcruw.dimensium.world.handler.BuilderToolsHandler;
+import java.nio.FloatBuffer;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.annotation.Nonnull;
+import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.texture.TextureMap;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
+import net.minecraft.util.MovingObjectPosition;
+import net.minecraftforge.client.event.RenderWorldLastEvent;
+import org.lwjgl.BufferUtils;
+import org.lwjgl.opengl.GL11;
 
 @SideOnly(Side.CLIENT)
 public class SelectionRenderer {
@@ -129,9 +125,9 @@ public class SelectionRenderer {
         float pt = event.partialTicks;
         net.minecraft.entity.Entity cam = mc.renderViewEntity != null ? mc.renderViewEntity : player;
         Vec3DDouble camPos = Vec3DDouble.from(
-            cam.lastTickPosX + (cam.posX - cam.lastTickPosX) * pt,
-            cam.lastTickPosY + (cam.posY - cam.lastTickPosY) * pt,
-            cam.lastTickPosZ + (cam.posZ - cam.lastTickPosZ) * pt);
+                cam.lastTickPosX + (cam.posX - cam.lastTickPosX) * pt,
+                cam.lastTickPosY + (cam.posY - cam.lastTickPosY) * pt,
+                cam.lastTickPosZ + (cam.posZ - cam.lastTickPosZ) * pt);
 
         GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
         GL11.glDisable(GL11.GL_DEPTH_TEST);
@@ -145,25 +141,27 @@ public class SelectionRenderer {
         // ── Brush cursor preview ──────────────────────────────────────────────
         PerfTrace.push("brushCursorPreview");
         Tool _previewTool = DimensiumEditorMode.INSTANCE.selectedTool;
-        boolean _anyModal = ImGuiManager.INSTANCE.anyModalOpen() || FilterSelectionWindow.INSTANCE.isOpen()
-            || DistortSelectionWindow.INSTANCE.isOpen()
-            || SmoothSelectionWindow.INSTANCE.isOpen();
+        boolean _anyModal = ImGuiManager.INSTANCE.anyModalOpen()
+                || FilterSelectionWindow.INSTANCE.isOpen()
+                || DistortSelectionWindow.INSTANCE.isOpen()
+                || SmoothSelectionWindow.INSTANCE.isOpen();
         float _sf = RenderUtils.scaleFactor();
         float _mx = FreecamState.INSTANCE.cursorX * _sf;
         float _my = FreecamState.INSTANCE.cursorY * _sf;
         boolean _mouseOverOtherPanel = OverlayRenderer.TOOL_WINDOW.containsMouse(_mx, _my)
-            || MenuBar.INSTANCE.containsMouse(_mx, _my, mc.displayWidth);
+                || MenuBar.INSTANCE.containsMouse(_mx, _my, mc.displayWidth);
         boolean _cursorOnViewport = !_mouseOverOtherPanel
-            && (!ImGuiManager.INSTANCE.wantCaptureMouse() || ViewportPanel.INSTANCE.isHovered());
-        if (DimensiumEditorMode.INSTANCE.isActive() && !_anyModal
-            && _cursorOnViewport
-            && (!TickHandler.INSTANCE.isPaintDragging() || _previewTool == Tool.SMOOTH)) {
-            ToolRegistry.toolRenderer(_previewTool)
-                .renderWorldPreview(mc, camPos);
+                && (!ImGuiManager.INSTANCE.wantCaptureMouse() || ViewportPanel.INSTANCE.isHovered());
+        if (DimensiumEditorMode.INSTANCE.isActive()
+                && !_anyModal
+                && _cursorOnViewport
+                && (!TickHandler.INSTANCE.isPaintDragging() || _previewTool == Tool.SMOOTH)) {
+            ToolRegistry.toolRenderer(_previewTool).renderWorldPreview(mc, camPos);
         }
-        if (DimensiumEditorMode.INSTANCE.isActive() && !_anyModal
-            && _cursorOnViewport
-            && DimensiumEditorMode.INSTANCE.selectedTool == Tool.ELEVATION) {
+        if (DimensiumEditorMode.INSTANCE.isActive()
+                && !_anyModal
+                && _cursorOnViewport
+                && DimensiumEditorMode.INSTANCE.selectedTool == Tool.ELEVATION) {
             renderElevationPreview(mc, camPos);
         }
 
@@ -174,13 +172,13 @@ public class SelectionRenderer {
                 MovingObjectPosition gmop = RenderUtils.raycastAtCursor();
                 if (gmop != null && gmop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
                     Vec3DDouble p1 = Vec3DDouble.from(
-                        gs.gradientPos1X + 0.5 - camPos.x(),
-                        gs.gradientPos1Y + 0.5 - camPos.y(),
-                        gs.gradientPos1Z + 0.5 - camPos.z());
+                            gs.gradientPos1X + 0.5 - camPos.x(),
+                            gs.gradientPos1Y + 0.5 - camPos.y(),
+                            gs.gradientPos1Z + 0.5 - camPos.z());
                     Vec3DDouble p2 = Vec3DDouble.from(
-                        gmop.blockX + 0.5 - camPos.x(),
-                        gmop.blockY + 0.5 - camPos.y(),
-                        gmop.blockZ + 0.5 - camPos.z());
+                            gmop.blockX + 0.5 - camPos.x(),
+                            gmop.blockY + 0.5 - camPos.y(),
+                            gmop.blockZ + 0.5 - camPos.z());
                     GL11.glColor4f(0.6f, 0.3f, 1.0f, 0.9f);
                     WorldLines.setEye(Vec3DDouble.ZERO); // vertices already camera-relative
                     Tessellator gTess = Tessellator.instance;
@@ -188,9 +186,9 @@ public class SelectionRenderer {
                     WorldLines.addSegment(gTess, p1, p2, WorldLines.W_SEL);
                     gTess.draw();
                     Vec3DDouble gradTrans = Vec3DDouble.from(
-                        gs.gradientPos1X - camPos.x(),
-                        gs.gradientPos1Y - camPos.y(),
-                        gs.gradientPos1Z - camPos.z());
+                            gs.gradientPos1X - camPos.x(),
+                            gs.gradientPos1Y - camPos.y(),
+                            gs.gradientPos1Z - camPos.z());
                     GL11.glPushMatrix();
                     GL11.glTranslated(gradTrans.x(), gradTrans.y(), gradTrans.z());
                     GL11.glColor4f(0.6f, 0.3f, 1.0f, 1.0f);
@@ -256,14 +254,14 @@ public class SelectionRenderer {
         if (sel.boxConfirmed && DimensiumEditorMode.INSTANCE.selectedTool != Tool.SELECT) {
             BoxSelectToolState bts = BoxSelectToolState.INSTANCE;
             sel.applyOp(
-                SelectionState.aabbBlocks(
-                    sel.pendingPos.x(),
-                    sel.pendingPos.y(),
-                    sel.pendingPos.z(),
-                    sel.pendingPos2.x(),
-                    sel.pendingPos2.y(),
-                    sel.pendingPos2.z()),
-                bts.booleanOp);
+                    SelectionState.aabbBlocks(
+                            sel.pendingPos.x(),
+                            sel.pendingPos.y(),
+                            sel.pendingPos.z(),
+                            sel.pendingPos2.x(),
+                            sel.pendingPos2.y(),
+                            sel.pendingPos2.z()),
+                    bts.booleanOp);
             sel.boxConfirmed = false;
             boxPos1ViewPlaneGizmo.reset();
             boxPos2ViewPlaneGizmo.reset();
@@ -282,8 +280,7 @@ public class SelectionRenderer {
                 GL11.glEnable(GL11.GL_POLYGON_OFFSET_FILL);
                 GL11.glPolygonOffset(-3.0f, -3.0f);
                 GL11.glEnable(GL11.GL_TEXTURE_2D);
-                mc.getTextureManager()
-                    .bindTexture(TextureMap.locationBlocksTexture);
+                mc.getTextureManager().bindTexture(TextureMap.locationBlocksTexture);
                 GL11.glDisable(GL11.GL_LIGHTING);
                 GL11.glEnable(GL11.GL_CULL_FACE);
                 GL11.glFrontFace(GL11.GL_CW);
@@ -303,10 +300,10 @@ public class SelectionRenderer {
                     int tint = 0xFFFFFF;
                     try {
                         tint = b.colorMultiplier(mc.theWorld, bv.x(), bv.y(), bv.z());
-                    } catch (Exception ignored) {}
+                    } catch (Exception ignored) {
+                    }
                     for (int face = 0; face < 6; face++) {
-                        long nk = SelectionState.pack(
-                            Vec3DInt.from(
+                        long nk = SelectionState.pack(Vec3DInt.from(
                                 bv.x() + GhostRenderer.NX[face],
                                 bv.y() + GhostRenderer.NY[face],
                                 bv.z() + GhostRenderer.NZ[face]));
@@ -331,8 +328,7 @@ public class SelectionRenderer {
                     Block b = mc.theWorld.getBlock(bv.x(), bv.y(), bv.z());
                     if (b != null && b != Blocks.air && b.getRenderType() != 0) {
                         for (int face = 0; face < 6; face++) {
-                            long nk = SelectionState.pack(
-                                Vec3DInt.from(
+                            long nk = SelectionState.pack(Vec3DInt.from(
                                     bv.x() + GhostRenderer.NX[face],
                                     bv.y() + GhostRenderer.NY[face],
                                     bv.z() + GhostRenderer.NZ[face]));
@@ -362,8 +358,7 @@ public class SelectionRenderer {
                     Block b = mc.theWorld.getBlock(bv.x(), bv.y(), bv.z());
                     if (b == null || b == Blocks.air) continue;
                     for (int face = 0; face < 6; face++) {
-                        long nk = SelectionState.pack(
-                            Vec3DInt.from(
+                        long nk = SelectionState.pack(Vec3DInt.from(
                                 bv.x() + GhostRenderer.NX[face],
                                 bv.y() + GhostRenderer.NY[face],
                                 bv.z() + GhostRenderer.NZ[face]));
@@ -392,8 +387,8 @@ public class SelectionRenderer {
                 updateSelWireframeCache(sel);
                 drawSelWireframe(camPos);
             } else {
-                Vec3DDouble selTrans = Vec3DDouble
-                    .from(sel.minX() - camPos.x(), sel.minY() - camPos.y(), sel.minZ() - camPos.z());
+                Vec3DDouble selTrans =
+                        Vec3DDouble.from(sel.minX() - camPos.x(), sel.minY() - camPos.y(), sel.minZ() - camPos.z());
                 GL11.glPushMatrix();
                 GL11.glTranslated(selTrans.x(), selTrans.y(), selTrans.z());
                 WorldLines.setEyeForTranslation(selTrans);
@@ -404,8 +399,8 @@ public class SelectionRenderer {
                 GL11.glPopMatrix();
             }
 
-            Vec3DDouble selOutlineTrans = Vec3DDouble
-                .from(sel.minX() - camPos.x(), sel.minY() - camPos.y(), sel.minZ() - camPos.z());
+            Vec3DDouble selOutlineTrans =
+                    Vec3DDouble.from(sel.minX() - camPos.x(), sel.minY() - camPos.y(), sel.minZ() - camPos.z());
             GL11.glPushMatrix();
             GL11.glTranslated(selOutlineTrans.x(), selOutlineTrans.y(), selOutlineTrans.z());
             WorldLines.setEyeForTranslation(selOutlineTrans);
@@ -415,8 +410,8 @@ public class SelectionRenderer {
         }
 
         // ── Live drag preview: pos1 anchor + AABB to cursor ──────────────────
-        boolean selectToolActive = DimensiumEditorMode.INSTANCE.isActive()
-            && DimensiumEditorMode.INSTANCE.selectedTool == Tool.SELECT;
+        boolean selectToolActive =
+                DimensiumEditorMode.INSTANCE.isActive() && DimensiumEditorMode.INSTANCE.selectedTool == Tool.SELECT;
         boolean builderActive = DimensiumEditorMode.INSTANCE.isBuilderToolsActive();
         if (!selectToolActive && !builderActive) {
             sel.pendingPos1 = false;
@@ -424,9 +419,7 @@ public class SelectionRenderer {
         }
         if (sel.pendingPos1) {
             Vec3DDouble pendingTrans = Vec3DDouble.from(
-                sel.pendingPos.x() - camPos.x(),
-                sel.pendingPos.y() - camPos.y(),
-                sel.pendingPos.z() - camPos.z());
+                    sel.pendingPos.x() - camPos.x(), sel.pendingPos.y() - camPos.y(), sel.pendingPos.z() - camPos.z());
             GL11.glPushMatrix();
             GL11.glTranslated(pendingTrans.x(), pendingTrans.y(), pendingTrans.z());
             WorldLines.setEyeForTranslation(pendingTrans);
@@ -478,30 +471,18 @@ public class SelectionRenderer {
             boxPos2Gizmo.axisFlip[0] = -boxPos1Gizmo.axisFlip[0];
             boxPos2Gizmo.axisFlip[1] = -boxPos1Gizmo.axisFlip[1];
             boxPos2Gizmo.axisFlip[2] = -boxPos1Gizmo.axisFlip[2];
-            boxPos1ViewPlaneGizmo
-                .render(sel.pendingPos.x() + 0.5, sel.pendingPos.y() + 0.5, sel.pendingPos.z() + 0.5, camPos);
-            boxPos2ViewPlaneGizmo
-                .render(sel.pendingPos2.x() + 0.5, sel.pendingPos2.y() + 0.5, sel.pendingPos2.z() + 0.5, camPos);
-            boxPos1PlaneGizmo
-                .render(sel.pendingPos.x() + 0.5, sel.pendingPos.y() + 0.5, sel.pendingPos.z() + 0.5, camPos, 0, 0, 0);
-            boxPos1Gizmo
-                .render(sel.pendingPos.x() + 0.5, sel.pendingPos.y() + 0.5, sel.pendingPos.z() + 0.5, camPos, 0, 0, 0);
+            boxPos1ViewPlaneGizmo.render(
+                    sel.pendingPos.x() + 0.5, sel.pendingPos.y() + 0.5, sel.pendingPos.z() + 0.5, camPos);
+            boxPos2ViewPlaneGizmo.render(
+                    sel.pendingPos2.x() + 0.5, sel.pendingPos2.y() + 0.5, sel.pendingPos2.z() + 0.5, camPos);
+            boxPos1PlaneGizmo.render(
+                    sel.pendingPos.x() + 0.5, sel.pendingPos.y() + 0.5, sel.pendingPos.z() + 0.5, camPos, 0, 0, 0);
+            boxPos1Gizmo.render(
+                    sel.pendingPos.x() + 0.5, sel.pendingPos.y() + 0.5, sel.pendingPos.z() + 0.5, camPos, 0, 0, 0);
             boxPos2PlaneGizmo.render(
-                sel.pendingPos2.x() + 0.5,
-                sel.pendingPos2.y() + 0.5,
-                sel.pendingPos2.z() + 0.5,
-                camPos,
-                0,
-                0,
-                0);
+                    sel.pendingPos2.x() + 0.5, sel.pendingPos2.y() + 0.5, sel.pendingPos2.z() + 0.5, camPos, 0, 0, 0);
             boxPos2Gizmo.render(
-                sel.pendingPos2.x() + 0.5,
-                sel.pendingPos2.y() + 0.5,
-                sel.pendingPos2.z() + 0.5,
-                camPos,
-                0,
-                0,
-                0);
+                    sel.pendingPos2.x() + 0.5, sel.pendingPos2.y() + 0.5, sel.pendingPos2.z() + 0.5, camPos, 0, 0, 0);
             double cxWorld = (sel.pendingPos.x() + sel.pendingPos2.x()) / 2.0 + 0.5;
             double cyWorld = (sel.pendingPos.y() + sel.pendingPos2.y()) / 2.0 + 0.5;
             double czWorld = (sel.pendingPos.z() + sel.pendingPos2.z()) / 2.0 + 0.5;
@@ -548,13 +529,13 @@ public class SelectionRenderer {
                 ps.rebuildIfNeeded();
                 ps.viewPlaneGizmo.render(ps.centerX(), ps.centerY(), ps.centerZ(), camPos);
                 ps.getPlaneTranslationGizmo()
-                    .render(ps.centerX(), ps.centerY(), ps.centerZ(), camPos, ps.rot.x(), ps.rot.y(), ps.rot.z());
+                        .render(ps.centerX(), ps.centerY(), ps.centerZ(), camPos, ps.rot.x(), ps.rot.y(), ps.rot.z());
                 ps.getAxisTranslationGizmo()
-                    .render(ps.centerX(), ps.centerY(), ps.centerZ(), camPos, ps.rot.x(), ps.rot.y(), ps.rot.z());
+                        .render(ps.centerX(), ps.centerY(), ps.centerZ(), camPos, ps.rot.x(), ps.rot.y(), ps.rot.z());
                 ps.getScalingGizmo()
-                    .render(ps.centerX(), ps.centerY(), ps.centerZ(), camPos, ps.rot.x(), ps.rot.y(), ps.rot.z());
+                        .render(ps.centerX(), ps.centerY(), ps.centerZ(), camPos, ps.rot.x(), ps.rot.y(), ps.rot.z());
                 ps.getRotationGizmo()
-                    .render(ps.centerX(), ps.centerY(), ps.centerZ(), camPos, ps.rot.x(), ps.rot.y(), ps.rot.z());
+                        .render(ps.centerX(), ps.centerY(), ps.centerZ(), camPos, ps.rot.x(), ps.rot.y(), ps.rot.z());
             }
         }
 
@@ -564,11 +545,10 @@ public class SelectionRenderer {
             if (cps.preview != null) renderProposalPreview(mc, camPos, cps.preview);
             cps.viewPlaneGizmo.render(cps.centerX(), cps.centerY(), cps.centerZ(), camPos);
             cps.getPlaneTranslationGizmo()
-                .render(cps.centerX(), cps.centerY(), cps.centerZ(), camPos, cps.rot.x(), cps.rot.y(), cps.rot.z());
-            cps.getAxisTranslationGizmo()
-                .render(cps.centerX(), cps.centerY(), cps.centerZ(), camPos, 0, 0, 0);
+                    .render(cps.centerX(), cps.centerY(), cps.centerZ(), camPos, cps.rot.x(), cps.rot.y(), cps.rot.z());
+            cps.getAxisTranslationGizmo().render(cps.centerX(), cps.centerY(), cps.centerZ(), camPos, 0, 0, 0);
             cps.getRotationGizmo()
-                .render(cps.centerX(), cps.centerY(), cps.centerZ(), camPos, cps.rot.x(), cps.rot.y(), cps.rot.z());
+                    .render(cps.centerX(), cps.centerY(), cps.centerZ(), camPos, cps.rot.x(), cps.rot.y(), cps.rot.z());
         }
 
         // ── Move tool ghost + gizmos ──────────────────────────────────────────
@@ -590,13 +570,13 @@ public class SelectionRenderer {
                 }
                 ms.viewPlaneGizmo.render(ms.gizmoX(), ms.gizmoY(), ms.gizmoZ(), camPos);
                 ms.getPlaneTranslationGizmo()
-                    .render(ms.gizmoX(), ms.gizmoY(), ms.gizmoZ(), camPos, ms.rot.x(), ms.rot.y(), ms.rot.z());
+                        .render(ms.gizmoX(), ms.gizmoY(), ms.gizmoZ(), camPos, ms.rot.x(), ms.rot.y(), ms.rot.z());
                 ms.getAxisTranslationGizmo()
-                    .render(ms.gizmoX(), ms.gizmoY(), ms.gizmoZ(), camPos, ms.rot.x(), ms.rot.y(), ms.rot.z());
+                        .render(ms.gizmoX(), ms.gizmoY(), ms.gizmoZ(), camPos, ms.rot.x(), ms.rot.y(), ms.rot.z());
                 ms.getScalingGizmo()
-                    .render(ms.gizmoX(), ms.gizmoY(), ms.gizmoZ(), camPos, ms.rot.x(), ms.rot.y(), ms.rot.z());
+                        .render(ms.gizmoX(), ms.gizmoY(), ms.gizmoZ(), camPos, ms.rot.x(), ms.rot.y(), ms.rot.z());
                 ms.getRotationGizmo()
-                    .render(ms.gizmoX(), ms.gizmoY(), ms.gizmoZ(), camPos, ms.rot.x(), ms.rot.y(), ms.rot.z());
+                        .render(ms.gizmoX(), ms.gizmoY(), ms.gizmoZ(), camPos, ms.rot.x(), ms.rot.y(), ms.rot.z());
             } else if (ms.active) {
                 ms.cancel();
             }
@@ -612,13 +592,8 @@ public class SelectionRenderer {
                 List<ModellingToolState.ModelPoint> row = mts.rows.get(r);
                 // Lines within row
                 List<int[]> rowXyz = new ArrayList<>(row.size());
-                for (ModellingToolState.ModelPoint p : row) rowXyz.add(
-                    new int[] { p.pos()
-                        .x(),
-                        p.pos()
-                            .y(),
-                        p.pos()
-                            .z() });
+                for (ModellingToolState.ModelPoint p : row)
+                    rowXyz.add(new int[] {p.pos().x(), p.pos().y(), p.pos().z()});
                 renderLineStrip(rowXyz, camPos);
                 // Point boxes
                 for (int c = 0; c < row.size(); c++) {
@@ -633,36 +608,28 @@ public class SelectionRenderer {
             }
             // Capture GL matrices unconditionally so GizmoProjection is valid for findNearestPointOnScreen
             // even before any point is selected (gizmo.render only captures when selectedPointObj != null).
-            mts.getAxisTranslationGizmo()
-                .getProjection()
-                .capture(camPos);
+            mts.getAxisTranslationGizmo().getProjection().capture(camPos);
             // Gizmo on selected point
             ModellingToolState.ModelPoint mSelPt = mts.selectedPointObj();
             if (mSelPt != null) {
                 mts.getPlaneTranslationGizmo()
-                    .render(
-                        mSelPt.pos()
-                            .x() + 0.5,
-                        mSelPt.pos()
-                            .y() + 0.5,
-                        mSelPt.pos()
-                            .z() + 0.5,
-                        camPos,
-                        0,
-                        0,
-                        0);
+                        .render(
+                                mSelPt.pos().x() + 0.5,
+                                mSelPt.pos().y() + 0.5,
+                                mSelPt.pos().z() + 0.5,
+                                camPos,
+                                0,
+                                0,
+                                0);
                 mts.getAxisTranslationGizmo()
-                    .render(
-                        mSelPt.pos()
-                            .x() + 0.5,
-                        mSelPt.pos()
-                            .y() + 0.5,
-                        mSelPt.pos()
-                            .z() + 0.5,
-                        camPos,
-                        0,
-                        0,
-                        0);
+                        .render(
+                                mSelPt.pos().x() + 0.5,
+                                mSelPt.pos().y() + 0.5,
+                                mSelPt.pos().z() + 0.5,
+                                camPos,
+                                0,
+                                0,
+                                0);
             }
             // Lines between adjacent rows (column-matched)
             if (mts.rows.size() >= 2) {
@@ -677,25 +644,13 @@ public class SelectionRenderer {
                         ModellingToolState.ModelPoint a = rowA.get(c);
                         ModellingToolState.ModelPoint b = rowB.get(c);
                         GL11.glVertex3d(
-                            a.pos()
-                                .x() + 0.5
-                                - camPos.x(),
-                            a.pos()
-                                .y() + 0.5
-                                - camPos.y(),
-                            a.pos()
-                                .z() + 0.5
-                                - camPos.z());
+                                a.pos().x() + 0.5 - camPos.x(),
+                                a.pos().y() + 0.5 - camPos.y(),
+                                a.pos().z() + 0.5 - camPos.z());
                         GL11.glVertex3d(
-                            b.pos()
-                                .x() + 0.5
-                                - camPos.x(),
-                            b.pos()
-                                .y() + 0.5
-                                - camPos.y(),
-                            b.pos()
-                                .z() + 0.5
-                                - camPos.z());
+                                b.pos().x() + 0.5 - camPos.x(),
+                                b.pos().y() + 0.5 - camPos.y(),
+                                b.pos().z() + 0.5 - camPos.z());
                     }
                 }
                 GL11.glEnd();
@@ -707,9 +662,7 @@ public class SelectionRenderer {
             PathToolState pathState = PathToolState.INSTANCE;
             // Capture GL matrices here unconditionally so GizmoProjection is valid even
             // before any point is selected (gizmo.render only captures when selectedIndex >= 0).
-            pathState.getAxisTranslationGizmo()
-                .getProjection()
-                .capture(camPos);
+            pathState.getAxisTranslationGizmo().getProjection().capture(camPos);
             GL11.glDisable(GL11.GL_TEXTURE_2D);
             for (int i = 0; i < pathState.points.size(); i++) {
                 PathToolState.PathPoint pathPt = pathState.points.get(i);
@@ -719,10 +672,12 @@ public class SelectionRenderer {
             if (pathState.selectedIndex >= 0 && !pathState.points.isEmpty()) {
                 PathToolState.PathPoint selPt = pathState.selectedPoint();
                 if (selPt != null) {
-                    pathState.getPlaneTranslationGizmo()
-                        .render(selPt.pos.x() + 0.5, selPt.pos.y() + 0.5, selPt.pos.z() + 0.5, camPos, 0, 0, 0);
-                    pathState.getAxisTranslationGizmo()
-                        .render(selPt.pos.x() + 0.5, selPt.pos.y() + 0.5, selPt.pos.z() + 0.5, camPos, 0, 0, 0);
+                    pathState
+                            .getPlaneTranslationGizmo()
+                            .render(selPt.pos.x() + 0.5, selPt.pos.y() + 0.5, selPt.pos.z() + 0.5, camPos, 0, 0, 0);
+                    pathState
+                            .getAxisTranslationGizmo()
+                            .render(selPt.pos.x() + 0.5, selPt.pos.y() + 0.5, selPt.pos.z() + 0.5, camPos, 0, 0, 0);
                 }
             }
         }
@@ -733,8 +688,7 @@ public class SelectionRenderer {
     }
 
     private static void renderPointBox(Vec3DInt worldPos, float r, float g, float b, Vec3DDouble camPos) {
-        Vec3DDouble ptTrans = worldPos.toDouble()
-            .minus(camPos);
+        Vec3DDouble ptTrans = worldPos.toDouble().minus(camPos);
         GL11.glPushMatrix();
         GL11.glTranslated(ptTrans.x(), ptTrans.y(), ptTrans.z());
         WorldLines.setEyeForTranslation(ptTrans);
@@ -772,16 +726,16 @@ public class SelectionRenderer {
 
         MagicSelectToolState ts = MagicSelectToolState.INSTANCE;
         Set<Long> flooded = SelectionState.floodFill(
-            mc.theWorld,
-            mop.blockX,
-            mop.blockY,
-            mop.blockZ,
-            ts.magicSelectLimit,
-            ts.magicSelectRange,
-            ts.magicSelectSurface,
-            ts.magicSelectCorners,
-            ts.magicCompareType,
-            ts.magicDirection);
+                mc.theWorld,
+                mop.blockX,
+                mop.blockY,
+                mop.blockZ,
+                ts.magicSelectLimit,
+                ts.magicSelectRange,
+                ts.magicSelectSurface,
+                ts.magicSelectCorners,
+                ts.magicCompareType,
+                ts.magicDirection);
 
         ChangeProposal p = ChangeProposal.forPreview();
         for (long key : flooded) {
@@ -789,7 +743,7 @@ public class SelectionRenderer {
             int bx = bv.x(), by = bv.y(), bz = bv.z();
             Block blk = mc.theWorld.getBlock(bx, by, bz);
             int meta = mc.theWorld.getBlockMetadata(bx, by, bz);
-            p.proposed.put(ChangeProposal.packKey(bx, by, bz), new int[] { Block.getIdFromBlock(blk), meta });
+            p.proposed.put(ChangeProposal.packKey(bx, by, bz), new int[] {Block.getIdFromBlock(blk), meta});
         }
         bts.magicPreview = p;
     }
@@ -865,12 +819,8 @@ public class SelectionRenderer {
             Vec3DInt bv = SelectionState.unpack(packed);
             int bx = bv.x(), by = bv.y(), bz = bv.z();
             for (int face = 0; face < 6; face++) {
-                if (blockSet.contains(
-                    SelectionState.pack(
-                        Vec3DInt.from(
-                            bx + GhostRenderer.NX[face],
-                            by + GhostRenderer.NY[face],
-                            bz + GhostRenderer.NZ[face]))))
+                if (blockSet.contains(SelectionState.pack(Vec3DInt.from(
+                        bx + GhostRenderer.NX[face], by + GhostRenderer.NY[face], bz + GhostRenderer.NZ[face]))))
                     continue;
                 int axisBit = GhostRenderer.FACE_AXIS_BIT[face];
                 for (int[] e : GhostRenderer.FACE_EDGES[face]) {
@@ -905,8 +855,7 @@ public class SelectionRenderer {
 
         // Pass 1: textured additions fully opaque, exterior faces only.
         GL11.glEnable(GL11.GL_TEXTURE_2D);
-        mc.getTextureManager()
-            .bindTexture(TextureMap.locationBlocksTexture);
+        mc.getTextureManager().bindTexture(TextureMap.locationBlocksTexture);
         GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
         drawBatchedTexturedFaces(t, drag.proposed, mc);
 
@@ -914,10 +863,11 @@ public class SelectionRenderer {
         GL11.glDisable(GL11.GL_TEXTURE_2D);
         GL11.glColor4f(0.6f, 0.85f, 1.0f, 1.0f);
         GhostRenderer.drawExteriorFacesSingleColor(
-            t,
-            drag.proposed,
-            bm -> bm[0] != 0 && (Block.getBlockById(bm[0]) == null || Block.getBlockById(bm[0])
-                .getRenderType() != 0));
+                t,
+                drag.proposed,
+                bm -> bm[0] != 0
+                        && (Block.getBlockById(bm[0]) == null
+                                || Block.getBlockById(bm[0]).getRenderType() != 0));
 
         // Glow passes — slightly more negative offset so no z-fighting with opaque pass.
         // glDepthMask(false): glow quads never occlude each other at crease edges.
@@ -946,8 +896,7 @@ public class SelectionRenderer {
         GL11.glEnable(GL11.GL_POLYGON_OFFSET_FILL);
         GL11.glPolygonOffset(-1.0f, -1.0f);
         GL11.glEnable(GL11.GL_TEXTURE_2D);
-        mc.getTextureManager()
-            .bindTexture(TextureMap.locationBlocksTexture);
+        mc.getTextureManager().bindTexture(TextureMap.locationBlocksTexture);
         GL11.glDisable(GL11.GL_LIGHTING);
         GL11.glEnable(GL11.GL_CULL_FACE);
         GL11.glFrontFace(GL11.GL_CW);
@@ -972,8 +921,7 @@ public class SelectionRenderer {
 
         List<Vec3DInt> local = new ArrayList<>(drag.proposed.size());
         for (long key : drag.proposed.keySet()) {
-            local.add(
-                Vec3DInt.from(
+            local.add(Vec3DInt.from(
                     ChangeProposal.unpackX(key) - minX,
                     ChangeProposal.unpackY(key) - minY,
                     ChangeProposal.unpackZ(key) - minZ));
@@ -1044,47 +992,47 @@ public class SelectionRenderer {
 
                 if ((float) Math.sqrt((dx + 1) * (dx + 1) + dz * dz) / radius > 1f) {
                     WorldLines.addSegment(
-                        t,
-                        wx + 1 - camPos.x(),
-                        topY - camPos.y(),
-                        wz - camPos.z(),
-                        wx + 1 - camPos.x(),
-                        topY - camPos.y(),
-                        wz + 1 - camPos.z(),
-                        WorldLines.W_THIN);
+                            t,
+                            wx + 1 - camPos.x(),
+                            topY - camPos.y(),
+                            wz - camPos.z(),
+                            wx + 1 - camPos.x(),
+                            topY - camPos.y(),
+                            wz + 1 - camPos.z(),
+                            WorldLines.W_THIN);
                 }
                 if ((float) Math.sqrt((dx - 1) * (dx - 1) + dz * dz) / radius > 1f) {
                     WorldLines.addSegment(
-                        t,
-                        wx - camPos.x(),
-                        topY - camPos.y(),
-                        wz - camPos.z(),
-                        wx - camPos.x(),
-                        topY - camPos.y(),
-                        wz + 1 - camPos.z(),
-                        WorldLines.W_THIN);
+                            t,
+                            wx - camPos.x(),
+                            topY - camPos.y(),
+                            wz - camPos.z(),
+                            wx - camPos.x(),
+                            topY - camPos.y(),
+                            wz + 1 - camPos.z(),
+                            WorldLines.W_THIN);
                 }
                 if ((float) Math.sqrt(dx * dx + (dz + 1) * (dz + 1)) / radius > 1f) {
                     WorldLines.addSegment(
-                        t,
-                        wx - camPos.x(),
-                        topY - camPos.y(),
-                        wz + 1 - camPos.z(),
-                        wx + 1 - camPos.x(),
-                        topY - camPos.y(),
-                        wz + 1 - camPos.z(),
-                        WorldLines.W_THIN);
+                            t,
+                            wx - camPos.x(),
+                            topY - camPos.y(),
+                            wz + 1 - camPos.z(),
+                            wx + 1 - camPos.x(),
+                            topY - camPos.y(),
+                            wz + 1 - camPos.z(),
+                            WorldLines.W_THIN);
                 }
                 if ((float) Math.sqrt(dx * dx + (dz - 1) * (dz - 1)) / radius > 1f) {
                     WorldLines.addSegment(
-                        t,
-                        wx - camPos.x(),
-                        topY - camPos.y(),
-                        wz - camPos.z(),
-                        wx + 1 - camPos.x(),
-                        topY - camPos.y(),
-                        wz - camPos.z(),
-                        WorldLines.W_THIN);
+                            t,
+                            wx - camPos.x(),
+                            topY - camPos.y(),
+                            wz - camPos.z(),
+                            wx + 1 - camPos.x(),
+                            topY - camPos.y(),
+                            wz - camPos.z(),
+                            WorldLines.W_THIN);
                 }
             }
         }
@@ -1120,8 +1068,8 @@ public class SelectionRenderer {
     }
 
     /** Draws the crease-edge wireframe for a proposal, rebuilding the cache if needed. */
-    private static void drawProposalWireframe(ChangeProposal proposal, Tessellator t, Vec3DDouble camPos, float r,
-        float g, float b, float pulse) {
+    private static void drawProposalWireframe(
+            ChangeProposal proposal, Tessellator t, Vec3DDouble camPos, float r, float g, float b, float pulse) {
         rebuildProposalWireIfNeeded(proposal);
         if (proposal.cachedWire == null || proposal.cachedWire.length == 0) return;
         GL11.glDisable(GL11.GL_TEXTURE_2D);
@@ -1146,17 +1094,18 @@ public class SelectionRenderer {
             int[] bm = e.getValue();
             Block blk = Block.getBlockById(bm[0]);
             if (blk == null || blk == Blocks.air || blk.getRenderType() != 0) continue;
-            Vec3DInt bv = Vec3DInt
-                .from(ChangeProposal.unpackX(key), ChangeProposal.unpackY(key), ChangeProposal.unpackZ(key));
+            Vec3DInt bv = Vec3DInt.from(
+                    ChangeProposal.unpackX(key), ChangeProposal.unpackY(key), ChangeProposal.unpackZ(key));
             int tint = 0xFFFFFF;
             try {
                 tint = blk.colorMultiplier(mc.theWorld, bv.x(), bv.y(), bv.z());
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
             for (int face = 0; face < 6; face++) {
                 long nk = ChangeProposal.packKey(
-                    bv.x() + GhostRenderer.NX[face],
-                    bv.y() + GhostRenderer.NY[face],
-                    bv.z() + GhostRenderer.NZ[face]);
+                        bv.x() + GhostRenderer.NX[face],
+                        bv.y() + GhostRenderer.NY[face],
+                        bv.z() + GhostRenderer.NZ[face]);
                 if (!proposed.containsKey(nk)) {
                     GhostRenderer.addTexturedFace(t, bv, blk, bm[1], face, tint);
                     if (++batched % 2048 == 0) {

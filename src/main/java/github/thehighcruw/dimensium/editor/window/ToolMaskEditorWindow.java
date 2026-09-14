@@ -4,14 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.window;
 
-import java.util.List;
-
-import net.minecraft.block.Block;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.init.Blocks;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.DimensiumConfig;
@@ -47,6 +39,12 @@ import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
 import imgui.type.ImInt;
 import imgui.type.ImString;
+import java.util.List;
+import net.minecraft.block.Block;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.init.Blocks;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 
 @SideOnly(Side.CLIENT)
 public class ToolMaskEditorWindow extends ToggleableWindow {
@@ -107,8 +105,8 @@ public class ToolMaskEditorWindow extends ToggleableWindow {
         ToolMaskRegistry registry = ToolMaskRegistry.INSTANCE;
         List<ToolMask> all = registry.allMasks();
 
-        String currentName = editingMask != null ? editingMask.getName()
-            : I18n.format("dimensium.mask.editor.select_prompt");
+        String currentName =
+                editingMask != null ? editingMask.getName() : I18n.format("dimensium.mask.editor.select_prompt");
         ImGui.setNextItemWidth(200f * scale);
         if (ImGui.beginCombo("##mask_select", currentName)) {
             if (ImGui.isWindowAppearing()) {
@@ -120,14 +118,12 @@ public class ToolMaskEditorWindow extends ToggleableWindow {
                 maskSearchFocusPending = false;
             }
             ImGui.setNextItemWidth(-1f);
-            ImGui
-                .inputTextWithHint("##mask_search", I18n.format("dimensium.mask.editor.search_hint"), maskSearchFilter);
-            String filter = maskSearchFilter.get()
-                .toLowerCase(java.util.Locale.ROOT);
+            ImGui.inputTextWithHint(
+                    "##mask_search", I18n.format("dimensium.mask.editor.search_hint"), maskSearchFilter);
+            String filter = maskSearchFilter.get().toLowerCase(java.util.Locale.ROOT);
             for (ToolMask m : all) {
-                if (!filter.isEmpty() && !m.getName()
-                    .toLowerCase(java.util.Locale.ROOT)
-                    .contains(filter)) continue;
+                if (!filter.isEmpty()
+                        && !m.getName().toLowerCase(java.util.Locale.ROOT).contains(filter)) continue;
                 boolean sel = (m == editingMask);
                 if (ImGui.selectable(m.getName(), sel)) {
                     editingMask = m;
@@ -147,8 +143,7 @@ public class ToolMaskEditorWindow extends ToggleableWindow {
             ImGui.setNextItemWidth(180f * scale);
             ImGui.inputText("##new_mask_name", newMaskName);
             if (ImGui.button(I18n.format("dimensium.mask.editor.create"))) {
-                String name = newMaskName.get()
-                    .trim();
+                String name = newMaskName.get().trim();
                 if (!name.isEmpty()) {
                     editingMask = registry.createMask(name);
                     selectedNode = null;
@@ -197,9 +192,20 @@ public class ToolMaskEditorWindow extends ToggleableWindow {
         renderNodeToolbar(scale);
     }
 
-    private static final String[] PALETTE_LOGIC = { "OR", "AND", "NOT", "OFFSET" };
-    private static final String[] PALETTE_MASKS = { "Block", "Above", "Below", "Near", "Neighbour", "Adjacent", "Y",
-        "Angle", "In Selection", "Can See Sky", "Surface" };
+    private static final String[] PALETTE_LOGIC = {"OR", "AND", "NOT", "OFFSET"};
+    private static final String[] PALETTE_MASKS = {
+        "Block",
+        "Above",
+        "Below",
+        "Near",
+        "Neighbour",
+        "Adjacent",
+        "Y",
+        "Angle",
+        "In Selection",
+        "Can See Sky",
+        "Surface"
+    };
 
     private void renderPalette() {
         ImGui.textDisabled(I18n.format("dimensium.mask.editor.palette_logic"));
@@ -292,19 +298,20 @@ public class ToolMaskEditorWindow extends ToggleableWindow {
             cx += iconSize + pad;
         }
         ImGui.getWindowDrawList()
-            .addText(
-                cx,
-                cy + (rowH - ImGui.getTextLineHeight()) * 0.5f,
-                ImGui.colorConvertFloat4ToU32(1f, 1f, 1f, 1f),
-                node.displayName());
+                .addText(
+                        cx,
+                        cy + (rowH - ImGui.getTextLineHeight()) * 0.5f,
+                        ImGui.colorConvertFloat4ToU32(1f, 1f, 1f, 1f),
+                        node.displayName());
     }
 
     private static boolean isBlockBased(MaskNode node) {
-        return node instanceof BlockMask || node instanceof AboveMask
-            || node instanceof BelowMask
-            || node instanceof NearMask
-            || node instanceof NeighbourMask
-            || node instanceof AdjacentMask;
+        return node instanceof BlockMask
+                || node instanceof AboveMask
+                || node instanceof BelowMask
+                || node instanceof NearMask
+                || node instanceof NeighbourMask
+                || node instanceof AdjacentMask;
     }
 
     private static int getBlockId(MaskNode node) {
@@ -436,7 +443,7 @@ public class ToolMaskEditorWindow extends ToggleableWindow {
             dragNode = node;
             dragNodeParentList = parentList;
             dragNodeIndex = indexInParent;
-            ImGui.setDragDropPayload("MASK_NODE", new byte[] { 1 });
+            ImGui.setDragDropPayload("MASK_NODE", new byte[] {1});
             ImGui.text(node.displayName());
             ImGui.endDragDropSource();
         }
@@ -621,8 +628,7 @@ public class ToolMaskEditorWindow extends ToggleableWindow {
     }
 
     private void renderYEditor(YMask m, float w) {
-        String opLabel = m.displayName()
-            .split(" ")[1];
+        String opLabel = m.displayName().split(" ")[1];
         if (ImGui.button(opLabel + "##yop")) {
             m.op = m.nextOp();
         }
@@ -633,10 +639,10 @@ public class ToolMaskEditorWindow extends ToggleableWindow {
     }
 
     private void renderAngleEditor(AngleMask m, float w) {
-        float[] angle = { m.angle };
+        float[] angle = {m.angle};
         ImGui.setNextItemWidth(w);
         if (ImGui.sliderFloat("Angle##ang", angle, 0f, 90f)) m.angle = angle[0];
-        float[] range = { m.range };
+        float[] range = {m.range};
         ImGui.setNextItemWidth(w);
         if (ImGui.sliderFloat("Range##ang", range, 0f, 45f)) m.range = range[0];
     }

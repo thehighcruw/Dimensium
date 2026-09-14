@@ -4,9 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.tool.painting;
 
-import net.minecraft.client.resources.I18n;
-import net.minecraft.item.ItemStack;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.overlay.OverlayRenderer;
@@ -14,6 +11,8 @@ import github.thehighcruw.dimensium.editor.tool.state.PaletteState;
 import github.thehighcruw.dimensium.editor.window.imgui.DeferredItemRender;
 import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
 import imgui.ImGui;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.item.ItemStack;
 
 @SideOnly(Side.CLIENT)
 public class MultiPaletteSection {

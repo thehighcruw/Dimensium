@@ -4,11 +4,10 @@
  */
 package github.thehighcruw.dimensium.editor.window.imgui;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import java.util.ArrayList;
+import java.util.List;
 
 @SideOnly(Side.CLIENT)
 public class ImGuiWindowRegistry {

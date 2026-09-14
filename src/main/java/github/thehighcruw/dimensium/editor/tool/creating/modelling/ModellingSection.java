@@ -4,8 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.tool.creating.modelling;
 
-import net.minecraft.client.resources.I18n;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.tool.ToolSection;
@@ -15,6 +13,7 @@ import imgui.ImGui;
 import imgui.flag.ImGuiCol;
 import imgui.type.ImBoolean;
 import imgui.type.ImInt;
+import net.minecraft.client.resources.I18n;
 
 @SideOnly(Side.CLIENT)
 public class ModellingSection implements ToolSection {
@@ -47,8 +46,8 @@ public class ModellingSection implements ToolSection {
         String[] pasteModeLabels = new String[pasteModes.length];
         for (int i = 0; i < pasteModes.length; i++) pasteModeLabels[i] = I18n.format(pasteModes[i].label);
         pasteModeIdx.set(state.pasteMode.ordinal());
-        if (ImGui
-            .combo(I18n.format("dimensium.ui.modelling.paste_mode") + "##mod_paste", pasteModeIdx, pasteModeLabels)) {
+        if (ImGui.combo(
+                I18n.format("dimensium.ui.modelling.paste_mode") + "##mod_paste", pasteModeIdx, pasteModeLabels)) {
             state.pasteMode = pasteModes[pasteModeIdx.get()];
         }
 
@@ -63,14 +62,10 @@ public class ModellingSection implements ToolSection {
             ImGui.separator();
             ImGui.dummy(0f, 2f);
             ImGui.text(I18n.format("dimensium.ui.modelling.selected_point"));
-            ImGui.textDisabled(
-                selPt.pos()
-                    .x() + ", "
-                    + selPt.pos()
-                        .y()
+            ImGui.textDisabled(selPt.pos().x() + ", "
+                    + selPt.pos().y()
                     + ", "
-                    + selPt.pos()
-                        .z());
+                    + selPt.pos().z());
             ImGui.pushStyleColor(ImGuiCol.Button, 0.65f, 0.10f, 0.10f, 1.0f);
             ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.80f, 0.20f, 0.20f, 1.0f);
             ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0.50f, 0.05f, 0.05f, 1.0f);

@@ -4,19 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.window.viewport.world;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-
-import javax.annotation.Nonnull;
-
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.util.MovingObjectPosition;
-
-import org.lwjgl.input.Mouse;
-import org.lwjgl.opengl.GL11;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.DimensiumConfig;
@@ -32,6 +19,15 @@ import github.thehighcruw.dimensium.shared.KeyConstants;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import javax.annotation.Nonnull;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.util.MovingObjectPosition;
+import org.lwjgl.input.Mouse;
+import org.lwjgl.opengl.GL11;
 
 @SideOnly(Side.CLIENT)
 public class BrushPreviewRenderer {
@@ -90,11 +86,12 @@ public class BrushPreviewRenderer {
                 // Non-smooth tools: pulsating fill + crease using relative coords.
                 HashSet<Long> affectedSet = new HashSet<>();
                 for (int dx = -sx; dx <= sx; dx++)
-                    for (int dy = -sy; dy <= sy; dy++) for (int dz = -sx; dz <= sx; dz++) {
-                        if (!inBrushShape(shape, dx, dy, dz, sx, sy, sx)) continue;
-                        if (renderer.isBlockAffected(mc, bx + dx, by + dy, bz + dz))
-                            affectedSet.add(SelectionRenderer.lPack(dx + sx, dy + sy, dz + sx));
-                    }
+                    for (int dy = -sy; dy <= sy; dy++)
+                        for (int dz = -sx; dz <= sx; dz++) {
+                            if (!inBrushShape(shape, dx, dy, dz, sx, sy, sx)) continue;
+                            if (renderer.isBlockAffected(mc, bx + dx, by + dy, bz + dz))
+                                affectedSet.add(SelectionRenderer.lPack(dx + sx, dy + sy, dz + sx));
+                        }
 
                 if (!affectedSet.isEmpty()) {
                     float pulse = 0.22f + 0.13f * (float) Math.sin(System.currentTimeMillis() / 180.0);
@@ -111,9 +108,9 @@ public class BrushPreviewRenderer {
                         Vec3DInt world = Vec3DInt.from(lx + bx - sx, ly + by - sy, lz + bz - sx);
                         for (int face = 0; face < 6; face++) {
                             long nk = SelectionRenderer.lPack(
-                                lx + GhostRenderer.NX[face],
-                                ly + GhostRenderer.NY[face],
-                                lz + GhostRenderer.NZ[face]);
+                                    lx + GhostRenderer.NX[face],
+                                    ly + GhostRenderer.NY[face],
+                                    lz + GhostRenderer.NZ[face]);
                             if (!affectedSet.contains(nk)) {
                                 GhostRenderer.addSingleFace(t, world, face);
                                 if (++batched % 2048 == 0) {
@@ -160,8 +157,9 @@ public class BrushPreviewRenderer {
                 Tessellator tf = Tessellator.instance;
                 for (int faceDir = 0; faceDir < 6; faceDir++) {
                     // dot(faceNormal, eyeDir): faces toward player are bright, away are dim
-                    float dot = (float) (ecx * GhostRenderer.NX[faceDir] + ecy * GhostRenderer.NY[faceDir]
-                        + ecz * GhostRenderer.NZ[faceDir]);
+                    float dot = (float) (ecx * GhostRenderer.NX[faceDir]
+                            + ecy * GhostRenderer.NY[faceDir]
+                            + ecz * GhostRenderer.NZ[faceDir]);
                     float brightness = 0.25f + 0.75f * Math.max(0f, dot);
                     GL11.glColor4f(brightness, brightness, brightness, 0.12f);
                     tf.startDrawingQuads();
@@ -171,9 +169,9 @@ public class BrushPreviewRenderer {
                         int ly = (int) ((pk >> 13) & 0x1FFF) - 4096;
                         int lz = (int) (pk & 0x1FFF) - 4096;
                         long nk = SelectionRenderer.lPack(
-                            lx + GhostRenderer.NX[faceDir],
-                            ly + GhostRenderer.NY[faceDir],
-                            lz + GhostRenderer.NZ[faceDir]);
+                                lx + GhostRenderer.NX[faceDir],
+                                ly + GhostRenderer.NY[faceDir],
+                                lz + GhostRenderer.NZ[faceDir]);
                         if (!cachedBrushSet.contains(nk)) {
                             GhostRenderer.addSingleFace(tf, Vec3DInt.from(lx, ly, lz), faceDir);
                             if (++batched % 2048 == 0) {
@@ -202,10 +200,11 @@ public class BrushPreviewRenderer {
 
     private float[] getBrushWireframe(BrushShape shape, int sx, int sy, int sz) {
         float thr = DimensiumConfig.shapeThreshold;
-        if (shape == cachedBrushShape && sx == cachedBrushSize
-            && sy == cachedBrushSizeY
-            && sz == cachedBrushSizeZ
-            && thr == cachedThreshold) return cachedBrushWire;
+        if (shape == cachedBrushShape
+                && sx == cachedBrushSize
+                && sy == cachedBrushSizeY
+                && sz == cachedBrushSizeZ
+                && thr == cachedThreshold) return cachedBrushWire;
         cachedBrushShape = shape;
         cachedBrushSize = sx;
         cachedBrushSizeY = sy;
@@ -218,9 +217,11 @@ public class BrushPreviewRenderer {
 
     private static HashSet<Long> buildBrushSet(BrushShape shape, int sx, int sy, int sz) {
         HashSet<Long> set = new HashSet<>();
-        for (int dx = -sx; dx <= sx; dx++) for (int dy = -sy; dy <= sy; dy++)
-            for (int dz = -sz; dz <= sz; dz++) if (inBrushShape(shape, dx, dy, dz, sx, sy, sz))
-                set.add(SelectionRenderer.lPack(dx + sx, dy + sy, dz + sz));
+        for (int dx = -sx; dx <= sx; dx++)
+            for (int dy = -sy; dy <= sy; dy++)
+                for (int dz = -sz; dz <= sz; dz++)
+                    if (inBrushShape(shape, dx, dy, dz, sx, sy, sz))
+                        set.add(SelectionRenderer.lPack(dx + sx, dy + sy, dz + sz));
         return set.size() > BRUSH_VOXEL_MAX ? null : set;
     }
 
@@ -242,13 +243,15 @@ public class BrushPreviewRenderer {
         return ((long) (x + ABS_OFFSET) << 40) | ((long) (y + ABS_OFFSET) << 20) | (z + ABS_OFFSET);
     }
 
-    private static void collectSolidAbsolute(Minecraft mc, BrushShape shape, int cx, int cy, int cz, int sx, int sy,
-        int sz, HashSet<Long> out) {
-        for (int dx = -sx; dx <= sx; dx++) for (int dy = -sy; dy <= sy; dy++) for (int dz = -sz; dz <= sz; dz++) {
-            if (!inBrushShape(shape, dx, dy, dz, sx, sy, sz)) continue;
-            if (mc.theWorld.getBlock(cx + dx, cy + dy, cz + dz) != net.minecraft.init.Blocks.air)
-                out.add(wPack(cx + dx, cy + dy, cz + dz));
-        }
+    private static void collectSolidAbsolute(
+            Minecraft mc, BrushShape shape, int cx, int cy, int cz, int sx, int sy, int sz, HashSet<Long> out) {
+        for (int dx = -sx; dx <= sx; dx++)
+            for (int dy = -sy; dy <= sy; dy++)
+                for (int dz = -sz; dz <= sz; dz++) {
+                    if (!inBrushShape(shape, dx, dy, dz, sx, sy, sz)) continue;
+                    if (mc.theWorld.getBlock(cx + dx, cy + dy, cz + dz) != net.minecraft.init.Blocks.air)
+                        out.add(wPack(cx + dx, cy + dy, cz + dz));
+                }
     }
 
     private static float[] creaseWireframeAbsolute(HashSet<Long> set) {

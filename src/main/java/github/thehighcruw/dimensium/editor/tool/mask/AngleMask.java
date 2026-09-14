@@ -18,8 +18,8 @@ public class AngleMask extends MaskNode {
 
     @Override
     public boolean test(World world, int x, int y, int z) {
-        int[] dxs = { 1, -1, 0, 0 };
-        int[] dzs = { 0, 0, 1, -1 };
+        int[] dxs = {1, -1, 0, 0};
+        int[] dzs = {0, 0, 1, -1};
         int maxDiff = 0;
         for (int i = 0; i < 4; i++) {
             int nx = x + dxs[i], nz = z + dzs[i];

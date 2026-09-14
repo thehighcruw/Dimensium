@@ -4,26 +4,22 @@
  */
 package github.thehighcruw.dimensium.editor.tool.creating.modelling;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import net.minecraft.item.ItemStack;
-
 import com.github.bsideup.jabel.Desugar;
-
 import github.thehighcruw.dimensium.editor.tool.gizmo.WithAxisTranslationGizmo;
 import github.thehighcruw.dimensium.editor.tool.gizmo.WithPlaneTranslationGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.PlaneTranslationGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.TranslationGizmo;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
+import java.util.ArrayList;
+import java.util.List;
+import net.minecraft.item.ItemStack;
 
 public class ModellingToolState implements WithAxisTranslationGizmo, WithPlaneTranslationGizmo {
 
     public static final ModellingToolState INSTANCE = new ModellingToolState();
 
     public enum Mode {
-
         CONVEX_HULL("dimensium.modelling.mode.convex_hull"),
         TRIANGLE_STRIP("dimensium.modelling.mode.triangle_strip"),
         TRIANGLE_FAN("dimensium.modelling.mode.triangle_fan"),
@@ -44,7 +40,6 @@ public class ModellingToolState implements WithAxisTranslationGizmo, WithPlaneTr
     }
 
     public enum PasteMode {
-
         PASTE_COPY("dimensium.modelling.paste.paste_copy"),
         KEEP_EXISTING("dimensium.modelling.paste.keep_existing");
 
@@ -93,8 +88,7 @@ public class ModellingToolState implements WithAxisTranslationGizmo, WithPlaneTr
 
     public void addPoint(Vec3DInt pos) {
         ensureRow();
-        rows.get(currentRowIndex)
-            .add(new ModelPoint(pos));
+        rows.get(currentRowIndex).add(new ModelPoint(pos));
         invalidate();
     }
 
@@ -163,7 +157,7 @@ public class ModellingToolState implements WithAxisTranslationGizmo, WithPlaneTr
         }
         ChangeProposal p = ChangeProposal.forPreview();
         for (int[] b : blocks) {
-            p.proposed.put(ChangeProposal.packKey(b[0], b[1], b[2]), new int[] { b[3], b[4] });
+            p.proposed.put(ChangeProposal.packKey(b[0], b[1], b[2]), new int[] {b[3], b[4]});
         }
         preview = p;
     }
@@ -171,34 +165,27 @@ public class ModellingToolState implements WithAxisTranslationGizmo, WithPlaneTr
     private String buildKey(ItemStack activeBlock) {
         StringBuilder sb = new StringBuilder();
         sb.append(mode.ordinal())
-            .append(',')
-            .append(pasteMode.ordinal())
-            .append(',')
-            .append(offsetTargetPoint)
-            .append(',');
-        if (activeBlock != null) {
-            sb.append(
-                net.minecraft.block.Block
-                    .getIdFromBlock(net.minecraft.block.Block.getBlockFromItem(activeBlock.getItem())))
                 .append(',')
-                .append(activeBlock.getItemDamage());
+                .append(pasteMode.ordinal())
+                .append(',')
+                .append(offsetTargetPoint)
+                .append(',');
+        if (activeBlock != null) {
+            sb.append(net.minecraft.block.Block.getIdFromBlock(
+                            net.minecraft.block.Block.getBlockFromItem(activeBlock.getItem())))
+                    .append(',')
+                    .append(activeBlock.getItemDamage());
         }
         sb.append('|');
         for (List<ModelPoint> row : rows) {
             sb.append('R');
             for (ModelPoint p : row) {
-                sb.append(
-                    p.pos()
-                        .x())
-                    .append(',')
-                    .append(
-                        p.pos()
-                            .y())
-                    .append(',')
-                    .append(
-                        p.pos()
-                            .z())
-                    .append(';');
+                sb.append(p.pos().x())
+                        .append(',')
+                        .append(p.pos().y())
+                        .append(',')
+                        .append(p.pos().z())
+                        .append(';');
             }
         }
         return sb.toString();

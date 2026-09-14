@@ -12,7 +12,6 @@ public class ShatterToolState {
     public static final ShatterToolState INSTANCE = new ShatterToolState();
 
     public enum AxisMode {
-
         XYZ("dimensium.shatter.axis.xyz"),
         X("dimensium.shatter.axis.x"),
         Y("dimensium.shatter.axis.y"),

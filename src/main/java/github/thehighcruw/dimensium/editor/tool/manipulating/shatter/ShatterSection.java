@@ -4,10 +4,7 @@
  */
 package github.thehighcruw.dimensium.editor.tool.manipulating.shatter;
 
-import net.minecraft.client.resources.I18n;
-
 import com.google.common.base.Objects;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.tool.ToolSection;
@@ -20,6 +17,7 @@ import github.thehighcruw.dimensium.editor.tool.painting.noise.NoiseParams;
 import imgui.ImGui;
 import imgui.type.ImBoolean;
 import imgui.type.ImInt;
+import net.minecraft.client.resources.I18n;
 
 @SideOnly(Side.CLIENT)
 public class ShatterSection implements ToolSection {
@@ -49,8 +47,8 @@ public class ShatterSection implements ToolSection {
         ImGui.separator();
 
         crackWidth[0] = state.crackWidth;
-        if (ImGui
-            .sliderFloat(I18n.format("dimensium.ui.shatter.crack_width") + "##shat_crack", crackWidth, 0.0f, 1.0f)) {
+        if (ImGui.sliderFloat(
+                I18n.format("dimensium.ui.shatter.crack_width") + "##shat_crack", crackWidth, 0.0f, 1.0f)) {
             state.crackWidth = crackWidth[0];
         }
 
@@ -76,13 +74,13 @@ public class ShatterSection implements ToolSection {
         ImGui.text(I18n.format("dimensium.ui.noise.preview"));
         ImGui.separator();
 
-        if (noisePreviewTex == -1 || !Objects.equal(cachedParams, state.noiseParams)
-            || state.crackWidth != cachedCrackWidth) {
+        if (noisePreviewTex == -1
+                || !Objects.equal(cachedParams, state.noiseParams)
+                || state.crackWidth != cachedCrackWidth) {
             noisePreviewTex = NoisePreviewRenderer.rerenderNoisePreview(state.noiseParams, noisePreviewTex);
 
             cachedParams = state.noiseParams;
             cachedCrackWidth = state.crackWidth;
         }
     }
-
 }

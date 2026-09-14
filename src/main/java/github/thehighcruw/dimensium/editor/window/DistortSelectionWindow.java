@@ -4,8 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.window;
 
-import net.minecraft.client.resources.I18n;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.tool.manipulating.distort.DistortToolState;
@@ -17,16 +15,17 @@ import github.thehighcruw.dimensium.shared.SelectionTransforms;
 import imgui.ImGui;
 import imgui.flag.ImGuiCond;
 import imgui.type.ImBoolean;
+import net.minecraft.client.resources.I18n;
 
 @SideOnly(Side.CLIENT)
 public class DistortSelectionWindow extends ToggleableWindow {
 
     public static final DistortSelectionWindow INSTANCE = new DistortSelectionWindow();
 
-    private final float[] scale = { 10f };
-    private final float[] distX = { 3f };
-    private final float[] distY = { 3f };
-    private final float[] distZ = { 3f };
+    private final float[] scale = {10f};
+    private final float[] distX = {3f};
+    private final float[] distY = {3f};
+    private final float[] distZ = {3f};
     private long seed = 0L;
 
     private static final String WINDOW_ID = "###distort_selection_window";
@@ -52,10 +51,7 @@ public class DistortSelectionWindow extends ToggleableWindow {
 
         float uiScale = ImGuiManager.INSTANCE.getUIScale();
         float w = 380f * uiScale;
-        float vpW = ImGui.getIO()
-            .getDisplaySizeX(),
-            vpH = ImGui.getIO()
-                .getDisplaySizeY();
+        float vpW = ImGui.getIO().getDisplaySizeX(), vpH = ImGui.getIO().getDisplaySizeY();
         ImGui.setNextWindowPos((vpW - w) * 0.5f, vpH * 0.35f, ImGuiCond.Appearing);
         ImGui.setNextWindowSize(w, 240f * uiScale, ImGuiCond.Appearing);
 
@@ -68,13 +64,11 @@ public class DistortSelectionWindow extends ToggleableWindow {
 
             float windowW = ImGui.getWindowWidth();
             float btnW = 70f * uiScale;
-            float footerH = ImGui.getStyle()
-                .getItemSpacingY() + 1f
-                + ImGui.getStyle()
-                    .getItemSpacingY()
-                + ImGui.getFrameHeight()
-                + ImGui.getStyle()
-                    .getWindowPaddingY();
+            float footerH = ImGui.getStyle().getItemSpacingY()
+                    + 1f
+                    + ImGui.getStyle().getItemSpacingY()
+                    + ImGui.getFrameHeight()
+                    + ImGui.getStyle().getWindowPaddingY();
             float childH = Math.max(0f, ImGui.getContentRegionAvailY() - footerH);
             ImGui.beginChild("##distort_body", 0f, childH);
 
@@ -95,28 +89,23 @@ public class DistortSelectionWindow extends ToggleableWindow {
 
             ImGui.spacing();
             if (ImGui.button(I18n.format("dimensium.ui.distort.randomize_seed") + "##dsel_rnd")) {
-                seed = java.util.concurrent.ThreadLocalRandom.current()
-                    .nextLong();
+                seed = java.util.concurrent.ThreadLocalRandom.current().nextLong();
             }
             ImGui.sameLine();
-            ImGui.textDisabled(
-                Long.toHexString(seed)
-                    .toUpperCase());
+            ImGui.textDisabled(Long.toHexString(seed).toUpperCase());
 
             ImGui.endChild();
 
             ImGui.separator();
-            ImGui.setCursorPosX(
-                windowW - ImGui.getStyle()
-                    .getWindowPaddingX() - btnW);
+            ImGui.setCursorPosX(windowW - ImGui.getStyle().getWindowPaddingX() - btnW);
             if (!hasSel) ImGui.beginDisabled();
             if (ImGui.button(I18n.format("dimensium.select.apply") + "##dsel_apply", btnW, 0)) {
                 SelectionState sel = SelectionState.INSTANCE;
                 if (sel.hasSelection()) {
                     sel.applyOp(
-                        SelectionTransforms
-                            .distort(sel.getSelectedBlocks(), scale[0], seed, distX[0], distY[0], distZ[0]),
-                        BooleanOp.REPLACE);
+                            SelectionTransforms.distort(
+                                    sel.getSelectedBlocks(), scale[0], seed, distX[0], distY[0], distZ[0]),
+                            BooleanOp.REPLACE);
                 }
                 close();
             }

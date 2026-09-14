@@ -4,14 +4,13 @@
  */
 package github.thehighcruw.dimensium.editor.tool.manipulating.roughen;
 
-import net.minecraft.client.resources.I18n;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.tool.ToolSection;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushSection;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushState;
 import imgui.ImGui;
+import net.minecraft.client.resources.I18n;
 
 @SideOnly(Side.CLIENT)
 public class RoughenSection implements ToolSection {

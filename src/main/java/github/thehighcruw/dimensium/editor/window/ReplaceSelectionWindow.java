@@ -4,15 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.window;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import net.minecraft.block.Block;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.init.Blocks;
-import net.minecraft.item.ItemStack;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.overlay.OverlayRenderer;
@@ -25,6 +16,13 @@ import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import imgui.ImGui;
 import imgui.flag.ImGuiCond;
 import imgui.type.ImBoolean;
+import java.util.ArrayList;
+import java.util.List;
+import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.init.Blocks;
+import net.minecraft.item.ItemStack;
 
 @SideOnly(Side.CLIENT)
 public class ReplaceSelectionWindow extends ToggleableWindow {
@@ -55,10 +53,7 @@ public class ReplaceSelectionWindow extends ToggleableWindow {
 
         float scale = ImGuiManager.INSTANCE.getUIScale();
         float w = 340f * scale;
-        float vpW = ImGui.getIO()
-            .getDisplaySizeX(),
-            vpH = ImGui.getIO()
-                .getDisplaySizeY();
+        float vpW = ImGui.getIO().getDisplaySizeX(), vpH = ImGui.getIO().getDisplaySizeY();
         ImGui.setNextWindowPos((vpW - w) * 0.5f, vpH * 0.3f, ImGuiCond.Appearing);
         ImGui.setNextWindowSize(w, 280f * scale, ImGuiCond.Appearing);
 
@@ -72,13 +67,11 @@ public class ReplaceSelectionWindow extends ToggleableWindow {
 
             float windowW = ImGui.getWindowWidth();
             float btnW = 70f * scale;
-            float footerH = ImGui.getStyle()
-                .getItemSpacingY() + 1f
-                + ImGui.getStyle()
-                    .getItemSpacingY()
-                + ImGui.getFrameHeight()
-                + ImGui.getStyle()
-                    .getWindowPaddingY();
+            float footerH = ImGui.getStyle().getItemSpacingY()
+                    + 1f
+                    + ImGui.getStyle().getItemSpacingY()
+                    + ImGui.getFrameHeight()
+                    + ImGui.getStyle().getWindowPaddingY();
             float childH = Math.max(0f, ImGui.getContentRegionAvailY() - footerH);
             ImGui.beginChild("##replace_body", 0f, childH);
 
@@ -99,9 +92,7 @@ public class ReplaceSelectionWindow extends ToggleableWindow {
                 ImGui.text(findBlock.getDisplayName());
             } else {
                 if (ImGui.button(
-                    I18n.format("dimensium.op.replace.no_block") + "##rep_find_pick",
-                    cellSize * 2f,
-                    cellSize)) {
+                        I18n.format("dimensium.op.replace.no_block") + "##rep_find_pick", cellSize * 2f, cellSize)) {
                     OverlayRenderer.picker.open(stack -> findBlock = stack);
                 }
             }
@@ -116,9 +107,7 @@ public class ReplaceSelectionWindow extends ToggleableWindow {
                 ImGui.text(replaceBlock.getDisplayName());
             } else {
                 if (ImGui.button(
-                    I18n.format("dimensium.op.replace.no_block") + "##rep_repl_pick",
-                    cellSize * 2f,
-                    cellSize)) {
+                        I18n.format("dimensium.op.replace.no_block") + "##rep_repl_pick", cellSize * 2f, cellSize)) {
                     OverlayRenderer.picker.open(stack -> replaceBlock = stack);
                 }
             }
@@ -132,9 +121,7 @@ public class ReplaceSelectionWindow extends ToggleableWindow {
             ImGui.endChild();
 
             ImGui.separator();
-            ImGui.setCursorPosX(
-                windowW - ImGui.getStyle()
-                    .getWindowPaddingX() - btnW);
+            ImGui.setCursorPosX(windowW - ImGui.getStyle().getWindowPaddingX() - btnW);
             if (!canApply) ImGui.beginDisabled();
             if (ImGui.button(I18n.format("dimensium.op.apply") + "##rep_apply", btnW, 0)) {
                 applyReplace();
@@ -168,7 +155,7 @@ public class ReplaceSelectionWindow extends ToggleableWindow {
             Block worldBlock = world.getBlock(x, y, z);
             if (worldBlock != findB) continue;
             if (exactMeta && world.getBlockMetadata(x, y, z) != findMeta) continue;
-            ops.add(new int[] { x, y, z, replaceId, replaceMeta });
+            ops.add(new int[] {x, y, z, replaceId, replaceMeta});
         }
         BlockSender.sendChunked(ops, I18n.format("dimensium.action.op.replace"));
     }

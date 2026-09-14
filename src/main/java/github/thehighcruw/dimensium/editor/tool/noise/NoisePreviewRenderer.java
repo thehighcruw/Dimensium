@@ -4,14 +4,12 @@
  */
 package github.thehighcruw.dimensium.editor.tool.noise;
 
+import github.thehighcruw.dimensium.editor.tool.painting.noise.NoiseParams;
+import imgui.ImGui;
 import java.nio.ByteBuffer;
-
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
-
-import github.thehighcruw.dimensium.editor.tool.painting.noise.NoiseParams;
-import imgui.ImGui;
 
 public class NoisePreviewRenderer {
 
@@ -28,9 +26,7 @@ public class NoisePreviewRenderer {
                 float wy = py * 50f / sz;
                 float v = NoiseSampler.sample2D(p, wx, wy);
                 byte b = (byte) (int) (v * 255f);
-                buf.put(b)
-                    .put(b)
-                    .put(b);
+                buf.put(b).put(b).put(b);
             }
         }
 
@@ -49,5 +45,4 @@ public class NoisePreviewRenderer {
 
         return noisePreviewTex;
     }
-
 }

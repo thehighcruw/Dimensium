@@ -4,9 +4,8 @@
  */
 package github.thehighcruw.dimensium.shared.util;
 
-import org.lwjgl.input.Keyboard;
-
 import github.thehighcruw.dimensium.Dimensium;
+import org.lwjgl.input.Keyboard;
 
 public final class UIUtils {
 

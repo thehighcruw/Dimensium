@@ -4,18 +4,16 @@
  */
 package github.thehighcruw.dimensium.editor.tool.creating.path;
 
+import github.thehighcruw.dimensium.editor.tool.creating.rock.PathToolState;
+import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.util.BlockUtils;
+import github.thehighcruw.dimensium.tool.ChangeProposal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-
 import net.minecraft.item.ItemStack;
-
-import github.thehighcruw.dimensium.editor.tool.creating.rock.PathToolState;
-import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
-import github.thehighcruw.dimensium.shared.util.BlockUtils;
-import github.thehighcruw.dimensium.tool.ChangeProposal;
 
 public class PathMath {
 
@@ -37,11 +35,12 @@ public class PathMath {
                 PathToolState.PathPoint a = pts.get(seg);
                 PathToolState.PathPoint b = pts.get((seg + 1) % pts.size());
 
-                List<SplinePoint> centerline = switch (state.curveType) {
-                    case BRESENHAM, CATMULL_ROM, BEZIER -> bresenhamSegment(a, b);
-                    case DDA -> densify(ddaSegment(a, b));
-                    case CATENARY -> densify(catenarySegment(a, b, state.catenarySlack));
-                };
+                List<SplinePoint> centerline =
+                        switch (state.curveType) {
+                            case BRESENHAM, CATMULL_ROM, BEZIER -> bresenhamSegment(a, b);
+                            case DDA -> densify(ddaSegment(a, b));
+                            case CATENARY -> densify(catenarySegment(a, b, state.catenarySlack));
+                        };
 
                 for (SplinePoint pos : centerline) {
                     int cx = blockCoord(pos.x(), state.curveType);
@@ -58,33 +57,29 @@ public class PathMath {
         for (Map.Entry<Long, int[]> e : out.entrySet()) {
             long key = e.getKey();
             int[] bm = e.getValue();
-            result.add(
-                new int[] { ChangeProposal.unpackX(key), ChangeProposal.unpackY(key), ChangeProposal.unpackZ(key),
-                    bm[0], bm[1] });
+            result.add(new int[] {
+                ChangeProposal.unpackX(key), ChangeProposal.unpackY(key), ChangeProposal.unpackZ(key), bm[0], bm[1]
+            });
         }
         return result;
     }
 
-    private static void applySplinePositions(PathToolState state, ItemStack activeBlock, Map<Long, int[]> out,
-        List<SplinePoint> positions, List<PathToolState.PathPoint> pts) {
+    private static void applySplinePositions(
+            PathToolState state,
+            ItemStack activeBlock,
+            Map<Long, int[]> out,
+            List<SplinePoint> positions,
+            List<PathToolState.PathPoint> pts) {
         if (positions.isEmpty()) return;
         double totalArc = 0;
         for (int i = 1; i < positions.size(); i++) {
-            totalArc += positions.get(i - 1)
-                .pos()
-                .minus(
-                    positions.get(i)
-                        .pos())
-                .length();
+            totalArc += positions.get(i - 1).pos().minus(positions.get(i).pos()).length();
         }
 
         double arcSoFar = 0;
         for (int i = 0; i < positions.size(); i++) {
             SplinePoint pos = positions.get(i);
-            if (i > 0) arcSoFar += positions.get(i - 1)
-                .pos()
-                .minus(pos.pos())
-                .length();
+            if (i > 0) arcSoFar += positions.get(i - 1).pos().minus(pos.pos()).length();
             double globalT = totalArc > 0 ? arcSoFar / totalArc : 0;
 
             // Find segment
@@ -106,8 +101,16 @@ public class PathMath {
     }
 
     /** Returns {blockId, meta} or null if no valid block is available (skip placement). */
-    private static int[] resolveBlock(PathToolState state, ItemStack activeBlock, int segIdx, double t, int wx, int wy,
-        int wz, PathToolState.PathPoint a, PathToolState.PathPoint b) {
+    private static int[] resolveBlock(
+            PathToolState state,
+            ItemStack activeBlock,
+            int segIdx,
+            double t,
+            int wx,
+            int wy,
+            int wz,
+            PathToolState.PathPoint a,
+            PathToolState.PathPoint b) {
         if (!state.hasMultipleBlocks()) {
             return BlockUtils.blockToIdMeta(a.block != null ? a.block : activeBlock);
         }
@@ -131,7 +134,7 @@ public class PathMath {
             }
         }
         return BlockUtils.blockToIdMeta(
-            adjT < 0.5 ? (a.block != null ? a.block : activeBlock) : (b.block != null ? b.block : activeBlock));
+                adjT < 0.5 ? (a.block != null ? a.block : activeBlock) : (b.block != null ? b.block : activeBlock));
     }
 
     public static double voxelHash(int x, int y, int z, long seed) {
@@ -218,8 +221,7 @@ public class PathMath {
 
     static List<SplinePoint> ddaSegment(PathToolState.PathPoint a, PathToolState.PathPoint b) {
         List<SplinePoint> result = new ArrayList<>();
-        Vec3DDouble delta = b.pos.minus(a.pos)
-            .toDouble();
+        Vec3DDouble delta = b.pos.minus(a.pos).toDouble();
         int steps = (int) Math.max(Math.abs(delta.x()), Math.max(Math.abs(delta.y()), Math.abs(delta.z())));
         if (steps == 0) {
             result.add(SplinePoint.of(a.pos.x(), a.pos.y(), a.pos.z(), 0));
@@ -235,11 +237,9 @@ public class PathMath {
     }
 
     static List<SplinePoint> catenarySegment(PathToolState.PathPoint a, PathToolState.PathPoint b, float slack) {
-        Vec3DDouble delta = b.pos.minus(a.pos)
-            .toDouble();
+        Vec3DDouble delta = b.pos.minus(a.pos).toDouble();
         Vec3DDouble origin = a.pos.toDouble();
-        double dHoriz = Vec3DDouble.from(delta.x(), 0, delta.z())
-            .length();
+        double dHoriz = Vec3DDouble.from(delta.x(), 0, delta.z()).length();
         // Estimate arc length by sampling densely first
         int preSamples = 64;
         double arcLen = 0;
@@ -248,9 +248,7 @@ public class PathMath {
             double t = (double) i / preSamples;
             Vec3DDouble base = origin.plus(delta.times(t));
             SplinePoint p = SplinePoint.of(base.x(), base.y() - 4.0 * slack * dHoriz * t * (1 - t), base.z(), t);
-            if (prev != null) arcLen += prev.pos()
-                .minus(p.pos())
-                .length();
+            if (prev != null) arcLen += prev.pos().minus(p.pos()).length();
             prev = p;
         }
         int steps = Math.max(1, (int) Math.ceil(arcLen));
@@ -284,29 +282,24 @@ public class PathMath {
                 p3 = seg + 2 >= n ? pts.get(n - 1) : pts.get(seg + 2);
             }
             Vec3DDouble v0 = p0.pos.toDouble(), v1 = p1.pos.toDouble(), v2 = p2.pos.toDouble(), v3 = p3.pos.toDouble();
-            double segLen = v2.minus(v1)
-                .length();
+            double segLen = v2.minus(v1).length();
             int samples = Math.max(2, (int) (segLen * 2 + 1));
             for (int i = 0; i <= samples; i++) {
                 double t = (double) i / samples;
                 double t2 = t * t, t3 = t2 * t;
                 Vec3DDouble b = v1.times(2)
-                    .plus(
-                        v2.minus(v0)
-                            .times(t))
-                    .plus(
-                        v0.times(2)
-                            .minus(v1.times(5))
-                            .plus(v2.times(4))
-                            .minus(v3)
-                            .times(t2))
-                    .plus(
-                        v0.negate()
-                            .plus(v1.times(3))
-                            .minus(v2.times(3))
-                            .plus(v3)
-                            .times(t3))
-                    .times(0.5);
+                        .plus(v2.minus(v0).times(t))
+                        .plus(v0.times(2)
+                                .minus(v1.times(5))
+                                .plus(v2.times(4))
+                                .minus(v3)
+                                .times(t2))
+                        .plus(v0.negate()
+                                .plus(v1.times(3))
+                                .minus(v2.times(3))
+                                .plus(v3)
+                                .times(t3))
+                        .times(0.5);
                 if (i > 0 || seg == 0) result.add(SplinePoint.of(b.x(), b.y(), b.z(), 0));
             }
         }
@@ -326,9 +319,7 @@ public class PathMath {
         // Estimate control-polygon length to determine sample density
         double polyLen = 0;
         for (int i = 1; i < m; i++) {
-            polyLen += ctrl.get(i).pos.minus(ctrl.get(i - 1).pos)
-                .toDouble()
-                .length();
+            polyLen += ctrl.get(i).pos.minus(ctrl.get(i - 1).pos).toDouble().length();
         }
         int samples = Math.max(m, (int) (polyLen * 2 + 1));
 
@@ -362,15 +353,13 @@ public class PathMath {
         result.add(raw.get(0));
         for (int i = 1; i < raw.size(); i++) {
             SplinePoint a = raw.get(i - 1), b = raw.get(i);
-            Vec3DDouble delta = b.pos()
-                .minus(a.pos());
+            Vec3DDouble delta = b.pos().minus(a.pos());
             double dist = delta.length();
             if (dist > 1.0) {
                 int extra = (int) Math.ceil(dist);
                 for (int j = 1; j <= extra; j++) {
                     double ft = (double) j / extra;
-                    result.add(
-                        SplinePoint.of(
+                    result.add(SplinePoint.of(
                             a.x() + delta.x() * ft,
                             a.y() + delta.y() * ft,
                             a.z() + delta.z() * ft,
@@ -385,10 +374,10 @@ public class PathMath {
 
     static void addSphere(Map<Long, int[]> out, int cx, int cy, int cz, int radius, int blockId, int meta) {
         if (radius <= 0) {
-            out.put(ChangeProposal.packKey(cx, cy, cz), new int[] { blockId, meta });
+            out.put(ChangeProposal.packKey(cx, cy, cz), new int[] {blockId, meta});
             return;
         }
-        int[] bm = new int[] { blockId, meta };
+        int[] bm = new int[] {blockId, meta};
         for (int ox = -radius; ox <= radius; ox++) {
             for (int oy = -radius; oy <= radius; oy++) {
                 for (int oz = -radius; oz <= radius; oz++) {

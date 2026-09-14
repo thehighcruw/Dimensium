@@ -4,8 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.window;
 
-import net.minecraft.client.resources.I18n;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.tool.manipulating.smooth.SmoothToolState;
@@ -17,14 +15,15 @@ import github.thehighcruw.dimensium.shared.SelectionTransforms;
 import imgui.ImGui;
 import imgui.flag.ImGuiCond;
 import imgui.type.ImBoolean;
+import net.minecraft.client.resources.I18n;
 
 @SideOnly(Side.CLIENT)
 public class SmoothSelectionWindow extends ToggleableWindow {
 
     public static final SmoothSelectionWindow INSTANCE = new SmoothSelectionWindow();
 
-    private final int[] strength = { 2 };
-    private final float[] threshold = { 0.5f };
+    private final int[] strength = {2};
+    private final float[] threshold = {0.5f};
 
     private static final String WINDOW_ID = "###smooth_selection_window";
 
@@ -45,10 +44,7 @@ public class SmoothSelectionWindow extends ToggleableWindow {
 
         float uiScale = ImGuiManager.INSTANCE.getUIScale();
         float w = 380f * uiScale;
-        float vpW = ImGui.getIO()
-            .getDisplaySizeX(),
-            vpH = ImGui.getIO()
-                .getDisplaySizeY();
+        float vpW = ImGui.getIO().getDisplaySizeX(), vpH = ImGui.getIO().getDisplaySizeY();
         ImGui.setNextWindowPos((vpW - w) * 0.5f, vpH * 0.35f, ImGuiCond.Appearing);
         ImGui.setNextWindowSize(w, 200f * uiScale, ImGuiCond.Appearing);
 
@@ -61,13 +57,11 @@ public class SmoothSelectionWindow extends ToggleableWindow {
 
             float windowW = ImGui.getWindowWidth();
             float btnW = 70f * uiScale;
-            float footerH = ImGui.getStyle()
-                .getItemSpacingY() + 1f
-                + ImGui.getStyle()
-                    .getItemSpacingY()
-                + ImGui.getFrameHeight()
-                + ImGui.getStyle()
-                    .getWindowPaddingY();
+            float footerH = ImGui.getStyle().getItemSpacingY()
+                    + 1f
+                    + ImGui.getStyle().getItemSpacingY()
+                    + ImGui.getFrameHeight()
+                    + ImGui.getStyle().getWindowPaddingY();
             float childH = Math.max(0f, ImGui.getContentRegionAvailY() - footerH);
             ImGui.beginChild("##smooth_body", 0f, childH);
 
@@ -81,24 +75,19 @@ public class SmoothSelectionWindow extends ToggleableWindow {
             ImGui.sliderInt(I18n.format("dimensium.ui.smooth.strength") + "##ssel_strength", strength, 1, 8);
             ImGui.setNextItemWidth(sliderW);
             ImGui.sliderFloat(
-                I18n.format("dimensium.select.smooth.threshold") + "##ssel_threshold",
-                threshold,
-                0.01f,
-                1f);
+                    I18n.format("dimensium.select.smooth.threshold") + "##ssel_threshold", threshold, 0.01f, 1f);
 
             ImGui.endChild();
 
             ImGui.separator();
-            ImGui.setCursorPosX(
-                windowW - ImGui.getStyle()
-                    .getWindowPaddingX() - btnW);
+            ImGui.setCursorPosX(windowW - ImGui.getStyle().getWindowPaddingX() - btnW);
             if (!hasSel) ImGui.beginDisabled();
             if (ImGui.button(I18n.format("dimensium.select.apply") + "##ssel_apply", btnW, 0)) {
                 SelectionState sel = SelectionState.INSTANCE;
                 if (sel.hasSelection()) {
                     sel.applyOp(
-                        SelectionTransforms.smooth(sel.getSelectedBlocks(), strength[0], threshold[0]),
-                        BooleanOp.REPLACE);
+                            SelectionTransforms.smooth(sel.getSelectedBlocks(), strength[0], threshold[0]),
+                            BooleanOp.REPLACE);
                 }
                 close();
             }

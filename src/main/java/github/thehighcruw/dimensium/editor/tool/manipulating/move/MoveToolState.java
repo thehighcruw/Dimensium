@@ -4,15 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.tool.manipulating.move;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import net.minecraft.block.Block;
-import net.minecraft.init.Blocks;
-import net.minecraft.world.World;
-
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeMath;
 import github.thehighcruw.dimensium.editor.tool.gizmo.WithAxisTranslationGizmo;
 import github.thehighcruw.dimensium.editor.tool.gizmo.WithPlaneTranslationGizmo;
@@ -28,13 +19,20 @@ import github.thehighcruw.dimensium.shared.math.Mat3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import net.minecraft.block.Block;
+import net.minecraft.init.Blocks;
+import net.minecraft.world.World;
 
 /**
  * Client-side state for the Move tool.
  * Owns its own block snapshot — never touches SelectionState.clipboard.
  */
 public class MoveToolState
-    implements WithAxisTranslationGizmo, WithPlaneTranslationGizmo, WithRotationGizmo, WithScalingGizmo {
+        implements WithAxisTranslationGizmo, WithPlaneTranslationGizmo, WithRotationGizmo, WithScalingGizmo {
 
     public static final MoveToolState INSTANCE = new MoveToolState();
 
@@ -114,8 +112,8 @@ public class MoveToolState
      * Re-activate after a confirm with known block data (no world read needed).
      * Avoids the server-packet timing gap.
      */
-    public void activateFromSnapshot(SelectionState sel, Map<Long, SelectionState.BlockData> snap, float newCmX,
-        float newCmY, float newCmZ) {
+    public void activateFromSnapshot(
+            SelectionState sel, Map<Long, SelectionState.BlockData> snap, float newCmX, float newCmY, float newCmZ) {
         cm = Vec3DFloat.from(newCmX, newCmY, newCmZ);
         snapshot = snap;
         currentSnapshotVersion++;
@@ -184,13 +182,13 @@ public class MoveToolState
             int nz = (int) Math.floor(cm.z() + delta.z() + rz);
 
             SelectionState.BlockData bd = e.getValue();
-            blocks.add(new int[] { nx, ny, nz, Block.getIdFromBlock(bd.block()), bd.meta() });
+            blocks.add(new int[] {nx, ny, nz, Block.getIdFromBlock(bd.block()), bd.meta()});
         }
         ghostBlocks = blocks;
 
         ChangeProposal p = ChangeProposal.forPreview();
         for (int[] b : blocks) {
-            p.proposed.put(ChangeProposal.packKey(b[0], b[1], b[2]), new int[] { b[3], b[4] });
+            p.proposed.put(ChangeProposal.packKey(b[0], b[1], b[2]), new int[] {b[3], b[4]});
         }
         preview = p;
     }
@@ -238,7 +236,8 @@ public class MoveToolState
     }
 
     public boolean isAnyGizmoDragging() {
-        return getAxisTranslationGizmo().isDragging() || getPlaneTranslationGizmo().isDragging()
-            || getRotationGizmo().isDragging();
+        return getAxisTranslationGizmo().isDragging()
+                || getPlaneTranslationGizmo().isDragging()
+                || getRotationGizmo().isDragging();
     }
 }

@@ -6,10 +6,9 @@ package github.thehighcruw.dimensium;
 
 import static org.junit.Assert.*;
 
-import org.junit.Test;
-
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushShape;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushUtil;
+import org.junit.Test;
 
 /**
  * Symmetry tests for BrushUtil.inShape (used by all brush-based tools).
@@ -31,29 +30,35 @@ public class BrushShapeSymmetryTest {
 
     private static void assertXSym(BrushShape shape, int sx, int sy, int sz) {
         String tag = shape + " sx=" + sx + " sy=" + sy + " sz=" + sz;
-        for (int dx = -sx; dx <= sx; dx++) for (int dy = -sy; dy <= sy; dy++) for (int dz = -sz; dz <= sz; dz++) {
-            boolean a = s(shape, dx, dy, dz, sx, sy, sz);
-            boolean b = s(shape, -dx, dy, dz, sx, sy, sz);
-            if (a != b) fail(tag + " X-sym broken at (" + dx + "," + dy + "," + dz + ")");
-        }
+        for (int dx = -sx; dx <= sx; dx++)
+            for (int dy = -sy; dy <= sy; dy++)
+                for (int dz = -sz; dz <= sz; dz++) {
+                    boolean a = s(shape, dx, dy, dz, sx, sy, sz);
+                    boolean b = s(shape, -dx, dy, dz, sx, sy, sz);
+                    if (a != b) fail(tag + " X-sym broken at (" + dx + "," + dy + "," + dz + ")");
+                }
     }
 
     private static void assertYSym(BrushShape shape, int sx, int sy, int sz) {
         String tag = shape + " sx=" + sx + " sy=" + sy + " sz=" + sz;
-        for (int dx = -sx; dx <= sx; dx++) for (int dy = -sy; dy <= sy; dy++) for (int dz = -sz; dz <= sz; dz++) {
-            boolean a = s(shape, dx, dy, dz, sx, sy, sz);
-            boolean b = s(shape, dx, -dy, dz, sx, sy, sz);
-            if (a != b) fail(tag + " Y-sym broken at (" + dx + "," + dy + "," + dz + ")");
-        }
+        for (int dx = -sx; dx <= sx; dx++)
+            for (int dy = -sy; dy <= sy; dy++)
+                for (int dz = -sz; dz <= sz; dz++) {
+                    boolean a = s(shape, dx, dy, dz, sx, sy, sz);
+                    boolean b = s(shape, dx, -dy, dz, sx, sy, sz);
+                    if (a != b) fail(tag + " Y-sym broken at (" + dx + "," + dy + "," + dz + ")");
+                }
     }
 
     private static void assertZSym(BrushShape shape, int sx, int sy, int sz) {
         String tag = shape + " sx=" + sx + " sy=" + sy + " sz=" + sz;
-        for (int dx = -sx; dx <= sx; dx++) for (int dy = -sy; dy <= sy; dy++) for (int dz = -sz; dz <= sz; dz++) {
-            boolean a = s(shape, dx, dy, dz, sx, sy, sz);
-            boolean b = s(shape, dx, dy, -dz, sx, sy, sz);
-            if (a != b) fail(tag + " Z-sym broken at (" + dx + "," + dy + "," + dz + ")");
-        }
+        for (int dx = -sx; dx <= sx; dx++)
+            for (int dy = -sy; dy <= sy; dy++)
+                for (int dz = -sz; dz <= sz; dz++) {
+                    boolean a = s(shape, dx, dy, dz, sx, sy, sz);
+                    boolean b = s(shape, dx, dy, -dz, sx, sy, sz);
+                    if (a != b) fail(tag + " Z-sym broken at (" + dx + "," + dy + "," + dz + ")");
+                }
     }
 
     private static void assertXYZSym(BrushShape shape, int sx, int sy, int sz) {

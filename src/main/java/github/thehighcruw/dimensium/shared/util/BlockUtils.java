@@ -4,19 +4,17 @@
  */
 package github.thehighcruw.dimensium.shared.util;
 
+import codechicken.nei.api.ItemInfo;
+import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
-
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.oredict.OreDictionary;
-
-import codechicken.nei.api.ItemInfo;
-import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 
 public final class BlockUtils {
 
@@ -27,7 +25,7 @@ public final class BlockUtils {
         if (stack == null) return null;
         Block blk = Block.getBlockFromItem(stack.getItem());
         if (blk == null || blk == Blocks.air) return null;
-        return new int[] { Block.getIdFromBlock(blk), stack.getItemDamage() };
+        return new int[] {Block.getIdFromBlock(blk), stack.getItemDamage()};
     }
 
     @SuppressWarnings("unchecked")
@@ -41,8 +39,8 @@ public final class BlockUtils {
                 item.getSubItems(item, null, permutations);
             }
             permutations.addAll(ItemInfo.itemVariants.get(item));
-            permutations.removeIf(
-                s -> s == null || s.getItem() == null
+            permutations.removeIf(s -> s == null
+                    || s.getItem() == null
                     || s.getItemDamage() == OreDictionary.WILDCARD_VALUE
                     || Block.getBlockFromItem(s.getItem()) == null
                     || Block.getBlockFromItem(s.getItem()) == Blocks.air);
@@ -67,6 +65,7 @@ public final class BlockUtils {
                 if (mtes[i] == null || covered.get(i)) continue;
                 out.add(new ItemStack(blockItem, 1, i));
             }
-        } catch (Throwable ignored) {}
+        } catch (Throwable ignored) {
+        }
     }
 }

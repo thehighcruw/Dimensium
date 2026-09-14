@@ -4,12 +4,10 @@
  */
 package github.thehighcruw.dimensium.editor.window.viewport;
 
-import java.nio.ByteBuffer;
-
-import org.lwjgl.opengl.GL11;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import java.nio.ByteBuffer;
+import org.lwjgl.opengl.GL11;
 
 @SideOnly(Side.CLIENT)
 public final class ViewportCapture {
@@ -37,15 +35,7 @@ public final class ViewportCapture {
 
         if (w != vp.texW || h != vp.texH) {
             GL11.glTexImage2D(
-                GL11.GL_TEXTURE_2D,
-                0,
-                GL11.GL_RGB,
-                w,
-                h,
-                0,
-                GL11.GL_RGB,
-                GL11.GL_UNSIGNED_BYTE,
-                (ByteBuffer) null);
+                    GL11.GL_TEXTURE_2D, 0, GL11.GL_RGB, w, h, 0, GL11.GL_RGB, GL11.GL_UNSIGNED_BYTE, (ByteBuffer) null);
             vp.texW = w;
             vp.texH = h;
         }

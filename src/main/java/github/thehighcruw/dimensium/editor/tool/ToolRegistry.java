@@ -4,15 +4,7 @@
  */
 package github.thehighcruw.dimensium.editor.tool;
 
-import java.util.EnumMap;
-import java.util.Map;
-import java.util.function.Function;
-
-import net.minecraft.client.Minecraft;
-import net.minecraft.init.Blocks;
-
 import com.github.bsideup.jabel.Desugar;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.tool.creating.fill.FillBrushInput;
@@ -65,6 +57,11 @@ import github.thehighcruw.dimensium.editor.tool.utility.ruler.RulerSection;
 import github.thehighcruw.dimensium.editor.tool.utility.ruler.RulerToolRenderer;
 import github.thehighcruw.dimensium.editor.window.viewport.world.BrushPreviewRenderer;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
+import java.util.EnumMap;
+import java.util.Map;
+import java.util.function.Function;
+import net.minecraft.client.Minecraft;
+import net.minecraft.init.Blocks;
 
 /**
  * Central registry mapping each {@link Tool} to its {@link ToolDescriptor}.
@@ -75,61 +72,60 @@ public final class ToolRegistry {
 
     private static final Map<Tool, ToolDescriptor> REGISTRY = new EnumMap<>(Tool.class);
 
-    private static final int[][] FACE_DIRS = { { 1, 0, 0 }, { -1, 0, 0 }, { 0, 1, 0 }, { 0, -1, 0 }, { 0, 0, 1 },
-        { 0, 0, -1 } };
+    private static final int[][] FACE_DIRS = {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
 
     static {
         register(Tool.POINTER, null, null, ToolRenderer.NONE);
 
         register(
-            Tool.SELECT,
-            s -> new BoxSelectSection(s.select),
-            new BoxSelectBrushInput(),
-            BoxSelectToolRenderer.INSTANCE);
+                Tool.SELECT,
+                s -> new BoxSelectSection(s.select),
+                new BoxSelectBrushInput(),
+                BoxSelectToolRenderer.INSTANCE);
 
         register(
-            Tool.MAGIC_SELECT,
-            s -> new MagicSelectSection(s.magicSelect, s.select),
-            new MagicSelectBrushInput(),
-            ToolRenderer.NONE);
+                Tool.MAGIC_SELECT,
+                s -> new MagicSelectSection(s.magicSelect, s.select),
+                new MagicSelectBrushInput(),
+                ToolRenderer.NONE);
 
         register(
-            Tool.FREEHAND_SELECT,
-            s -> new FreehandSelectSection(s.brush),
-            new FreehandSelectBrushInput(),
-            ToolRenderer.DEFAULT_BRUSH);
+                Tool.FREEHAND_SELECT,
+                s -> new FreehandSelectSection(s.brush),
+                new FreehandSelectBrushInput(),
+                ToolRenderer.DEFAULT_BRUSH);
 
         register(
-            Tool.LASSO_SELECT,
-            s -> new LassoSelectSection(s.lassoSelect),
-            LassoBrushInput.INSTANCE,
-            LassoSelectToolRenderer.INSTANCE);
+                Tool.LASSO_SELECT,
+                s -> new LassoSelectSection(s.lassoSelect),
+                LassoBrushInput.INSTANCE,
+                LassoSelectToolRenderer.INSTANCE);
 
         register(
-            Tool.FREEHAND_DRAW,
-            s -> new FreehandSection(s.freehand, s.brush),
-            PaintBrushInput.INSTANCE,
-            new ToolRenderer() {
+                Tool.FREEHAND_DRAW,
+                s -> new FreehandSection(s.freehand, s.brush),
+                PaintBrushInput.INSTANCE,
+                new ToolRenderer() {
 
-                @Override
-                public boolean isBlockAffected(Minecraft mc, int wx, int wy, int wz) {
-                    if (!FreehandToolState.INSTANCE.freehandReplaceSolid
-                        && mc.theWorld.getBlock(wx, wy, wz) != Blocks.air) return false;
-                    if (FreehandToolState.INSTANCE.freehandMaskSurface) return hasAirNeighbor(mc, wx, wy, wz);
-                    return true;
-                }
+                    @Override
+                    public boolean isBlockAffected(Minecraft mc, int wx, int wy, int wz) {
+                        if (!FreehandToolState.INSTANCE.freehandReplaceSolid
+                                && mc.theWorld.getBlock(wx, wy, wz) != Blocks.air) return false;
+                        if (FreehandToolState.INSTANCE.freehandMaskSurface) return hasAirNeighbor(mc, wx, wy, wz);
+                        return true;
+                    }
 
-                @Override
-                public void renderWorldPreview(Minecraft mc, Vec3DDouble camPos) {
-                    BrushPreviewRenderer.INSTANCE.render(this, mc, camPos);
-                }
-            });
+                    @Override
+                    public void renderWorldPreview(Minecraft mc, Vec3DDouble camPos) {
+                        BrushPreviewRenderer.INSTANCE.render(this, mc, camPos);
+                    }
+                });
 
         register(
-            Tool.SCULPT_DRAW,
-            s -> new SculptSection(s.sculpt, s.brush),
-            PaintBrushInput.INSTANCE,
-            ToolRenderer.DEFAULT_BRUSH);
+                Tool.SCULPT_DRAW,
+                s -> new SculptSection(s.sculpt, s.brush),
+                PaintBrushInput.INSTANCE,
+                ToolRenderer.DEFAULT_BRUSH);
 
         register(Tool.SHAPE, s -> new ShapeSection(s.shape), ShapeBrushInput.INSTANCE, ToolRenderer.NONE);
 
@@ -138,47 +134,44 @@ public final class ToolRegistry {
         register(Tool.FILL, s -> new FillSection(s.floodfill), FillBrushInput.INSTANCE, ToolRenderer.NONE);
 
         register(
-            Tool.PAINTER,
-            s -> new PainterSection(s.painter, s.brush),
-            PaintBrushInput.INSTANCE,
-            new ToolRenderer() {
+                Tool.PAINTER,
+                s -> new PainterSection(s.painter, s.brush),
+                PaintBrushInput.INSTANCE,
+                new ToolRenderer() {
 
-                @Override
-                public boolean isBlockAffected(Minecraft mc, int wx, int wy, int wz) {
-                    if (mc.theWorld.getBlock(wx, wy, wz) == Blocks.air) return false;
-                    if (PainterToolState.INSTANCE.painterMaskSurface) return hasAirNeighbor(mc, wx, wy, wz);
-                    return true;
-                }
+                    @Override
+                    public boolean isBlockAffected(Minecraft mc, int wx, int wy, int wz) {
+                        if (mc.theWorld.getBlock(wx, wy, wz) == Blocks.air) return false;
+                        if (PainterToolState.INSTANCE.painterMaskSurface) return hasAirNeighbor(mc, wx, wy, wz);
+                        return true;
+                    }
 
-                @Override
-                public void renderWorldPreview(Minecraft mc, Vec3DDouble camPos) {
-                    BrushPreviewRenderer.INSTANCE.render(this, mc, camPos);
-                }
-            });
-
-        register(
-            Tool.NOISE,
-            s -> new NoiseSection(s.noise, s.brush, s.palette),
-            PaintBrushInput.INSTANCE,
-            ToolRenderer.DEFAULT_BRUSH);
+                    @Override
+                    public void renderWorldPreview(Minecraft mc, Vec3DDouble camPos) {
+                        BrushPreviewRenderer.INSTANCE.render(this, mc, camPos);
+                    }
+                });
 
         register(
-            Tool.ROCK,
-            s -> new RockSection(s.rock, s.brush),
-            PaintBrushInput.INSTANCE,
-            ToolRenderer.DEFAULT_BRUSH);
+                Tool.NOISE,
+                s -> new NoiseSection(s.noise, s.brush, s.palette),
+                PaintBrushInput.INSTANCE,
+                ToolRenderer.DEFAULT_BRUSH);
 
         register(
-            Tool.GRADIENT,
-            s -> new GradientSection(s.gradient, s.brush, s.palette),
-            GradientBrushInput.INSTANCE,
-            ToolRenderer.DEFAULT_BRUSH);
+                Tool.ROCK, s -> new RockSection(s.rock, s.brush), PaintBrushInput.INSTANCE, ToolRenderer.DEFAULT_BRUSH);
 
         register(
-            Tool.SMOOTH,
-            s -> new SmoothSection(s.smooth, s.brush),
-            SmoothBrushInput.INSTANCE,
-            ToolRenderer.DEFAULT_BRUSH);
+                Tool.GRADIENT,
+                s -> new GradientSection(s.gradient, s.brush, s.palette),
+                GradientBrushInput.INSTANCE,
+                ToolRenderer.DEFAULT_BRUSH);
+
+        register(
+                Tool.SMOOTH,
+                s -> new SmoothSection(s.smooth, s.brush),
+                SmoothBrushInput.INSTANCE,
+                ToolRenderer.DEFAULT_BRUSH);
 
         register(Tool.EXTRUDE, s -> new ExtrudeSection(s.extrude), ExtrudeBrushInput.INSTANCE, ToolRenderer.NONE);
 
@@ -187,52 +180,49 @@ public final class ToolRegistry {
         register(Tool.PATH, s -> new PathSection(s.path), PathBrushInput.INSTANCE, PathToolRenderer.INSTANCE);
 
         register(
-            Tool.ELEVATION,
-            s -> new ElevationSection(s.elevation),
-            ElevationBrushInput.INSTANCE,
-            ToolRenderer.NONE);
+                Tool.ELEVATION,
+                s -> new ElevationSection(s.elevation),
+                ElevationBrushInput.INSTANCE,
+                ToolRenderer.NONE);
 
         register(
-            Tool.DISTORT,
-            s -> new DistortSection(s.distort, s.brush),
-            PaintBrushInput.INSTANCE,
-            ToolRenderer.DEFAULT_BRUSH);
+                Tool.DISTORT,
+                s -> new DistortSection(s.distort, s.brush),
+                PaintBrushInput.INSTANCE,
+                ToolRenderer.DEFAULT_BRUSH);
 
         register(
-            Tool.WELD,
-            s -> new WeldSection(s.weld, s.brush),
-            PaintBrushInput.INSTANCE,
-            ToolRenderer.DEFAULT_BRUSH);
+                Tool.WELD, s -> new WeldSection(s.weld, s.brush), PaintBrushInput.INSTANCE, ToolRenderer.DEFAULT_BRUSH);
 
         register(
-            Tool.MELT,
-            s -> new MeltSection(s.melt, s.brush),
-            PaintBrushInput.INSTANCE,
-            ToolRenderer.DEFAULT_BRUSH);
+                Tool.MELT, s -> new MeltSection(s.melt, s.brush), PaintBrushInput.INSTANCE, ToolRenderer.DEFAULT_BRUSH);
 
         register(
-            Tool.ROUGHEN,
-            s -> new RoughenSection(s.roughen, s.brush),
-            PaintBrushInput.INSTANCE,
-            ToolRenderer.DEFAULT_BRUSH);
+                Tool.ROUGHEN,
+                s -> new RoughenSection(s.roughen, s.brush),
+                PaintBrushInput.INSTANCE,
+                ToolRenderer.DEFAULT_BRUSH);
 
         register(
-            Tool.SHATTER,
-            s -> new ShatterSection(s.shatter, s.brush),
-            PaintBrushInput.INSTANCE,
-            ToolRenderer.DEFAULT_BRUSH);
+                Tool.SHATTER,
+                s -> new ShatterSection(s.shatter, s.brush),
+                PaintBrushInput.INSTANCE,
+                ToolRenderer.DEFAULT_BRUSH);
 
         register(Tool.RULER, s -> new RulerSection(s.ruler), new RulerBrushInput(), new RulerToolRenderer());
 
         register(
-            Tool.MODELLING,
-            s -> new ModellingSection(s.modelling),
-            ModellingBrushInput.INSTANCE,
-            ModellingToolRenderer.INSTANCE);
+                Tool.MODELLING,
+                s -> new ModellingSection(s.modelling),
+                ModellingBrushInput.INSTANCE,
+                ModellingToolRenderer.INSTANCE);
     }
 
-    private static void register(Tool tool, java.util.function.Function<ToolStates, ToolSection> sectionFactory,
-        BrushInput brushInput, ToolRenderer toolRenderer) {
+    private static void register(
+            Tool tool,
+            java.util.function.Function<ToolStates, ToolSection> sectionFactory,
+            BrushInput brushInput,
+            ToolRenderer toolRenderer) {
         REGISTRY.put(tool, new Desc(sectionFactory, brushInput, toolRenderer));
     }
 
@@ -266,8 +256,9 @@ public final class ToolRegistry {
     private ToolRegistry() {}
 
     @Desugar
-    private record Desc(Function<ToolStates, ToolSection> sectionFactory, BrushInput brushInput,
-        ToolRenderer toolRenderer) implements ToolDescriptor {
+    private record Desc(
+            Function<ToolStates, ToolSection> sectionFactory, BrushInput brushInput, ToolRenderer toolRenderer)
+            implements ToolDescriptor {
 
         @Override
         public ToolSection createSection(ToolStates states) {

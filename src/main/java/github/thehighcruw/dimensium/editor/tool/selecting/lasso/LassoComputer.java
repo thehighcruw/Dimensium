@@ -4,19 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.tool.selecting.lasso;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import net.minecraft.block.Block;
-import net.minecraft.client.Minecraft;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.init.Blocks;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.freecam.FreecamState;
@@ -26,6 +13,17 @@ import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.init.Blocks;
 
 @SideOnly(Side.CLIENT)
 public final class LassoComputer {
@@ -42,8 +40,8 @@ public final class LassoComputer {
      * (screen pixel), so lassoDepth=N always means the surface block plus N
      * blocks behind it, regardless of the ray angle.
      */
-    public static Set<Long> compute(Minecraft mc, List<float[]> polygon, int lassoDepth, boolean includeNonSolid,
-        int sw, int sh) {
+    public static Set<Long> compute(
+            Minecraft mc, List<float[]> polygon, int lassoDepth, boolean includeNonSolid, int sw, int sh) {
         Set<Long> result = new HashSet<>();
         if (mc.theWorld == null || mc.renderViewEntity == null || polygon.size() < 3) return result;
 
@@ -126,8 +124,9 @@ public final class LassoComputer {
                     long colKey = (long) isx * sh + isy;
                     long blockKey = SelectionState.pack(Vec3DInt.from(bx, by, bz));
 
-                    colCandidates.computeIfAbsent(colKey, k -> new ArrayList<>())
-                        .add(new long[] { blockKey, Double.doubleToRawLongBits(fwd) });
+                    colCandidates
+                            .computeIfAbsent(colKey, k -> new ArrayList<>())
+                            .add(new long[] {blockKey, Double.doubleToRawLongBits(fwd)});
                 }
             }
         }

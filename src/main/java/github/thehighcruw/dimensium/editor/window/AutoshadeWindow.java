@@ -4,19 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.window;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import net.minecraft.block.Block;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Blocks;
-import net.minecraft.item.ItemStack;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.DimensiumConfig;
@@ -33,6 +20,17 @@ import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
 import imgui.type.ImInt;
 import imgui.type.ImString;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
+import net.minecraft.item.ItemStack;
 
 @SideOnly(Side.CLIENT)
 public class AutoshadeWindow extends ToggleableWindow {
@@ -46,10 +44,10 @@ public class AutoshadeWindow extends ToggleableWindow {
 
     private boolean useSun = true;
     private final ImInt lightMode = new ImInt(LIGHT_MODE_PLAYER);
-    private final float[] sunYaw = { 45f };
-    private final float[] sunElevation = { 45f };
-    private final float[] aoStrength = { 0.8f };
-    private final float[] giStrength = { 0.2f };
+    private final float[] sunYaw = {45f};
+    private final float[] sunElevation = {45f};
+    private final float[] aoStrength = {0.8f};
+    private final float[] giStrength = {0.2f};
     private boolean useDither = false;
 
     private final List<ItemStack> palette = new ArrayList<>();
@@ -74,8 +72,8 @@ public class AutoshadeWindow extends ToggleableWindow {
 
         float scale = ImGuiManager.INSTANCE.getUIScale();
         ImBoolean pOpen = new ImBoolean(true);
-        boolean visible = ImGui
-            .begin(I18n.format("dimensium.op.autoshade.title") + WINDOW_ID, pOpen, ImGuiWindowFlags.None);
+        boolean visible =
+                ImGui.begin(I18n.format("dimensium.op.autoshade.title") + WINDOW_ID, pOpen, ImGuiWindowFlags.None);
         captureBounds();
         if (visible && pOpen.get()) {
             if (!SelectionState.INSTANCE.hasSelection()) {
@@ -94,8 +92,9 @@ public class AutoshadeWindow extends ToggleableWindow {
                 ImGui.text(I18n.format("dimensium.op.autoshade.light_from") + ":");
                 ImGui.sameLine();
                 ImGui.setNextItemWidth(comboW);
-                String[] lightModes = { I18n.format("dimensium.op.autoshade.player_pos"),
-                    I18n.format("dimensium.op.autoshade.sun_angle") };
+                String[] lightModes = {
+                    I18n.format("dimensium.op.autoshade.player_pos"), I18n.format("dimensium.op.autoshade.sun_angle")
+                };
                 ImGui.combo("##as_lightmode", lightMode, lightModes, lightModes.length);
 
                 if (lightMode.get() == LIGHT_MODE_SUN) {
@@ -103,10 +102,7 @@ public class AutoshadeWindow extends ToggleableWindow {
                     ImGui.sliderFloat(I18n.format("dimensium.ui.distort.distance_x") + "##as_yaw", sunYaw, 0f, 360f);
                     ImGui.setNextItemWidth(comboW);
                     ImGui.sliderFloat(
-                        I18n.format("dimensium.ui.distort.distance_y") + "##as_elev",
-                        sunElevation,
-                        0f,
-                        90f);
+                            I18n.format("dimensium.ui.distort.distance_y") + "##as_elev", sunElevation, 0f, 90f);
                 }
             }
 
@@ -139,7 +135,7 @@ public class AutoshadeWindow extends ToggleableWindow {
             if (ImGui.button(I18n.format("dimensium.op.autoshade.add_block") + "##as_add")) {
                 OverlayRenderer.picker.open(stack -> {
                     palette.add(stack);
-                    weights.add(new float[] { 1f });
+                    weights.add(new float[] {1f});
                 });
             }
 
@@ -150,8 +146,7 @@ public class AutoshadeWindow extends ToggleableWindow {
             ImGui.inputText("##as_preset_name", presetName);
             ImGui.sameLine();
             if (ImGui.button(I18n.format("dimensium.op.autoshade.save_preset") + "##as_save")) {
-                String name = presetName.get()
-                    .trim();
+                String name = presetName.get().trim();
                 if (!name.isEmpty()) {
                     presets.put(name, new ArrayList<>(palette));
                 }
@@ -165,7 +160,7 @@ public class AutoshadeWindow extends ToggleableWindow {
                     weights.clear();
                     for (ItemStack s : entry.getValue()) {
                         palette.add(s);
-                        weights.add(new float[] { 1f });
+                        weights.add(new float[] {1f});
                     }
                 }
                 ImGui.sameLine();
@@ -201,15 +196,15 @@ public class AutoshadeWindow extends ToggleableWindow {
         if (useSun && lightMode.get() == LIGHT_MODE_SUN) {
             double yawRad = Math.toRadians(sunYaw[0]);
             double elevRad = Math.toRadians(sunElevation[0]);
-            sunDir = Vec3DDouble
-                .from(Math.cos(elevRad) * Math.sin(yawRad), Math.sin(elevRad), Math.cos(elevRad) * Math.cos(yawRad));
+            sunDir = Vec3DDouble.from(
+                    Math.cos(elevRad) * Math.sin(yawRad), Math.sin(elevRad), Math.cos(elevRad) * Math.cos(yawRad));
         } else if (useSun) {
             EntityPlayer p = mc.thePlayer;
             if (p == null) return;
             double yawRad = Math.toRadians(p.rotationYaw);
             double elevRad = Math.toRadians(-p.rotationPitch);
-            sunDir = Vec3DDouble
-                .from(Math.cos(elevRad) * -Math.sin(yawRad), Math.sin(elevRad), Math.cos(elevRad) * Math.cos(yawRad));
+            sunDir = Vec3DDouble.from(
+                    Math.cos(elevRad) * -Math.sin(yawRad), Math.sin(elevRad), Math.cos(elevRad) * Math.cos(yawRad));
         } else {
             sunDir = Vec3DDouble.from(0, 1, 0);
         }
@@ -229,14 +224,16 @@ public class AutoshadeWindow extends ToggleableWindow {
         int[][] NEIGHBORS_26;
         {
             List<int[]> nb = new ArrayList<>();
-            for (int dx = -1; dx <= 1; dx++) for (int dy = -1; dy <= 1; dy++) for (int dz = -1; dz <= 1; dz++) {
-                if (dx == 0 && dy == 0 && dz == 0) continue;
-                nb.add(new int[] { dx, dy, dz });
-            }
+            for (int dx = -1; dx <= 1; dx++)
+                for (int dy = -1; dy <= 1; dy++)
+                    for (int dz = -1; dz <= 1; dz++) {
+                        if (dx == 0 && dy == 0 && dz == 0) continue;
+                        nb.add(new int[] {dx, dy, dz});
+                    }
             NEIGHBORS_26 = nb.toArray(new int[0][]);
         }
 
-        int[][] FACE_DIRS = { { 1, 0, 0 }, { -1, 0, 0 }, { 0, 1, 0 }, { 0, -1, 0 }, { 0, 0, 1 }, { 0, 0, -1 } };
+        int[][] FACE_DIRS = {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
 
         List<int[]> ops = new ArrayList<>();
 
@@ -245,12 +242,7 @@ public class AutoshadeWindow extends ToggleableWindow {
             if (info == null || info.block() == Blocks.air) continue;
 
             // Compute surface normal from empty face-neighbors
-            int x = info.coord()
-                .x(),
-                y = info.coord()
-                    .y(),
-                z = info.coord()
-                    .z();
+            int x = info.coord().x(), y = info.coord().y(), z = info.coord().z();
             Vec3DDouble normal = Vec3DDouble.ZERO;
             for (int[] f : FACE_DIRS) {
                 long neighborKey = SelectionState.pack(Vec3DInt.from(x + f[0], y + f[1], z + f[2]));
@@ -287,7 +279,7 @@ public class AutoshadeWindow extends ToggleableWindow {
             ItemStack chosenStack = palette.get(paletteIdx);
             Block chosenBlock = Block.getBlockFromItem(chosenStack.getItem());
             if (chosenBlock == null) continue;
-            ops.add(new int[] { x, y, z, Block.getIdFromBlock(chosenBlock), chosenStack.getItemDamage() });
+            ops.add(new int[] {x, y, z, Block.getIdFromBlock(chosenBlock), chosenStack.getItemDamage()});
         }
 
         BlockSender.sendChunked(ops, I18n.format("dimensium.op.autoshade.do"));

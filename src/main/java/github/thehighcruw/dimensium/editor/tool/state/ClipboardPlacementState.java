@@ -4,10 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.tool.state;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import github.thehighcruw.dimensium.editor.clipboard.ClipboardUtils;
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeMath;
 import github.thehighcruw.dimensium.editor.tool.gizmo.WithAxisTranslationGizmo;
@@ -22,6 +18,9 @@ import github.thehighcruw.dimensium.shared.math.Mat3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public class ClipboardPlacementState implements WithAxisTranslationGizmo, WithPlaneTranslationGizmo, WithRotationGizmo {
 
@@ -109,22 +108,16 @@ public class ClipboardPlacementState implements WithAxisTranslationGizmo, WithPl
         if (rot.equals(Vec3DFloat.ZERO)) {
             for (int[] o : offsets) {
                 long key = ChangeProposal.packKey(anchor.x() + o[0], anchor.y() + o[1], anchor.z() + o[2]);
-                p.proposed.put(key, new int[] { o[3], o[4] });
+                p.proposed.put(key, new int[] {o[3], o[4]});
             }
         } else {
             Mat3DFloat R = ShapeMath.buildRotationMatrix(rot.x(), rot.y(), rot.z());
-            Vec3DFloat center = clipDim.toFloat()
-                .divide(2f);
+            Vec3DFloat center = clipDim.toFloat().divide(2f);
             for (int[] o : offsets) {
-                Vec3DFloat local = Vec3DFloat.from(o[0], o[1], o[2])
-                    .plus(0.5f)
-                    .minus(center);
-                Vec3DInt world = anchor.plus(
-                    R.mul(local)
-                        .plus(center)
-                        .floor());
+                Vec3DFloat local = Vec3DFloat.from(o[0], o[1], o[2]).plus(0.5f).minus(center);
+                Vec3DInt world = anchor.plus(R.mul(local).plus(center).floor());
                 long key = ChangeProposal.packKey(world.x(), world.y(), world.z());
-                p.proposed.put(key, new int[] { o[3], o[4] });
+                p.proposed.put(key, new int[] {o[3], o[4]});
             }
         }
         preview = p;
@@ -137,21 +130,22 @@ public class ClipboardPlacementState implements WithAxisTranslationGizmo, WithPl
             for (Map.Entry<Long, int[]> e : preview.proposed.entrySet()) {
                 long key = e.getKey();
                 int[] bm = e.getValue();
-                ops.add(
-                    new int[] { ChangeProposal.unpackX(key), ChangeProposal.unpackY(key), ChangeProposal.unpackZ(key),
-                        bm[0], bm[1] });
+                ops.add(new int[] {
+                    ChangeProposal.unpackX(key), ChangeProposal.unpackY(key), ChangeProposal.unpackZ(key), bm[0], bm[1]
+                });
             }
             return ops;
         }
         List<int[]> ops = new ArrayList<>(offsets.size());
         for (int[] o : offsets) {
-            ops.add(new int[] { anchor.x() + o[0], anchor.y() + o[1], anchor.z() + o[2], o[3], o[4] });
+            ops.add(new int[] {anchor.x() + o[0], anchor.y() + o[1], anchor.z() + o[2], o[3], o[4]});
         }
         return ops;
     }
 
     public boolean isAnyGizmoDragging() {
-        return getAxisTranslationGizmo().isDragging() || getPlaneTranslationGizmo().isDragging()
-            || getRotationGizmo().isDragging();
+        return getAxisTranslationGizmo().isDragging()
+                || getPlaneTranslationGizmo().isDragging()
+                || getRotationGizmo().isDragging();
     }
 }

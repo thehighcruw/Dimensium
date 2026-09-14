@@ -4,15 +4,7 @@
  */
 package github.thehighcruw.dimensium;
 
-import java.util.EnumMap;
-
-import net.minecraft.client.settings.KeyBinding;
-
-import org.apache.logging.log4j.Logger;
-import org.lwjgl.input.Keyboard;
-
 import com.gtnewhorizon.gtnhlib.config.ConfigurationManager;
-
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
@@ -28,12 +20,16 @@ import github.thehighcruw.dimensium.editor.tool.Tool;
 import github.thehighcruw.dimensium.network.PacketHandler;
 import github.thehighcruw.dimensium.proxy.IProxy;
 import github.thehighcruw.dimensium.world.inventory.gradientHelper.GradientGuiHandler;
+import java.util.EnumMap;
+import net.minecraft.client.settings.KeyBinding;
+import org.apache.logging.log4j.Logger;
+import org.lwjgl.input.Keyboard;
 
 @Mod(
-    modid = Dimensium.MODID,
-    name = Dimensium.NAME,
-    version = Dimensium.VERSION,
-    dependencies = "required-after:gtnhlib")
+        modid = Dimensium.MODID,
+        name = Dimensium.NAME,
+        version = Dimensium.VERSION,
+        dependencies = "required-after:gtnhlib")
 public class Dimensium {
 
     public static final String MODID = "dimensium";
@@ -47,8 +43,8 @@ public class Dimensium {
     public static Logger logger;
 
     @SidedProxy(
-        clientSide = "github.thehighcruw.dimensium.proxy.ClientProxy",
-        serverSide = "github.thehighcruw.dimensium.proxy.ServerProxy")
+            clientSide = "github.thehighcruw.dimensium.proxy.ClientProxy",
+            serverSide = "github.thehighcruw.dimensium.proxy.ServerProxy")
     @SuppressWarnings("unused")
     public static IProxy proxy;
 
@@ -58,10 +54,8 @@ public class Dimensium {
     public static final int MOD_ALT = 4;
 
     // Global keybind — registered with MC so it appears in the controls menu.
-    public static final KeyBinding toggleDimensium = new KeyBinding(
-        "key.dimensium.toggle",
-        Keyboard.KEY_RSHIFT,
-        "Dimensium");
+    public static final KeyBinding toggleDimensium =
+            new KeyBinding("key.dimensium.toggle", Keyboard.KEY_RSHIFT, "Dimensium");
 
     // Tool-switch keybinds — one per Tool enum value, populated by applyKeybinds().
     public static final EnumMap<Tool, KeyBinding> toolKeybinds = buildToolKeybinds();
@@ -74,50 +68,28 @@ public class Dimensium {
     public static final KeyBinding actionCut = new KeyBinding("key.dimensium.cut", Keyboard.KEY_X, "Dimensium");
     public static final KeyBinding actionPaste = new KeyBinding("key.dimensium.paste", Keyboard.KEY_V, "Dimensium");
     public static final KeyBinding actionFill = new KeyBinding("key.dimensium.fill", Keyboard.KEY_F, "Dimensium");
-    public static final KeyBinding actionErase = new KeyBinding(
-        "key.dimensium.erase",
-        Keyboard.KEY_DELETE,
-        "Dimensium");
-    public static final KeyBinding actionConfirm = new KeyBinding(
-        "key.dimensium.confirm",
-        Keyboard.KEY_RETURN,
-        "Dimensium");
-    public static final KeyBinding actionSaveBlueprint = new KeyBinding(
-        "key.dimensium.save_blueprint",
-        Keyboard.KEY_P,
-        "Dimensium");
-    public static final KeyBinding actionBlueprintBrowser = new KeyBinding(
-        "key.dimensium.blueprint_browser",
-        Keyboard.KEY_B,
-        "Dimensium");
-    public static final KeyBinding actionSettings = new KeyBinding(
-        "key.dimensium.settings",
-        Keyboard.KEY_PERIOD,
-        "Dimensium");
-    public static final KeyBinding gizmoNudgeForward = new KeyBinding(
-        "key.dimensium.gizmo.nudge_forward",
-        Keyboard.KEY_UP,
-        "Dimensium");
-    public static final KeyBinding gizmoNudgeBackward = new KeyBinding(
-        "key.dimensium.gizmo.nudge_backward",
-        Keyboard.KEY_DOWN,
-        "Dimensium");
-    public static final KeyBinding gizmoNudgeRight = new KeyBinding(
-        "key.dimensium.gizmo.nudge_right",
-        Keyboard.KEY_RIGHT,
-        "Dimensium");
-    public static final KeyBinding gizmoNudgeLeft = new KeyBinding(
-        "key.dimensium.gizmo.nudge_left",
-        Keyboard.KEY_LEFT,
-        "Dimensium");
-    public static final KeyBinding gizmoNudgeUp = new KeyBinding(
-        "key.dimensium.gizmo.nudge_up",
-        Keyboard.KEY_PRIOR,
-        "Dimensium");
-    public static final KeyBinding gizmoNudgeDown = new KeyBinding(
-        "key.dimensium.gizmo.nudge_down",
-        Keyboard.KEY_NEXT,
-        "Dimensium");
+    public static final KeyBinding actionErase =
+            new KeyBinding("key.dimensium.erase", Keyboard.KEY_DELETE, "Dimensium");
+    public static final KeyBinding actionConfirm =
+            new KeyBinding("key.dimensium.confirm", Keyboard.KEY_RETURN, "Dimensium");
+    public static final KeyBinding actionSaveBlueprint =
+            new KeyBinding("key.dimensium.save_blueprint", Keyboard.KEY_P, "Dimensium");
+    public static final KeyBinding actionBlueprintBrowser =
+            new KeyBinding("key.dimensium.blueprint_browser", Keyboard.KEY_B, "Dimensium");
+    public static final KeyBinding actionSettings =
+            new KeyBinding("key.dimensium.settings", Keyboard.KEY_PERIOD, "Dimensium");
+    public static final KeyBinding gizmoNudgeForward =
+            new KeyBinding("key.dimensium.gizmo.nudge_forward", Keyboard.KEY_UP, "Dimensium");
+    public static final KeyBinding gizmoNudgeBackward =
+            new KeyBinding("key.dimensium.gizmo.nudge_backward", Keyboard.KEY_DOWN, "Dimensium");
+    public static final KeyBinding gizmoNudgeRight =
+            new KeyBinding("key.dimensium.gizmo.nudge_right", Keyboard.KEY_RIGHT, "Dimensium");
+    public static final KeyBinding gizmoNudgeLeft =
+            new KeyBinding("key.dimensium.gizmo.nudge_left", Keyboard.KEY_LEFT, "Dimensium");
+    public static final KeyBinding gizmoNudgeUp =
+            new KeyBinding("key.dimensium.gizmo.nudge_up", Keyboard.KEY_PRIOR, "Dimensium");
+    public static final KeyBinding gizmoNudgeDown =
+            new KeyBinding("key.dimensium.gizmo.nudge_down", Keyboard.KEY_NEXT, "Dimensium");
 
     // Modifier masks for action keybinds.
     public static int actionUndoMods = MOD_CTRL;
@@ -141,13 +113,7 @@ public class Dimensium {
     private static EnumMap<Tool, KeyBinding> buildToolKeybinds() {
         EnumMap<Tool, KeyBinding> map = new EnumMap<>(Tool.class);
         for (Tool t : Tool.values()) {
-            map.put(
-                t,
-                new KeyBinding(
-                    "key.dimensium.tool." + t.name()
-                        .toLowerCase(),
-                    Keyboard.KEY_NONE,
-                    "Dimensium"));
+            map.put(t, new KeyBinding("key.dimensium.tool." + t.name().toLowerCase(), Keyboard.KEY_NONE, "Dimensium"));
         }
         return map;
     }
@@ -216,8 +182,7 @@ public class Dimensium {
     }
 
     private static void setToolKey(Tool t, int key, int mods) {
-        toolKeybinds.get(t)
-            .setKeyCode(key);
+        toolKeybinds.get(t).setKeyCode(key);
         toolKeybindMods.put(t, mods);
     }
 
@@ -239,12 +204,8 @@ public class Dimensium {
         NetworkRegistry.INSTANCE.registerGuiHandler(this, new GradientGuiHandler());
         PacketHandler.init();
         // Register on the common bus so draining fires on both integrated and dedicated server.
-        FMLCommonHandler.instance()
-            .bus()
-            .register(ServerEditQueue.INSTANCE);
-        FMLCommonHandler.instance()
-            .bus()
-            .register(ServerCaptureQueue.INSTANCE);
+        FMLCommonHandler.instance().bus().register(ServerEditQueue.INSTANCE);
+        FMLCommonHandler.instance().bus().register(ServerCaptureQueue.INSTANCE);
         proxy.init();
     }
 
@@ -252,5 +213,4 @@ public class Dimensium {
     public void postInit(FMLPostInitializationEvent event) {
         proxy.postInit();
     }
-
 }

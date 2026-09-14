@@ -4,15 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.tool.creating.modelling;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import net.minecraft.client.Minecraft;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.util.MovingObjectPosition;
-
-import org.lwjgl.input.Keyboard;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.freecam.FreecamState;
@@ -25,6 +16,12 @@ import github.thehighcruw.dimensium.editor.window.viewport.world.TranslationGizm
 import github.thehighcruw.dimensium.shared.KeyConstants;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import java.util.ArrayList;
+import java.util.List;
+import net.minecraft.client.Minecraft;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.util.MovingObjectPosition;
+import org.lwjgl.input.Keyboard;
 
 @SideOnly(Side.CLIENT)
 public class ModellingBrushInput implements BrushInput {
@@ -53,10 +50,8 @@ public class ModellingBrushInput implements BrushInput {
             }
             mts.addPoint(Vec3DInt.from(px, py, pz));
             mts.selectedRow = mts.currentRowIndex;
-            mts.selectedPoint = mts.rows.get(mts.currentRowIndex)
-                .size() - 1;
-            mts.getAxisTranslationGizmo()
-                .reset();
+            mts.selectedPoint = mts.rows.get(mts.currentRowIndex).size() - 1;
+            mts.getAxisTranslationGizmo().reset();
             mts.invalidate();
             return;
         }
@@ -70,71 +65,50 @@ public class ModellingBrushInput implements BrushInput {
                 for (int c = 0; c < row.size(); c++) {
                     if (r == mts.selectedRow && c == mts.selectedPoint) skipFlat = positions.size();
                     ModellingToolState.ModelPoint p = row.get(c);
-                    positions.add(
-                        new int[] { p.pos()
-                            .x(),
-                            p.pos()
-                                .y(),
-                            p.pos()
-                                .z() });
+                    positions.add(new int[] {p.pos().x(), p.pos().y(), p.pos().z()});
                 }
             }
             int bestFlat = GuiDimensiumOverlay.findNearestPointOnScreen(
-                positions,
-                skipFlat,
-                mouseX,
-                mouseY,
-                mts.getAxisTranslationGizmo()
-                    .getProjection(),
-                18);
+                    positions,
+                    skipFlat,
+                    mouseX,
+                    mouseY,
+                    mts.getAxisTranslationGizmo().getProjection(),
+                    18);
             if (bestFlat >= 0) {
                 int flat = 0;
-                done: for (int r = 0; r < mts.rows.size(); r++) {
-                    for (int c = 0; c < mts.rows.get(r)
-                        .size(); c++, flat++) {
+                done:
+                for (int r = 0; r < mts.rows.size(); r++) {
+                    for (int c = 0; c < mts.rows.get(r).size(); c++, flat++) {
                         if (flat == bestFlat) {
                             mts.selectedRow = r;
                             mts.selectedPoint = c;
                             mts.currentRowIndex = r;
-                            mts.getAxisTranslationGizmo()
-                                .reset();
+                            mts.getAxisTranslationGizmo().reset();
                             break done;
                         }
                     }
                 }
             } else if (mts.getAxisTranslationGizmo().hoveredAxis != TranslationGizmo.Axis.NONE
-                && mts.selectedPointObj() != null
-                && eye != null) {
-                    Vec3DDouble gp = Vec3DDouble.from(
-                        mts.selectedPointObj()
-                            .pos()
-                            .x() + 0.5,
-                        mts.selectedPointObj()
-                            .pos()
-                            .y() + 0.5,
-                        mts.selectedPointObj()
-                            .pos()
-                            .z() + 0.5);
-                    mts.getAxisTranslationGizmo()
-                        .startDrag(mouseX, mouseY, gp.x(), gp.y(), gp.z(), gp.x(), gp.y(), gp.z(), 0, 0, 0);
-                } else if (mts.getPlaneTranslationGizmo().hoveredPlane != PlaneTranslationGizmo.Plane.NONE
                     && mts.selectedPointObj() != null
                     && eye != null) {
-                        Vec3DDouble gp = Vec3DDouble.from(
-                            mts.selectedPointObj()
-                                .pos()
-                                .x() + 0.5,
-                            mts.selectedPointObj()
-                                .pos()
-                                .y() + 0.5,
-                            mts.selectedPointObj()
-                                .pos()
-                                .z() + 0.5);
-                        mts.getPlaneTranslationGizmo()
-                            .startDrag(mouseX, mouseY, gp.x(), gp.y(), gp.z(), gp.x(), gp.y(), gp.z(), 0, 0, 0);
-                    }
+                Vec3DDouble gp = Vec3DDouble.from(
+                        mts.selectedPointObj().pos().x() + 0.5,
+                        mts.selectedPointObj().pos().y() + 0.5,
+                        mts.selectedPointObj().pos().z() + 0.5);
+                mts.getAxisTranslationGizmo()
+                        .startDrag(mouseX, mouseY, gp.x(), gp.y(), gp.z(), gp.x(), gp.y(), gp.z(), 0, 0, 0);
+            } else if (mts.getPlaneTranslationGizmo().hoveredPlane != PlaneTranslationGizmo.Plane.NONE
+                    && mts.selectedPointObj() != null
+                    && eye != null) {
+                Vec3DDouble gp = Vec3DDouble.from(
+                        mts.selectedPointObj().pos().x() + 0.5,
+                        mts.selectedPointObj().pos().y() + 0.5,
+                        mts.selectedPointObj().pos().z() + 0.5);
+                mts.getPlaneTranslationGizmo()
+                        .startDrag(mouseX, mouseY, gp.x(), gp.y(), gp.z(), gp.x(), gp.y(), gp.z(), 0, 0, 0);
+            }
         }
-
     }
 
     @Override
@@ -142,25 +116,20 @@ public class ModellingBrushInput implements BrushInput {
         ModellingToolState mts = ModellingToolState.INSTANCE;
         ModellingToolState.ModelPoint mSelPt = mts.selectedPointObj();
         if (mSelPt == null) return;
-        if (mts.getAxisTranslationGizmo()
-            .isDragging()
-            || mts.getPlaneTranslationGizmo()
-                .isDragging()) {
-            Vec3DDouble anchor = mts.getAxisTranslationGizmo()
-                .isDragging()
-                    ? mts.getAxisTranslationGizmo()
-                        .updateDrag(mx, my)
-                    : mts.getPlaneTranslationGizmo()
-                        .updateDrag(mx, my);
+        if (mts.getAxisTranslationGizmo().isDragging()
+                || mts.getPlaneTranslationGizmo().isDragging()) {
+            Vec3DDouble anchor = mts.getAxisTranslationGizmo().isDragging()
+                    ? mts.getAxisTranslationGizmo().updateDrag(mx, my)
+                    : mts.getPlaneTranslationGizmo().updateDrag(mx, my);
             if (anchor != null) {
-                mts.rows.get(mts.selectedRow)
-                    .set(
-                        mts.selectedPoint,
-                        new ModellingToolState.ModelPoint(
-                            Vec3DInt.from(
-                                AnchorSnap.toInt(anchor.x(), snap),
-                                AnchorSnap.toInt(anchor.y(), snap),
-                                AnchorSnap.toInt(anchor.z(), snap))));
+                mts.rows
+                        .get(mts.selectedRow)
+                        .set(
+                                mts.selectedPoint,
+                                new ModellingToolState.ModelPoint(Vec3DInt.from(
+                                        AnchorSnap.toInt(anchor.x(), snap),
+                                        AnchorSnap.toInt(anchor.y(), snap),
+                                        AnchorSnap.toInt(anchor.z(), snap))));
                 mts.invalidate();
             }
         }

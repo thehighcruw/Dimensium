@@ -4,22 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.overlay;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import net.minecraft.block.Block;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.init.Blocks;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.MovingObjectPosition;
-import net.minecraft.util.Vec3;
-
 import github.thehighcruw.dimensium.DimensiumEditorMode;
 import github.thehighcruw.dimensium.editor.freecam.FreecamState;
 import github.thehighcruw.dimensium.editor.freecam.FreecamUtils;
@@ -57,6 +41,20 @@ import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
 import github.thehighcruw.dimensium.tool.BuilderToolState;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.init.Blocks;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.util.Vec3;
 
 /**
  * Static helpers for overlay mouse interaction.
@@ -88,21 +86,20 @@ public final class GuiDimensiumOverlay {
         Vec3DDouble[] basis = FreecamUtils.cameraBasis(eye.rotationYaw, eye.rotationPitch);
         Vec3DDouble fwd = basis[0], rgt = basis[1], up = basis[2];
 
-        Vec3DDouble rd = Vec3DDouble
-            .from(
-                fwd.x() + rgt.x() * ndcX * tanHX + up.x() * ndcY * tanHY,
-                fwd.y() + up.y() * ndcY * tanHY,
-                fwd.z() + rgt.z() * ndcX * tanHX + up.z() * ndcY * tanHY)
-            .normalize();
+        Vec3DDouble rd = Vec3DDouble.from(
+                        fwd.x() + rgt.x() * ndcX * tanHX + up.x() * ndcY * tanHY,
+                        fwd.y() + up.y() * ndcY * tanHY,
+                        fwd.z() + rgt.z() * ndcX * tanHX + up.z() * ndcY * tanHY)
+                .normalize();
         Vec3DDouble eyePos = Vec3DDouble.from(eye.posX, eye.posY + eye.getEyeHeight(), eye.posZ);
 
         // Offset start slightly forward so the ray doesn't immediately hit the block the camera is inside.
         double near = github.thehighcruw.dimensium.DimensiumConfig.raycastNearClip;
         double far = github.thehighcruw.dimensium.DimensiumConfig.raycastDistance;
-        Vec3 start = Vec3
-            .createVectorHelper(eyePos.x() + rd.x() * near, eyePos.y() + rd.y() * near, eyePos.z() + rd.z() * near);
-        Vec3 end = Vec3
-            .createVectorHelper(eyePos.x() + rd.x() * far, eyePos.y() + rd.y() * far, eyePos.z() + rd.z() * far);
+        Vec3 start = Vec3.createVectorHelper(
+                eyePos.x() + rd.x() * near, eyePos.y() + rd.y() * near, eyePos.z() + rd.z() * near);
+        Vec3 end = Vec3.createVectorHelper(
+                eyePos.x() + rd.x() * far, eyePos.y() + rd.y() * far, eyePos.z() + rd.z() * far);
         return mc.theWorld.rayTraceBlocks(start, end);
     }
 
@@ -110,18 +107,16 @@ public final class GuiDimensiumOverlay {
 
     public static void handleClick(int mouseX, int mouseY, int scaledW, int scaledH, int button) {
         // ImGui-based popups handle their own clicks via ImGui input routing.
-        if (ConflictPopup.INSTANCE.isOpen() || CreateBlueprintPopup.INSTANCE.isOpen()
-            || BlueprintBrowserPopup.INSTANCE.isOpen()
-            || OverlayRenderer.picker.isOpen()) {
+        if (ConflictPopup.INSTANCE.isOpen()
+                || CreateBlueprintPopup.INSTANCE.isOpen()
+                || BlueprintBrowserPopup.INSTANCE.isOpen()
+                || OverlayRenderer.picker.isOpen()) {
             return;
         }
         Minecraft mc = Minecraft.getMinecraft();
         if (button == 2) {
             MovingObjectPosition mop = raycastFromMouse(
-                (int) FreecamState.INSTANCE.cursorX,
-                (int) FreecamState.INSTANCE.cursorY,
-                scaledW,
-                scaledH);
+                    (int) FreecamState.INSTANCE.cursorX, (int) FreecamState.INSTANCE.cursorY, scaledW, scaledH);
             if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
                 Block b = mc.theWorld.getBlock(mop.blockX, mop.blockY, mop.blockZ);
                 int meta = mc.theWorld.getBlockMetadata(mop.blockX, mop.blockY, mop.blockZ);
@@ -140,38 +135,38 @@ public final class GuiDimensiumOverlay {
                 double ccx = cps.centerX(), ccy = cps.centerY(), ccz = cps.centerZ();
                 if (eye != null && cps.getAxisTranslationGizmo().hoveredAxis != TranslationGizmo.Axis.NONE) {
                     cps.getAxisTranslationGizmo()
-                        .startDrag(
-                            mouseX,
-                            mouseY,
-                            ccx,
-                            ccy,
-                            ccz,
-                            cps.anchorF.x(),
-                            cps.anchorF.y(),
-                            cps.anchorF.z(),
-                            0,
-                            0,
-                            0);
-                } else if (eye != null
-                    && cps.getPlaneTranslationGizmo().hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
-                        cps.getPlaneTranslationGizmo()
                             .startDrag(
-                                mouseX,
-                                mouseY,
-                                ccx,
-                                ccy,
-                                ccz,
-                                cps.anchorF.x(),
-                                cps.anchorF.y(),
-                                cps.anchorF.z(),
-                                cps.rot.x(),
-                                cps.rot.y(),
-                                cps.rot.z());
-                    } else if (eye != null && cps.getRotationGizmo().hoveredAxis != RotationGizmo.Axis.NONE) {
-                        cps.rotDragBase = cps.rot;
-                        cps.getRotationGizmo()
+                                    mouseX,
+                                    mouseY,
+                                    ccx,
+                                    ccy,
+                                    ccz,
+                                    cps.anchorF.x(),
+                                    cps.anchorF.y(),
+                                    cps.anchorF.z(),
+                                    0,
+                                    0,
+                                    0);
+                } else if (eye != null
+                        && cps.getPlaneTranslationGizmo().hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
+                    cps.getPlaneTranslationGizmo()
+                            .startDrag(
+                                    mouseX,
+                                    mouseY,
+                                    ccx,
+                                    ccy,
+                                    ccz,
+                                    cps.anchorF.x(),
+                                    cps.anchorF.y(),
+                                    cps.anchorF.z(),
+                                    cps.rot.x(),
+                                    cps.rot.y(),
+                                    cps.rot.z());
+                } else if (eye != null && cps.getRotationGizmo().hoveredAxis != RotationGizmo.Axis.NONE) {
+                    cps.rotDragBase = cps.rot;
+                    cps.getRotationGizmo()
                             .startDrag(mouseX, mouseY, ccx, ccy, ccz, cps.rot.x(), cps.rot.y(), cps.rot.z());
-                    }
+                }
             } else if (button == KeyConstants.RMB) {
                 cps.cancel();
             }
@@ -182,10 +177,7 @@ public final class GuiDimensiumOverlay {
         BrushInput brushInput = BrushInputRegistry.get(tool);
         if (brushInput != null) {
             MovingObjectPosition mop = raycastFromMouse(
-                (int) FreecamState.INSTANCE.cursorX,
-                (int) FreecamState.INSTANCE.cursorY,
-                scaledW,
-                scaledH);
+                    (int) FreecamState.INSTANCE.cursorX, (int) FreecamState.INSTANCE.cursorY, scaledW, scaledH);
             brushInput.onMouseClick(button, mc, mop);
         }
         // Brush tools are applied while held — see TickHandler.applyPaintIfHeld
@@ -195,55 +187,32 @@ public final class GuiDimensiumOverlay {
         if (button == KeyConstants.LMB) {
             ShapePlacementState ps = ShapePlacementState.INSTANCE;
             if (ps.active) {
-                if (ps.getAxisTranslationGizmo()
-                    .isDragging())
-                    ps.getAxisTranslationGizmo()
-                        .endDrag();
-                if (ps.getRotationGizmo()
-                    .isDragging())
-                    ps.getRotationGizmo()
-                        .endDrag();
-                if (ps.getScalingGizmo()
-                    .isDragging()) {
+                if (ps.getAxisTranslationGizmo().isDragging())
+                    ps.getAxisTranslationGizmo().endDrag();
+                if (ps.getRotationGizmo().isDragging()) ps.getRotationGizmo().endDrag();
+                if (ps.getScalingGizmo().isDragging()) {
                     // scaleX/Y/Z already reset to 1f each drag frame; ShapeToolState already updated
-                    ps.getScalingGizmo()
-                        .endDrag();
+                    ps.getScalingGizmo().endDrag();
                 }
-                if (ps.getPlaneTranslationGizmo()
-                    .isDragging())
-                    ps.getPlaneTranslationGizmo()
-                        .endDrag();
+                if (ps.getPlaneTranslationGizmo().isDragging())
+                    ps.getPlaneTranslationGizmo().endDrag();
                 if (ps.viewPlaneGizmo.isDragging()) ps.viewPlaneGizmo.endDrag();
             }
             ClipboardPlacementState cps = ClipboardPlacementState.INSTANCE;
             if (cps.active) {
-                if (cps.getAxisTranslationGizmo()
-                    .isDragging())
-                    cps.getAxisTranslationGizmo()
-                        .endDrag();
-                if (cps.getPlaneTranslationGizmo()
-                    .isDragging())
-                    cps.getPlaneTranslationGizmo()
-                        .endDrag();
-                if (cps.getRotationGizmo()
-                    .isDragging())
-                    cps.getRotationGizmo()
-                        .endDrag();
+                if (cps.getAxisTranslationGizmo().isDragging())
+                    cps.getAxisTranslationGizmo().endDrag();
+                if (cps.getPlaneTranslationGizmo().isDragging())
+                    cps.getPlaneTranslationGizmo().endDrag();
+                if (cps.getRotationGizmo().isDragging()) cps.getRotationGizmo().endDrag();
             }
             MoveToolState ms = MoveToolState.INSTANCE;
             if (ms.active) {
-                if (ms.getAxisTranslationGizmo()
-                    .isDragging())
-                    ms.getAxisTranslationGizmo()
-                        .endDrag();
-                if (ms.getPlaneTranslationGizmo()
-                    .isDragging())
-                    ms.getPlaneTranslationGizmo()
-                        .endDrag();
-                if (ms.getRotationGizmo()
-                    .isDragging())
-                    ms.getRotationGizmo()
-                        .endDrag();
+                if (ms.getAxisTranslationGizmo().isDragging())
+                    ms.getAxisTranslationGizmo().endDrag();
+                if (ms.getPlaneTranslationGizmo().isDragging())
+                    ms.getPlaneTranslationGizmo().endDrag();
+                if (ms.getRotationGizmo().isDragging()) ms.getRotationGizmo().endDrag();
             }
             SelectionState sel = SelectionState.INSTANCE;
             if (sel.boxConfirmed) {
@@ -257,23 +226,15 @@ public final class GuiDimensiumOverlay {
                 if (SelectionRenderer.boxCenterPlaneGizmo.isDragging()) SelectionRenderer.boxCenterPlaneGizmo.endDrag();
             }
             PathToolState pts = PathToolState.INSTANCE;
-            if (pts.getAxisTranslationGizmo()
-                .isDragging())
-                pts.getAxisTranslationGizmo()
-                    .endDrag();
-            if (pts.getPlaneTranslationGizmo()
-                .isDragging())
-                pts.getPlaneTranslationGizmo()
-                    .endDrag();
+            if (pts.getAxisTranslationGizmo().isDragging())
+                pts.getAxisTranslationGizmo().endDrag();
+            if (pts.getPlaneTranslationGizmo().isDragging())
+                pts.getPlaneTranslationGizmo().endDrag();
             ModellingToolState mtsDrag = ModellingToolState.INSTANCE;
-            if (mtsDrag.getAxisTranslationGizmo()
-                .isDragging())
-                mtsDrag.getAxisTranslationGizmo()
-                    .endDrag();
-            if (mtsDrag.getPlaneTranslationGizmo()
-                .isDragging())
-                mtsDrag.getPlaneTranslationGizmo()
-                    .endDrag();
+            if (mtsDrag.getAxisTranslationGizmo().isDragging())
+                mtsDrag.getAxisTranslationGizmo().endDrag();
+            if (mtsDrag.getPlaneTranslationGizmo().isDragging())
+                mtsDrag.getPlaneTranslationGizmo().endDrag();
         } else if (button == KeyConstants.RMB) {
             Tool tool = DimensiumEditorMode.INSTANCE.selectedTool;
             if (tool == Tool.SELECT) {
@@ -309,8 +270,8 @@ public final class GuiDimensiumOverlay {
         long _t2 = System.nanoTime();
         long _buildMs = (_t1 - _t0) / 1_000_000;
         long _sendMs = (_t2 - _t1) / 1_000_000;
-        System.err.println(
-            "[DIMTIMER] confirmMove buildOps=" + _buildMs + "ms sendChunked=" + _sendMs + "ms ops=" + moveOps.size());
+        System.err.println("[DIMTIMER] confirmMove buildOps=" + _buildMs + "ms sendChunked=" + _sendMs + "ms ops="
+                + moveOps.size());
 
         // Build new snapshot from the placed blocks (no world-read — avoids server-packet timing gap)
         Map<Long, SelectionState.BlockData> newSnap = new HashMap<>(ms.ghostBlocks.size());
@@ -318,8 +279,8 @@ public final class GuiDimensiumOverlay {
         for (int[] b : ms.ghostBlocks) {
             Block blk = Block.getBlockById(b[3]);
             if (blk != null && blk != Blocks.air) {
-                newSnap
-                    .put(SelectionState.pack(Vec3DInt.from(b[0], b[1], b[2])), new SelectionState.BlockData(blk, b[4]));
+                newSnap.put(
+                        SelectionState.pack(Vec3DInt.from(b[0], b[1], b[2])), new SelectionState.BlockData(blk, b[4]));
             }
             ncx += b[0] + 0.5f;
             ncy += b[1] + 0.5f;
@@ -366,8 +327,8 @@ public final class GuiDimensiumOverlay {
      * cursor, or -1 if none is within {@code thresholdPx} pixels. Skips {@code skipIndex}.
      * Each entry in {@code positions} is {worldX, worldY, worldZ}.
      */
-    public static int findNearestPointOnScreen(List<int[]> positions, int skipIndex, int mouseX, int mouseY,
-        GizmoProjection proj, double thresholdPx) {
+    public static int findNearestPointOnScreen(
+            List<int[]> positions, int skipIndex, int mouseX, int mouseY, GizmoProjection proj, double thresholdPx) {
         // GizmoProjection.project() already maps GL window coords to the viewport panel's
         // GUI-space position, so projected coords compare directly to mouseX/mouseY.
         int best = -1;
@@ -394,12 +355,12 @@ public final class GuiDimensiumOverlay {
             for (Map.Entry<Long, int[]> e : p.proposed.entrySet()) {
                 long key = e.getKey();
                 int[] bm = e.getValue();
-                ops.add(
-                    new int[] { ChangeProposal.unpackX(key), ChangeProposal.unpackY(key), ChangeProposal.unpackZ(key),
-                        bm[0], bm[1] });
+                ops.add(new int[] {
+                    ChangeProposal.unpackX(key), ChangeProposal.unpackY(key), ChangeProposal.unpackZ(key), bm[0], bm[1]
+                });
             }
-            String pathAction = I18n
-                .format("dimensium.action.path", I18n.format(PathToolState.INSTANCE.curveType.label));
+            String pathAction =
+                    I18n.format("dimensium.action.path", I18n.format(PathToolState.INSTANCE.curveType.label));
             BlockSender.sendChunked(ops, pathAction);
         }
         PathToolState.INSTANCE.clear();
@@ -417,13 +378,14 @@ public final class GuiDimensiumOverlay {
             long key = e.getKey();
             int[] bm = e.getValue();
             if (keepExisting) {
-                int wx = ChangeProposal.unpackX(key), wy = ChangeProposal.unpackY(key),
-                    wz = ChangeProposal.unpackZ(key);
+                int wx = ChangeProposal.unpackX(key),
+                        wy = ChangeProposal.unpackY(key),
+                        wz = ChangeProposal.unpackZ(key);
                 if (Minecraft.getMinecraft().theWorld.getBlock(wx, wy, wz) != Blocks.air) continue;
             }
-            ops.add(
-                new int[] { ChangeProposal.unpackX(key), ChangeProposal.unpackY(key), ChangeProposal.unpackZ(key),
-                    bm[0], bm[1] });
+            ops.add(new int[] {
+                ChangeProposal.unpackX(key), ChangeProposal.unpackY(key), ChangeProposal.unpackZ(key), bm[0], bm[1]
+            });
         }
         if (!ops.isEmpty()) {
             BlockSender.sendChunked(ops, I18n.format("dimensium.action.modelling"));
@@ -444,37 +406,31 @@ public final class GuiDimensiumOverlay {
         if (ms.active && ms.isAnyGizmoDragging()) return true;
         SelectionState sel = SelectionState.INSTANCE;
         if (sel.boxConfirmed
-            && (SelectionRenderer.boxPos1Gizmo.isDragging() || SelectionRenderer.boxPos2Gizmo.isDragging()
-                || SelectionRenderer.boxCenterViewPlaneGizmo.isDragging()
-                || SelectionRenderer.boxCenterGizmo.isDragging()))
-            return true;
-        if (PathToolState.INSTANCE.getAxisTranslationGizmo()
-            .isDragging()
-            || PathToolState.INSTANCE.getPlaneTranslationGizmo()
-                .isDragging())
-            return true;
-        return ModellingToolState.INSTANCE.getAxisTranslationGizmo()
-            .isDragging()
-            || ModellingToolState.INSTANCE.getPlaneTranslationGizmo()
-                .isDragging();
+                && (SelectionRenderer.boxPos1Gizmo.isDragging()
+                        || SelectionRenderer.boxPos2Gizmo.isDragging()
+                        || SelectionRenderer.boxCenterViewPlaneGizmo.isDragging()
+                        || SelectionRenderer.boxCenterGizmo.isDragging())) return true;
+        if (PathToolState.INSTANCE.getAxisTranslationGizmo().isDragging()
+                || PathToolState.INSTANCE.getPlaneTranslationGizmo().isDragging()) return true;
+        return ModellingToolState.INSTANCE.getAxisTranslationGizmo().isDragging()
+                || ModellingToolState.INSTANCE.getPlaneTranslationGizmo().isDragging();
     }
 
     /** Commits the pending box selection (boxConfirmed state) and clears gizmo state. */
     public static void commitBoxSelection(SelectionState sel, BoxSelectToolState ts) {
         sel.applyOp(
-            SelectionState.aabbBlocks(
-                sel.pendingPos.x(),
-                sel.pendingPos.y(),
-                sel.pendingPos.z(),
-                sel.pendingPos2.x(),
-                sel.pendingPos2.y(),
-                sel.pendingPos2.z()),
-            ts.booleanOp);
+                SelectionState.aabbBlocks(
+                        sel.pendingPos.x(),
+                        sel.pendingPos.y(),
+                        sel.pendingPos.z(),
+                        sel.pendingPos2.x(),
+                        sel.pendingPos2.y(),
+                        sel.pendingPos2.z()),
+                ts.booleanOp);
         sel.boxConfirmed = false;
         SelectionRenderer.boxPos1Gizmo.reset();
         SelectionRenderer.boxPos2Gizmo.reset();
         SelectionRenderer.boxCenterViewPlaneGizmo.reset();
         SelectionRenderer.boxCenterGizmo.reset();
     }
-
 }

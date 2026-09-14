@@ -4,15 +4,12 @@
  */
 package github.thehighcruw.dimensium.network;
 
-import java.io.IOException;
-
-import net.minecraft.network.NetHandlerPlayServer;
-import net.minecraft.network.PacketBuffer;
-
 import com.gtnewhorizon.gtnhlib.network.base.IPacket;
-
 import github.thehighcruw.dimensium.Dimensium;
 import github.thehighcruw.dimensium.editor.history.ServerCaptureQueue;
+import java.io.IOException;
+import net.minecraft.network.NetHandlerPlayServer;
+import net.minecraft.network.PacketBuffer;
 
 /** Client → server: request a world-state capture for the given AABB. */
 public class PacketCaptureRequest implements IPacket {
@@ -58,16 +55,16 @@ public class PacketCaptureRequest implements IPacket {
     public IPacket executeServer(NetHandlerPlayServer handler) {
         if (!handler.playerEntity.capabilities.isCreativeMode) {
             Dimensium.logger.warn(
-                "[Dimensium] Rejected PacketCaptureRequest from non-creative player {}",
-                handler.playerEntity.getCommandSenderName());
+                    "[Dimensium] Rejected PacketCaptureRequest from non-creative player {}",
+                    handler.playerEntity.getCommandSenderName());
             return null;
         }
         long volume = (long) (maxX - minX + 1) * (maxY - minY + 1) * (maxZ - minZ + 1);
         if (volume > 1_000_000L) {
             Dimensium.logger.warn(
-                "[Dimensium] Rejected PacketCaptureRequest: volume {} exceeds limit for player {}",
-                volume,
-                handler.playerEntity.getCommandSenderName());
+                    "[Dimensium] Rejected PacketCaptureRequest: volume {} exceeds limit for player {}",
+                    volume,
+                    handler.playerEntity.getCommandSenderName());
             return null;
         }
         ServerCaptureQueue.enqueue(handler.playerEntity, txId, minX, minY, minZ, maxX, maxY, maxZ);

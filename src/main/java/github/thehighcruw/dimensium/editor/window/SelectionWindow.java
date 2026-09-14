@@ -4,8 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.window;
 
-import net.minecraft.client.resources.I18n;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.DimensiumConfig;
@@ -18,6 +16,7 @@ import github.thehighcruw.dimensium.shared.SelectionTransforms;
 import imgui.ImGui;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
+import net.minecraft.client.resources.I18n;
 
 @SideOnly(Side.CLIENT)
 public class SelectionWindow extends ToggleableWindow {
@@ -41,8 +40,8 @@ public class SelectionWindow extends ToggleableWindow {
         if (!open) return;
 
         ImBoolean pOpen = new ImBoolean(true);
-        boolean visible = ImGui
-            .begin(I18n.format("dimensium.ui.window.selection") + WINDOW_ID, pOpen, ImGuiWindowFlags.None);
+        boolean visible =
+                ImGui.begin(I18n.format("dimensium.ui.window.selection") + WINDOW_ID, pOpen, ImGuiWindowFlags.None);
         captureBounds();
 
         if (visible && pOpen.get()) {
@@ -54,8 +53,8 @@ public class SelectionWindow extends ToggleableWindow {
                 ImGui.textDisabled(I18n.format("dimensium.ui.hint.no_selection"));
             } else {
                 if (sel.pendingPos1) {
-                    ImGui.text(
-                        String.format("P1  %d, %d, %d", sel.pendingPos.x(), sel.pendingPos.y(), sel.pendingPos.z()));
+                    ImGui.text(String.format(
+                            "P1  %d, %d, %d", sel.pendingPos.x(), sel.pendingPos.y(), sel.pendingPos.z()));
                 }
                 if (hasSel) {
                     ImGui.text(String.format("Blocks  %d", sel.size()));
@@ -102,8 +101,9 @@ public class SelectionWindow extends ToggleableWindow {
 
             if (ImGui.button(I18n.format("dimensium.select.bounding_box"), w, 0)) {
                 sel.applyOp(
-                    SelectionState.aabbBlocks(sel.minX(), sel.minY(), sel.minZ(), sel.maxX(), sel.maxY(), sel.maxZ()),
-                    BooleanOp.REPLACE);
+                        SelectionState.aabbBlocks(
+                                sel.minX(), sel.minY(), sel.minZ(), sel.maxX(), sel.maxY(), sel.maxZ()),
+                        BooleanOp.REPLACE);
             }
             if (ImGui.button(I18n.format("dimensium.select.convex_hull"), w, 0)) {
                 sel.applyOp(SelectionTransforms.convexHull(sel.getSelectedBlocks()), BooleanOp.REPLACE);

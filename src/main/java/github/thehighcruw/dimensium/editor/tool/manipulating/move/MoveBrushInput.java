@@ -4,10 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.tool.manipulating.move;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.util.MovingObjectPosition;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.freecam.FreecamState;
@@ -17,6 +13,9 @@ import github.thehighcruw.dimensium.editor.window.viewport.world.PlaneTranslatio
 import github.thehighcruw.dimensium.editor.window.viewport.world.RotationGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.TranslationGizmo;
 import github.thehighcruw.dimensium.shared.KeyConstants;
+import net.minecraft.client.Minecraft;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.util.MovingObjectPosition;
 
 @SideOnly(Side.CLIENT)
 public class MoveBrushInput implements BrushInput {
@@ -38,14 +37,13 @@ public class MoveBrushInput implements BrushInput {
             double gx = ms.gizmoX(), gy = ms.gizmoY(), gz = ms.gizmoZ();
             if (ms.getAxisTranslationGizmo().hoveredAxis != TranslationGizmo.Axis.NONE) {
                 ms.getAxisTranslationGizmo()
-                    .startDrag(mouseX, mouseY, gx, gy, gz, gx, gy, gz, ms.rot.x(), ms.rot.y(), ms.rot.z());
+                        .startDrag(mouseX, mouseY, gx, gy, gz, gx, gy, gz, ms.rot.x(), ms.rot.y(), ms.rot.z());
             } else if (ms.getPlaneTranslationGizmo().hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
                 ms.getPlaneTranslationGizmo()
-                    .startDrag(mouseX, mouseY, gx, gy, gz, gx, gy, gz, ms.rot.x(), ms.rot.y(), ms.rot.z());
+                        .startDrag(mouseX, mouseY, gx, gy, gz, gx, gy, gz, ms.rot.x(), ms.rot.y(), ms.rot.z());
             } else if (ms.getRotationGizmo().hoveredAxis != RotationGizmo.Axis.NONE) {
                 ms.rotDragBase = ms.rot;
-                ms.getRotationGizmo()
-                    .startDrag(mouseX, mouseY, gx, gy, gz, ms.rot.x(), ms.rot.y(), ms.rot.z());
+                ms.getRotationGizmo().startDrag(mouseX, mouseY, gx, gy, gz, ms.rot.x(), ms.rot.y(), ms.rot.z());
             }
         } else if (button == KeyConstants.RMB) {
             GuiDimensiumOverlay.confirmMove();

@@ -4,11 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.window.popup;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import net.minecraft.client.resources.I18n;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.blueprint.Blueprint;
@@ -24,6 +19,9 @@ import imgui.flag.ImGuiMouseButton;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
 import imgui.type.ImString;
+import java.util.ArrayList;
+import java.util.List;
+import net.minecraft.client.resources.I18n;
 
 @SideOnly(Side.CLIENT)
 public class CreateBlueprintPopup {
@@ -82,9 +80,9 @@ public class CreateBlueprintPopup {
 
         ImBoolean pOpen = new ImBoolean(true);
         if (ImGui.beginPopupModal(
-            I18n.format("dimensium.blueprint.create.title") + "###create_blueprint_modal",
-            pOpen,
-            ImGuiWindowFlags.AlwaysAutoResize)) {
+                I18n.format("dimensium.blueprint.create.title") + "###create_blueprint_modal",
+                pOpen,
+                ImGuiWindowFlags.AlwaysAutoResize)) {
 
             if (ImGui.isKeyPressed(ImGuiKey.Escape)) {
                 close();
@@ -107,40 +105,34 @@ public class CreateBlueprintPopup {
             // Draw image or placeholder on top of the invisible button
             if (texId != -1) {
                 ImGui.getWindowDrawList()
-                    .addImage(
-                        texId,
-                        thumbPos.x,
-                        thumbPos.y,
-                        thumbPos.x + THUMB_SIZE,
-                        thumbPos.y + THUMB_SIZE,
-                        0f,
-                        1f,
-                        1f,
-                        0f);
+                        .addImage(
+                                texId,
+                                thumbPos.x,
+                                thumbPos.y,
+                                thumbPos.x + THUMB_SIZE,
+                                thumbPos.y + THUMB_SIZE,
+                                0f,
+                                1f,
+                                1f,
+                                0f);
             } else {
                 ImGui.getWindowDrawList()
-                    .addRectFilled(
-                        thumbPos.x,
-                        thumbPos.y,
-                        thumbPos.x + THUMB_SIZE,
-                        thumbPos.y + THUMB_SIZE,
-                        0xFF222233);
+                        .addRectFilled(
+                                thumbPos.x, thumbPos.y, thumbPos.x + THUMB_SIZE, thumbPos.y + THUMB_SIZE, 0xFF222233);
             }
 
             // Rotate hint overlay
             ImGui.getWindowDrawList()
-                .addText(
-                    thumbPos.x + 4f,
-                    thumbPos.y + THUMB_SIZE - 14f,
-                    0xAAFFFFFF,
-                    I18n.format("dimensium.blueprint.create.thumb.hint"));
+                    .addText(
+                            thumbPos.x + 4f,
+                            thumbPos.y + THUMB_SIZE - 14f,
+                            0xAAFFFFFF,
+                            I18n.format("dimensium.blueprint.create.thumb.hint"));
 
             // ── Mouse input ───────────────────────────────────────────────────
             if (thumbActive && ImGui.isMouseDragging(ImGuiMouseButton.Left, 1f)) {
-                float dx = ImGui.getIO()
-                    .getMouseDeltaX();
-                float dy = ImGui.getIO()
-                    .getMouseDeltaY();
+                float dx = ImGui.getIO().getMouseDeltaX();
+                float dy = ImGui.getIO().getMouseDeltaY();
                 previewAzim += dx * 0.5f;
                 previewElev = Math.max(-89f, Math.min(89f, previewElev + dy * 0.5f));
                 if (clipRenderer != null) {
@@ -149,8 +141,7 @@ public class CreateBlueprintPopup {
             }
 
             if (thumbHovered) {
-                float wheel = ImGui.getIO()
-                    .getMouseWheel();
+                float wheel = ImGui.getIO().getMouseWheel();
                 if (wheel != 0f) {
                     previewZoom = Math.max(0.2f, Math.min(5f, previewZoom + wheel * 0.1f));
                     if (clipRenderer != null) {
@@ -229,8 +220,7 @@ public class CreateBlueprintPopup {
     // ── Save logic ────────────────────────────────────────────────────────────
 
     private void trySave() {
-        String name = nameField.get()
-            .trim();
+        String name = nameField.get().trim();
         if (name.isEmpty()) {
             statusMsg = I18n.format("dimensium.blueprint.create.error.noname");
             return;
@@ -247,9 +237,7 @@ public class CreateBlueprintPopup {
             thumbnail = clipRenderer.getLatestPng();
         }
 
-        List<String> tags = parseTags(
-            tagsField.get()
-                .trim());
+        List<String> tags = parseTags(tagsField.get().trim());
 
         Blueprint bp = Blueprint.fromClipboard(name, tags, sel.clipboard, sel.clipDim, thumbnail);
 
@@ -277,8 +265,7 @@ public class CreateBlueprintPopup {
 
     private static List<String> parseTags(String raw) {
         List<String> result = new ArrayList<>();
-        if (raw == null || raw.trim()
-            .isEmpty()) return result;
+        if (raw == null || raw.trim().isEmpty()) return result;
         for (String t : raw.split(",")) {
             String trimmed = t.trim();
             if (!trimmed.isEmpty()) result.add(trimmed);

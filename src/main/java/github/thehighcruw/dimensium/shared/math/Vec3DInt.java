@@ -4,11 +4,9 @@
  */
 package github.thehighcruw.dimensium.shared.math;
 
-import java.util.function.Predicate;
-
-import net.minecraft.util.Vec3;
-
 import com.github.bsideup.jabel.Desugar;
+import java.util.function.Predicate;
+import net.minecraft.util.Vec3;
 
 @Desugar
 public record Vec3DInt(int x, int y, int z) {

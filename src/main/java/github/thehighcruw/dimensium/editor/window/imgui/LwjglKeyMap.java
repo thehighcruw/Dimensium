@@ -4,9 +4,8 @@
  */
 package github.thehighcruw.dimensium.editor.window.imgui;
 
-import org.lwjgl.input.Keyboard;
-
 import imgui.flag.ImGuiKey;
+import org.lwjgl.input.Keyboard;
 
 /** Maps LWJGL 2 key codes to ImGuiKey constants. Returns -1 for unmapped keys. */
 public final class LwjglKeyMap {

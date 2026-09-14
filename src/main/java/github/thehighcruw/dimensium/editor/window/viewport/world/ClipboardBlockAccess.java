@@ -4,14 +4,13 @@
  */
 package github.thehighcruw.dimensium.editor.window.viewport.world;
 
+import github.thehighcruw.dimensium.shared.SelectionState;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraftforge.common.util.ForgeDirection;
-
-import github.thehighcruw.dimensium.shared.SelectionState;
 
 public class ClipboardBlockAccess implements IBlockAccess {
 
@@ -82,8 +81,6 @@ public class ClipboardBlockAccess implements IBlockAccess {
     public boolean isSideSolid(int x, int y, int z, ForgeDirection side, boolean def) {
         SelectionState.BlockData bd = at(x, y, z);
         if (bd == null || bd.block() == Blocks.air) return false;
-        return bd.block()
-            .isSideSolid(this, x, y, z, side);
+        return bd.block().isSideSolid(this, x, y, z, side);
     }
-
 }

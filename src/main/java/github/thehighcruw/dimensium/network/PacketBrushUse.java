@@ -4,16 +4,13 @@
  */
 package github.thehighcruw.dimensium.network;
 
+import com.gtnewhorizon.gtnhlib.network.base.IPacket;
+import github.thehighcruw.dimensium.Dimensium;
+import github.thehighcruw.dimensium.editor.tool.BrushApplicator;
 import java.io.IOException;
-
 import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.world.World;
-
-import com.gtnewhorizon.gtnhlib.network.base.IPacket;
-
-import github.thehighcruw.dimensium.Dimensium;
-import github.thehighcruw.dimensium.editor.tool.BrushApplicator;
 
 /** Applies the currently selected brush/paint tool at the given block position. */
 public class PacketBrushUse implements IPacket {
@@ -40,8 +37,8 @@ public class PacketBrushUse implements IPacket {
     public IPacket executeServer(NetHandlerPlayServer handler) {
         if (!handler.playerEntity.capabilities.isCreativeMode) {
             Dimensium.logger.warn(
-                "[Dimensium] Rejected PacketBrushUse from non-creative player {}",
-                handler.playerEntity.getCommandSenderName());
+                    "[Dimensium] Rejected PacketBrushUse from non-creative player {}",
+                    handler.playerEntity.getCommandSenderName());
             return null;
         }
         World world = handler.playerEntity.worldObj;

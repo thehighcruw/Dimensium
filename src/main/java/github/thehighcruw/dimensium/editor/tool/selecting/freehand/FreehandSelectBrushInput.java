@@ -4,15 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.tool.selecting.freehand;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import net.minecraft.client.Minecraft;
-import net.minecraft.init.Blocks;
-import net.minecraft.util.MovingObjectPosition;
-
-import org.lwjgl.input.Mouse;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.freecam.FreecamState;
@@ -26,6 +17,12 @@ import github.thehighcruw.dimensium.shared.KeyConstants;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
+import java.util.HashSet;
+import java.util.Set;
+import net.minecraft.client.Minecraft;
+import net.minecraft.init.Blocks;
+import net.minecraft.util.MovingObjectPosition;
+import org.lwjgl.input.Mouse;
 
 @SideOnly(Side.CLIENT)
 public class FreehandSelectBrushInput implements BrushInput {

@@ -4,21 +4,18 @@
  */
 package github.thehighcruw.dimensium.editor.window.viewport.world;
 
+import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import github.thehighcruw.dimensium.tool.ChangeProposal;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.annotation.Nonnull;
-
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.util.IIcon;
-
-import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
-import github.thehighcruw.dimensium.shared.math.Vec3DInt;
-import github.thehighcruw.dimensium.tool.ChangeProposal;
 
 /**
  * Static utility for rendering a translucent ghost preview of a block list.
@@ -31,22 +28,23 @@ public class GhostRenderer {
     // ── Exterior wireframe constants ──────────────────────────────────────────
 
     // Face neighbor offsets: +X,-X,+Y,-Y,+Z,-Z
-    static final int[] NX = { 1, -1, 0, 0, 0, 0 };
-    static final int[] NY = { 0, 0, 1, -1, 0, 0 };
-    static final int[] NZ = { 0, 0, 0, 0, 1, -1 };
+    static final int[] NX = {1, -1, 0, 0, 0, 0};
+    static final int[] NY = {0, 0, 1, -1, 0, 0};
+    static final int[] NZ = {0, 0, 0, 0, 1, -1};
 
     // For each of 6 faces, 4 edges; each edge = {axis, dx, dy, dz}
     // axis: 0=X-axis edge, 1=Y-axis edge, 2=Z-axis edge
     // corner of edge = block corner at (bx+dx, by+dy, bz+dz)
-    static final int[][][] FACE_EDGES = { { { 2, 1, 0, 0 }, { 1, 1, 0, 1 }, { 2, 1, 1, 0 }, { 1, 1, 0, 0 } }, // +X face
-        { { 2, 0, 0, 0 }, { 1, 0, 0, 1 }, { 2, 0, 1, 0 }, { 1, 0, 0, 0 } }, // -X face
-        { { 0, 0, 1, 0 }, { 2, 1, 1, 0 }, { 0, 0, 1, 1 }, { 2, 0, 1, 0 } }, // +Y face
-        { { 0, 0, 0, 0 }, { 2, 1, 0, 0 }, { 0, 0, 0, 1 }, { 2, 0, 0, 0 } }, // -Y face
-        { { 0, 0, 0, 1 }, { 1, 1, 0, 1 }, { 0, 0, 1, 1 }, { 1, 0, 0, 1 } }, // +Z face
-        { { 0, 0, 0, 0 }, { 1, 1, 0, 0 }, { 0, 0, 1, 0 }, { 1, 0, 0, 0 } }, // -Z face
+    static final int[][][] FACE_EDGES = {
+        {{2, 1, 0, 0}, {1, 1, 0, 1}, {2, 1, 1, 0}, {1, 1, 0, 0}}, // +X face
+        {{2, 0, 0, 0}, {1, 0, 0, 1}, {2, 0, 1, 0}, {1, 0, 0, 0}}, // -X face
+        {{0, 0, 1, 0}, {2, 1, 1, 0}, {0, 0, 1, 1}, {2, 0, 1, 0}}, // +Y face
+        {{0, 0, 0, 0}, {2, 1, 0, 0}, {0, 0, 0, 1}, {2, 0, 0, 0}}, // -Y face
+        {{0, 0, 0, 1}, {1, 1, 0, 1}, {0, 0, 1, 1}, {1, 0, 0, 1}}, // +Z face
+        {{0, 0, 0, 0}, {1, 1, 0, 0}, {0, 0, 1, 0}, {1, 0, 0, 0}}, // -Z face
     };
     // Which "plane group" each face belongs to: X-faces=1, Y-faces=2, Z-faces=4
-    static final int[] FACE_AXIS_BIT = { 1, 1, 2, 2, 4, 4 };
+    static final int[] FACE_AXIS_BIT = {1, 1, 2, 2, 4, 4};
 
     public static final GhostRenderer INSTANCE = new GhostRenderer();
 
@@ -104,87 +102,87 @@ public class GhostRenderer {
         switch (face) {
             case 0:
                 addFace(
-                    t,
-                    block,
-                    meta,
-                    5,
-                    tr,
-                    tg,
-                    tb,
-                    Vec3DFloat.from(x2, y2, z2),
-                    Vec3DFloat.from(x2, y2, z),
-                    Vec3DFloat.from(x2, y, z),
-                    Vec3DFloat.from(x2, y, z2));
+                        t,
+                        block,
+                        meta,
+                        5,
+                        tr,
+                        tg,
+                        tb,
+                        Vec3DFloat.from(x2, y2, z2),
+                        Vec3DFloat.from(x2, y2, z),
+                        Vec3DFloat.from(x2, y, z),
+                        Vec3DFloat.from(x2, y, z2));
                 break;
             case 1:
                 addFace(
-                    t,
-                    block,
-                    meta,
-                    4,
-                    tr,
-                    tg,
-                    tb,
-                    Vec3DFloat.from(x, y2, z),
-                    Vec3DFloat.from(x, y2, z2),
-                    Vec3DFloat.from(x, y, z2),
-                    Vec3DFloat.from(x, y, z));
+                        t,
+                        block,
+                        meta,
+                        4,
+                        tr,
+                        tg,
+                        tb,
+                        Vec3DFloat.from(x, y2, z),
+                        Vec3DFloat.from(x, y2, z2),
+                        Vec3DFloat.from(x, y, z2),
+                        Vec3DFloat.from(x, y, z));
                 break;
             case 2:
                 addFace(
-                    t,
-                    block,
-                    meta,
-                    1,
-                    tr,
-                    tg,
-                    tb,
-                    Vec3DFloat.from(x, y2, z),
-                    Vec3DFloat.from(x2, y2, z),
-                    Vec3DFloat.from(x2, y2, z2),
-                    Vec3DFloat.from(x, y2, z2));
+                        t,
+                        block,
+                        meta,
+                        1,
+                        tr,
+                        tg,
+                        tb,
+                        Vec3DFloat.from(x, y2, z),
+                        Vec3DFloat.from(x2, y2, z),
+                        Vec3DFloat.from(x2, y2, z2),
+                        Vec3DFloat.from(x, y2, z2));
                 break;
             case 3:
                 addFace(
-                    t,
-                    block,
-                    meta,
-                    0,
-                    tr,
-                    tg,
-                    tb,
-                    Vec3DFloat.from(x, y, z2),
-                    Vec3DFloat.from(x2, y, z2),
-                    Vec3DFloat.from(x2, y, z),
-                    Vec3DFloat.from(x, y, z));
+                        t,
+                        block,
+                        meta,
+                        0,
+                        tr,
+                        tg,
+                        tb,
+                        Vec3DFloat.from(x, y, z2),
+                        Vec3DFloat.from(x2, y, z2),
+                        Vec3DFloat.from(x2, y, z),
+                        Vec3DFloat.from(x, y, z));
                 break;
             case 4:
                 addFace(
-                    t,
-                    block,
-                    meta,
-                    3,
-                    tr,
-                    tg,
-                    tb,
-                    Vec3DFloat.from(x, y2, z2),
-                    Vec3DFloat.from(x2, y2, z2),
-                    Vec3DFloat.from(x2, y, z2),
-                    Vec3DFloat.from(x, y, z2));
+                        t,
+                        block,
+                        meta,
+                        3,
+                        tr,
+                        tg,
+                        tb,
+                        Vec3DFloat.from(x, y2, z2),
+                        Vec3DFloat.from(x2, y2, z2),
+                        Vec3DFloat.from(x2, y, z2),
+                        Vec3DFloat.from(x, y, z2));
                 break;
             case 5:
                 addFace(
-                    t,
-                    block,
-                    meta,
-                    2,
-                    tr,
-                    tg,
-                    tb,
-                    Vec3DFloat.from(x2, y2, z),
-                    Vec3DFloat.from(x, y2, z),
-                    Vec3DFloat.from(x, y, z),
-                    Vec3DFloat.from(x2, y, z));
+                        t,
+                        block,
+                        meta,
+                        2,
+                        tr,
+                        tg,
+                        tb,
+                        Vec3DFloat.from(x2, y2, z),
+                        Vec3DFloat.from(x, y2, z),
+                        Vec3DFloat.from(x, y, z),
+                        Vec3DFloat.from(x2, y, z));
                 break;
             default:
                 break;
@@ -192,8 +190,18 @@ public class GhostRenderer {
     }
 
     /** Emit one textured quad using the block's icon for the given side. Skips if icon is null. */
-    static void addFace(Tessellator t, Block block, int meta, int side, float tr, float tg, float tb, Vec3DFloat a,
-        Vec3DFloat b, Vec3DFloat c, Vec3DFloat d) {
+    static void addFace(
+            Tessellator t,
+            Block block,
+            int meta,
+            int side,
+            float tr,
+            float tg,
+            float tb,
+            Vec3DFloat a,
+            Vec3DFloat b,
+            Vec3DFloat c,
+            Vec3DFloat d) {
         IIcon icon;
         try {
             icon = block.getIcon(side, meta);
@@ -374,9 +382,9 @@ public class GhostRenderer {
         for (Map.Entry<Long, int[]> e : proposed.entrySet()) {
             if (filter != null && !filter.accept(e.getValue())) continue;
             Vec3DInt b = Vec3DInt.from(
-                ChangeProposal.unpackX(e.getKey()),
-                ChangeProposal.unpackY(e.getKey()),
-                ChangeProposal.unpackZ(e.getKey()));
+                    ChangeProposal.unpackX(e.getKey()),
+                    ChangeProposal.unpackY(e.getKey()),
+                    ChangeProposal.unpackZ(e.getKey()));
             for (int face = 0; face < 6; face++) {
                 long nk = ChangeProposal.packKey(b.x() + NX[face], b.y() + NY[face], b.z() + NZ[face]);
                 if (!proposed.containsKey(nk)) {

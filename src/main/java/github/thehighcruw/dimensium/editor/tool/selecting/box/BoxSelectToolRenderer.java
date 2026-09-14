@@ -4,10 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.tool.selecting.box;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.util.MovingObjectPosition;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.tool.ToolRenderer;
@@ -15,6 +11,9 @@ import github.thehighcruw.dimensium.editor.window.viewport.world.SelectionRender
 import github.thehighcruw.dimensium.editor.window.viewport.world.TranslationGizmo;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
+import net.minecraft.client.Minecraft;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.util.MovingObjectPosition;
 
 @SideOnly(Side.CLIENT)
 public class BoxSelectToolRenderer implements ToolRenderer {
@@ -38,36 +37,37 @@ public class BoxSelectToolRenderer implements ToolRenderer {
         SelectionState bxSel = SelectionState.INSTANCE;
         if (!bxSel.boxConfirmed || mc.renderViewEntity == null) return;
         EntityLivingBase bxEye = mc.renderViewEntity;
-        boolean anyDragging = SelectionRenderer.boxPos1Gizmo.isDragging() || SelectionRenderer.boxPos2Gizmo.isDragging()
-            || SelectionRenderer.boxCenterViewPlaneGizmo.isDragging()
-            || SelectionRenderer.boxCenterGizmo.isDragging();
+        boolean anyDragging = SelectionRenderer.boxPos1Gizmo.isDragging()
+                || SelectionRenderer.boxPos2Gizmo.isDragging()
+                || SelectionRenderer.boxCenterViewPlaneGizmo.isDragging()
+                || SelectionRenderer.boxCenterGizmo.isDragging();
         if (!anyDragging) {
             SelectionRenderer.boxPos1Gizmo.updateHover(
-                mx,
-                my,
-                bxEye,
-                bxSel.pendingPos.x() + 0.5,
-                bxSel.pendingPos.y() + 0.5,
-                bxSel.pendingPos.z() + 0.5,
-                0,
-                0,
-                0);
-            if (SelectionRenderer.boxPos1Gizmo.hoveredAxis == TranslationGizmo.Axis.NONE) {
-                SelectionRenderer.boxPos2Gizmo.updateHover(
                     mx,
                     my,
                     bxEye,
-                    bxSel.pendingPos2.x() + 0.5,
-                    bxSel.pendingPos2.y() + 0.5,
-                    bxSel.pendingPos2.z() + 0.5,
+                    bxSel.pendingPos.x() + 0.5,
+                    bxSel.pendingPos.y() + 0.5,
+                    bxSel.pendingPos.z() + 0.5,
                     0,
                     0,
                     0);
+            if (SelectionRenderer.boxPos1Gizmo.hoveredAxis == TranslationGizmo.Axis.NONE) {
+                SelectionRenderer.boxPos2Gizmo.updateHover(
+                        mx,
+                        my,
+                        bxEye,
+                        bxSel.pendingPos2.x() + 0.5,
+                        bxSel.pendingPos2.y() + 0.5,
+                        bxSel.pendingPos2.z() + 0.5,
+                        0,
+                        0,
+                        0);
             } else {
                 SelectionRenderer.boxPos2Gizmo.hoveredAxis = TranslationGizmo.Axis.NONE;
             }
             if (SelectionRenderer.boxPos1Gizmo.hoveredAxis == TranslationGizmo.Axis.NONE
-                && SelectionRenderer.boxPos2Gizmo.hoveredAxis == TranslationGizmo.Axis.NONE) {
+                    && SelectionRenderer.boxPos2Gizmo.hoveredAxis == TranslationGizmo.Axis.NONE) {
                 double cxW = (bxSel.pendingPos.x() + bxSel.pendingPos2.x()) / 2.0 + 0.5;
                 double cyW = (bxSel.pendingPos.y() + bxSel.pendingPos2.y()) / 2.0 + 0.5;
                 double czW = (bxSel.pendingPos.z() + bxSel.pendingPos2.z()) / 2.0 + 0.5;

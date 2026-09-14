@@ -4,12 +4,10 @@
  */
 package github.thehighcruw.dimensium.editor.window.viewport.world;
 
-import net.minecraft.client.renderer.Tessellator;
-
-import org.lwjgl.opengl.GL11;
-
 import github.thehighcruw.dimensium.shared.math.Mat3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
+import net.minecraft.client.renderer.Tessellator;
+import org.lwjgl.opengl.GL11;
 
 /**
  * Shader-compatible line rendering.
@@ -81,11 +79,11 @@ public class WorldLines {
         addSegment(t, a.x(), a.y(), a.z(), b.x(), b.y(), b.z(), halfW);
     }
 
-    static void addSegment(Tessellator t, double ax, double ay, double az, double bx, double by, double bz,
-        float halfW) {
+    static void addSegment(
+            Tessellator t, double ax, double ay, double az, double bx, double by, double bz, float halfW) {
         // Eye-to-midpoint direction
-        Vec3DDouble eyeToMid = Vec3DDouble
-            .from((ax + bx) * 0.5 - eye.x(), (ay + by) * 0.5 - eye.y(), (az + bz) * 0.5 - eye.z());
+        Vec3DDouble eyeToMid =
+                Vec3DDouble.from((ax + bx) * 0.5 - eye.x(), (ay + by) * 0.5 - eye.y(), (az + bz) * 0.5 - eye.z());
 
         // Segment direction (normalised)
         Vec3DDouble seg = Vec3DDouble.from(bx - ax, by - ay, bz - az);
@@ -98,8 +96,9 @@ public class WorldLines {
         double pl = perp.length();
         if (pl < 1e-9) {
             // Segment points directly at camera — choose any perpendicular
-            perp = Math.abs(segDir.x()) < 0.9 ? Vec3DDouble.from(0, segDir.z(), -segDir.y())
-                : Vec3DDouble.from(segDir.z(), 0, -segDir.x());
+            perp = Math.abs(segDir.x()) < 0.9
+                    ? Vec3DDouble.from(0, segDir.z(), -segDir.y())
+                    : Vec3DDouble.from(segDir.z(), 0, -segDir.x());
             pl = perp.length();
             if (pl < 1e-9) return;
         }
@@ -151,14 +150,14 @@ public class WorldLines {
         int batched = 0;
         for (int i = 0; i + 5 < verts.length; i += 6) {
             addSegment(
-                t,
-                verts[i],
-                verts[i + 1],
-                verts[i + 2],
-                verts[i + 3],
-                verts[i + 4],
-                verts[i + 5],
-                WorldLines.W_THIN);
+                    t,
+                    verts[i],
+                    verts[i + 1],
+                    verts[i + 2],
+                    verts[i + 3],
+                    verts[i + 4],
+                    verts[i + 5],
+                    WorldLines.W_THIN);
             if (++batched % 2048 == 0) {
                 t.draw();
                 t.startDrawingQuads();
@@ -179,14 +178,14 @@ public class WorldLines {
         int batched = 0;
         for (int i = 0; i + 5 < verts.length; i += 6) {
             addSegment(
-                Tessellator.instance,
-                verts[i] - offset.x(),
-                verts[i + 1] - offset.y(),
-                verts[i + 2] - offset.z(),
-                verts[i + 3] - offset.x(),
-                verts[i + 4] - offset.y(),
-                verts[i + 5] - offset.z(),
-                WorldLines.W_THIN);
+                    Tessellator.instance,
+                    verts[i] - offset.x(),
+                    verts[i + 1] - offset.y(),
+                    verts[i + 2] - offset.z(),
+                    verts[i + 3] - offset.x(),
+                    verts[i + 4] - offset.y(),
+                    verts[i + 5] - offset.z(),
+                    WorldLines.W_THIN);
             if (++batched % 2048 == 0) {
                 Tessellator.instance.draw();
                 Tessellator.instance.startDrawingQuads();

@@ -4,13 +4,12 @@
  */
 package github.thehighcruw.dimensium.editor.tool.painting.gradient;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.util.MovingObjectPosition;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.tool.BrushInput;
 import github.thehighcruw.dimensium.shared.KeyConstants;
+import net.minecraft.client.Minecraft;
+import net.minecraft.util.MovingObjectPosition;
 
 @SideOnly(Side.CLIENT)
 public class GradientBrushInput implements BrushInput {

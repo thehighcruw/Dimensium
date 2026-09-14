@@ -4,6 +4,9 @@
  */
 package github.thehighcruw.dimensium.editor.blueprint;
 
+import com.github.bsideup.jabel.Desugar;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.nio.ByteBuffer;
@@ -15,16 +18,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
-
 import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
-
 import org.lwjgl.opengl.GL11;
-
-import com.github.bsideup.jabel.Desugar;
-
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 
 /**
  * Uploads blueprint thumbnail PNGs as GL textures, evicting the oldest when full.
@@ -118,15 +114,15 @@ public class BlueprintThumbnailCache {
             int id = GL11.glGenTextures();
             GL11.glBindTexture(GL11.GL_TEXTURE_2D, id);
             GL11.glTexImage2D(
-                GL11.GL_TEXTURE_2D,
-                0,
-                GL11.GL_RGBA8,
-                img.w,
-                img.h,
-                0,
-                GL11.GL_RGBA,
-                GL11.GL_UNSIGNED_BYTE,
-                img.buf);
+                    GL11.GL_TEXTURE_2D,
+                    0,
+                    GL11.GL_RGBA8,
+                    img.w,
+                    img.h,
+                    0,
+                    GL11.GL_RGBA,
+                    GL11.GL_UNSIGNED_BYTE,
+                    img.buf);
             GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
             GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
             GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);

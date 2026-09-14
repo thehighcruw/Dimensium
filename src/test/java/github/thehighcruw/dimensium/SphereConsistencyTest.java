@@ -6,10 +6,9 @@ package github.thehighcruw.dimensium;
 
 import static org.junit.Assert.*;
 
-import org.junit.Test;
-
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeMath;
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeToolState.ShapeType;
+import org.junit.Test;
 
 /**
  * Checks sphere (and other shapes) for:
@@ -26,9 +25,17 @@ import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeToolState.Sh
  */
 public class SphereConsistencyTest {
 
-    private static final ShapeType[] HALF_SHAPES = { ShapeType.SPHERE, ShapeType.CYLINDER, ShapeType.OCTAHEDRON,
-        ShapeType.SUPERSPHERE, ShapeType.DODECAHEDRON, ShapeType.ICOSAHEDRON, ShapeType.CUBOID, ShapeType.TUBE, };
-    private static final int[] SIZES = { 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
+    private static final ShapeType[] HALF_SHAPES = {
+        ShapeType.SPHERE,
+        ShapeType.CYLINDER,
+        ShapeType.OCTAHEDRON,
+        ShapeType.SUPERSPHERE,
+        ShapeType.DODECAHEDRON,
+        ShapeType.ICOSAHEDRON,
+        ShapeType.CUBOID,
+        ShapeType.TUBE,
+    };
+    private static final int[] SIZES = {3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
 
     private static boolean geomInt(ShapeType t, int dx, int dy, int dz, int w, int h, int d, boolean hollow) {
         return ShapeMath.inShapeGeom(t, dx, dy, dz, w, h, d, hollow, 2f, 6, 6, 2, 2, 2f, 6, 1.5f, 3f, 1f);
@@ -48,37 +55,39 @@ public class SphereConsistencyTest {
      */
     private static void assertIntFloatAgree(ShapeType type, int w, int h, int d, boolean hollow) {
         String tag = type + " " + w + "x" + h + "x" + d + " hollow=" + hollow;
-        for (int dx = 0; dx < w; dx++) for (int dy = 0; dy < h; dy++) for (int dz = 0; dz < d; dz++) {
-            boolean i = geomInt(type, dx, dy, dz, w, h, d, hollow);
-            boolean f = geomF(type, dx + 0.5f, dy + 0.5f, dz + 0.5f, w, h, d, hollow);
-            if (i != f) fail(
-                tag + ": inShapeGeom("
-                    + dx
-                    + ","
-                    + dy
-                    + ","
-                    + dz
-                    + ")="
-                    + i
-                    + " but inShapeGeomF("
-                    + (dx + 0.5f)
-                    + ","
-                    + (dy + 0.5f)
-                    + ","
-                    + (dz + 0.5f)
-                    + ")="
-                    + f);
-        }
+        for (int dx = 0; dx < w; dx++)
+            for (int dy = 0; dy < h; dy++)
+                for (int dz = 0; dz < d; dz++) {
+                    boolean i = geomInt(type, dx, dy, dz, w, h, d, hollow);
+                    boolean f = geomF(type, dx + 0.5f, dy + 0.5f, dz + 0.5f, w, h, d, hollow);
+                    if (i != f)
+                        fail(tag + ": inShapeGeom("
+                                + dx
+                                + ","
+                                + dy
+                                + ","
+                                + dz
+                                + ")="
+                                + i
+                                + " but inShapeGeomF("
+                                + (dx + 0.5f)
+                                + ","
+                                + (dy + 0.5f)
+                                + ","
+                                + (dz + 0.5f)
+                                + ")="
+                                + f);
+                }
     }
 
     @Test
     public void sphereIntFloatAgreementOdd() {
-        for (int s : new int[] { 3, 5, 7, 9, 11, 13, 15 }) assertIntFloatAgree(ShapeType.SPHERE, s, s, s, false);
+        for (int s : new int[] {3, 5, 7, 9, 11, 13, 15}) assertIntFloatAgree(ShapeType.SPHERE, s, s, s, false);
     }
 
     @Test
     public void sphereIntFloatAgreementEven() {
-        for (int s : new int[] { 4, 6, 8, 10, 12, 14 }) assertIntFloatAgree(ShapeType.SPHERE, s, s, s, false);
+        for (int s : new int[] {4, 6, 8, 10, 12, 14}) assertIntFloatAgree(ShapeType.SPHERE, s, s, s, false);
     }
 
     @Test
@@ -90,13 +99,13 @@ public class SphereConsistencyTest {
 
     @Test
     public void sphereHollowIntFloatAgreement() {
-        for (int s : new int[] { 5, 7, 9, 11 }) assertIntFloatAgree(ShapeType.SPHERE, s, s, s, true);
-        for (int s : new int[] { 6, 8, 10 }) assertIntFloatAgree(ShapeType.SPHERE, s, s, s, true);
+        for (int s : new int[] {5, 7, 9, 11}) assertIntFloatAgree(ShapeType.SPHERE, s, s, s, true);
+        for (int s : new int[] {6, 8, 10}) assertIntFloatAgree(ShapeType.SPHERE, s, s, s, true);
     }
 
     @Test
     public void allShapesIntFloatAgreement() {
-        for (ShapeType t : HALF_SHAPES) for (int s : new int[] { 5, 6, 9, 10 }) assertIntFloatAgree(t, s, s, s, false);
+        for (ShapeType t : HALF_SHAPES) for (int s : new int[] {5, 6, 9, 10}) assertIntFloatAgree(t, s, s, s, false);
     }
 
     // ── Half-count equality ───────────────────────────────────────────────────
@@ -114,10 +123,11 @@ public class SphereConsistencyTest {
         for (int dx = 0; dx < w; dx++) {
             if (dx * 2 + 1 == w) continue; // center column, skip for odd w
             for (int dy = 0; dy < h; dy++)
-                for (int dz = 0; dz < d; dz++) if (geomInt(type, dx, dy, dz, w, h, d, hollow)) {
-                    if (dx * 2 < w - 1) lo++;
-                    else hi++;
-                }
+                for (int dz = 0; dz < d; dz++)
+                    if (geomInt(type, dx, dy, dz, w, h, d, hollow)) {
+                        if (dx * 2 < w - 1) lo++;
+                        else hi++;
+                    }
         }
         assertEquals(tag + " X halves differ: lo=" + lo + " hi=" + hi, lo, hi);
 
@@ -127,10 +137,11 @@ public class SphereConsistencyTest {
         for (int dy = 0; dy < h; dy++) {
             if (dy * 2 + 1 == h) continue;
             for (int dx = 0; dx < w; dx++)
-                for (int dz = 0; dz < d; dz++) if (geomInt(type, dx, dy, dz, w, h, d, hollow)) {
-                    if (dy * 2 < h - 1) lo++;
-                    else hi++;
-                }
+                for (int dz = 0; dz < d; dz++)
+                    if (geomInt(type, dx, dy, dz, w, h, d, hollow)) {
+                        if (dy * 2 < h - 1) lo++;
+                        else hi++;
+                    }
         }
         assertEquals(tag + " Y halves differ: lo=" + lo + " hi=" + hi, lo, hi);
 
@@ -140,10 +151,11 @@ public class SphereConsistencyTest {
         for (int dz = 0; dz < d; dz++) {
             if (dz * 2 + 1 == d) continue;
             for (int dx = 0; dx < w; dx++)
-                for (int dy = 0; dy < h; dy++) if (geomInt(type, dx, dy, dz, w, h, d, hollow)) {
-                    if (dz * 2 < d - 1) lo++;
-                    else hi++;
-                }
+                for (int dy = 0; dy < h; dy++)
+                    if (geomInt(type, dx, dy, dz, w, h, d, hollow)) {
+                        if (dz * 2 < d - 1) lo++;
+                        else hi++;
+                    }
         }
         assertEquals(tag + " Z halves differ: lo=" + lo + " hi=" + hi, lo, hi);
     }

@@ -4,9 +4,8 @@
  */
 package github.thehighcruw.dimensium.shared.math;
 
-import net.minecraft.util.Vec3;
-
 import com.github.bsideup.jabel.Desugar;
+import net.minecraft.util.Vec3;
 
 @Desugar
 public record Vec3DDouble(double x, double y, double z) {

@@ -4,9 +4,6 @@
  */
 package github.thehighcruw.dimensium.world.tool;
 
-import java.util.EnumMap;
-import java.util.Map;
-
 import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.tool.BuilderTool;
 import github.thehighcruw.dimensium.tool.BuilderToolState;
@@ -16,6 +13,8 @@ import github.thehighcruw.dimensium.world.tool.strategy.EraseStrategy;
 import github.thehighcruw.dimensium.world.tool.strategy.MoveStrategy;
 import github.thehighcruw.dimensium.world.tool.strategy.SmearStrategy;
 import github.thehighcruw.dimensium.world.tool.strategy.StackStrategy;
+import java.util.EnumMap;
+import java.util.Map;
 
 public class BuilderToolApplicator {
 

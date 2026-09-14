@@ -4,16 +4,14 @@
  */
 package github.thehighcruw.dimensium.editor.tool.creating.rock;
 
-import java.util.concurrent.ThreadLocalRandom;
-
-import net.minecraft.client.resources.I18n;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.tool.ToolSection;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushSection;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushState;
 import imgui.ImGui;
+import java.util.concurrent.ThreadLocalRandom;
+import net.minecraft.client.resources.I18n;
 
 @SideOnly(Side.CLIENT)
 public class RockSection implements ToolSection {
@@ -48,8 +46,8 @@ public class RockSection implements ToolSection {
         }
 
         smoothingStdDev[0] = state.smoothingStdDev;
-        if (ImGui
-            .sliderFloat(I18n.format("dimensium.ui.rock.smoothing") + "##rock_smooth", smoothingStdDev, 0.0f, 10f)) {
+        if (ImGui.sliderFloat(
+                I18n.format("dimensium.ui.rock.smoothing") + "##rock_smooth", smoothingStdDev, 0.0f, 10f)) {
             state.smoothingStdDev = smoothingStdDev[0];
         }
 
@@ -59,8 +57,7 @@ public class RockSection implements ToolSection {
         }
 
         if (ImGui.button(I18n.format("dimensium.ui.rock.randomize_seed") + "##rock_seed")) {
-            state.noiseSeed = ThreadLocalRandom.current()
-                .nextLong();
+            state.noiseSeed = ThreadLocalRandom.current().nextLong();
         }
     }
 }

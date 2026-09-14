@@ -12,7 +12,6 @@ public class RulerToolState {
     public static final RulerToolState INSTANCE = new RulerToolState();
 
     public enum Mode {
-
         DEFAULT("dimensium.ruler.mode.default"),
         CIRCLE("dimensium.ruler.mode.circle");
 

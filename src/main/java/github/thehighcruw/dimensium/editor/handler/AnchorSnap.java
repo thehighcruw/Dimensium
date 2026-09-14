@@ -34,10 +34,11 @@ public class AnchorSnap {
         float delta = gizmo.updateDrag(mx, my);
         RotationGizmo.Axis axis = gizmo.getDragAxis();
         Mat3DFloat rBase = ShapeMath.buildRotationMatrix(baseX, baseY, baseZ);
-        Mat3DFloat dR = axis == RotationGizmo.Axis.X ? Mat3DFloat.fromEulerDeg(delta, 0, 0)
-            : axis == RotationGizmo.Axis.Y ? Mat3DFloat.fromEulerDeg(0, delta, 0)
-                : Mat3DFloat.fromEulerDeg(0, 0, delta);
-        return rBase.mul(dR)
-            .toEulerDeg();
+        Mat3DFloat dR = axis == RotationGizmo.Axis.X
+                ? Mat3DFloat.fromEulerDeg(delta, 0, 0)
+                : axis == RotationGizmo.Axis.Y
+                        ? Mat3DFloat.fromEulerDeg(0, delta, 0)
+                        : Mat3DFloat.fromEulerDeg(0, 0, delta);
+        return rBase.mul(dR).toEulerDeg();
     }
 }

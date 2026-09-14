@@ -13,9 +13,25 @@ import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
  */
 public class ShapeMath {
 
-    public static boolean inShapeGeom(ShapeToolState.ShapeType type, int dx, int dy, int dz, int w, int h, int d,
-        boolean hollow, float exponent, int torusRingR, int torusRingRZ, int torusTubeR, int tubeWallThickness,
-        float supersphereExp, int polygonSides, float spiralSpacing, float spiralTurns, float threshold) {
+    public static boolean inShapeGeom(
+            ShapeToolState.ShapeType type,
+            int dx,
+            int dy,
+            int dz,
+            int w,
+            int h,
+            int d,
+            boolean hollow,
+            float exponent,
+            int torusRingR,
+            int torusRingRZ,
+            int torusTubeR,
+            int tubeWallThickness,
+            float supersphereExp,
+            int polygonSides,
+            float spiralSpacing,
+            float spiralTurns,
+            float threshold) {
         float cx = (w - 1) / 2f, cy = (h - 1) / 2f, cz = (d - 1) / 2f;
         float rx = w / 2f, ry = h / 2f, rz = d / 2f;
         switch (type) {
@@ -67,8 +83,8 @@ public class ShapeMath {
                 // Elliptic ring: find nearest point on the ring ellipse, then test tube radius
                 float lx = dx - cx, lz = dz - cz;
                 float angle = (float) Math.atan2(
-                    (float) torusRingR > 0 ? lz / (float) torusRingRZ : lz,
-                    (float) torusRingRZ > 0 ? lx / (float) torusRingR : lx);
+                        (float) torusRingR > 0 ? lz / (float) torusRingRZ : lz,
+                        (float) torusRingRZ > 0 ? lx / (float) torusRingR : lx);
                 float nearX = (float) torusRingR * (float) Math.cos(angle);
                 float nearZ = (float) torusRingRZ * (float) Math.sin(angle);
                 float tubeDist2 = (lx - nearX) * (lx - nearX) + (dy - cy) * (dy - cy) + (lz - nearZ) * (lz - nearZ);
@@ -171,8 +187,8 @@ public class ShapeMath {
         return norm <= 1f - voxelHalfR * (1f - threshold);
     }
 
-    private static boolean regularPolygonContains(float lpx, float lpz, float rx, float rz, int polygonSides,
-        boolean hollow) {
+    private static boolean regularPolygonContains(
+            float lpx, float lpz, float rx, float rz, int polygonSides, boolean hollow) {
         int nsides = Math.max(3, polygonSides);
         float inr = (float) Math.cos(Math.PI / nsides);
         float maxDot = maxPolygonProjection(lpx / rx, lpz / rz, nsides);
@@ -206,8 +222,8 @@ public class ShapeMath {
         return false;
     }
 
-    private static boolean dodecahedronContains(float npx, float npy, float npz, float rx, float ry, float rz,
-        boolean hollow) {
+    private static boolean dodecahedronContains(
+            float npx, float npy, float npz, float rx, float ry, float rz, boolean hollow) {
         float phi = 1.6180339887f;
         float invMag = 1f / (float) Math.sqrt(1f + phi * phi);
         float thresh = phi * phi / ((float) Math.sqrt(3f) * (float) Math.sqrt(1f + phi * phi));
@@ -224,8 +240,8 @@ public class ShapeMath {
         return in && Math.max(ifa, Math.max(ifb, ifc)) > thresh;
     }
 
-    private static boolean icosahedronContains(float npx, float npy, float npz, float rx, float ry, float rz,
-        boolean hollow) {
+    private static boolean icosahedronContains(
+            float npx, float npy, float npz, float rx, float ry, float rz, boolean hollow) {
         float phi = 1.6180339887f;
         float inv3 = 1f / (float) Math.sqrt(3f);
         float thresh = phi * phi / ((float) Math.sqrt(3f) * (float) Math.sqrt(1f + phi * phi));
@@ -259,9 +275,25 @@ public class ShapeMath {
      * Float-coord shape test. Accepts block-center local coordinates (may be non-integer
      * when inverse-transforming a rotated query point). Same formulas as inShapeGeom.
      */
-    public static boolean inShapeGeomF(ShapeToolState.ShapeType type, float dx, float dy, float dz, int w, int h, int d,
-        boolean hollow, float exponent, int torusRingR, int torusRingRZ, int torusTubeR, int tubeWallThickness,
-        float supersphereExp, int polygonSides, float spiralSpacing, float spiralTurns, float threshold) {
+    public static boolean inShapeGeomF(
+            ShapeToolState.ShapeType type,
+            float dx,
+            float dy,
+            float dz,
+            int w,
+            int h,
+            int d,
+            boolean hollow,
+            float exponent,
+            int torusRingR,
+            int torusRingRZ,
+            int torusTubeR,
+            int tubeWallThickness,
+            float supersphereExp,
+            int polygonSides,
+            float spiralSpacing,
+            float spiralTurns,
+            float threshold) {
         float ccx = w / 2f, ccy = h / 2f, ccz = d / 2f;
         float rx = w / 2f, ry = h / 2f, rz = d / 2f;
         switch (type) {
@@ -277,8 +309,11 @@ public class ShapeMath {
                 boolean outer = passL2(dist, vR, threshold);
                 if (!hollow) return outer;
                 float irx2 = Math.max(0.5f, rx - 1), iry2 = Math.max(0.5f, ry - 1), irz2 = Math.max(0.5f, rz - 1);
-                return outer && ((dx - ccx) / irx2) * ((dx - ccx) / irx2) + ((dy - ccy) / iry2) * ((dy - ccy) / iry2)
-                    + ((dz - ccz) / irz2) * ((dz - ccz) / irz2) > 1f;
+                return outer
+                        && ((dx - ccx) / irx2) * ((dx - ccx) / irx2)
+                                        + ((dy - ccy) / iry2) * ((dy - ccy) / iry2)
+                                        + ((dz - ccz) / irz2) * ((dz - ccz) / irz2)
+                                > 1f;
             }
             case CYLINDER: {
                 float ex = (dx - ccx) / rx, ez = (dz - ccz) / rz;
@@ -288,10 +323,11 @@ public class ShapeMath {
                 if (!hollow) return outer && dy >= 0 && dy < h;
                 float irx2 = Math.max(0.5f, rx - 1), irz2 = Math.max(0.5f, rz - 1);
                 boolean onCap = dy < 1f || dy > h - 2f;
-                return outer && dy >= 0
-                    && dy < h
-                    && (((dx - ccx) / irx2) * ((dx - ccx) / irx2) + ((dz - ccz) / irz2) * ((dz - ccz) / irz2) > 1f
-                        || onCap);
+                return outer
+                        && dy >= 0
+                        && dy < h
+                        && (((dx - ccx) / irx2) * ((dx - ccx) / irx2) + ((dz - ccz) / irz2) * ((dz - ccz) / irz2) > 1f
+                                || onCap);
             }
             case PYRAMID: {
                 if (dy < 0 || dy >= h) return false;
@@ -313,14 +349,14 @@ public class ShapeMath {
                 float irx2 = Math.max(0.5f, arx - 1), irz2 = Math.max(0.5f, arz - 1);
                 boolean onBase = dy < 1f;
                 return outer
-                    && (((dx - ccx) / irx2) * ((dx - ccx) / irx2) + ((dz - ccz) / irz2) * ((dz - ccz) / irz2) > 1f
-                        || onBase);
+                        && (((dx - ccx) / irx2) * ((dx - ccx) / irx2) + ((dz - ccz) / irz2) * ((dz - ccz) / irz2) > 1f
+                                || onBase);
             }
             case TORUS: {
                 float lx = dx - ccx, lz = dz - ccz;
                 float angle = (float) Math.atan2(
-                    (float) torusRingR > 0 ? lz / (float) torusRingRZ : lz,
-                    (float) torusRingRZ > 0 ? lx / (float) torusRingR : lx);
+                        (float) torusRingR > 0 ? lz / (float) torusRingRZ : lz,
+                        (float) torusRingRZ > 0 ? lx / (float) torusRingR : lx);
                 float nearX = (float) torusRingR * (float) Math.cos(angle);
                 float nearZ = (float) torusRingRZ * (float) Math.sin(angle);
                 float tubeDist2 = (lx - nearX) * (lx - nearX) + (dy - ccy) * (dy - ccy) + (lz - nearZ) * (lz - nearZ);
@@ -335,7 +371,8 @@ public class ShapeMath {
                 if (!hollow) return outer;
                 float irx2 = Math.max(0.5f, rx - 1), iry2 = Math.max(0.5f, ry - 1), irz2 = Math.max(0.5f, rz - 1);
                 return outer
-                    && (Math.abs((dx - ccx) / irx2) + Math.abs((dy - ccy) / iry2) + Math.abs((dz - ccz) / irz2)) > 1f;
+                        && (Math.abs((dx - ccx) / irx2) + Math.abs((dy - ccy) / iry2) + Math.abs((dz - ccz) / irz2))
+                                > 1f;
             }
             case DISK: {
                 if (Math.abs(dy - ccy) > 0.5f) return false;
@@ -346,7 +383,7 @@ public class ShapeMath {
                 if (!hollow) return outer;
                 float irx2 = Math.max(0.5f, rx - 1), irz2 = Math.max(0.5f, rz - 1);
                 return outer
-                    && ((dx - ccx) / irx2) * ((dx - ccx) / irx2) + ((dz - ccz) / irz2) * ((dz - ccz) / irz2) > 1f;
+                        && ((dx - ccx) / irx2) * ((dx - ccx) / irx2) + ((dz - ccz) / irz2) * ((dz - ccz) / irz2) > 1f;
             }
             case PLANE:
                 return Math.abs(dy - ccy) <= 0.5f;
@@ -360,8 +397,10 @@ public class ShapeMath {
                 boolean outer = dist <= cutoffN;
                 if (!hollow) return outer;
                 float irx2 = Math.max(0.5f, rx - 1), irz2 = Math.max(0.5f, rz - 1);
-                return outer && ((float) Math.pow(Math.abs((dx - ccx) / irx2), exponent)
-                    + (float) Math.pow(Math.abs((dz - ccz) / irz2), exponent)) > 1f;
+                return outer
+                        && ((float) Math.pow(Math.abs((dx - ccx) / irx2), exponent)
+                                        + (float) Math.pow(Math.abs((dz - ccz) / irz2), exponent))
+                                > 1f;
             }
             case SUPERSPHERE: {
                 float ex = (float) Math.pow(Math.abs((dx - ccx) / rx), supersphereExp);
@@ -373,9 +412,11 @@ public class ShapeMath {
                 boolean outer = dist <= cutoffN;
                 if (!hollow) return outer;
                 float irx2 = Math.max(0.5f, rx - 1), iry2 = Math.max(0.5f, ry - 1), irz2 = Math.max(0.5f, rz - 1);
-                return outer && ((float) Math.pow(Math.abs((dx - ccx) / irx2), supersphereExp)
-                    + (float) Math.pow(Math.abs((dy - ccy) / iry2), supersphereExp)
-                    + (float) Math.pow(Math.abs((dz - ccz) / irz2), supersphereExp)) > 1f;
+                return outer
+                        && ((float) Math.pow(Math.abs((dx - ccx) / irx2), supersphereExp)
+                                        + (float) Math.pow(Math.abs((dy - ccy) / iry2), supersphereExp)
+                                        + (float) Math.pow(Math.abs((dz - ccz) / irz2), supersphereExp))
+                                > 1f;
             }
             case TUBE: {
                 float ex = (dx - ccx) / rx, ez = (dz - ccz) / rz;
@@ -435,8 +476,14 @@ public class ShapeMath {
             if (wz < minZ) minZ = wz;
             if (wz > maxZ) maxZ = wz;
         }
-        return new int[] { (int) Math.floor(minX), (int) Math.floor(minY), (int) Math.floor(minZ),
-            (int) Math.ceil(maxX), (int) Math.ceil(maxY), (int) Math.ceil(maxZ) };
+        return new int[] {
+            (int) Math.floor(minX),
+            (int) Math.floor(minY),
+            (int) Math.floor(minZ),
+            (int) Math.ceil(maxX),
+            (int) Math.ceil(maxY),
+            (int) Math.ceil(maxZ)
+        };
     }
 
     /**
@@ -444,12 +491,33 @@ public class ShapeMath {
      * Consumer returns false to abort early. The inverse rotation (R^T) maps rotated coords
      * back to local shape space before testing inShapeGeomF.
      */
-    public static void iterateRotatedShape(ShapeToolState.ShapeType type, int w, int h, int d, boolean hollow,
-        float exponent, int torusRingR, int torusRingRZ, int torusTubeR, int tubeWallThickness, float supersphereExp,
-        int polygonSides, float spiralSpacing, float spiralTurns, float threshold, Mat3DFloat R, int ix0, int iy0,
-        int iz0, int ix1, int iy1, int iz1, ShapeVoxelConsumer consumer) {
+    public static void iterateRotatedShape(
+            ShapeToolState.ShapeType type,
+            int w,
+            int h,
+            int d,
+            boolean hollow,
+            float exponent,
+            int torusRingR,
+            int torusRingRZ,
+            int torusTubeR,
+            int tubeWallThickness,
+            float supersphereExp,
+            int polygonSides,
+            float spiralSpacing,
+            float spiralTurns,
+            float threshold,
+            Mat3DFloat R,
+            int ix0,
+            int iy0,
+            int iz0,
+            int ix1,
+            int iy1,
+            int iz1,
+            ShapeVoxelConsumer consumer) {
         float ccx = w / 2f, ccy = h / 2f, ccz = d / 2f;
-        outer: for (int ox = ix0; ox <= ix1; ox++) {
+        outer:
+        for (int ox = ix0; ox <= ix1; ox++) {
             for (int oy = iy0; oy <= iy1; oy++) {
                 for (int oz = iz0; oz <= iz1; oz++) {
                     float dx0 = (ox + 0.5f) - ccx;
@@ -460,28 +528,27 @@ public class ShapeMath {
                     float ldy = ld.y() + ccy;
                     float ldz = ld.z() + ccz;
                     if (!inShapeGeomF(
-                        type,
-                        ldx,
-                        ldy,
-                        ldz,
-                        w,
-                        h,
-                        d,
-                        hollow,
-                        exponent,
-                        torusRingR,
-                        torusRingRZ,
-                        torusTubeR,
-                        tubeWallThickness,
-                        supersphereExp,
-                        polygonSides,
-                        spiralSpacing,
-                        spiralTurns,
-                        threshold)) continue;
+                            type,
+                            ldx,
+                            ldy,
+                            ldz,
+                            w,
+                            h,
+                            d,
+                            hollow,
+                            exponent,
+                            torusRingR,
+                            torusRingRZ,
+                            torusTubeR,
+                            tubeWallThickness,
+                            supersphereExp,
+                            polygonSides,
+                            spiralSpacing,
+                            spiralTurns,
+                            threshold)) continue;
                     if (!consumer.accept(ox, oy, oz)) break outer;
                 }
             }
         }
     }
-
 }

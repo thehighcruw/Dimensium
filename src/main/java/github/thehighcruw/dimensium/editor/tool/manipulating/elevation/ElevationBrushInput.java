@@ -4,14 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.tool.manipulating.elevation;
 
-import java.util.List;
-
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.util.MovingObjectPosition;
-
-import org.lwjgl.input.Mouse;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.freecam.FreecamState;
@@ -25,6 +17,11 @@ import github.thehighcruw.dimensium.shared.BlockSender;
 import github.thehighcruw.dimensium.shared.KeyConstants;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
+import java.util.List;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.util.MovingObjectPosition;
+import org.lwjgl.input.Mouse;
 
 @SideOnly(Side.CLIENT)
 public class ElevationBrushInput implements BrushInput {
@@ -53,11 +50,12 @@ public class ElevationBrushInput implements BrushInput {
         if (!Mouse.isButtonDown(KeyConstants.RMB)) {
             if (dragActive) {
                 List<int[]> ops = ChangeProposal.flush();
-                if (!ops.isEmpty()) BlockSender.sendChunked(
-                    ops,
-                    I18n.format(
-                        "dimensium.action.elevation",
-                        I18n.format(ElevationToolState.INSTANCE.elevationMode.label)));
+                if (!ops.isEmpty())
+                    BlockSender.sendChunked(
+                            ops,
+                            I18n.format(
+                                    "dimensium.action.elevation",
+                                    I18n.format(ElevationToolState.INSTANCE.elevationMode.label)));
                 dragActive = false;
                 lastNano = 0;
                 lastX = Integer.MIN_VALUE;

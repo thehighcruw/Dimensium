@@ -4,13 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.window;
 
-import java.util.List;
-
-import net.minecraft.block.Block;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.init.Blocks;
-import net.minecraft.item.ItemStack;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.DimensiumConfig;
@@ -26,6 +19,11 @@ import imgui.ImGui;
 import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
+import java.util.List;
+import net.minecraft.block.Block;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.init.Blocks;
+import net.minecraft.item.ItemStack;
 
 @SideOnly(Side.CLIENT)
 public class PaletteWindow extends ToggleableWindow {
@@ -56,9 +54,7 @@ public class PaletteWindow extends ToggleableWindow {
 
         ImBoolean openBool = new ImBoolean(open);
         boolean visible = ImGui.begin(
-            I18n.format("dimensium.palette.window.title") + "###palette_window",
-            openBool,
-            ImGuiWindowFlags.None);
+                I18n.format("dimensium.palette.window.title") + "###palette_window", openBool, ImGuiWindowFlags.None);
         if (!openBool.get()) setOpen(false);
         else open = true;
         captureBounds();
@@ -166,16 +162,16 @@ public class PaletteWindow extends ToggleableWindow {
             ImGui.text(active.getDisplayName());
         } else if (sel.selectedIsAir) {
             if (ImGui.button(
-                I18n.format("dimensium.ui.block_picker.air") + "##pal_pick_active",
-                ImGui.getContentRegionAvailX(),
-                0)) {
+                    I18n.format("dimensium.ui.block_picker.air") + "##pal_pick_active",
+                    ImGui.getContentRegionAvailX(),
+                    0)) {
                 OverlayRenderer.picker.open(this::applyPickedBlock);
             }
         } else {
             if (ImGui.button(
-                I18n.format("dimensium.palette.active_block") + "##pal_pick_active",
-                ImGui.getContentRegionAvailX(),
-                0)) {
+                    I18n.format("dimensium.palette.active_block") + "##pal_pick_active",
+                    ImGui.getContentRegionAvailX(),
+                    0)) {
                 OverlayRenderer.picker.open(this::applyPickedBlock);
             }
         }

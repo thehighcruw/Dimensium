@@ -5,7 +5,6 @@
 package github.thehighcruw.dimensium.editor.tool.brushes;
 
 public enum BrushShape {
-
     SPHERE("dimensium.brush_shape.sphere", false),
     CUBE("dimensium.brush_shape.cube", false),
     CYLINDER("dimensium.brush_shape.cylinder", true),

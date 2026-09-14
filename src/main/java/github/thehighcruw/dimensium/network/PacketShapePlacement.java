@@ -4,20 +4,7 @@
  */
 package github.thehighcruw.dimensium.network;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-
-import net.minecraft.block.Block;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.init.Blocks;
-import net.minecraft.network.NetHandlerPlayServer;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.world.World;
-
 import com.gtnewhorizon.gtnhlib.network.base.IPacket;
-
 import github.thehighcruw.dimensium.Dimensium;
 import github.thehighcruw.dimensium.DimensiumConfig;
 import github.thehighcruw.dimensium.editor.history.EditHistory;
@@ -26,12 +13,23 @@ import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapePlacementSta
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeToolState;
 import github.thehighcruw.dimensium.editor.tool.selecting.SelectedBlockState;
 import github.thehighcruw.dimensium.shared.math.Mat3DFloat;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import net.minecraft.block.Block;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.init.Blocks;
+import net.minecraft.network.NetHandlerPlayServer;
+import net.minecraft.network.PacketBuffer;
+import net.minecraft.world.World;
 
 public class PacketShapePlacement implements IPacket {
 
     private int anchorX, anchorY, anchorZ;
     /** Pre-rotation base dimensions (shape-type adjusted, before rotX/Y/Z). */
     private int w, h, d;
+
     private float rotX, rotY, rotZ;
     private int shapeTypeOrd;
     private boolean hollow, keepExisting;
@@ -72,9 +70,9 @@ public class PacketShapePlacement implements IPacket {
         spiralTurns = s.shapeSpiralTurns;
         if (sbs.selectedBlock != null) {
             paletteCount = 1;
-            blockIds = new int[] { Block.getIdFromBlock(Block.getBlockFromItem(sbs.selectedBlock.getItem())) };
-            metas = new int[] { sbs.selectedBlock.getItemDamage() };
-            weights = new int[] { 1 };
+            blockIds = new int[] {Block.getIdFromBlock(Block.getBlockFromItem(sbs.selectedBlock.getItem()))};
+            metas = new int[] {sbs.selectedBlock.getItemDamage()};
+            weights = new int[] {1};
         } else {
             paletteCount = 0;
             blockIds = new int[0];
@@ -152,8 +150,8 @@ public class PacketShapePlacement implements IPacket {
     public IPacket executeServer(NetHandlerPlayServer handler) {
         if (!handler.playerEntity.capabilities.isCreativeMode) {
             Dimensium.logger.warn(
-                "[Dimensium] Rejected PacketShapePlacement from non-creative player {}",
-                handler.playerEntity.getCommandSenderName());
+                    "[Dimensium] Rejected PacketShapePlacement from non-creative player {}",
+                    handler.playerEntity.getCommandSenderName());
             return null;
         }
         EntityPlayerMP player = handler.playerEntity;
@@ -175,59 +173,58 @@ public class PacketShapePlacement implements IPacket {
         long bboxVolume = (long) (ix1 - ix0 + 1) * (iy1 - iy0 + 1) * (iz1 - iz0 + 1);
         if (bboxVolume > 1_000_000L) {
             Dimensium.logger.warn(
-                "[Dimensium] Rejected PacketShapePlacement: bounding box volume {} exceeds limit for player {}",
-                bboxVolume,
-                player.getCommandSenderName());
+                    "[Dimensium] Rejected PacketShapePlacement: bounding box volume {} exceeds limit for player {}",
+                    bboxVolume,
+                    player.getCommandSenderName());
             return null;
         }
 
         Random rand = new Random();
         List<int[]> ops = new ArrayList<>();
         ShapeMath.iterateRotatedShape(
-            type,
-            w,
-            h,
-            d,
-            hollow,
-            exponent,
-            torusRingR,
-            torusRingRZ,
-            torusTubeR,
-            tubeWallThickness,
-            supersphereExp,
-            polygonSides,
-            spiralSpacing,
-            spiralTurns,
-            DimensiumConfig.shapeThreshold,
-            R,
-            ix0,
-            iy0,
-            iz0,
-            ix1,
-            iy1,
-            iz1,
-            (ox, oy, oz) -> {
-                int bx = anchorX + ox, by = anchorY + oy, bz = anchorZ + oz;
-                if (by < 0 || by >= world.getHeight()) return true;
-                if (keepExisting && world.getBlock(bx, by, bz) != Blocks.air) return true;
-                int roll = rand.nextInt(totalWeight), cum = 0, chosen = 0;
-                for (int i = 0; i < weights.length; i++) {
-                    cum += weights[i];
-                    if (roll < cum) {
-                        chosen = i;
-                        break;
+                type,
+                w,
+                h,
+                d,
+                hollow,
+                exponent,
+                torusRingR,
+                torusRingRZ,
+                torusTubeR,
+                tubeWallThickness,
+                supersphereExp,
+                polygonSides,
+                spiralSpacing,
+                spiralTurns,
+                DimensiumConfig.shapeThreshold,
+                R,
+                ix0,
+                iy0,
+                iz0,
+                ix1,
+                iy1,
+                iz1,
+                (ox, oy, oz) -> {
+                    int bx = anchorX + ox, by = anchorY + oy, bz = anchorZ + oz;
+                    if (by < 0 || by >= world.getHeight()) return true;
+                    if (keepExisting && world.getBlock(bx, by, bz) != Blocks.air) return true;
+                    int roll = rand.nextInt(totalWeight), cum = 0, chosen = 0;
+                    for (int i = 0; i < weights.length; i++) {
+                        cum += weights[i];
+                        if (roll < cum) {
+                            chosen = i;
+                            break;
+                        }
                     }
-                }
-                Block blk = Block.getBlockById(blockIds[chosen]);
-                if (blk != null && blk != Blocks.air)
-                    ops.add(new int[] { bx, by, bz, blockIds[chosen], metas[chosen] });
-                return true;
-            });
+                    Block blk = Block.getBlockById(blockIds[chosen]);
+                    if (blk != null && blk != Blocks.air)
+                        ops.add(new int[] {bx, by, bz, blockIds[chosen], metas[chosen]});
+                    return true;
+                });
 
         if (!ops.isEmpty()) {
             String action = (hollow ? "Hollow " : "") + type.label;
-            int txId = java.util.concurrent.ThreadLocalRandom.current()
-                .nextInt(Integer.MIN_VALUE, 0);
+            int txId = java.util.concurrent.ThreadLocalRandom.current().nextInt(Integer.MIN_VALUE, 0);
             int[][] after = ops.toArray(new int[0][]);
             EditHistory.record(world, action, ops, player, txId, after);
         }

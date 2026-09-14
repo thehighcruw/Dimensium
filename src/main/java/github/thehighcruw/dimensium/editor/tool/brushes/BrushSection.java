@@ -4,13 +4,12 @@
  */
 package github.thehighcruw.dimensium.editor.tool.brushes;
 
-import net.minecraft.client.resources.I18n;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import imgui.ImGui;
 import imgui.type.ImBoolean;
 import imgui.type.ImInt;
+import net.minecraft.client.resources.I18n;
 
 @SideOnly(Side.CLIENT)
 public class BrushSection {

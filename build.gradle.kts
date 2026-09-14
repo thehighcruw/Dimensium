@@ -162,6 +162,7 @@ spotless {
     java {
         licenseHeaderFile(file("config/license-header.txt"))
         target("src/main/java/**/*.java", "src/test/java/**/*.java")
+        palantirJavaFormat()
     }
 }
 

@@ -4,12 +4,11 @@
  */
 package github.thehighcruw.dimensium.editor.overlay;
 
+import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.gameevent.InputEvent;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraftforge.client.event.MouseEvent;
 import net.minecraftforge.common.MinecraftForge;
-
-import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.common.gameevent.InputEvent;
 
 /**
  * Dummy GuiScreen held open while the Dimensium overlay is active.
@@ -56,9 +55,7 @@ public class EditingModeScreen extends GuiScreen {
         // Re-fire FML's KeyInputEvent so KeyHandler.onKeyInput still runs.
         // Keyboard.getEventKey() / getEventKeyState() are valid here — we're
         // inside the keyboard event loop, just routed through the screen path.
-        FMLCommonHandler.instance()
-            .bus()
-            .post(new InputEvent.KeyInputEvent());
+        FMLCommonHandler.instance().bus().post(new InputEvent.KeyInputEvent());
         // Do NOT call super — that would invoke keyTyped() which could trigger
         // vanilla actions (e.g. GuiScreen default ESC = close screen bypassing
         // our deactivate() cleanup).

@@ -4,18 +4,15 @@
  */
 package github.thehighcruw.dimensium.editor.window.viewport;
 
-import java.util.List;
-
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ScaledResolution;
-
-import org.lwjgl.opengl.GL11;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.freecam.FreecamEntity;
 import github.thehighcruw.dimensium.editor.overlay.ViewState;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
+import java.util.List;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.ScaledResolution;
+import org.lwjgl.opengl.GL11;
 
 @SideOnly(Side.CLIENT)
 public final class ViewportState {

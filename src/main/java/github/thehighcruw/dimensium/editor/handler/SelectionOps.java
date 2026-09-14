@@ -4,23 +4,21 @@
  */
 package github.thehighcruw.dimensium.editor.handler;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import github.thehighcruw.dimensium.shared.BlockColorCache;
+import github.thehighcruw.dimensium.shared.SelectionState;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
-
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockFalling;
 import net.minecraft.init.Blocks;
 import net.minecraft.world.World;
-
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
-import github.thehighcruw.dimensium.shared.BlockColorCache;
-import github.thehighcruw.dimensium.shared.SelectionState;
-import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 
 @SideOnly(Side.CLIENT)
 public class SelectionOps {
@@ -29,7 +27,7 @@ public class SelectionOps {
         List<int[]> ops = new ArrayList<>(sel.size());
         for (long key : sel.getSelectedBlocks()) {
             Vec3DInt c = SelectionState.unpack(key);
-            ops.add(new int[] { c.x(), c.y(), c.z(), 0, 0 });
+            ops.add(new int[] {c.x(), c.y(), c.z(), 0, 0});
         }
         return ops;
     }
@@ -40,7 +38,7 @@ public class SelectionOps {
         for (java.util.Map.Entry<Long, SelectionState.BlockData> e : sel.clipboard.entrySet()) {
             Vec3DInt dest = origin.plus(SelectionState.decodeClipboardKey(e.getKey()));
             SelectionState.BlockData bd = e.getValue();
-            ops.add(new int[] { dest.x(), dest.y(), dest.z(), Block.getIdFromBlock(bd.block()), bd.meta() });
+            ops.add(new int[] {dest.x(), dest.y(), dest.z(), Block.getIdFromBlock(bd.block()), bd.meta()});
         }
         return ops;
     }
@@ -52,7 +50,7 @@ public class SelectionOps {
             int x = cv.x(), y = cv.y(), z = cv.z();
             Block b = world.getBlock(x, y, z);
             if (b == Blocks.water || b == Blocks.flowing_water) {
-                ops.add(new int[] { x, y, z, 0, 0 });
+                ops.add(new int[] {x, y, z, 0, 0});
             }
         }
         return ops;
@@ -67,21 +65,24 @@ public class SelectionOps {
             if (world.getBlock(x, y, z) != Blocks.air) continue;
             Block nearest = null;
             int nearestMeta = 0;
-            outer: for (int r = 1; r <= 16; r++) {
-                for (int dx = -r; dx <= r; dx++) for (int dy = -r; dy <= r; dy++) for (int dz = -r; dz <= r; dz++) {
-                    if (Math.abs(dx) != r && Math.abs(dy) != r && Math.abs(dz) != r) continue;
-                    long nKey = SelectionState.pack(Vec3DInt.from(x + dx, y + dy, z + dz));
-                    if (!selected.contains(nKey)) continue;
-                    Block nb = world.getBlock(x + dx, y + dy, z + dz);
-                    if (nb != Blocks.air) {
-                        nearest = nb;
-                        nearestMeta = world.getBlockMetadata(x + dx, y + dy, z + dz);
-                        break outer;
-                    }
-                }
+            outer:
+            for (int r = 1; r <= 16; r++) {
+                for (int dx = -r; dx <= r; dx++)
+                    for (int dy = -r; dy <= r; dy++)
+                        for (int dz = -r; dz <= r; dz++) {
+                            if (Math.abs(dx) != r && Math.abs(dy) != r && Math.abs(dz) != r) continue;
+                            long nKey = SelectionState.pack(Vec3DInt.from(x + dx, y + dy, z + dz));
+                            if (!selected.contains(nKey)) continue;
+                            Block nb = world.getBlock(x + dx, y + dy, z + dz);
+                            if (nb != Blocks.air) {
+                                nearest = nb;
+                                nearestMeta = world.getBlockMetadata(x + dx, y + dy, z + dz);
+                                break outer;
+                            }
+                        }
             }
             if (nearest != null) {
-                ops.add(new int[] { x, y, z, Block.getIdFromBlock(nearest), nearestMeta });
+                ops.add(new int[] {x, y, z, Block.getIdFromBlock(nearest), nearestMeta});
             }
         }
         return ops;
@@ -89,7 +90,7 @@ public class SelectionOps {
 
     public static List<int[]> hollowOps(SelectionState sel) {
         Set<Long> selected = sel.getSelectedBlocks();
-        int[][] faces = { { 1, 0, 0 }, { -1, 0, 0 }, { 0, 1, 0 }, { 0, -1, 0 }, { 0, 0, 1 }, { 0, 0, -1 } };
+        int[][] faces = {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
         List<int[]> ops = new ArrayList<>();
         for (long key : selected) {
             Vec3DInt cv = SelectionState.unpack(key);
@@ -102,7 +103,7 @@ public class SelectionOps {
                 }
             }
             if (!isShell) {
-                ops.add(new int[] { x, y, z, 0, 0 });
+                ops.add(new int[] {x, y, z, 0, 0});
             }
         }
         return ops;
@@ -126,9 +127,9 @@ public class SelectionOps {
         Queue<int[]> queue = new LinkedList<>();
         int startIdx = idx(0, 0, 0, sy, sz);
         visited[startIdx] = true;
-        queue.add(new int[] { ox, oy, oz });
+        queue.add(new int[] {ox, oy, oz});
 
-        int[][] dirs = { { 1, 0, 0 }, { -1, 0, 0 }, { 0, 1, 0 }, { 0, -1, 0 }, { 0, 0, 1 }, { 0, 0, -1 } };
+        int[][] dirs = {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
 
         while (!queue.isEmpty()) {
             int[] cur = queue.poll();
@@ -140,7 +141,7 @@ public class SelectionOps {
                 // Don't cross through selected (solid) blocks.
                 if (selected.contains(SelectionState.pack(Vec3DInt.from(nx, ny, nz)))) continue;
                 visited[i] = true;
-                queue.add(new int[] { nx, ny, nz });
+                queue.add(new int[] {nx, ny, nz});
             }
         }
 
@@ -150,7 +151,7 @@ public class SelectionOps {
             if (selected.contains(SelectionState.pack(Vec3DInt.from(x, y, z)))) return;
             int i = idx(x - ox, y - oy, z - oz, sy, sz);
             if (!visited[i] && world.getBlock(x, y, z) == Blocks.air) {
-                ops.add(new int[] { x, y, z, Block.getIdFromBlock(fillBlock), fillMeta });
+                ops.add(new int[] {x, y, z, Block.getIdFromBlock(fillBlock), fillMeta});
             }
         });
         return ops;
@@ -171,7 +172,7 @@ public class SelectionOps {
             int x = cv.x(), y = cv.y(), z = cv.z();
             Block b = world.getBlock(x, y, z);
             if (b instanceof BlockFalling && b != Blocks.air) {
-                falling.add(new int[] { x, y, z, Block.getIdFromBlock(b), world.getBlockMetadata(x, y, z) });
+                falling.add(new int[] {x, y, z, Block.getIdFromBlock(b), world.getBlockMetadata(x, y, z)});
             }
         }
         falling.sort(Comparator.comparingInt(a -> a[1]));
@@ -182,7 +183,7 @@ public class SelectionOps {
             Vec3DInt cv2 = SelectionState.unpack(key);
             int x = cv2.x(), y = cv2.y(), z = cv2.z();
             Block b = world.getBlock(x, y, z);
-            state.put(key, new int[] { Block.getIdFromBlock(b), world.getBlockMetadata(x, y, z) });
+            state.put(key, new int[] {Block.getIdFromBlock(b), world.getBlockMetadata(x, y, z)});
         }
 
         for (int[] fb : falling) {
@@ -201,10 +202,10 @@ public class SelectionOps {
 
             if (dropY != y) {
                 // Move block down: source becomes air, target gets block.
-                state.put(SelectionState.pack(Vec3DInt.from(x, y, z)), new int[] { 0, 0 });
-                state.put(SelectionState.pack(Vec3DInt.from(x, dropY, z)), new int[] { blockId, meta });
-                ops.add(new int[] { x, y, z, 0, 0 });
-                ops.add(new int[] { x, dropY, z, blockId, meta });
+                state.put(SelectionState.pack(Vec3DInt.from(x, y, z)), new int[] {0, 0});
+                state.put(SelectionState.pack(Vec3DInt.from(x, dropY, z)), new int[] {blockId, meta});
+                ops.add(new int[] {x, y, z, 0, 0});
+                ops.add(new int[] {x, dropY, z, blockId, meta});
             }
         }
         return ops;
@@ -218,7 +219,7 @@ public class SelectionOps {
             Block b = world.getBlock(x, y, z);
             if (b == Blocks.air) continue;
             if (!b.canBlockStay(world, x, y, z)) {
-                ops.add(new int[] { x, y, z, 0, 0 });
+                ops.add(new int[] {x, y, z, 0, 0});
             }
         }
         return ops;
@@ -269,7 +270,7 @@ public class SelectionOps {
 
             long posKey = SelectionState.pack(Vec3DInt.from(x, y, z));
             if (selected.contains(posKey) && claimed.add(posKey)) {
-                ops.add(new int[] { x, y, z, blockId, meta });
+                ops.add(new int[] {x, y, z, blockId, meta});
             }
         }
         return ops;

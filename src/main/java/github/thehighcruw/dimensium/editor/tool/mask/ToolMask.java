@@ -45,15 +45,10 @@ public class ToolMask implements MaskEntry {
     private String nodeToString(MaskNode node) {
         if (!node.isLogic()) return node.displayName();
         StringBuilder sb = new StringBuilder(node.displayName()).append("{");
-        for (int i = 0; i < node.children()
-            .size(); i++) {
+        for (int i = 0; i < node.children().size(); i++) {
             if (i > 0) sb.append(", ");
-            sb.append(
-                nodeToString(
-                    node.children()
-                        .get(i)));
+            sb.append(nodeToString(node.children().get(i)));
         }
-        return sb.append("}")
-            .toString();
+        return sb.append("}").toString();
     }
 }

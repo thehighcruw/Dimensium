@@ -4,12 +4,6 @@
  */
 package github.thehighcruw.dimensium.shared;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraftforge.client.event.MouseEvent;
-
-import org.lwjgl.input.Keyboard;
-
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -17,6 +11,10 @@ import github.thehighcruw.dimensium.DimensiumEditorMode;
 import github.thehighcruw.dimensium.editor.handler.EditorMouseHandler;
 import github.thehighcruw.dimensium.editor.overlay.OverlayRenderer;
 import github.thehighcruw.dimensium.world.handler.WorldMouseHandler;
+import net.minecraft.client.Minecraft;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraftforge.client.event.MouseEvent;
+import org.lwjgl.input.Keyboard;
 
 @SideOnly(Side.CLIENT)
 public class InputHandler {
@@ -54,7 +52,6 @@ public class InputHandler {
         return isCtrlDown();
     }
 
-    private static final boolean IS_MAC = System.getProperty("os.name", "")
-        .toLowerCase()
-        .contains("mac");
+    private static final boolean IS_MAC =
+            System.getProperty("os.name", "").toLowerCase().contains("mac");
 }

@@ -4,16 +4,14 @@
  */
 package github.thehighcruw.dimensium.editor.tool.manipulating.elevation;
 
+import github.thehighcruw.dimensium.editor.tool.ActiveDragState;
+import github.thehighcruw.dimensium.editor.tool.brushes.BrushStrategy;
+import github.thehighcruw.dimensium.tool.ChangeProposal;
 import java.util.HashMap;
-
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.World;
-
-import github.thehighcruw.dimensium.editor.tool.ActiveDragState;
-import github.thehighcruw.dimensium.editor.tool.brushes.BrushStrategy;
-import github.thehighcruw.dimensium.tool.ChangeProposal;
 
 public class ElevationBrush implements BrushStrategy {
 
@@ -74,8 +72,9 @@ public class ElevationBrush implements BrushStrategy {
                                 int dy = flattenTargetY - top;
                                 if (dy > 0 && s.flattenDirection != ElevationToolState.FlattenDirection.DOWN)
                                     placeTerrainBlock(world, wx, top + 1, wz, top, false);
-                                else if (dy < 0 && s.flattenDirection != ElevationToolState.FlattenDirection.UP
-                                    && top > 0) ChangeProposal.write(world, wx, top, wz, Blocks.air, 0);
+                                else if (dy < 0
+                                        && s.flattenDirection != ElevationToolState.FlattenDirection.UP
+                                        && top > 0) ChangeProposal.write(world, wx, top, wz, Blocks.air, 0);
                                 else break;
                             }
                             break;

@@ -9,7 +9,6 @@ public class SmoothToolState {
     public static final SmoothToolState INSTANCE = new SmoothToolState();
 
     public enum SmoothModifier {
-
         STABLE("dimensium.smooth_modifier.stable"),
         MELT("dimensium.smooth_modifier.melt"),
         GROW("dimensium.smooth_modifier.grow");

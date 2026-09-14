@@ -4,19 +4,16 @@
  */
 package github.thehighcruw.dimensium.network;
 
+import com.gtnewhorizon.gtnhlib.network.base.IPacket;
+import github.thehighcruw.dimensium.Dimensium;
+import github.thehighcruw.dimensium.shared.SelectionState;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import java.io.IOException;
-
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.world.World;
-
-import com.gtnewhorizon.gtnhlib.network.base.IPacket;
-
-import github.thehighcruw.dimensium.Dimensium;
-import github.thehighcruw.dimensium.shared.SelectionState;
-import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 
 public class PacketPaste implements IPacket {
 
@@ -80,8 +77,8 @@ public class PacketPaste implements IPacket {
     public IPacket executeServer(NetHandlerPlayServer handler) {
         if (!handler.playerEntity.capabilities.isCreativeMode) {
             Dimensium.logger.warn(
-                "[Dimensium] Rejected PacketPaste from non-creative player {}",
-                handler.playerEntity.getCommandSenderName());
+                    "[Dimensium] Rejected PacketPaste from non-creative player {}",
+                    handler.playerEntity.getCommandSenderName());
             return null;
         }
         World world = handler.playerEntity.worldObj;
@@ -90,12 +87,12 @@ public class PacketPaste implements IPacket {
             int i = x * h * d + y * d + z;
             Block blk = Block.getBlockById(blockIds[i]);
             world.setBlock(
-                origin.x() + x,
-                origin.y() + y,
-                origin.z() + z,
-                blk != null ? blk : Blocks.air,
-                blockMetas[i] & 0xFFFF,
-                3);
+                    origin.x() + x,
+                    origin.y() + y,
+                    origin.z() + z,
+                    blk != null ? blk : Blocks.air,
+                    blockMetas[i] & 0xFFFF,
+                    3);
         });
         return null;
     }

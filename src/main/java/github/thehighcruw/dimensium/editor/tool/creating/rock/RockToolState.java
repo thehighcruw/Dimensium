@@ -12,8 +12,7 @@ public class RockToolState {
 
     public float noiseRadius = 5f;
     public float noisiness = 0.5f;
-    public long noiseSeed = ThreadLocalRandom.current()
-        .nextLong();
+    public long noiseSeed = ThreadLocalRandom.current().nextLong();
     public float smoothingStdDev = 2f;
     public float meldStrength = 1f;
 }

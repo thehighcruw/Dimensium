@@ -4,10 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.tool.creating.path;
 
-import java.util.concurrent.ThreadLocalRandom;
-
-import net.minecraft.client.resources.I18n;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.overlay.OverlayRenderer;
@@ -21,6 +17,8 @@ import imgui.ImGui;
 import imgui.flag.ImGuiCol;
 import imgui.type.ImBoolean;
 import imgui.type.ImInt;
+import java.util.concurrent.ThreadLocalRandom;
+import net.minecraft.client.resources.I18n;
 
 @SideOnly(Side.CLIENT)
 public class PathSection implements ToolSection {
@@ -55,12 +53,9 @@ public class PathSection implements ToolSection {
         }
 
         if (state.curveType == CurveType.CATENARY) {
-            float[] catenarySlack = { state.catenarySlack };
+            float[] catenarySlack = {state.catenarySlack};
             if (ImGui.sliderFloat(
-                I18n.format("dimensium.ui.path.catenary_slack") + "##path_slack",
-                catenarySlack,
-                0.0f,
-                5.0f)) {
+                    I18n.format("dimensium.ui.path.catenary_slack") + "##path_slack", catenarySlack, 0.0f, 5.0f)) {
                 state.catenarySlack = catenarySlack[0];
             }
         }
@@ -74,8 +69,7 @@ public class PathSection implements ToolSection {
         }
 
         if (ImGui.button(I18n.format("dimensium.ui.path.randomize_seed") + "##path_seed")) {
-            state.interpSeed = ThreadLocalRandom.current()
-                .nextLong();
+            state.interpSeed = ThreadLocalRandom.current().nextLong();
         }
 
         PathToolState.PathPoint sel = state.selectedPoint();
@@ -85,8 +79,8 @@ public class PathSection implements ToolSection {
             ImGui.dummy(0f, 2f);
             ImGui.text(I18n.format("dimensium.ui.path.selected_point"));
 
-            if (DeferredItemRender
-                .placeButton("##path_pt_block", sel.block, 16f * ImGuiManager.INSTANCE.getUIScale())) {
+            if (DeferredItemRender.placeButton(
+                    "##path_pt_block", sel.block, 16f * ImGuiManager.INSTANCE.getUIScale())) {
                 OverlayRenderer.picker.open(picked -> {
                     sel.block = picked;
                     state.invalidatePath();
@@ -94,7 +88,7 @@ public class PathSection implements ToolSection {
             }
             ImGui.sameLine();
             ImGui.textDisabled(
-                sel.block != null ? sel.block.getDisplayName() : I18n.format("dimensium.ui.path.use_active_block"));
+                    sel.block != null ? sel.block.getDisplayName() : I18n.format("dimensium.ui.path.use_active_block"));
 
             radiusBuf[0] = sel.radius;
             ImGui.setNextItemWidth(120f);
@@ -103,7 +97,7 @@ public class PathSection implements ToolSection {
                 state.invalidatePath();
             }
             if (ImGui.button(I18n.format("dimensium.ui.path.clear_point_block") + "##path_pt_clr")
-                && sel.block != null) {
+                    && sel.block != null) {
                 sel.block = null;
                 state.invalidatePath();
             }

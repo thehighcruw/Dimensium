@@ -6,10 +6,9 @@ package github.thehighcruw.dimensium;
 
 import static org.junit.Assert.*;
 
-import org.junit.Test;
-
 import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import org.junit.Test;
 
 /**
  * Tests SelectionState coordinate packing in isolation (no Minecraft deps).
@@ -49,10 +48,7 @@ public class SelectionStatePackingTest {
     @Test
     public void roundTripMaxY() {
         long key = SelectionState.pack(Vec3DInt.from(0, 255, 0));
-        assertEquals(
-            255,
-            SelectionState.unpack(key)
-                .y());
+        assertEquals(255, SelectionState.unpack(key).y());
     }
 
     @Test

@@ -4,18 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.window;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import net.minecraft.block.Block;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.world.World;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.tool.selecting.BooleanOp;
@@ -27,6 +15,16 @@ import github.thehighcruw.dimensium.shared.SelectionTransforms;
 import imgui.ImGui;
 import imgui.flag.ImGuiCond;
 import imgui.type.ImBoolean;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.world.World;
 
 @SideOnly(Side.CLIENT)
 public class FilterSelectionWindow extends ToggleableWindow {
@@ -81,13 +79,9 @@ public class FilterSelectionWindow extends ToggleableWindow {
         float cellSize = 20f * scale;
         float cellPad = 4f * scale;
         float gridW = COLS * (cellSize + cellPad);
-        float w = gridW + ImGui.getStyle()
-            .getWindowPaddingX() * 2f;
+        float w = gridW + ImGui.getStyle().getWindowPaddingX() * 2f;
 
-        float vpW = ImGui.getIO()
-            .getDisplaySizeX(),
-            vpH = ImGui.getIO()
-                .getDisplaySizeY();
+        float vpW = ImGui.getIO().getDisplaySizeX(), vpH = ImGui.getIO().getDisplaySizeY();
         ImGui.setNextWindowPos((vpW - w) * 0.5f, vpH * 0.3f, ImGuiCond.Appearing);
         ImGui.setNextWindowSize(w, 300f * scale, ImGuiCond.Appearing);
 
@@ -101,13 +95,11 @@ public class FilterSelectionWindow extends ToggleableWindow {
 
             float windowW = ImGui.getWindowWidth();
             float btnW = 70f * scale;
-            float footerH = ImGui.getStyle()
-                .getItemSpacingY() + 1f
-                + ImGui.getStyle()
-                    .getItemSpacingY()
-                + ImGui.getFrameHeight()
-                + ImGui.getStyle()
-                    .getWindowPaddingY();
+            float footerH = ImGui.getStyle().getItemSpacingY()
+                    + 1f
+                    + ImGui.getStyle().getItemSpacingY()
+                    + ImGui.getFrameHeight()
+                    + ImGui.getStyle().getWindowPaddingY();
             float childH = Math.max(0f, ImGui.getContentRegionAvailY() - footerH);
             ImGui.beginChild("##filter_body", 0f, childH);
 
@@ -149,9 +141,7 @@ public class FilterSelectionWindow extends ToggleableWindow {
             ImGui.endChild();
 
             ImGui.separator();
-            ImGui.setCursorPosX(
-                windowW - ImGui.getStyle()
-                    .getWindowPaddingX() - btnW);
+            ImGui.setCursorPosX(windowW - ImGui.getStyle().getWindowPaddingX() - btnW);
             if (!canApply) ImGui.beginDisabled();
             if (ImGui.button(I18n.format("dimensium.select.apply") + "##flt_apply", btnW, 0)) {
                 ItemStack chosen = selectionBlocks.get(selectedIndex);
@@ -159,14 +149,14 @@ public class FilterSelectionWindow extends ToggleableWindow {
                 SelectionState sel = SelectionState.INSTANCE;
                 if (sel.hasSelection() && filterBlock != null) {
                     sel.applyOp(
-                        SelectionTransforms.filter(
-                            sel.getSelectedBlocks(),
-                            Minecraft.getMinecraft().theWorld,
-                            filterBlock,
-                            chosen.getItemDamage(),
-                            keepMatching,
-                            exactMeta),
-                        BooleanOp.REPLACE);
+                            SelectionTransforms.filter(
+                                    sel.getSelectedBlocks(),
+                                    Minecraft.getMinecraft().theWorld,
+                                    filterBlock,
+                                    chosen.getItemDamage(),
+                                    keepMatching,
+                                    exactMeta),
+                            BooleanOp.REPLACE);
                 }
                 close();
             }

@@ -4,13 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.tool.creating.shape;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import net.minecraft.block.Block;
-import net.minecraft.init.Blocks;
-import net.minecraft.item.ItemStack;
-
 import github.thehighcruw.dimensium.DimensiumConfig;
 import github.thehighcruw.dimensium.editor.tool.gizmo.WithAxisTranslationGizmo;
 import github.thehighcruw.dimensium.editor.tool.gizmo.WithPlaneTranslationGizmo;
@@ -26,13 +19,18 @@ import github.thehighcruw.dimensium.shared.math.Mat3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
+import java.util.ArrayList;
+import java.util.List;
+import net.minecraft.block.Block;
+import net.minecraft.init.Blocks;
+import net.minecraft.item.ItemStack;
 
 /**
  * Client-side state for interactive shape placement.
  * Tracks anchor position, caches ghost block positions, and owns the gizmos.
  */
 public class ShapePlacementState
-    implements WithAxisTranslationGizmo, WithPlaneTranslationGizmo, WithRotationGizmo, WithScalingGizmo {
+        implements WithAxisTranslationGizmo, WithPlaneTranslationGizmo, WithRotationGizmo, WithScalingGizmo {
 
     public static final ShapePlacementState INSTANCE = new ShapePlacementState();
 
@@ -54,6 +52,7 @@ public class ShapePlacementState
      * Null = exceeds maxGhostBlocks, use bbox fallback.
      */
     public List<int[]> ghostBlocks = null;
+
     public ChangeProposal preview = null;
 
     /** Per-axis scale multipliers applied on top of the tool-state dimensions. */
@@ -159,10 +158,11 @@ public class ShapePlacementState
             h = 1;
             d = r * 2 + 1;
         } else if (!s.shapeSeparateAxes
-            && (s.shapeType == ShapeToolState.ShapeType.CYLINDER || s.shapeType == ShapeToolState.ShapeType.CONE
-                || s.shapeType == ShapeToolState.ShapeType.TUBE)) {
-                    d = w;
-                }
+                && (s.shapeType == ShapeToolState.ShapeType.CYLINDER
+                        || s.shapeType == ShapeToolState.ShapeType.CONE
+                        || s.shapeType == ShapeToolState.ShapeType.TUBE)) {
+            d = w;
+        }
         baseW = w;
         baseH = h;
         baseD = d;
@@ -203,42 +203,42 @@ public class ShapePlacementState
         ChangeProposal p = ChangeProposal.forPreview();
         for (int[] offset : ghostBlocks) {
             long key = ChangeProposal.packKey(anchor.x() + offset[0], anchor.y() + offset[1], anchor.z() + offset[2]);
-            p.proposed.put(key, new int[] { blockId, meta });
+            p.proposed.put(key, new int[] {blockId, meta});
         }
         preview = p;
     }
 
-    private static List<int[]> buildGhostBlocks(ShapeToolState s, int w, int h, int d, Mat3DFloat R, int ix0, int iy0,
-        int iz0, int ix1, int iy1, int iz1) {
+    private static List<int[]> buildGhostBlocks(
+            ShapeToolState s, int w, int h, int d, Mat3DFloat R, int ix0, int iy0, int iz0, int ix1, int iy1, int iz1) {
         int maxGhost = DimensiumConfig.maxGhostBlocks;
         List<int[]> blocks = new ArrayList<>();
         ShapeMath.iterateRotatedShape(
-            s.shapeType,
-            w,
-            h,
-            d,
-            s.shapeHollow,
-            s.shapeExponent,
-            s.torusRingRadius,
-            s.torusRingRadiusZ,
-            s.torusTubeRadius,
-            s.tubeWallThickness,
-            s.shapeSupersphereExp,
-            s.shapePolygonSides,
-            s.shapeSpiralSpacing,
-            s.shapeSpiralTurns,
-            DimensiumConfig.shapeThreshold,
-            R,
-            ix0,
-            iy0,
-            iz0,
-            ix1,
-            iy1,
-            iz1,
-            (ox, oy, oz) -> {
-                blocks.add(new int[] { ox, oy, oz });
-                return blocks.size() < maxGhost;
-            });
+                s.shapeType,
+                w,
+                h,
+                d,
+                s.shapeHollow,
+                s.shapeExponent,
+                s.torusRingRadius,
+                s.torusRingRadiusZ,
+                s.torusTubeRadius,
+                s.tubeWallThickness,
+                s.shapeSupersphereExp,
+                s.shapePolygonSides,
+                s.shapeSpiralSpacing,
+                s.shapeSpiralTurns,
+                DimensiumConfig.shapeThreshold,
+                R,
+                ix0,
+                iy0,
+                iz0,
+                ix1,
+                iy1,
+                iz1,
+                (ox, oy, oz) -> {
+                    blocks.add(new int[] {ox, oy, oz});
+                    return blocks.size() < maxGhost;
+                });
         return blocks.size() >= maxGhost ? null : blocks;
     }
 
@@ -248,59 +248,60 @@ public class ShapePlacementState
         int ry = Math.round(rot.y() * 2);
         int rz = Math.round(rot.z() * 2);
         return s.shapeType.ordinal() + ","
-            + s.shapeWidth
-            + ","
-            + s.shapeHeight
-            + ","
-            + s.shapeDepth
-            + ","
-            + s.shapeHollow
-            + ","
-            + s.torusRingRadius
-            + ","
-            + s.torusRingRadiusZ
-            + ","
-            + s.torusTubeRadius
-            + ","
-            + s.shapeSeparateAxes
-            + ","
-            + s.shapeExponent
-            + ","
-            + s.shapeSupersphereExp
-            + ","
-            + s.shapePolygonSides
-            + ","
-            + s.shapeSpiralSpacing
-            + ","
-            + s.shapeSpiralTurns
-            + ","
-            + s.tubeWallThickness
-            + ","
-            + rx
-            + ","
-            + ry
-            + ","
-            + rz
-            + ","
-            + anchor.x()
-            + ","
-            + anchor.y()
-            + ","
-            + anchor.z()
-            + ","
-            + Math.round(scale.x() * 100)
-            + ","
-            + Math.round(scale.y() * 100)
-            + ","
-            + Math.round(scale.z() * 100)
-            + ","
-            + Math.round(DimensiumConfig.shapeThreshold * 1000);
+                + s.shapeWidth
+                + ","
+                + s.shapeHeight
+                + ","
+                + s.shapeDepth
+                + ","
+                + s.shapeHollow
+                + ","
+                + s.torusRingRadius
+                + ","
+                + s.torusRingRadiusZ
+                + ","
+                + s.torusTubeRadius
+                + ","
+                + s.shapeSeparateAxes
+                + ","
+                + s.shapeExponent
+                + ","
+                + s.shapeSupersphereExp
+                + ","
+                + s.shapePolygonSides
+                + ","
+                + s.shapeSpiralSpacing
+                + ","
+                + s.shapeSpiralTurns
+                + ","
+                + s.tubeWallThickness
+                + ","
+                + rx
+                + ","
+                + ry
+                + ","
+                + rz
+                + ","
+                + anchor.x()
+                + ","
+                + anchor.y()
+                + ","
+                + anchor.z()
+                + ","
+                + Math.round(scale.x() * 100)
+                + ","
+                + Math.round(scale.y() * 100)
+                + ","
+                + Math.round(scale.z() * 100)
+                + ","
+                + Math.round(DimensiumConfig.shapeThreshold * 1000);
     }
 
     public boolean isAnyGizmoDragging() {
-        return getAxisTranslationGizmo().isDragging() || getRotationGizmo().isDragging()
-            || getScalingGizmo().isDragging()
-            || getPlaneTranslationGizmo().isDragging()
-            || viewPlaneGizmo.isDragging();
+        return getAxisTranslationGizmo().isDragging()
+                || getRotationGizmo().isDragging()
+                || getScalingGizmo().isDragging()
+                || getPlaneTranslationGizmo().isDragging()
+                || viewPlaneGizmo.isDragging();
     }
 }

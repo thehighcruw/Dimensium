@@ -4,8 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.tool.manipulating.elevation;
 
-import net.minecraft.client.resources.I18n;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.tool.ToolSection;
@@ -15,6 +13,7 @@ import github.thehighcruw.dimensium.editor.tool.manipulating.elevation.Elevation
 import github.thehighcruw.dimensium.editor.tool.manipulating.elevation.ElevationToolState.FlattenDirection;
 import imgui.ImGui;
 import imgui.type.ImInt;
+import net.minecraft.client.resources.I18n;
 
 @SideOnly(Side.CLIENT)
 public class ElevationSection implements ToolSection {
@@ -51,8 +50,8 @@ public class ElevationSection implements ToolSection {
             String[] dirLabels = new String[dirs.length];
             for (int i = 0; i < dirs.length; i++) dirLabels[i] = I18n.format(dirs[i].label);
             flattenDirIdx.set(state.flattenDirection.ordinal());
-            if (ImGui
-                .combo(I18n.format("dimensium.ui.elevation.flatten_dir") + "##elev_fdir", flattenDirIdx, dirLabels)) {
+            if (ImGui.combo(
+                    I18n.format("dimensium.ui.elevation.flatten_dir") + "##elev_fdir", flattenDirIdx, dirLabels)) {
                 state.flattenDirection = dirs[flattenDirIdx.get()];
             }
         }
@@ -63,19 +62,19 @@ public class ElevationSection implements ToolSection {
 
         radius[0] = state.elevationRadius;
         if (ImGui.sliderInt(
-            I18n.format("dimensium.ui.elevation.radius") + "##elev_rad",
-            radius,
-            ElevationToolState.RADIUS_MIN,
-            ElevationToolState.RADIUS_MAX)) {
+                I18n.format("dimensium.ui.elevation.radius") + "##elev_rad",
+                radius,
+                ElevationToolState.RADIUS_MIN,
+                ElevationToolState.RADIUS_MAX)) {
             state.elevationRadius = radius[0];
         }
 
         smoothing[0] = state.elevationSmoothing;
         if (ImGui.sliderFloat(
-            I18n.format("dimensium.ui.elevation.smoothing") + "##elev_smooth",
-            smoothing,
-            ElevationToolState.SMOOTHING_MIN,
-            ElevationToolState.SMOOTHING_MAX)) {
+                I18n.format("dimensium.ui.elevation.smoothing") + "##elev_smooth",
+                smoothing,
+                ElevationToolState.SMOOTHING_MIN,
+                ElevationToolState.SMOOTHING_MAX)) {
             state.elevationSmoothing = smoothing[0];
         }
 
@@ -106,19 +105,19 @@ public class ElevationSection implements ToolSection {
         if (state.elevationMode != ElevationMode.FLATTEN) {
             rate[0] = state.elevationRate;
             if (ImGui.sliderFloat(
-                I18n.format("dimensium.ui.elevation.rate") + "##elev_rate",
-                rate,
-                ElevationToolState.RATE_MIN,
-                ElevationToolState.RATE_MAX)) {
+                    I18n.format("dimensium.ui.elevation.rate") + "##elev_rate",
+                    rate,
+                    ElevationToolState.RATE_MIN,
+                    ElevationToolState.RATE_MAX)) {
                 state.elevationRate = rate[0];
             }
 
             strength[0] = state.elevationStrength;
             if (ImGui.sliderInt(
-                I18n.format("dimensium.ui.elevation.strength") + "##elev_str",
-                strength,
-                ElevationToolState.STRENGTH_MIN,
-                ElevationToolState.STRENGTH_MAX)) {
+                    I18n.format("dimensium.ui.elevation.strength") + "##elev_str",
+                    strength,
+                    ElevationToolState.STRENGTH_MIN,
+                    ElevationToolState.STRENGTH_MAX)) {
                 state.elevationStrength = strength[0];
             }
         }

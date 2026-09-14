@@ -4,6 +4,8 @@
  */
 package github.thehighcruw.dimensium.editor.window;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -16,13 +18,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.item.ItemStack;
-
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 
 /** Persisted MRU list of picked blocks. */
 @SideOnly(Side.CLIENT)
@@ -61,8 +59,8 @@ public class RecentBlockHistory {
     }
 
     private static void save() {
-        try (PrintWriter w = new PrintWriter(
-            new OutputStreamWriter(new FileOutputStream(saveFile()), StandardCharsets.UTF_8))) {
+        try (PrintWriter w =
+                new PrintWriter(new OutputStreamWriter(new FileOutputStream(saveFile()), StandardCharsets.UTF_8))) {
             for (ItemStack s : history) {
                 Block b = Block.getBlockFromItem(s.getItem());
                 if (b == null) continue;
@@ -70,15 +68,16 @@ public class RecentBlockHistory {
                 if (name == null) continue;
                 w.println(name + ":" + s.getItemDamage());
             }
-        } catch (IOException ignored) {}
+        } catch (IOException ignored) {
+        }
     }
 
     private static void load() {
         history.clear();
         File f = saveFile();
         if (!f.exists()) return;
-        try (BufferedReader r = new BufferedReader(
-            new InputStreamReader(new FileInputStream(f), StandardCharsets.UTF_8))) {
+        try (BufferedReader r =
+                new BufferedReader(new InputStreamReader(new FileInputStream(f), StandardCharsets.UTF_8))) {
             String line;
             while ((line = r.readLine()) != null && history.size() < MAX) {
                 line = line.trim();
@@ -91,6 +90,7 @@ public class RecentBlockHistory {
                 if (b == null || b == net.minecraft.init.Blocks.air) continue;
                 history.addLast(new ItemStack(b, 1, meta));
             }
-        } catch (IOException | NumberFormatException ignored) {}
+        } catch (IOException | NumberFormatException ignored) {
+        }
     }
 }

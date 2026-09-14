@@ -4,17 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.window.popup;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Consumer;
-
-import net.minecraft.block.Block;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.init.Blocks;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.blueprint.Blueprint;
@@ -28,6 +17,15 @@ import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiKey;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImString;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
+import net.minecraft.block.Block;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.init.Blocks;
 
 @SideOnly(Side.CLIENT)
 public class BlueprintBrowserPopup {
@@ -45,6 +43,7 @@ public class BlueprintBrowserPopup {
 
     /** Tag counts computed on open, sorted by count desc. */
     private final List<String> tagCloud = new ArrayList<>();
+
     private final Map<String, Integer> tagCounts = new HashMap<>();
 
     private static final float POPUP_W = 760f;
@@ -54,7 +53,7 @@ public class BlueprintBrowserPopup {
     private static final float LABEL_H = 18f;
     private static final int COLS = (int) ((POPUP_W - PAD * 2) / CELL);
 
-    private static final char[] SPINNER_CHARS = { '|', '/', '-', '\\' };
+    private static final char[] SPINNER_CHARS = {'|', '/', '-', '\\'};
 
     /**
      * When set, called instead of loading the blueprint into the clipboard.
@@ -94,8 +93,7 @@ public class BlueprintBrowserPopup {
         if (!open) return;
 
         ImVec2 display = new ImVec2();
-        ImGui.getIO()
-            .getDisplaySize(display);
+        ImGui.getIO().getDisplaySize(display);
         ImGui.setNextWindowPos((display.x - POPUP_W) * 0.5f, (display.y - POPUP_H) * 0.5f, ImGuiCond.Always);
         ImGui.setNextWindowSize(POPUP_W, POPUP_H, ImGuiCond.Always);
 
@@ -129,8 +127,9 @@ public class BlueprintBrowserPopup {
                 ImGui.textDisabled(spinner() + " " + I18n.format("dimensium.blueprint.browser.loading"));
             } else {
                 List<Map.Entry<File, Blueprint>> all = BlueprintRegistry.INSTANCE.getAll();
-                String msg = all.isEmpty() ? I18n.format("dimensium.blueprint.browser.empty")
-                    : I18n.format("dimensium.blueprint.browser.noresults");
+                String msg = all.isEmpty()
+                        ? I18n.format("dimensium.blueprint.browser.empty")
+                        : I18n.format("dimensium.blueprint.browser.noresults");
                 ImGui.textDisabled(msg);
             }
         } else {
@@ -151,30 +150,31 @@ public class BlueprintBrowserPopup {
                 boolean hovered = ImGui.isItemHovered();
 
                 ImGui.getWindowDrawList()
-                    .addRectFilled(pos.x, pos.y, pos.x + CELL - 2, pos.y + CELL - 2, hovered ? 0xFF444433 : 0xFF332222);
+                        .addRectFilled(
+                                pos.x, pos.y, pos.x + CELL - 2, pos.y + CELL - 2, hovered ? 0xFF444433 : 0xFF332222);
 
                 int texId = thumbCache.get(file);
                 if (texId != -1) {
-                    ImGui.getWindowDrawList()
-                        .addImage(texId, pos.x + 1, pos.y + 1, pos.x + CELL - 3, pos.y + CELL - 3);
+                    ImGui.getWindowDrawList().addImage(texId, pos.x + 1, pos.y + 1, pos.x + CELL - 3, pos.y + CELL - 3);
                 } else {
                     String spin = String.valueOf(spinner());
                     ImGui.getWindowDrawList()
-                        .addText(pos.x + CELL * 0.5f - 4, pos.y + CELL * 0.5f - 8, 0xFF888877, spin);
+                            .addText(pos.x + CELL * 0.5f - 4, pos.y + CELL * 0.5f - 8, 0xFF888877, spin);
                 }
 
                 String label = meta.name();
                 ImGui.getWindowDrawList()
-                    .addText(
-                        pos.x + 2,
-                        pos.y + CELL,
-                        hovered ? 0xFFFFEEDD : 0xFFAA9988,
-                        label.length() > 14 ? label.substring(0, 12) + ".." : label);
+                        .addText(
+                                pos.x + 2,
+                                pos.y + CELL,
+                                hovered ? 0xFFFFEEDD : 0xFFAA9988,
+                                label.length() > 14 ? label.substring(0, 12) + ".." : label);
 
                 if (clicked) {
                     try {
                         loadBlueprint(BlueprintIO.load(file));
-                    } catch (Exception ignored) {}
+                    } catch (Exception ignored) {
+                    }
                     ImGui.closeCurrentPopup();
                     open = false;
                     ImGui.endChild();
@@ -206,9 +206,7 @@ public class BlueprintBrowserPopup {
 
     private void renderTagCloud() {
         if (tagCloud.isEmpty()) return;
-        String activeTag = tagSearchBuf.get()
-            .trim()
-            .toLowerCase();
+        String activeTag = tagSearchBuf.get().trim().toLowerCase();
         for (String tag : tagCloud) {
             int count = tagCounts.getOrDefault(tag, 0);
             boolean isActive = tag.equalsIgnoreCase(activeTag);
@@ -231,20 +229,14 @@ public class BlueprintBrowserPopup {
 
     private List<Map.Entry<File, Blueprint>> getFiltered() {
         List<Map.Entry<File, Blueprint>> all = BlueprintRegistry.INSTANCE.getAll();
-        String nameQ = nameSearchBuf.get()
-            .toLowerCase()
-            .trim();
-        String tagQ = tagSearchBuf.get()
-            .toLowerCase()
-            .trim();
+        String nameQ = nameSearchBuf.get().toLowerCase().trim();
+        String tagQ = tagSearchBuf.get().toLowerCase().trim();
         if (nameQ.isEmpty() && tagQ.isEmpty()) return all;
 
         List<Map.Entry<File, Blueprint>> result = new ArrayList<>();
         for (Map.Entry<File, Blueprint> e : all) {
             Blueprint meta = e.getValue();
-            boolean nameOk = nameQ.isEmpty() || meta.name()
-                .toLowerCase()
-                .contains(nameQ);
+            boolean nameOk = nameQ.isEmpty() || meta.name().toLowerCase().contains(nameQ);
             boolean tagOk = tagQ.isEmpty() || hasMatchingTag(meta, tagQ);
             if (nameOk && tagOk) result.add(e);
         }
@@ -253,8 +245,7 @@ public class BlueprintBrowserPopup {
 
     private static boolean hasMatchingTag(Blueprint meta, String tagQ) {
         for (String tag : meta.tags()) {
-            if (tag.toLowerCase()
-                .contains(tagQ)) return true;
+            if (tag.toLowerCase().contains(tagQ)) return true;
         }
         return false;
     }
@@ -266,8 +257,7 @@ public class BlueprintBrowserPopup {
         tagCounts.clear();
         List<Map.Entry<File, Blueprint>> all = BlueprintRegistry.INSTANCE.getAll();
         for (Map.Entry<File, Blueprint> e : all) {
-            for (String tag : e.getValue()
-                .tags()) {
+            for (String tag : e.getValue().tags()) {
                 tagCounts.put(tag, tagCounts.getOrDefault(tag, 0) + 1);
             }
         }
@@ -290,9 +280,8 @@ public class BlueprintBrowserPopup {
             return;
         }
         SelectionState sel = SelectionState.INSTANCE;
-        Map<Long, SelectionState.BlockData> clipboard = new HashMap<>(
-            bp.offsets()
-                .size());
+        Map<Long, SelectionState.BlockData> clipboard =
+                new HashMap<>(bp.offsets().size());
         for (int[] o : bp.offsets()) {
             Block block = Block.getBlockById(o[3]);
             if (block == null || block == Blocks.air) continue;

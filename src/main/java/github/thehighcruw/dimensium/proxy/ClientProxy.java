@@ -4,8 +4,6 @@
  */
 package github.thehighcruw.dimensium.proxy;
 
-import net.minecraftforge.common.MinecraftForge;
-
 import cpw.mods.fml.client.registry.ClientRegistry;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
@@ -42,6 +40,7 @@ import github.thehighcruw.dimensium.editor.window.viewport.world.SelectionRender
 import github.thehighcruw.dimensium.shared.BlockColorCache;
 import github.thehighcruw.dimensium.shared.InputHandler;
 import github.thehighcruw.dimensium.world.inventory.CreativeGuiHandler;
+import net.minecraftforge.common.MinecraftForge;
 
 @SideOnly(Side.CLIENT)
 public class ClientProxy implements IProxy {
@@ -61,12 +60,8 @@ public class ClientProxy implements IProxy {
         MinecraftForge.EVENT_BUS.register(new InputHandler());
         MinecraftForge.EVENT_BUS.register(BlockColorCache.INSTANCE);
         CreativeGuiHandler.register();
-        FMLCommonHandler.instance()
-            .bus()
-            .register(new KeyHandler());
-        FMLCommonHandler.instance()
-            .bus()
-            .register(new TickHandler());
+        FMLCommonHandler.instance().bus().register(new KeyHandler());
+        FMLCommonHandler.instance().bus().register(new TickHandler());
     }
 
     @Override
@@ -79,13 +74,29 @@ public class ClientProxy implements IProxy {
         // ToolPanel is instantiated in OverlayRenderer (which is registered
         // in init() above) — accessing it here forces its ImGuiWindow registration.
         @SuppressWarnings("unused")
-        Object[] windows = { AnalyzeWindow.INSTANCE, BlockInfoWindow.INSTANCE, AutoshadeWindow.INSTANCE,
-            LayoutPresetManageWindow.INSTANCE, ClipboardWindow.INSTANCE, ColourFieldWindow.INSTANCE,
-            DistortSelectionWindow.INSTANCE, FillSelectionWindow.INSTANCE, FilterSelectionWindow.INSTANCE,
-            HistoryWindow.INSTANCE, OperationsWindow.INSTANCE, ReplaceSelectionWindow.INSTANCE,
-            SelectionWindow.INSTANCE, SmoothSelectionWindow.INSTANCE, TypeReplaceSelectionWindow.INSTANCE,
-            ToolMaskListWindow.INSTANCE, ToolMaskEditorWindow.INSTANCE, PaletteWindow.INSTANCE,
-            PaletteEditorWindow.INSTANCE, OverlayRenderer.TOOL_WINDOW, OverlayRenderer.TOOL_OPTIONS_WINDOW };
+        Object[] windows = {
+            AnalyzeWindow.INSTANCE,
+            BlockInfoWindow.INSTANCE,
+            AutoshadeWindow.INSTANCE,
+            LayoutPresetManageWindow.INSTANCE,
+            ClipboardWindow.INSTANCE,
+            ColourFieldWindow.INSTANCE,
+            DistortSelectionWindow.INSTANCE,
+            FillSelectionWindow.INSTANCE,
+            FilterSelectionWindow.INSTANCE,
+            HistoryWindow.INSTANCE,
+            OperationsWindow.INSTANCE,
+            ReplaceSelectionWindow.INSTANCE,
+            SelectionWindow.INSTANCE,
+            SmoothSelectionWindow.INSTANCE,
+            TypeReplaceSelectionWindow.INSTANCE,
+            ToolMaskListWindow.INSTANCE,
+            ToolMaskEditorWindow.INSTANCE,
+            PaletteWindow.INSTANCE,
+            PaletteEditorWindow.INSTANCE,
+            OverlayRenderer.TOOL_WINDOW,
+            OverlayRenderer.TOOL_OPTIONS_WINDOW
+        };
 
         if (DimensiumConfig.windowHistoryOpen) HistoryWindow.INSTANCE.setOpen(true);
         if (DimensiumConfig.windowToolMaskListOpen) ToolMaskListWindow.INSTANCE.open();
@@ -104,26 +115,17 @@ public class ClientProxy implements IProxy {
         LayoutPresetRegistry reg = LayoutPresetRegistry.INSTANCE;
         reg.registerWindow("tools", OverlayRenderer.TOOL_WINDOW::isOpen, OverlayRenderer.TOOL_WINDOW::setOpen, true);
         reg.registerWindow(
-            "toolOptions",
-            OverlayRenderer.TOOL_OPTIONS_WINDOW::isOpen,
-            OverlayRenderer.TOOL_OPTIONS_WINDOW::setOpen,
-            true);
+                "toolOptions",
+                OverlayRenderer.TOOL_OPTIONS_WINDOW::isOpen,
+                OverlayRenderer.TOOL_OPTIONS_WINDOW::setOpen,
+                true);
         reg.registerWindow(
-            "toolMaskList",
-            ToolMaskListWindow.INSTANCE::isOpen,
-            ToolMaskListWindow.INSTANCE::setOpen,
-            true);
+                "toolMaskList", ToolMaskListWindow.INSTANCE::isOpen, ToolMaskListWindow.INSTANCE::setOpen, true);
         reg.registerWindow(
-            "toolMaskEditor",
-            ToolMaskEditorWindow.INSTANCE::isOpen,
-            ToolMaskEditorWindow.INSTANCE::setOpen,
-            true);
+                "toolMaskEditor", ToolMaskEditorWindow.INSTANCE::isOpen, ToolMaskEditorWindow.INSTANCE::setOpen, true);
         reg.registerWindow("palette", PaletteWindow.INSTANCE::isOpen, PaletteWindow.INSTANCE::setOpen, true);
         reg.registerWindow(
-            "paletteEditor",
-            PaletteEditorWindow.INSTANCE::isOpen,
-            PaletteEditorWindow.INSTANCE::setOpen,
-            true);
+                "paletteEditor", PaletteEditorWindow.INSTANCE::isOpen, PaletteEditorWindow.INSTANCE::setOpen, true);
         reg.registerWindow("selection", SelectionWindow.INSTANCE::isOpen, SelectionWindow.INSTANCE::setOpen, true);
         reg.registerWindow("operations", OperationsWindow.INSTANCE::isOpen, OperationsWindow.INSTANCE::setOpen, true);
         reg.registerWindow("clipboard", ClipboardWindow.INSTANCE::isOpen, ClipboardWindow.INSTANCE::setOpen, true);
@@ -132,5 +134,4 @@ public class ClientProxy implements IProxy {
         reg.registerWindow("analyze", AnalyzeWindow.INSTANCE::isOpen, AnalyzeWindow.INSTANCE::setOpen, false);
         reg.registerWindow("autoshade", AutoshadeWindow.INSTANCE::isOpen, AutoshadeWindow.INSTANCE::setOpen, false);
     }
-
 }

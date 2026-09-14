@@ -6,12 +6,11 @@ package github.thehighcruw.dimensium;
 
 import static org.junit.Assert.*;
 
-import org.junit.Test;
-
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeMath;
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeToolState.ShapeType;
 import github.thehighcruw.dimensium.shared.math.Mat3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
+import org.junit.Test;
 
 public class ShapeMathTest {
 
@@ -23,30 +22,31 @@ public class ShapeMathTest {
 
     private static boolean shape(ShapeType type, int dx, int dy, int dz, int w, int h, int d, boolean hollow) {
         return ShapeMath.inShapeGeom(
-            type,
-            dx,
-            dy,
-            dz,
-            w,
-            h,
-            d,
-            hollow,
-            EXP,
-            TORUS_R,
-            TORUS_RZ,
-            TORUS_TUBE,
-            WALL,
-            EXP,
-            SIDES,
-            SPIRAL_SPACING,
-            SPIRAL_TURNS,
-            1f);
+                type,
+                dx,
+                dy,
+                dz,
+                w,
+                h,
+                d,
+                hollow,
+                EXP,
+                TORUS_R,
+                TORUS_RZ,
+                TORUS_TUBE,
+                WALL,
+                EXP,
+                SIDES,
+                SPIRAL_SPACING,
+                SPIRAL_TURNS,
+                1f);
     }
 
     private static int count(ShapeType type, int w, int h, int d, boolean hollow) {
         int n = 0;
-        for (int dx = 0; dx < w; dx++) for (int dy = 0; dy < h; dy++)
-            for (int dz = 0; dz < d; dz++) if (shape(type, dx, dy, dz, w, h, d, hollow)) n++;
+        for (int dx = 0; dx < w; dx++)
+            for (int dy = 0; dy < h; dy++)
+                for (int dz = 0; dz < d; dz++) if (shape(type, dx, dy, dz, w, h, d, hollow)) n++;
         return n;
     }
 
@@ -131,8 +131,8 @@ public class ShapeMathTest {
     @Test
     public void cylinderXSymmetric() {
         assertEquals(
-            shape(ShapeType.CYLINDER, 3, 3, 5, 11, 7, 11, false),
-            shape(ShapeType.CYLINDER, 7, 3, 5, 11, 7, 11, false));
+                shape(ShapeType.CYLINDER, 3, 3, 5, 11, 7, 11, false),
+                shape(ShapeType.CYLINDER, 7, 3, 5, 11, 7, 11, false));
     }
 
     // ── PYRAMID ──────────────────────────────────────────────────────────────
@@ -276,8 +276,8 @@ public class ShapeMathTest {
     @Test
     public void octahedronXSymmetric() {
         assertEquals(
-            shape(ShapeType.OCTAHEDRON, 3, 5, 5, 11, 11, 11, false),
-            shape(ShapeType.OCTAHEDRON, 7, 5, 5, 11, 11, 11, false));
+                shape(ShapeType.OCTAHEDRON, 3, 5, 5, 11, 11, 11, false),
+                shape(ShapeType.OCTAHEDRON, 7, 5, 5, 11, 11, 11, false));
     }
 
     @Test
@@ -517,7 +517,7 @@ public class ShapeMathTest {
 
     @Test
     public void rotationMatrixRoundtrip() {
-        float[][] cases = { { 30, 45, 60 }, { -15, 70, 0 }, { 45, 0, -30 } };
+        float[][] cases = {{30, 45, 60}, {-15, 70, 0}, {45, 0, -30}};
         for (float[] c : cases) {
             Mat3DFloat R = ShapeMath.buildRotationMatrix(c[0], c[1], c[2]);
             Vec3DFloat back = R.toEulerDeg();

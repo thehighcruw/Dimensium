@@ -6,14 +6,12 @@ package github.thehighcruw.dimensium;
 
 import static org.junit.Assert.*;
 
+import github.thehighcruw.dimensium.editor.tool.selecting.lasso.LassoComputer;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
-
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import github.thehighcruw.dimensium.editor.tool.selecting.lasso.LassoComputer;
 
 /**
  * Tests LassoComputer.pointInPolygon via reflection (private static).
@@ -34,7 +32,7 @@ public class LassoPointInPolygonTest {
     }
 
     private static float[] p(float x, float y) {
-        return new float[] { x, y };
+        return new float[] {x, y};
     }
 
     // ── unit square (0,0)-(1,0)-(1,1)-(0,1) ─────────────────────────────────

@@ -4,6 +4,12 @@
  */
 package github.thehighcruw.dimensium.shared;
 
+import com.github.bsideup.jabel.Desugar;
+import github.thehighcruw.dimensium.DimensiumConfig;
+import github.thehighcruw.dimensium.editor.tool.selecting.BooleanOp;
+import github.thehighcruw.dimensium.editor.tool.selecting.magic.MagicSelectToolState;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import github.thehighcruw.dimensium.shared.util.WorldUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -13,22 +19,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.world.World;
-
-import com.github.bsideup.jabel.Desugar;
-
-import github.thehighcruw.dimensium.DimensiumConfig;
-import github.thehighcruw.dimensium.editor.tool.selecting.BooleanOp;
-import github.thehighcruw.dimensium.editor.tool.selecting.magic.MagicSelectToolState;
-import github.thehighcruw.dimensium.shared.math.Vec3DInt;
-import github.thehighcruw.dimensium.shared.util.WorldUtils;
 
 public class SelectionState {
 
@@ -42,6 +38,7 @@ public class SelectionState {
      * Cached bounding box; rebuilt lazily on first access after a mutation.
      */
     private Vec3DInt cachedMin = Vec3DInt.ZERO;
+
     private Vec3DInt cachedMax = Vec3DInt.ZERO;
     private boolean boundsDirty = true;
 
@@ -69,6 +66,7 @@ public class SelectionState {
      * Sparse map: key = clipboardKey(x,y,z), value = non-air block. Air positions are absent.
      */
     public Map<Long, BlockData> clipboard = null;
+
     public Vec3DInt clipDim = Vec3DInt.ZERO;
 
     // ── Query ────────────────────────────────────────────────────────────────
@@ -190,14 +188,22 @@ public class SelectionState {
 
     // ── AABB builder (used by box select before calling applyOp) ─────────────
 
-    public static Set<Long> floodFill(World world, int sx, int sy, int sz, int limit, int range, boolean surfaceOnly,
-        boolean corners, MagicSelectToolState.MagicCompareType compareType,
-        MagicSelectToolState.MagicDirection direction) {
+    public static Set<Long> floodFill(
+            World world,
+            int sx,
+            int sy,
+            int sz,
+            int limit,
+            int range,
+            boolean surfaceOnly,
+            boolean corners,
+            MagicSelectToolState.MagicCompareType compareType,
+            MagicSelectToolState.MagicDirection direction) {
         Block targetBlock = world.getBlock(sx, sy, sz);
         int targetMeta = world.getBlockMetadata(sx, sy, sz);
         if (targetBlock == Blocks.air) return new HashSet<>();
 
-        int[][] dirs6 = { { 1, 0, 0 }, { -1, 0, 0 }, { 0, 1, 0 }, { 0, -1, 0 }, { 0, 0, 1 }, { 0, 0, -1 } };
+        int[][] dirs6 = {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
         int[][] dirs26 = buildDirs26();
         int[][] allDirs = corners ? dirs26 : dirs6;
 
@@ -236,8 +242,14 @@ public class SelectionState {
         return result;
     }
 
-    private static boolean matches(World world, int x, int y, int z, Block targetBlock, int targetMeta,
-        MagicSelectToolState.MagicCompareType compareType) {
+    private static boolean matches(
+            World world,
+            int x,
+            int y,
+            int z,
+            Block targetBlock,
+            int targetMeta,
+            MagicSelectToolState.MagicCompareType compareType) {
         Block b = world.getBlock(x, y, z);
         return switch (compareType) {
             case BLOCK_STATE -> b == targetBlock && world.getBlockMetadata(x, y, z) == targetMeta;
@@ -258,19 +270,20 @@ public class SelectionState {
 
     private static int[][] buildDirs26() {
         List<int[]> list = new ArrayList<>();
-        for (int dx = -1; dx <= 1; dx++) for (int dy = -1; dy <= 1; dy++)
-            for (int dz = -1; dz <= 1; dz++) if (dx != 0 || dy != 0 || dz != 0) list.add(new int[] { dx, dy, dz });
+        for (int dx = -1; dx <= 1; dx++)
+            for (int dy = -1; dy <= 1; dy++)
+                for (int dz = -1; dz <= 1; dz++) if (dx != 0 || dy != 0 || dz != 0) list.add(new int[] {dx, dy, dz});
         return list.toArray(new int[0][]);
     }
 
     /**
      * Flood-fill air blocks starting from an air block, optionally directional.
      */
-    public static Set<Long> floodFillAir(World world, int sx, int sy, int sz, int limit, boolean goDown,
-        boolean corners) {
+    public static Set<Long> floodFillAir(
+            World world, int sx, int sy, int sz, int limit, boolean goDown, boolean corners) {
         if (world.getBlock(sx, sy, sz) != Blocks.air) return new HashSet<>();
 
-        int[][] dirs6 = { { 1, 0, 0 }, { -1, 0, 0 }, { 0, 1, 0 }, { 0, -1, 0 }, { 0, 0, 1 }, { 0, 0, -1 } };
+        int[][] dirs6 = {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
         int[][] dirs26 = buildDirs26();
         int[][] dirs = corners ? dirs26 : dirs6;
 
@@ -307,9 +320,9 @@ public class SelectionState {
         int minZ = Math.min(z1, z2), maxZ = Math.max(z1, z2);
         Set<Long> set = new HashSet<>();
         Vec3DInt.forEachInclusive(
-            Vec3DInt.from(minX, minY, minZ),
-            Vec3DInt.from(maxX, maxY, maxZ),
-            (x, y, z) -> set.add(pack(Vec3DInt.from(x, y, z))));
+                Vec3DInt.from(minX, minY, minZ),
+                Vec3DInt.from(maxX, maxY, maxZ),
+                (x, y, z) -> set.add(pack(Vec3DInt.from(x, y, z))));
         return set;
     }
 
@@ -412,7 +425,11 @@ public class SelectionState {
     }
 
     @Desugar
-    public record BlockInfo(@Nonnull Vec3DInt coord, @Nonnull Block block, @Nullable Item item, int meta) {}
+    public record BlockInfo(
+            @Nonnull Vec3DInt coord,
+            @Nonnull Block block,
+            @Nullable Item item,
+            int meta) {}
 
     // ── Inner types ───────────────────────────────────────────────────────────
 

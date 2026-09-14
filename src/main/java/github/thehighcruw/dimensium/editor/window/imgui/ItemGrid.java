@@ -4,13 +4,11 @@
  */
 package github.thehighcruw.dimensium.editor.window.imgui;
 
-import java.util.List;
-
-import net.minecraft.item.ItemStack;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import imgui.ImGui;
+import java.util.List;
+import net.minecraft.item.ItemStack;
 
 /**
  * Renders a row-wrapped grid of item icons using DeferredItemRender.placeButton.
@@ -47,8 +45,8 @@ public final class ItemGrid {
      *
      * @return index of the clicked item, or -1 if nothing was clicked
      */
-    public static int render(String idPrefix, List<ItemStack> items, int count, int cols, float cellSize, float gap,
-        int selectedIndex) {
+    public static int render(
+            String idPrefix, List<ItemStack> items, int count, int cols, float cellSize, float gap, int selectedIndex) {
         int clicked = -1;
         float btnSize = cellSize * 2f + DeferredItemRender.ITEM_PAD * 2f;
         for (int i = 0; i < count; i++) {

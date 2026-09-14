@@ -16,5 +16,4 @@ import cpw.mods.fml.relauncher.SideOnly;
 public interface ToolSection {
 
     void render();
-
 }

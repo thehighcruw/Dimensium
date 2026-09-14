@@ -4,6 +4,14 @@
  */
 package github.thehighcruw.dimensium.editor.tool.mask;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -12,24 +20,12 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-
 import net.minecraft.client.Minecraft;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
 public final class MaskSerializer {
 
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting()
-        .create();
+    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
     private MaskSerializer() {}
 
@@ -141,8 +137,7 @@ public final class MaskSerializer {
         File file = saveFile();
         if (!file.exists()) return;
         try (InputStreamReader r = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8)) {
-            JsonObject root = new JsonParser().parse(r)
-                .getAsJsonObject();
+            JsonObject root = new JsonParser().parse(r).getAsJsonObject();
             entries.clear();
             JsonArray arr = root.getAsJsonArray("entries");
             if (arr != null) {
@@ -157,10 +152,8 @@ public final class MaskSerializer {
     }
 
     private static MaskEntry deserializeEntry(JsonObject obj) {
-        String type = obj.has("type") ? obj.get("type")
-            .getAsString() : "";
-        String name = obj.has("name") ? obj.get("name")
-            .getAsString() : "Unnamed";
+        String type = obj.has("type") ? obj.get("type").getAsString() : "";
+        String name = obj.has("name") ? obj.get("name").getAsString() : "Unnamed";
         if ("mask".equals(type)) {
             ToolMask mask = new ToolMask(name);
             if (obj.has("root")) {
@@ -183,8 +176,7 @@ public final class MaskSerializer {
 
     private static MaskNode deserializeNode(JsonObject obj) {
         if (!obj.has("t")) return null;
-        String t = obj.get("t")
-            .getAsString();
+        String t = obj.get("t").getAsString();
         switch (t) {
             case "OR": {
                 OrNode n = new OrNode();
@@ -203,71 +195,41 @@ public final class MaskSerializer {
             }
             case "OFFSET": {
                 OffsetNode n = new OffsetNode(
-                    obj.has("dx") ? obj.get("dx")
-                        .getAsInt() : 0,
-                    obj.has("dy") ? obj.get("dy")
-                        .getAsInt() : -1,
-                    obj.has("dz") ? obj.get("dz")
-                        .getAsInt() : 0);
+                        obj.has("dx") ? obj.get("dx").getAsInt() : 0,
+                        obj.has("dy") ? obj.get("dy").getAsInt() : -1,
+                        obj.has("dz") ? obj.get("dz").getAsInt() : 0);
                 loadChildren(n, obj);
                 return n;
             }
             case "Block":
-                return new BlockMask(
-                    obj.get("id")
-                        .getAsInt(),
-                    obj.get("meta")
-                        .getAsInt());
+                return new BlockMask(obj.get("id").getAsInt(), obj.get("meta").getAsInt());
             case "Above":
-                return new AboveMask(
-                    obj.get("id")
-                        .getAsInt(),
-                    obj.get("meta")
-                        .getAsInt());
+                return new AboveMask(obj.get("id").getAsInt(), obj.get("meta").getAsInt());
             case "Below":
-                return new BelowMask(
-                    obj.get("id")
-                        .getAsInt(),
-                    obj.get("meta")
-                        .getAsInt());
+                return new BelowMask(obj.get("id").getAsInt(), obj.get("meta").getAsInt());
             case "Near":
                 return new NearMask(
-                    obj.get("id")
-                        .getAsInt(),
-                    obj.get("meta")
-                        .getAsInt(),
-                    obj.has("r") ? obj.get("r")
-                        .getAsInt() : 3);
+                        obj.get("id").getAsInt(),
+                        obj.get("meta").getAsInt(),
+                        obj.has("r") ? obj.get("r").getAsInt() : 3);
             case "Neighbour":
                 return new NeighbourMask(
-                    obj.get("id")
-                        .getAsInt(),
-                    obj.get("meta")
-                        .getAsInt());
+                        obj.get("id").getAsInt(), obj.get("meta").getAsInt());
             case "Adjacent":
                 return new AdjacentMask(
-                    obj.get("id")
-                        .getAsInt(),
-                    obj.get("meta")
-                        .getAsInt());
+                        obj.get("id").getAsInt(), obj.get("meta").getAsInt());
             case "Y": {
                 YMask.Op op = YMask.Op.EQUAL;
                 try {
-                    op = YMask.Op.valueOf(
-                        obj.get("op")
-                            .getAsString());
-                } catch (Exception ignored) {}
-                return new YMask(
-                    op,
-                    obj.has("v") ? obj.get("v")
-                        .getAsInt() : 64);
+                    op = YMask.Op.valueOf(obj.get("op").getAsString());
+                } catch (Exception ignored) {
+                }
+                return new YMask(op, obj.has("v") ? obj.get("v").getAsInt() : 64);
             }
             case "Angle":
                 return new AngleMask(
-                    obj.has("a") ? obj.get("a")
-                        .getAsFloat() : 0f,
-                    obj.has("r") ? obj.get("r")
-                        .getAsFloat() : 10f);
+                        obj.has("a") ? obj.get("a").getAsFloat() : 0f,
+                        obj.has("r") ? obj.get("r").getAsFloat() : 10f);
             case "InSelection":
                 return new InSelectionMask();
             case "CanSeeSky":

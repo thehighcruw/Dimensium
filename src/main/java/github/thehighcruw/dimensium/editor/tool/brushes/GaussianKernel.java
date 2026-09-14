@@ -29,11 +29,13 @@ public final class GaussianKernel {
         float inv2s2 = 1f / (2f * sigma * sigma);
         float total = 0f;
         int stX = kDim * kDim;
-        for (int kx = -kR; kx <= kR; kx++) for (int ky = -kR; ky <= kR; ky++) for (int kz = -kR; kz <= kR; kz++) {
-            float w = (float) Math.exp(-(kx * kx + ky * ky + kz * kz) * inv2s2);
-            kernel[(kx + kR) * stX + (ky + kR) * kDim + (kz + kR)] = w;
-            total += w;
-        }
+        for (int kx = -kR; kx <= kR; kx++)
+            for (int ky = -kR; ky <= kR; ky++)
+                for (int kz = -kR; kz <= kR; kz++) {
+                    float w = (float) Math.exp(-(kx * kx + ky * ky + kz * kz) * inv2s2);
+                    kernel[(kx + kR) * stX + (ky + kR) * kDim + (kz + kR)] = w;
+                    total += w;
+                }
         return new GaussianKernel(kernel, kR, total, stX, kDim);
     }
 

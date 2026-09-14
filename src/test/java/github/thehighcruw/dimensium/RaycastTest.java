@@ -46,7 +46,7 @@ public class RaycastTest {
         double rdx = lookX + rightX * ndcX * TAN_HX + upX * ndcY * TAN_HY;
         double rdy = lookY + upY * ndcY * TAN_HY;
         double rdz = lookZ + rightZ * ndcX * TAN_HX + upZ * ndcY * TAN_HY;
-        return new double[] { rdx, rdy, rdz };
+        return new double[] {rdx, rdy, rdz};
     }
 
     private static final int CX = SW / 2, CY = SH / 2;

@@ -4,16 +4,14 @@
  */
 package github.thehighcruw.dimensium.shared.util;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ScaledResolution;
-import net.minecraft.util.MovingObjectPosition;
-
-import org.lwjgl.opengl.GL11;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.freecam.FreecamState;
 import github.thehighcruw.dimensium.editor.overlay.GuiDimensiumOverlay;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.util.MovingObjectPosition;
+import org.lwjgl.opengl.GL11;
 
 /**
  * Client-side rendering utilities.
@@ -48,10 +46,10 @@ public final class RenderUtils {
     public static MovingObjectPosition raycastAtCursor() {
         ScaledResolution sr = scaledResolution();
         return GuiDimensiumOverlay.raycastFromMouse(
-            (int) FreecamState.INSTANCE.cursorX,
-            (int) FreecamState.INSTANCE.cursorY,
-            sr.getScaledWidth(),
-            sr.getScaledHeight());
+                (int) FreecamState.INSTANCE.cursorX,
+                (int) FreecamState.INSTANCE.cursorY,
+                sr.getScaledWidth(),
+                sr.getScaledHeight());
     }
 
     public static void unsetGhostRendering() {

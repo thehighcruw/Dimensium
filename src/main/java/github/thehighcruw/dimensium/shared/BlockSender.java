@@ -4,6 +4,11 @@
  */
 package github.thehighcruw.dimensium.shared;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import github.thehighcruw.dimensium.editor.tool.mask.ToolMaskRegistry;
+import github.thehighcruw.dimensium.network.PacketBlockList;
+import github.thehighcruw.dimensium.network.PacketHandler;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -13,12 +18,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
-
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
-import github.thehighcruw.dimensium.editor.tool.mask.ToolMaskRegistry;
-import github.thehighcruw.dimensium.network.PacketBlockList;
-import github.thehighcruw.dimensium.network.PacketHandler;
 
 @SideOnly(Side.CLIENT)
 public class BlockSender {
@@ -53,8 +52,9 @@ public class BlockSender {
         long t0 = System.nanoTime();
         List<int[]> filtered = ToolMaskRegistry.INSTANCE.filter(ops);
         long filterMs = (System.nanoTime() - t0) / 1_000_000;
-        if (filterMs > 5) github.thehighcruw.dimensium.Dimensium.logger
-            .info("[DIMTIMER] BlockSender filter={}ms in={} out={}", filterMs, ops.size(), filtered.size());
+        if (filterMs > 5)
+            github.thehighcruw.dimensium.Dimensium.logger.info(
+                    "[DIMTIMER] BlockSender filter={}ms in={} out={}", filterMs, ops.size(), filtered.size());
         if (filtered.isEmpty()) return;
         sendChunkedFiltered(filtered, action);
     }
@@ -92,8 +92,8 @@ public class BlockSender {
         for (int start = 0; start < ops.size(); start += CHUNK_SIZE) {
             int end = Math.min(start + CHUNK_SIZE, ops.size());
             boolean isFinal = (end == ops.size());
-            SEND_QUEUE
-                .add(new PacketBlockList(new ArrayList<>(ops.subList(start, end)), action, txId, isFinal, skipHistory));
+            SEND_QUEUE.add(
+                    new PacketBlockList(new ArrayList<>(ops.subList(start, end)), action, txId, isFinal, skipHistory));
         }
     }
 }

@@ -5,7 +5,6 @@
 package github.thehighcruw.dimensium.editor.tool;
 
 public enum Tool {
-
     POINTER("dimensium.tool.pointer"),
     SELECT("dimensium.tool.select"),
     MAGIC_SELECT("dimensium.tool.magic_select"),

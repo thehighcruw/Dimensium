@@ -4,13 +4,12 @@
  */
 package github.thehighcruw.dimensium.editor.tool.selecting.lasso;
 
-import net.minecraft.client.resources.I18n;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.tool.ToolSection;
 import imgui.ImGui;
 import imgui.type.ImBoolean;
+import net.minecraft.client.resources.I18n;
 
 @SideOnly(Side.CLIENT)
 public class LassoSelectSection implements ToolSection {

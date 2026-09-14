@@ -4,11 +4,10 @@
  */
 package github.thehighcruw.dimensium.editor.tool;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.util.MovingObjectPosition;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import net.minecraft.client.Minecraft;
+import net.minecraft.util.MovingObjectPosition;
 
 @SideOnly(Side.CLIENT)
 public interface BrushInput {

@@ -6,12 +6,10 @@ package github.thehighcruw.dimensium;
 
 import static org.junit.Assert.*;
 
-import java.util.Arrays;
-
-import org.junit.Test;
-
 import github.thehighcruw.dimensium.editor.tool.brushes.GaussianKernel;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import java.util.Arrays;
+import org.junit.Test;
 
 public class GaussianKernelTest {
 
@@ -29,7 +27,7 @@ public class GaussianKernelTest {
 
     @Test
     public void totalWeightPositive() {
-        for (float sigma : new float[] { 0.5f, 1.0f, 2.0f, 3.0f }) {
+        for (float sigma : new float[] {0.5f, 1.0f, 2.0f, 3.0f}) {
             GaussianKernel k = GaussianKernel.build(sigma);
             assertTrue("totalWeight must be > 0 for sigma=" + sigma, k.totalWeight > 0f);
         }
@@ -37,7 +35,7 @@ public class GaussianKernelTest {
 
     @Test
     public void kernelRadiusMatchesCeilSigmaTimesTwo() {
-        for (float sigma : new float[] { 0.5f, 1.0f, 1.5f, 2.0f }) {
+        for (float sigma : new float[] {0.5f, 1.0f, 1.5f, 2.0f}) {
             GaussianKernel k = GaussianKernel.build(sigma);
             int expected = (int) Math.ceil(sigma * 2f);
             assertEquals("kR for sigma=" + sigma, expected, k.kR);

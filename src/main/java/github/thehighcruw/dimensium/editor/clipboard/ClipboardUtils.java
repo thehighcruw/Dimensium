@@ -4,14 +4,12 @@
  */
 package github.thehighcruw.dimensium.editor.clipboard;
 
+import github.thehighcruw.dimensium.shared.SelectionState;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
 import net.minecraft.block.Block;
-
-import github.thehighcruw.dimensium.shared.SelectionState;
-import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 
 public final class ClipboardUtils {
 
@@ -22,7 +20,7 @@ public final class ClipboardUtils {
         for (Map.Entry<Long, SelectionState.BlockData> e : clipboard.entrySet()) {
             Vec3DInt p = SelectionState.decodeClipboardKey(e.getKey());
             SelectionState.BlockData bd = e.getValue();
-            offsets.add(new int[] { p.x(), p.y(), p.z(), Block.getIdFromBlock(bd.block()), bd.meta() });
+            offsets.add(new int[] {p.x(), p.y(), p.z(), Block.getIdFromBlock(bd.block()), bd.meta()});
         }
         return offsets;
     }

@@ -4,22 +4,19 @@
  */
 package github.thehighcruw.dimensium.editor.tool.brushes;
 
+import github.thehighcruw.dimensium.DimensiumConfig;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.world.World;
-
-import github.thehighcruw.dimensium.DimensiumConfig;
 
 public final class BrushUtil {
 
     private BrushUtil() {}
 
-    public static final int[][] FACE_DIRS = { { 1, 0, 0 }, { -1, 0, 0 }, { 0, 1, 0 }, { 0, -1, 0 }, { 0, 0, 1 },
-        { 0, 0, -1 } };
+    public static final int[][] FACE_DIRS = {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
 
     // MC 1.7.10 sideHit: 0=bottom, 1=top, 2=north, 3=south, 4=west, 5=east
-    private static final int[][] SIDE_NORMALS = { { 0, -1, 0 }, { 0, 1, 0 }, { 0, 0, -1 }, { 0, 0, 1 }, { -1, 0, 0 },
-        { 1, 0, 0 } };
+    private static final int[][] SIDE_NORMALS = {{0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1}, {-1, 0, 0}, {1, 0, 0}};
 
     public static int[] faceNormal(int sideHit) {
         return sideHit >= 0 && sideHit < 6 ? SIDE_NORMALS[sideHit] : SIDE_NORMALS[1];
@@ -40,19 +37,23 @@ public final class BrushUtil {
 
     public static void forBrush(BrushState s, VoxelAction action) {
         int r = s.brushRadius, h = s.brushShape.hasHeight ? s.brushHeight : r;
-        for (int dx = -r; dx <= r; dx++) for (int dy = -h; dy <= h; dy++) for (int dz = -r; dz <= r; dz++) {
-            if (!inShape(s.brushShape, dx, dy, dz, r, h, r)) continue;
-            if (s.hollow && isInterior(s.brushShape, dx, dy, dz, r, h, r)) continue;
-            action.run(dx, dy, dz);
-        }
+        for (int dx = -r; dx <= r; dx++)
+            for (int dy = -h; dy <= h; dy++)
+                for (int dz = -r; dz <= r; dz++) {
+                    if (!inShape(s.brushShape, dx, dy, dz, r, h, r)) continue;
+                    if (s.hollow && isInterior(s.brushShape, dx, dy, dz, r, h, r)) continue;
+                    action.run(dx, dy, dz);
+                }
     }
 
     public static void forBrush(BrushState s, int sx, int sy, int sz, VoxelAction action) {
-        for (int dx = -sx; dx <= sx; dx++) for (int dy = -sy; dy <= sy; dy++) for (int dz = -sz; dz <= sz; dz++) {
-            if (!inShape(s.brushShape, dx, dy, dz, sx, sy, sz)) continue;
-            if (s.hollow && isInterior(s.brushShape, dx, dy, dz, sx, sy, sz)) continue;
-            action.run(dx, dy, dz);
-        }
+        for (int dx = -sx; dx <= sx; dx++)
+            for (int dy = -sy; dy <= sy; dy++)
+                for (int dz = -sz; dz <= sz; dz++) {
+                    if (!inShape(s.brushShape, dx, dy, dz, sx, sy, sz)) continue;
+                    if (s.hollow && isInterior(s.brushShape, dx, dy, dz, sx, sy, sz)) continue;
+                    action.run(dx, dy, dz);
+                }
     }
 
     // Epsilon absorbs float rounding at exact-boundary points (e.g. dx=2,dy=2,dz=1,r=3
@@ -67,7 +68,7 @@ public final class BrushUtil {
                 float ex = (float) dx / sx, ey = (float) dy / sy, ez = (float) dz / sz;
                 float dist = ex * ex + ey * ey + ez * ez;
                 float vR = 0.5f
-                    * (float) Math.sqrt(1f / ((float) sx * sx) + 1f / ((float) sy * sy) + 1f / ((float) sz * sz));
+                        * (float) Math.sqrt(1f / ((float) sx * sx) + 1f / ((float) sy * sy) + 1f / ((float) sz * sz));
                 return (float) Math.sqrt(dist) <= 1f - vR * (1f - thr) + GEOM_EPS;
             }
             case CUBE:

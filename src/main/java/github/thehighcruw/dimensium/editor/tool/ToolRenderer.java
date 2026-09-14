@@ -4,16 +4,15 @@
  */
 package github.thehighcruw.dimensium.editor.tool;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.init.Blocks;
-import net.minecraft.util.MovingObjectPosition;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.overlay.OverlayRenderer;
 import github.thehighcruw.dimensium.editor.window.viewport.world.BrushPreviewRenderer;
 import github.thehighcruw.dimensium.editor.window.viewport.world.SelectionRenderer;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
+import net.minecraft.client.Minecraft;
+import net.minecraft.init.Blocks;
+import net.minecraft.util.MovingObjectPosition;
 
 /**
  * Per-tool world-space rendering contract. Every tool must register one in

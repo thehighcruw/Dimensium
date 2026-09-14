@@ -9,7 +9,6 @@ public class ElevationToolState {
     public static final ElevationToolState INSTANCE = new ElevationToolState();
 
     public enum ElevationMode {
-
         RAISE("dimensium.elevation_mode.raise"),
         LOWER("dimensium.elevation_mode.lower"),
         FLATTEN("dimensium.elevation_mode.flatten");
@@ -22,7 +21,6 @@ public class ElevationToolState {
     }
 
     public enum ElevationApply {
-
         ONCE("dimensium.elevation_apply.once"),
         CONTINUOUS("dimensium.elevation_apply.continuous");
 
@@ -34,7 +32,6 @@ public class ElevationToolState {
     }
 
     public enum ElevationFalloff {
-
         FLAT("dimensium.elevation_falloff.flat"),
         SPHERICAL("dimensium.elevation_falloff.spherical"),
         LINEAR("dimensium.elevation_falloff.linear"),
@@ -50,7 +47,6 @@ public class ElevationToolState {
     }
 
     public enum FlattenDirection {
-
         BOTH("dimensium.flatten_dir.both"),
         UP("dimensium.flatten_dir.up"),
         DOWN("dimensium.flatten_dir.down");

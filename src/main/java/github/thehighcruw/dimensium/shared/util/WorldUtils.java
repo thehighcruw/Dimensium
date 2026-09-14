@@ -4,13 +4,11 @@
  */
 package github.thehighcruw.dimensium.shared.util;
 
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import javax.annotation.Nullable;
-
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.World;
-
-import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 
 public final class WorldUtils {
 

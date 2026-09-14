@@ -4,6 +4,7 @@
  */
 package github.thehighcruw.dimensium.editor.blueprint;
 
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -17,14 +18,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
-
-import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 
 /**
  * Serialises blueprints in a two-section format:
@@ -50,10 +48,7 @@ public class BlueprintIO {
     }
 
     public static void save(Blueprint bp, File dir) throws IOException {
-        String filename = sanitize(
-            bp.name()
-                .isEmpty() ? "blueprint" : bp.name())
-            + ".dblueprint";
+        String filename = sanitize(bp.name().isEmpty() ? "blueprint" : bp.name()) + ".dblueprint";
         File file = new File(dir, filename);
 
         NBTTagCompound headerTag = new NBTTagCompound();
@@ -61,26 +56,15 @@ public class BlueprintIO {
         NBTTagList tagList = new NBTTagList();
         for (String tg : bp.tags()) tagList.appendTag(new NBTTagString(tg));
         headerTag.setTag("tags", tagList);
-        headerTag.setInteger(
-            "clipW",
-            bp.clipDim()
-                .x());
-        headerTag.setInteger(
-            "clipH",
-            bp.clipDim()
-                .y());
-        headerTag.setInteger(
-            "clipD",
-            bp.clipDim()
-                .z());
+        headerTag.setInteger("clipW", bp.clipDim().x());
+        headerTag.setInteger("clipH", bp.clipDim().y());
+        headerTag.setInteger("clipD", bp.clipDim().z());
 
         NBTTagCompound bodyTag = new NBTTagCompound();
-        int n = bp.offsets()
-            .size();
+        int n = bp.offsets().size();
         int[] flat = new int[n * 5];
         for (int i = 0; i < n; i++) {
-            int[] o = bp.offsets()
-                .get(i);
+            int[] o = bp.offsets().get(i);
             flat[i * 5] = o[0];
             flat[i * 5 + 1] = o[1];
             flat[i * 5 + 2] = o[2];
@@ -116,11 +100,11 @@ public class BlueprintIO {
             Blueprint header = readHeader(in);
             NBTTagCompound bodyTag = CompressedStreamTools.readCompressed(in);
             return new Blueprint(
-                header.name(),
-                header.tags(),
-                header.clipDim(),
-                decodeOffsets(bodyTag.getIntArray("offsets")),
-                null);
+                    header.name(),
+                    header.tags(),
+                    header.clipDim(),
+                    decodeOffsets(bodyTag.getIntArray("offsets")),
+                    null);
         }
     }
 
@@ -149,8 +133,7 @@ public class BlueprintIO {
         Arrays.sort(children);
         for (File f : children) {
             if (f.isDirectory()) scanRecursive(f, result);
-            else if (f.getName()
-                .endsWith(".dblueprint")) result.add(f);
+            else if (f.getName().endsWith(".dblueprint")) result.add(f);
         }
     }
 
@@ -160,7 +143,8 @@ public class BlueprintIO {
             try {
                 Blueprint bp = loadHeader(f);
                 for (String t : bp.tags()) if (!all.contains(t)) all.add(t);
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
         Collections.sort(all);
         return all;
@@ -177,17 +161,17 @@ public class BlueprintIO {
         List<String> tags = new ArrayList<>(tagList.tagCount());
         for (int i = 0; i < tagList.tagCount(); i++) tags.add(tagList.getStringTagAt(i));
         return new Blueprint(
-            tag.getString("name"),
-            tags,
-            Vec3DInt.from(tag.getInteger("clipW"), tag.getInteger("clipH"), tag.getInteger("clipD")),
-            new ArrayList<>(),
-            null);
+                tag.getString("name"),
+                tags,
+                Vec3DInt.from(tag.getInteger("clipW"), tag.getInteger("clipH"), tag.getInteger("clipD")),
+                new ArrayList<>(),
+                null);
     }
 
     private static List<int[]> decodeOffsets(int[] flat) {
         List<int[]> offsets = new ArrayList<>(flat.length / 5);
         for (int i = 0; i + 4 < flat.length; i += 5) {
-            offsets.add(new int[] { flat[i], flat[i + 1], flat[i + 2], flat[i + 3], flat[i + 4] });
+            offsets.add(new int[] {flat[i], flat[i + 1], flat[i + 2], flat[i + 3], flat[i + 4]});
         }
         return offsets;
     }
@@ -202,8 +186,6 @@ public class BlueprintIO {
     }
 
     private static String sanitize(String name) {
-        return name.replaceAll("[^a-zA-Z0-9_.\\- ]", "_")
-            .trim()
-            .replace(' ', '_');
+        return name.replaceAll("[^a-zA-Z0-9_.\\- ]", "_").trim().replace(' ', '_');
     }
 }

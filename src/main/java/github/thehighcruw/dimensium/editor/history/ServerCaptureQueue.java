@@ -4,20 +4,18 @@
  */
 package github.thehighcruw.dimensium.editor.history;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
-
-import net.minecraft.block.Block;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.init.Blocks;
-import net.minecraft.world.World;
-
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import github.thehighcruw.dimensium.network.PacketCaptureResponse;
 import github.thehighcruw.dimensium.shared.util.PerfTrace;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
+import net.minecraft.block.Block;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.init.Blocks;
+import net.minecraft.world.World;
 
 /**
  * Reads a bounding-box region of the world across multiple server ticks and
@@ -42,8 +40,16 @@ public class ServerCaptureQueue {
         final List<int[]> results = new ArrayList<>();
         int cursor = 0;
 
-        CaptureJob(EntityPlayerMP player, int txId, World world, int minX, int minY, int minZ, int maxX, int maxY,
-            int maxZ) {
+        CaptureJob(
+                EntityPlayerMP player,
+                int txId,
+                World world,
+                int minX,
+                int minY,
+                int minZ,
+                int maxX,
+                int maxY,
+                int maxZ) {
             this.player = player;
             this.txId = txId;
             this.world = world;
@@ -63,12 +69,12 @@ public class ServerCaptureQueue {
             int lz = idx % depth;
             int ly = (idx / depth) % height;
             int lx = idx / (depth * height);
-            return new int[] { minX + lx, minY + ly, minZ + lz };
+            return new int[] {minX + lx, minY + ly, minZ + lz};
         }
     }
 
-    public static void enqueue(EntityPlayerMP player, int txId, int minX, int minY, int minZ, int maxX, int maxY,
-        int maxZ) {
+    public static void enqueue(
+            EntityPlayerMP player, int txId, int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
         queue.add(new CaptureJob(player, txId, player.worldObj, minX, minY, minZ, maxX, maxY, maxZ));
     }
 
@@ -86,7 +92,7 @@ public class ServerCaptureQueue {
             Block blk = job.world.getBlock(pos[0], pos[1], pos[2]);
             if (blk != null && blk != Blocks.air) {
                 int meta = job.world.getBlockMetadata(pos[0], pos[1], pos[2]);
-                job.results.add(new int[] { pos[0], pos[1], pos[2], Block.getIdFromBlock(blk), meta });
+                job.results.add(new int[] {pos[0], pos[1], pos[2], Block.getIdFromBlock(blk), meta});
             }
             read++;
         }
@@ -96,15 +102,7 @@ public class ServerCaptureQueue {
             queue.poll();
             PerfTrace.push("sendCaptureResponse results=" + job.results.size());
             PacketCaptureResponse.sendChunked(
-                job.player,
-                job.txId,
-                job.minX,
-                job.minY,
-                job.minZ,
-                job.width,
-                job.height,
-                job.depth,
-                job.results);
+                    job.player, job.txId, job.minX, job.minY, job.minZ, job.width, job.height, job.depth, job.results);
             PerfTrace.pop();
         }
         PerfTrace.end(10);

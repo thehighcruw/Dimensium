@@ -4,27 +4,23 @@
  */
 package github.thehighcruw.dimensium.editor.window.viewport.world;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import github.thehighcruw.dimensium.shared.SelectionState;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
-
 import javax.imageio.ImageIO;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.init.Blocks;
-
 import org.lwjgl.opengl.EXTFramebufferObject;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL14;
 import org.lwjgl.util.glu.GLU;
-
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
-import github.thehighcruw.dimensium.shared.SelectionState;
 
 @SideOnly(Side.CLIENT)
 public class ClipboardRenderer {
@@ -79,20 +75,12 @@ public class ClipboardRenderer {
             GL11.glBindTexture(GL11.GL_TEXTURE_2D, whiteLightmap);
             ByteBuffer white = ByteBuffer.allocateDirect(4);
             white.put((byte) 0xFF)
-                .put((byte) 0xFF)
-                .put((byte) 0xFF)
-                .put((byte) 0xFF)
-                .flip();
+                    .put((byte) 0xFF)
+                    .put((byte) 0xFF)
+                    .put((byte) 0xFF)
+                    .flip();
             GL11.glTexImage2D(
-                GL11.GL_TEXTURE_2D,
-                0,
-                GL11.GL_RGBA8,
-                1,
-                1,
-                0,
-                GL11.GL_RGBA,
-                GL11.GL_UNSIGNED_BYTE,
-                white);
+                    GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA8, 1, 1, 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, white);
             GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
             GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
             GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
@@ -102,39 +90,36 @@ public class ClipboardRenderer {
 
             GL11.glBindTexture(GL11.GL_TEXTURE_2D, texId);
             GL11.glTexImage2D(
-                GL11.GL_TEXTURE_2D,
-                0,
-                GL11.GL_RGBA8,
-                TEX_SIZE,
-                TEX_SIZE,
-                0,
-                GL11.GL_RGBA,
-                GL11.GL_UNSIGNED_BYTE,
-                (ByteBuffer) null);
+                    GL11.GL_TEXTURE_2D,
+                    0,
+                    GL11.GL_RGBA8,
+                    TEX_SIZE,
+                    TEX_SIZE,
+                    0,
+                    GL11.GL_RGBA,
+                    GL11.GL_UNSIGNED_BYTE,
+                    (ByteBuffer) null);
             GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
             GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
             GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
 
             EXTFramebufferObject.glBindRenderbufferEXT(EXTFramebufferObject.GL_RENDERBUFFER_EXT, depthId);
             EXTFramebufferObject.glRenderbufferStorageEXT(
-                EXTFramebufferObject.GL_RENDERBUFFER_EXT,
-                GL14.GL_DEPTH_COMPONENT24,
-                TEX_SIZE,
-                TEX_SIZE);
+                    EXTFramebufferObject.GL_RENDERBUFFER_EXT, GL14.GL_DEPTH_COMPONENT24, TEX_SIZE, TEX_SIZE);
             EXTFramebufferObject.glBindRenderbufferEXT(EXTFramebufferObject.GL_RENDERBUFFER_EXT, 0);
 
             EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, fboId);
             EXTFramebufferObject.glFramebufferTexture2DEXT(
-                EXTFramebufferObject.GL_FRAMEBUFFER_EXT,
-                EXTFramebufferObject.GL_COLOR_ATTACHMENT0_EXT,
-                GL11.GL_TEXTURE_2D,
-                texId,
-                0);
+                    EXTFramebufferObject.GL_FRAMEBUFFER_EXT,
+                    EXTFramebufferObject.GL_COLOR_ATTACHMENT0_EXT,
+                    GL11.GL_TEXTURE_2D,
+                    texId,
+                    0);
             EXTFramebufferObject.glFramebufferRenderbufferEXT(
-                EXTFramebufferObject.GL_FRAMEBUFFER_EXT,
-                EXTFramebufferObject.GL_DEPTH_ATTACHMENT_EXT,
-                EXTFramebufferObject.GL_RENDERBUFFER_EXT,
-                depthId);
+                    EXTFramebufferObject.GL_FRAMEBUFFER_EXT,
+                    EXTFramebufferObject.GL_DEPTH_ATTACHMENT_EXT,
+                    EXTFramebufferObject.GL_RENDERBUFFER_EXT,
+                    depthId);
 
             int status = EXTFramebufferObject.glCheckFramebufferStatusEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT);
             EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, 0);
@@ -146,9 +131,7 @@ public class ClipboardRenderer {
             }
         } catch (Exception e) {
             fboFailed = true;
-            failReason = e.getClass()
-                .getSimpleName() + ": "
-                + e.getMessage();
+            failReason = e.getClass().getSimpleName() + ": " + e.getMessage();
             System.err.println("[ClipboardRenderer] FBO creation failed: " + failReason);
         }
     }
@@ -156,9 +139,8 @@ public class ClipboardRenderer {
     private void rebake(SelectionState sel) {
         ensureFbo();
         if (fboFailed || fboId == -1) return;
-        System.out.println(
-            "[ClipboardRenderer] rebaking " + sel.clipDim
-                .x() + "x" + sel.clipDim.y() + "x" + sel.clipDim.z() + " into fbo=" + fboId + " tex=" + texId);
+        System.out.println("[ClipboardRenderer] rebaking " + sel.clipDim.x() + "x" + sel.clipDim.y() + "x"
+                + sel.clipDim.z() + " into fbo=" + fboId + " tex=" + texId);
 
         int W = sel.clipDim.x(), H = sel.clipDim.y(), D = sel.clipDim.z();
 
@@ -213,8 +195,7 @@ public class ClipboardRenderer {
             // Bind block texture atlas on unit 0
             OpenGlHelper.setActiveTexture(OpenGlHelper.defaultTexUnit);
             GL11.glEnable(GL11.GL_TEXTURE_2D);
-            mc.getTextureManager()
-                .bindTexture(TextureMap.locationBlocksTexture);
+            mc.getTextureManager().bindTexture(TextureMap.locationBlocksTexture);
 
             // Bind white 1x1 on unit 1 (lightmap unit).
             // Tessellator stores brightness as UV coords for unit 1; without a texture
@@ -256,7 +237,8 @@ public class ClipboardRenderer {
             if (tessStarted) {
                 try {
                     tess.draw();
-                } catch (Exception ignored) {}
+                } catch (Exception ignored) {
+                }
             }
             mc.gameSettings.ambientOcclusion = savedAO;
             EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, 0);
@@ -311,5 +293,4 @@ public class ClipboardRenderer {
             return null;
         }
     }
-
 }

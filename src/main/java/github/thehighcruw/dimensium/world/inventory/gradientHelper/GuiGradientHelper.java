@@ -4,10 +4,15 @@
  */
 package github.thehighcruw.dimensium.world.inventory.gradientHelper;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import github.thehighcruw.dimensium.shared.BlockColorCache;
+import github.thehighcruw.dimensium.shared.KeyConstants;
+import github.thehighcruw.dimensium.world.inventory.CreativeGuiUtils;
+import github.thehighcruw.dimensium.world.inventory.GuiToggleButton;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityClientPlayerMP;
@@ -18,13 +23,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.client.C10PacketCreativeInventoryAction;
-
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
-import github.thehighcruw.dimensium.shared.BlockColorCache;
-import github.thehighcruw.dimensium.shared.KeyConstants;
-import github.thehighcruw.dimensium.world.inventory.CreativeGuiUtils;
-import github.thehighcruw.dimensium.world.inventory.GuiToggleButton;
 
 @SideOnly(Side.CLIENT)
 public class GuiGradientHelper extends GuiContainer {
@@ -63,6 +61,7 @@ public class GuiGradientHelper extends GuiContainer {
 
     @SuppressWarnings("unchecked")
     private final List<ItemStack>[] candidates = new List[OUTPUT_SLOTS];
+
     private final int[] cycleIndex = new int[OUTPUT_SLOTS];
     private final ItemStack[] lastInputSnapshot = new ItemStack[INPUT_SLOTS];
 
@@ -141,9 +140,10 @@ public class GuiGradientHelper extends GuiContainer {
 
     private void drawFsotTooltip(int mouseX, int mouseY) {
         for (GuiButton btn : buttonList) {
-            if (mouseX >= btn.xPosition && mouseX < btn.xPosition + btn.width
-                && mouseY >= btn.yPosition
-                && mouseY < btn.yPosition + btn.height) {
+            if (mouseX >= btn.xPosition
+                    && mouseX < btn.xPosition + btn.width
+                    && mouseY >= btn.yPosition
+                    && mouseY < btn.yPosition + btn.height) {
                 String key = fsotTooltipKey(btn.id);
                 if (key != null) {
                     drawHoveringText(Collections.singletonList(I18n.format(key)), mouseX, mouseY, fontRendererObj);
@@ -170,14 +170,13 @@ public class GuiGradientHelper extends GuiContainer {
 
         List<int[]> anchors = new ArrayList<>();
         for (int i = 0; i < INPUT_SLOTS; i++) {
-            ItemStack stack = container.getInputInv()
-                .getStackInSlot(i);
+            ItemStack stack = container.getInputInv().getStackInSlot(i);
             if (stack == null || stack.getItem() == null) continue;
             int blockId = Block.getIdFromBlock(Block.getBlockFromItem(stack.getItem()));
             int meta = stack.getItemDamage();
             int rgb = BlockColorCache.INSTANCE.blockColor(blockId, meta);
             if (rgb < 0) continue;
-            anchors.add(new int[] { i, rgb });
+            anchors.add(new int[] {i, rgb});
         }
 
         for (int i = 0; i < OUTPUT_SLOTS; i++) {
@@ -188,8 +187,8 @@ public class GuiGradientHelper extends GuiContainer {
         if (anchors.size() < 2) {
             if (anchors.size() == 1) {
                 int rgb = anchors.get(0)[1];
-                List<ItemStack> matches = BlockColorCache.INSTANCE
-                    .findSimilarBlocks(rgb, filterFullCube, filterSolid, filterOpaque, filterSameTexture, CYCLE_POOL);
+                List<ItemStack> matches = BlockColorCache.INSTANCE.findSimilarBlocks(
+                        rgb, filterFullCube, filterSolid, filterOpaque, filterSameTexture, CYCLE_POOL);
                 for (int i = 0; i < OUTPUT_SLOTS; i++) {
                     candidates[i] = new ArrayList<>(matches);
                 }
@@ -213,17 +212,19 @@ public class GuiGradientHelper extends GuiContainer {
                 }
             }
             if (left == null) {
-                left = right = t < (double) anchors.get(0)[0] / (INPUT_SLOTS - 1) ? anchors.get(0)
-                    : anchors.get(anchors.size() - 1);
+                left = right = t < (double) anchors.get(0)[0] / (INPUT_SLOTS - 1)
+                        ? anchors.get(0)
+                        : anchors.get(anchors.size() - 1);
             }
 
-            double tLocal = left == right ? 0.5
-                : (t - (double) left[0] / (INPUT_SLOTS - 1))
-                    / ((double) right[0] / (INPUT_SLOTS - 1) - (double) left[0] / (INPUT_SLOTS - 1));
+            double tLocal = left == right
+                    ? 0.5
+                    : (t - (double) left[0] / (INPUT_SLOTS - 1))
+                            / ((double) right[0] / (INPUT_SLOTS - 1) - (double) left[0] / (INPUT_SLOTS - 1));
             int rgb = interpolateLab(left[1], right[1], tLocal);
 
-            candidates[j] = BlockColorCache.INSTANCE
-                .findSimilarBlocks(rgb, filterFullCube, filterSolid, filterOpaque, filterSameTexture, CYCLE_POOL);
+            candidates[j] = BlockColorCache.INSTANCE.findSimilarBlocks(
+                    rgb, filterFullCube, filterSolid, filterOpaque, filterSameTexture, CYCLE_POOL);
         }
 
         updateOutputSlots(container);
@@ -234,8 +235,7 @@ public class GuiGradientHelper extends GuiContainer {
             List<ItemStack> list = candidates[i];
             int idx = cycleIndex[i];
             ItemStack pick = (list != null && !list.isEmpty()) ? list.get(idx % list.size()) : null;
-            container.getOutputInv()
-                .setInventorySlotContents(i, pick);
+            container.getOutputInv().setInventorySlotContents(i, pick);
         }
     }
 
@@ -243,9 +243,9 @@ public class GuiGradientHelper extends GuiContainer {
         double[] labA = BlockColorCache.rgbToLab(rgbA);
         double[] labB = BlockColorCache.rgbToLab(rgbB);
         return labToRgb(
-            labA[0] + (labB[0] - labA[0]) * t,
-            labA[1] + (labB[1] - labA[1]) * t,
-            labA[2] + (labB[2] - labA[2]) * t);
+                labA[0] + (labB[0] - labA[0]) * t,
+                labA[1] + (labB[1] - labA[1]) * t,
+                labA[2] + (labB[2] - labA[2]) * t);
     }
 
     private static int labToRgb(double l, double a, double b) {
@@ -279,8 +279,7 @@ public class GuiGradientHelper extends GuiContainer {
     private void checkInputChanged() {
         GradientHelperContainer container = gradientContainer();
         for (int i = 0; i < INPUT_SLOTS; i++) {
-            ItemStack current = container.getInputInv()
-                .getStackInSlot(i);
+            ItemStack current = container.getInputInv().getStackInSlot(i);
             ItemStack last = lastInputSnapshot[i];
             if (!ItemStack.areItemStacksEqual(current, last)) {
                 lastInputSnapshot[i] = current == null ? null : current.copy();
@@ -341,8 +340,7 @@ public class GuiGradientHelper extends GuiContainer {
     private void copyToHotbar(GradientHelperContainer container) {
         EntityClientPlayerMP player = Minecraft.getMinecraft().thePlayer;
         for (int i = 0; i < 9; i++) {
-            ItemStack stack = container.getOutputInv()
-                .getStackInSlot(i);
+            ItemStack stack = container.getOutputInv().getStackInSlot(i);
             if (stack == null) continue;
             ItemStack copy = stack.copy();
             copy.stackSize = 1;
@@ -364,17 +362,17 @@ public class GuiGradientHelper extends GuiContainer {
         drawRect(x, y, x + GuiGradientHelper.PANEL_W, y + 1, C_PANEL_HI);
         drawRect(x, y, x + 1, y + GuiGradientHelper.PANEL_H, C_PANEL_HI);
         drawRect(
-            x,
-            y + GuiGradientHelper.PANEL_H - 1,
-            x + GuiGradientHelper.PANEL_W,
-            y + GuiGradientHelper.PANEL_H,
-            C_PANEL_SH);
+                x,
+                y + GuiGradientHelper.PANEL_H - 1,
+                x + GuiGradientHelper.PANEL_W,
+                y + GuiGradientHelper.PANEL_H,
+                C_PANEL_SH);
         drawRect(
-            x + GuiGradientHelper.PANEL_W - 1,
-            y,
-            x + GuiGradientHelper.PANEL_W,
-            y + GuiGradientHelper.PANEL_H,
-            C_PANEL_SH);
+                x + GuiGradientHelper.PANEL_W - 1,
+                y,
+                x + GuiGradientHelper.PANEL_W,
+                y + GuiGradientHelper.PANEL_H,
+                C_PANEL_SH);
     }
 
     // 18×18 inset — item renders at (x+1, y+1) inside this area
@@ -408,9 +406,10 @@ public class GuiGradientHelper extends GuiContainer {
 
     private Slot getSlotUnderMouse(int mouseX, int mouseY) {
         for (Slot s : inventorySlots.inventorySlots) {
-            if (mouseX >= guiLeft + s.xDisplayPosition && mouseX < guiLeft + s.xDisplayPosition + 16
-                && mouseY >= guiTop + s.yDisplayPosition
-                && mouseY < guiTop + s.yDisplayPosition + 16) {
+            if (mouseX >= guiLeft + s.xDisplayPosition
+                    && mouseX < guiLeft + s.xDisplayPosition + 16
+                    && mouseY >= guiTop + s.yDisplayPosition
+                    && mouseY < guiTop + s.yDisplayPosition + 16) {
                 return s;
             }
         }

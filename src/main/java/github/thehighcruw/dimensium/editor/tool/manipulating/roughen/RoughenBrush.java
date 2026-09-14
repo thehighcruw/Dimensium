@@ -4,19 +4,17 @@
  */
 package github.thehighcruw.dimensium.editor.tool.manipulating.roughen;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
-
-import net.minecraft.init.Blocks;
-import net.minecraft.util.MovingObjectPosition;
-import net.minecraft.world.World;
-
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushState;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushStrategy;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushUtil;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
+import net.minecraft.init.Blocks;
+import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.world.World;
 
 public class RoughenBrush implements BrushStrategy {
 
@@ -35,7 +33,7 @@ public class RoughenBrush implements BrushStrategy {
             if (world.getBlock(wx, wy, wz) == Blocks.air) return;
             int exposed = countAirFaces(world, wx, wy, wz);
             if (exposed < s.faces) {
-                candidates.add(new int[] { wx, wy, wz });
+                candidates.add(new int[] {wx, wy, wz});
             }
         });
 

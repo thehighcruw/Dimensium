@@ -4,6 +4,10 @@
  */
 package github.thehighcruw.dimensium.editor.history;
 
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.TickEvent;
+import github.thehighcruw.dimensium.network.PacketHistoryEntry;
+import github.thehighcruw.dimensium.shared.util.PerfTrace;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
@@ -15,15 +19,9 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
-
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.world.World;
-
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.gameevent.TickEvent;
-import github.thehighcruw.dimensium.network.PacketHistoryEntry;
-import github.thehighcruw.dimensium.shared.util.PerfTrace;
 
 /**
  * Drains large block edits across multiple server ticks to avoid stalling the
@@ -84,11 +82,11 @@ public class ServerEditQueue {
      * Enqueue a client-originated edit for deferred processing.
      * No world access happens here — executeServer() returns immediately.
      */
-    public static void enqueue(UUID playerId, World world, EntityPlayerMP player, int txId, String action,
-        List<int[]> ops) {
+    public static void enqueue(
+            UUID playerId, World world, EntityPlayerMP player, int txId, String action, List<int[]> ops) {
         if (ops.isEmpty()) return;
         queues.computeIfAbsent(playerId, k -> new LinkedList<>())
-            .add(new PendingEdit(world, player, txId, action, ops));
+                .add(new PendingEdit(world, player, txId, action, ops));
     }
 
     /**
@@ -153,8 +151,9 @@ public class ServerEditQueue {
                     edit.pendingNotify = new HashMap<>();
                     for (int[] op : edit.ops) {
                         long ck = ((long) (op[0] >> 4) << 32) | ((op[2] >> 4) & 0xFFFFFFFFL);
-                        edit.pendingNotify.computeIfAbsent(ck, k -> new ArrayDeque<>())
-                            .add(op);
+                        edit.pendingNotify
+                                .computeIfAbsent(ck, k -> new ArrayDeque<>())
+                                .add(op);
                     }
                     PerfTrace.pop();
                 }
@@ -169,8 +168,8 @@ public class ServerEditQueue {
             if (edit.pendingNotify != null && !edit.pendingNotify.isEmpty()) {
                 PerfTrace.begin("[SERVER] notifyBlocks chunks=" + edit.pendingNotify.size());
                 PerfTrace.push("markBlockForUpdate");
-                Iterator<Map.Entry<Long, Deque<int[]>>> it = edit.pendingNotify.entrySet()
-                    .iterator();
+                Iterator<Map.Entry<Long, Deque<int[]>>> it =
+                        edit.pendingNotify.entrySet().iterator();
                 while (it.hasNext()) {
                     Map.Entry<Long, Deque<int[]>> entry = it.next();
                     Deque<int[]> ops = entry.getValue();
@@ -196,8 +195,13 @@ public class ServerEditQueue {
         for (int i = 0; i < edit.ops.size(); i++) {
             int[] op = edit.ops.get(i);
             int x = op[0], y = op[1], z = op[2];
-            before[i] = new int[] { x, y, z, Block.getIdFromBlock(edit.world.getBlock(x, y, z)),
-                EditHistory.getEffectiveMeta(edit.world, x, y, z) };
+            before[i] = new int[] {
+                x,
+                y,
+                z,
+                Block.getIdFromBlock(edit.world.getBlock(x, y, z)),
+                EditHistory.getEffectiveMeta(edit.world, x, y, z)
+            };
         }
         PacketHistoryEntry.sendChunked(edit.player, edit.txId, edit.action, before, edit.after);
         edit.capturedBefore = true;

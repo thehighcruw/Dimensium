@@ -4,9 +4,15 @@
  */
 package github.thehighcruw.dimensium.editor.window.imgui;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import imgui.ImDrawData;
+import imgui.ImFontAtlas;
+import imgui.ImGui;
+import imgui.ImVec4;
+import imgui.type.ImInt;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.BufferUtils;
@@ -18,14 +24,6 @@ import org.lwjgl.opengl.GL14;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
-
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
-import imgui.ImDrawData;
-import imgui.ImFontAtlas;
-import imgui.ImGui;
-import imgui.ImVec4;
-import imgui.type.ImInt;
 
 @SideOnly(Side.CLIENT)
 public class DimensiumImGuiGlRenderer {
@@ -152,14 +150,17 @@ public class DimensiumImGuiGlRenderer {
         try {
             ARBVertexArrayObject.glBindVertexArray(id);
             return;
-        } catch (Exception | Error ignored) {}
+        } catch (Exception | Error ignored) {
+        }
         try {
             APPLEVertexArrayObject.glBindVertexArrayAPPLE(id);
             return;
-        } catch (Exception | Error ignored) {}
+        } catch (Exception | Error ignored) {
+        }
         try {
             GL30.glBindVertexArray(id);
-        } catch (Exception | Error ignored) {}
+        } catch (Exception | Error ignored) {
+        }
     }
 
     public void rebuildFontTexture() {
@@ -171,8 +172,7 @@ public class DimensiumImGuiGlRenderer {
     }
 
     private void createFontsTexture() {
-        ImFontAtlas atlas = ImGui.getIO()
-            .getFonts();
+        ImFontAtlas atlas = ImGui.getIO().getFonts();
         ImInt w = new ImInt(), h = new ImInt();
         ByteBuffer pixels = atlas.getTexDataAsRGBA32(w, h);
 
@@ -185,15 +185,7 @@ public class DimensiumImGuiGlRenderer {
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
         GL11.glTexImage2D(
-            GL11.GL_TEXTURE_2D,
-            0,
-            GL11.GL_RGBA,
-            w.get(),
-            h.get(),
-            0,
-            GL11.GL_RGBA,
-            GL11.GL_UNSIGNED_BYTE,
-            pixels);
+                GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA, w.get(), h.get(), 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, pixels);
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
 
         atlas.setTexID(fontTexture);
@@ -222,10 +214,7 @@ public class DimensiumImGuiGlRenderer {
         GL11.glEnable(GL11.GL_BLEND);
         GL14.glBlendEquation(GL14.GL_FUNC_ADD);
         GL14.glBlendFuncSeparate(
-            GL11.GL_SRC_ALPHA,
-            GL11.GL_ONE_MINUS_SRC_ALPHA,
-            GL11.GL_ONE,
-            GL11.GL_ONE_MINUS_SRC_ALPHA);
+                GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, GL11.GL_ONE, GL11.GL_ONE_MINUS_SRC_ALPHA);
         GL11.glDisable(GL11.GL_CULL_FACE);
         GL11.glDisable(GL11.GL_DEPTH_TEST);
         GL11.glDisable(GL11.GL_ALPHA_TEST); // MC may leave alpha-test on; it applies post-shader in compat profile
@@ -240,9 +229,24 @@ public class DimensiumImGuiGlRenderer {
         float r = dispX + dispW;
         float b = dispY + dispH;
         projBuf.clear();
-        projBuf.put(
-            new float[] { 2f / (r - dispX), 0, 0, 0, 0, 2f / (dispY - b), 0, 0, 0, 0, -1, 0, (r + dispX) / (dispX - r),
-                (dispY + b) / (b - dispY), 0, 1 });
+        projBuf.put(new float[] {
+            2f / (r - dispX),
+            0,
+            0,
+            0,
+            0,
+            2f / (dispY - b),
+            0,
+            0,
+            0,
+            0,
+            -1,
+            0,
+            (r + dispX) / (dispX - r),
+            (dispY + b) / (b - dispY),
+            0,
+            1
+        });
         projBuf.flip();
 
         GL20.glUseProgram(program);
@@ -332,5 +336,4 @@ public class DimensiumImGuiGlRenderer {
         GL20.glUseProgram(0);
         GL11.glDisable(GL11.GL_SCISSOR_TEST);
     }
-
 }

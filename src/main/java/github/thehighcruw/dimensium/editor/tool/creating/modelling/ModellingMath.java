@@ -4,6 +4,11 @@
  */
 package github.thehighcruw.dimensium.editor.tool.creating.modelling;
 
+import github.thehighcruw.dimensium.editor.tool.creating.modelling.ModellingToolState.ModelPoint;
+import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import github.thehighcruw.dimensium.shared.util.BlockUtils;
+import github.thehighcruw.dimensium.tool.ChangeProposal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -12,14 +17,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import net.minecraft.item.ItemStack;
-
-import github.thehighcruw.dimensium.editor.tool.creating.modelling.ModellingToolState.ModelPoint;
-import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
-import github.thehighcruw.dimensium.shared.math.Vec3DInt;
-import github.thehighcruw.dimensium.shared.util.BlockUtils;
-import github.thehighcruw.dimensium.tool.ChangeProposal;
 
 public class ModellingMath {
 
@@ -42,9 +40,13 @@ public class ModellingMath {
         List<int[]> result = new ArrayList<>(out.size());
         for (Map.Entry<Long, int[]> e : out.entrySet()) {
             long key = e.getKey();
-            result.add(
-                new int[] { ChangeProposal.unpackX(key), ChangeProposal.unpackY(key), ChangeProposal.unpackZ(key),
-                    e.getValue()[0], e.getValue()[1] });
+            result.add(new int[] {
+                ChangeProposal.unpackX(key),
+                ChangeProposal.unpackY(key),
+                ChangeProposal.unpackZ(key),
+                e.getValue()[0],
+                e.getValue()[1]
+            });
         }
         return result;
     }
@@ -92,17 +94,13 @@ public class ModellingMath {
         }
 
         Vec3DDouble centroid = Vec3DDouble.ZERO;
-        for (ModelPoint p : pts) centroid = centroid.plus(
-            p.pos()
-                .toDouble());
+        for (ModelPoint p : pts) centroid = centroid.plus(p.pos().toDouble());
         centroid = centroid.divide(n);
 
         double[][] cov = new double[3][3];
         for (ModelPoint p : pts) {
-            Vec3DDouble d = p.pos()
-                .toDouble()
-                .minus(centroid);
-            double[] da = { d.x(), d.y(), d.z() };
+            Vec3DDouble d = p.pos().toDouble().minus(centroid);
+            double[] da = {d.x(), d.y(), d.z()};
             for (int i = 0; i < 3; i++) for (int j = 0; j < 3; j++) cov[i][j] += da[i] * da[j];
         }
 
@@ -112,10 +110,7 @@ public class ModellingMath {
 
         double[][] proj = new double[n][2];
         for (int i = 0; i < n; i++) {
-            Vec3DDouble delta = pts.get(i)
-                .pos()
-                .toDouble()
-                .minus(centroid);
+            Vec3DDouble delta = pts.get(i).pos().toDouble().minus(centroid);
             proj[i][0] = delta.x() * u[0] + delta.y() * u[1] + delta.z() * u[2];
             proj[i][1] = delta.x() * v[0] + delta.y() * v[1] + delta.z() * v[2];
         }
@@ -131,7 +126,7 @@ public class ModellingMath {
     private static void jacobiEigen3(double[][] a, double[][] evecs) {
         double[][] m = new double[3][3];
         for (int i = 0; i < 3; i++) System.arraycopy(a[i], 0, m[i], 0, 3);
-        double[][] v = { { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 } };
+        double[][] v = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
 
         for (int iter = 0; iter < 100; iter++) {
             int p = 0, q = 1;
@@ -168,8 +163,8 @@ public class ModellingMath {
             }
         }
 
-        double[] evals = { m[0][0], m[1][1], m[2][2] };
-        int[] idx = { 0, 1, 2 };
+        double[] evals = {m[0][0], m[1][1], m[2][2]};
+        int[] idx = {0, 1, 2};
         if (evals[idx[0]] < evals[idx[1]]) {
             int tmp = idx[0];
             idx[0] = idx[1];
@@ -201,12 +196,12 @@ public class ModellingMath {
         double midX = (minX + maxX) / 2, midY = (minY + maxY) / 2;
 
         double[][] all = Arrays.copyOf(pts, n + 3);
-        all[n] = new double[] { midX - span, midY - span };
-        all[n + 1] = new double[] { midX, midY + span };
-        all[n + 2] = new double[] { midX + span, midY - span };
+        all[n] = new double[] {midX - span, midY - span};
+        all[n + 1] = new double[] {midX, midY + span};
+        all[n + 2] = new double[] {midX + span, midY - span};
 
         List<int[]> tris = new ArrayList<>();
-        tris.add(new int[] { n, n + 1, n + 2 });
+        tris.add(new int[] {n, n + 1, n + 2});
 
         for (int i = 0; i < n; i++) {
             double px = all[i][0], py = all[i][1];
@@ -218,7 +213,8 @@ public class ModellingMath {
                 for (int e = 0; e < 3; e++) {
                     int v0 = tri[e], v1 = tri[(e + 1) % 3];
                     boolean shared = false;
-                    outer: for (int[] o : bad) {
+                    outer:
+                    for (int[] o : bad) {
                         if (o == tri) continue;
                         for (int f = 0; f < 3; f++) {
                             if (o[f] == v1 && o[(f + 1) % 3] == v0) {
@@ -227,11 +223,11 @@ public class ModellingMath {
                             }
                         }
                     }
-                    if (!shared) poly.add(new int[] { v0, v1 });
+                    if (!shared) poly.add(new int[] {v0, v1});
                 }
             }
             tris.removeAll(bad);
-            for (int[] edge : poly) tris.add(new int[] { edge[0], edge[1], i });
+            for (int[] edge : poly) tris.add(new int[] {edge[0], edge[1], i});
         }
 
         List<int[]> result = new ArrayList<>();
@@ -374,8 +370,9 @@ public class ModellingMath {
 
         // Catmull-Rom across rows, linear across columns
         double[] colA = lerpD(grid[ri][ci], grid[ri][ci + 1], vt);
-        double[] colB = ri + 1 < R ? lerpD(grid[ri + 1][ci], grid[ri + 1][ci + 1], vt)
-            : lerpD(grid[ri][ci], grid[ri][ci + 1], vt);
+        double[] colB = ri + 1 < R
+                ? lerpD(grid[ri + 1][ci], grid[ri + 1][ci + 1], vt)
+                : lerpD(grid[ri][ci], grid[ri][ci + 1], vt);
         double[] colA0 = ri > 0 ? lerpD(grid[ri - 1][ci], grid[ri - 1][ci + 1], vt) : colA;
         double[] colB1 = ri + 2 < R ? lerpD(grid[ri + 2][ci], grid[ri + 2][ci + 1], vt) : colB;
 
@@ -396,7 +393,7 @@ public class ModellingMath {
                 pz += w * grid[r][c][2];
             }
         }
-        return new double[] { px, py, pz };
+        return new double[] {px, py, pz};
     }
 
     private static double[] bezierBasis(int n, double t) {
@@ -421,15 +418,17 @@ public class ModellingMath {
         double t2 = t * t, t3 = t2 * t;
         double[] out = new double[3];
         for (int i = 0; i < 3; i++) {
-            out[i] = 0.5 * ((2 * p1[i]) + (-p0[i] + p2[i]) * t
-                + (2 * p0[i] - 5 * p1[i] + 4 * p2[i] - p3[i]) * t2
-                + (-p0[i] + 3 * p1[i] - 3 * p2[i] + p3[i]) * t3);
+            out[i] = 0.5
+                    * ((2 * p1[i])
+                            + (-p0[i] + p2[i]) * t
+                            + (2 * p0[i] - 5 * p1[i] + 4 * p2[i] - p3[i]) * t2
+                            + (-p0[i] + 3 * p1[i] - 3 * p2[i] + p3[i]) * t3);
         }
         return out;
     }
 
     private static double[] lerpD(double[] a, double[] b, double t) {
-        return new double[] { a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t };
+        return new double[] {a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t};
     }
 
     /** Resample row to exactly n evenly-spaced points using linear interpolation. */
@@ -440,8 +439,7 @@ public class ModellingMath {
             return;
         }
         if (m == 1) {
-            Vec3DInt p0 = row.get(0)
-                .pos();
+            Vec3DInt p0 = row.get(0).pos();
             for (int i = 0; i < n; i++) {
                 out[i][0] = p0.x();
                 out[i][1] = p0.y();
@@ -454,12 +452,8 @@ public class ModellingMath {
         arc[0] = 0;
         for (int i = 1; i < m; i++) {
             ModelPoint ri = row.get(i), ri1 = row.get(i - 1);
-            arc[i] = arc[i - 1] + ri.pos()
-                .toDouble()
-                .minus(
-                    ri1.pos()
-                        .toDouble())
-                .length();
+            arc[i] =
+                    arc[i - 1] + ri.pos().toDouble().minus(ri1.pos().toDouble()).length();
         }
         double totalLen = arc[m - 1];
         for (int k = 0; k < n; k++) {
@@ -475,13 +469,8 @@ public class ModellingMath {
             double segLen = arc[seg + 1] - arc[seg];
             double st = segLen > 0 ? (t - arc[seg]) / segLen : 0;
             ModelPoint a = row.get(seg), b = row.get(seg + 1);
-            Vec3DDouble pa = a.pos()
-                .toDouble(),
-                pb = b.pos()
-                    .toDouble();
-            Vec3DDouble lerp = pa.plus(
-                pb.minus(pa)
-                    .times(st));
+            Vec3DDouble pa = a.pos().toDouble(), pb = b.pos().toDouble();
+            Vec3DDouble lerp = pa.plus(pb.minus(pa).times(st));
             out[k][0] = lerp.x();
             out[k][1] = lerp.y();
             out[k][2] = lerp.z();
@@ -499,23 +488,20 @@ public class ModellingMath {
         int n = pts.size();
         double[][] P = new double[n][3];
         for (int i = 0; i < n; i++) {
-            P[i][0] = pts.get(i)
-                .pos()
-                .x();
-            P[i][1] = pts.get(i)
-                .pos()
-                .y();
-            P[i][2] = pts.get(i)
-                .pos()
-                .z();
+            P[i][0] = pts.get(i).pos().x();
+            P[i][1] = pts.get(i).pos().y();
+            P[i][2] = pts.get(i).pos().z();
         }
 
         int[] tet = findInitialTetrahedron(P, n);
         if (tet == null) return coplanarHull(n);
 
         int a = tet[0], b = tet[1], c = tet[2], d = tet[3];
-        double[] centroid = { (P[a][0] + P[b][0] + P[c][0] + P[d][0]) / 4, (P[a][1] + P[b][1] + P[c][1] + P[d][1]) / 4,
-            (P[a][2] + P[b][2] + P[c][2] + P[d][2]) / 4 };
+        double[] centroid = {
+            (P[a][0] + P[b][0] + P[c][0] + P[d][0]) / 4,
+            (P[a][1] + P[b][1] + P[c][1] + P[d][1]) / 4,
+            (P[a][2] + P[b][2] + P[c][2] + P[d][2]) / 4
+        };
 
         List<int[]> faces = new ArrayList<>();
         addFaceOutward(faces, P, a, b, c, centroid);
@@ -547,7 +533,7 @@ public class ModellingMath {
             for (int[] f : visible) {
                 for (int e = 0; e < 3; e++) {
                     int v0 = f[e], v1 = f[(e + 1) % 3];
-                    if (invisEdges.contains(edgeKey(v1, v0))) horizon.add(new int[] { v0, v1 });
+                    if (invisEdges.contains(edgeKey(v1, v0))) horizon.add(new int[] {v0, v1});
                 }
             }
 
@@ -566,7 +552,7 @@ public class ModellingMath {
         // Project to best 2D plane and return a fan
         List<int[]> result = new ArrayList<>();
         if (n < 3) return result;
-        for (int i = 1; i + 1 < n; i++) result.add(new int[] { 0, i, i + 1 });
+        for (int i = 1; i + 1 < n; i++) result.add(new int[] {0, i, i + 1});
         return result;
     }
 
@@ -607,23 +593,25 @@ public class ModellingMath {
         }
         if (p3 < 0 || maxD < 1e-9) return null;
 
-        return new int[] { p0, p1, p2, p3 };
+        return new int[] {p0, p1, p2, p3};
     }
 
     /** Returns the cross product (B-A) × (C-A). */
     private static double[] triNormal(double[] A, double[] B, double[] C) {
-        return new double[] { (B[1] - A[1]) * (C[2] - A[2]) - (B[2] - A[2]) * (C[1] - A[1]),
+        return new double[] {
+            (B[1] - A[1]) * (C[2] - A[2]) - (B[2] - A[2]) * (C[1] - A[1]),
             (B[2] - A[2]) * (C[0] - A[0]) - (B[0] - A[0]) * (C[2] - A[2]),
-            (B[0] - A[0]) * (C[1] - A[1]) - (B[1] - A[1]) * (C[0] - A[0]) };
+            (B[0] - A[0]) * (C[1] - A[1]) - (B[1] - A[1]) * (C[0] - A[0])
+        };
     }
 
     private static void addFaceOutward(List<int[]> faces, double[][] P, int a, int b, int c, double[] inside) {
         double[] A = P[a], B = P[b], C = P[c];
         double[] n = triNormal(A, B, C);
         if (n[0] * (A[0] - inside[0]) + n[1] * (A[1] - inside[1]) + n[2] * (A[2] - inside[2]) >= 0) {
-            faces.add(new int[] { a, b, c });
+            faces.add(new int[] {a, b, c});
         } else {
-            faces.add(new int[] { a, c, b });
+            faces.add(new int[] {a, c, b});
         }
     }
 
@@ -634,7 +622,7 @@ public class ModellingMath {
     }
 
     private static double[] computeCentroid(double[][] P, List<int[]> faces) {
-        if (faces.isEmpty()) return new double[] { 0, 0, 0 };
+        if (faces.isEmpty()) return new double[] {0, 0, 0};
         double sx = 0, sy = 0, sz = 0;
         int cnt = 0;
         for (int[] f : faces) {
@@ -645,7 +633,7 @@ public class ModellingMath {
                 cnt++;
             }
         }
-        return new double[] { sx / cnt, sy / cnt, sz / cnt };
+        return new double[] {sx / cnt, sy / cnt, sz / cnt};
     }
 
     private static long edgeKey(int a, int b) {
@@ -660,34 +648,16 @@ public class ModellingMath {
     }
 
     static void voxelizeTriangle(Map<Long, int[]> out, ModelPoint A, ModelPoint B, ModelPoint C, int[] bm) {
-        double[] a = { A.pos()
-            .x(),
-            A.pos()
-                .y(),
-            A.pos()
-                .z() };
-        double[] b = { B.pos()
-            .x(),
-            B.pos()
-                .y(),
-            B.pos()
-                .z() };
-        double[] c = { C.pos()
-            .x(),
-            C.pos()
-                .y(),
-            C.pos()
-                .z() };
+        double[] a = {A.pos().x(), A.pos().y(), A.pos().z()};
+        double[] b = {B.pos().x(), B.pos().y(), B.pos().z()};
+        double[] c = {C.pos().x(), C.pos().y(), C.pos().z()};
         voxelizeTriangleD(out, a, b, c, bm);
     }
 
     static void voxelizeTriangleD(Map<Long, int[]> out, double[] A, double[] B, double[] C, int[] bm) {
-        double ab = Vec3DDouble.from(B[0] - A[0], B[1] - A[1], B[2] - A[2])
-            .length();
-        double bc = Vec3DDouble.from(C[0] - B[0], C[1] - B[1], C[2] - B[2])
-            .length();
-        double ca = Vec3DDouble.from(A[0] - C[0], A[1] - C[1], A[2] - C[2])
-            .length();
+        double ab = Vec3DDouble.from(B[0] - A[0], B[1] - A[1], B[2] - A[2]).length();
+        double bc = Vec3DDouble.from(C[0] - B[0], C[1] - B[1], C[2] - B[2]).length();
+        double ca = Vec3DDouble.from(A[0] - C[0], A[1] - C[1], A[2] - C[2]).length();
         double maxEdge = Math.max(ab, Math.max(bc, ca));
         int steps = Math.max(2, (int) Math.ceil(maxEdge * 2));
 
@@ -714,9 +684,9 @@ public class ModellingMath {
         int dx = Math.abs(x1 - x), dy = Math.abs(y1 - y), dz = Math.abs(z1 - z);
         int sx = x < x1 ? 1 : -1, sy = y < y1 ? 1 : -1, sz = z < z1 ? 1 : -1;
         addPoint(out, x, y, z, bm);
-        int[] pos = { x, y, z };
-        int[] step = { sx, sy, sz };
-        int[] deltas = { dx, dy, dz };
+        int[] pos = {x, y, z};
+        int[] step = {sx, sy, sz};
+        int[] deltas = {dx, dy, dz};
         if (dx >= dy && dx >= dz) {
             bresenhamMajor(out, pos, step, deltas, 0, bm);
         } else if (dy >= dx && dy >= dz) {
@@ -750,15 +720,7 @@ public class ModellingMath {
     // ── Utilities ─────────────────────────────────────────────────────────────
 
     private static void addPoint(Map<Long, int[]> out, ModelPoint p, int[] bm) {
-        out.put(
-            ChangeProposal.packKey(
-                p.pos()
-                    .x(),
-                p.pos()
-                    .y(),
-                p.pos()
-                    .z()),
-            bm);
+        out.put(ChangeProposal.packKey(p.pos().x(), p.pos().y(), p.pos().z()), bm);
     }
 
     private static void addPoint(Map<Long, int[]> out, int x, int y, int z, int[] bm) {
@@ -782,8 +744,7 @@ public class ModellingMath {
 
     private static double distToPlane(double[] P, double[] A, double[] B, double[] C) {
         double[] n = triNormal(A, B, C);
-        double len = Vec3DDouble.from(n[0], n[1], n[2])
-            .length();
+        double len = Vec3DDouble.from(n[0], n[1], n[2]).length();
         if (len < 1e-12) return 0;
         return (n[0] * (P[0] - A[0]) + n[1] * (P[1] - A[1]) + n[2] * (P[2] - A[2])) / len;
     }

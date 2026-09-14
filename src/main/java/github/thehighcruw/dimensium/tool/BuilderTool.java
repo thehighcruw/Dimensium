@@ -5,7 +5,6 @@
 package github.thehighcruw.dimensium.tool;
 
 public enum BuilderTool {
-
     MOVE("Move"),
     CLONE("Clone"),
     STACK("Stack"),

@@ -4,11 +4,10 @@
  */
 package github.thehighcruw.dimensium.world.inventory;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiButton;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiButton;
 
 @SideOnly(Side.CLIENT)
 public class GuiToggleButton extends GuiButton {
@@ -34,9 +33,10 @@ public class GuiToggleButton extends GuiButton {
     public void drawButton(Minecraft mc, int mouseX, int mouseY) {
         if (!this.visible) return;
 
-        boolean hovered = mouseX >= this.xPosition && mouseY >= this.yPosition
-            && mouseX < this.xPosition + this.width
-            && mouseY < this.yPosition + this.height;
+        boolean hovered = mouseX >= this.xPosition
+                && mouseY >= this.yPosition
+                && mouseX < this.xPosition + this.width
+                && mouseY < this.yPosition + this.height;
 
         int fill = active ? C_ACTIVE : (hovered ? 0xFFD4D4D4 : C_PANEL);
 
@@ -58,9 +58,9 @@ public class GuiToggleButton extends GuiButton {
 
         int textColor = active ? 0xFF204020 : 0xFF404040;
         mc.fontRenderer.drawString(
-            this.displayString,
-            xPosition + (width - mc.fontRenderer.getStringWidth(this.displayString)) / 2,
-            yPosition + (height - 8) / 2,
-            textColor);
+                this.displayString,
+                xPosition + (width - mc.fontRenderer.getStringWidth(this.displayString)) / 2,
+                yPosition + (height - 8) / 2,
+                textColor);
     }
 }

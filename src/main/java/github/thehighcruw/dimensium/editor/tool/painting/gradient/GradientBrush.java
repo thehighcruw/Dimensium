@@ -4,12 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.tool.painting.gradient;
 
-import net.minecraft.block.Block;
-import net.minecraft.init.Blocks;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.MovingObjectPosition;
-import net.minecraft.world.World;
-
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushState;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushStrategy;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushUtil;
@@ -17,6 +11,11 @@ import github.thehighcruw.dimensium.editor.tool.creating.path.PathMath;
 import github.thehighcruw.dimensium.editor.tool.state.PaletteState;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
+import net.minecraft.block.Block;
+import net.minecraft.init.Blocks;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.world.World;
 
 public class GradientBrush implements BrushStrategy {
 
@@ -54,13 +53,9 @@ public class GradientBrush implements BrushStrategy {
             if (samePos) {
                 t = 0f;
             } else if (s.gradientShape == GradientToolState.GradientShape.SPHERE) {
-                t = 1f - (float) (Vec3DDouble.from(wx, wy, wz)
-                    .minus(pos1)
-                    .length() / len);
+                t = 1f - (float) (Vec3DDouble.from(wx, wy, wz).minus(pos1).length() / len);
             } else {
-                t = (float) (Vec3DDouble.from(wx, wy, wz)
-                    .minus(pos2)
-                    .dot(axis) / len2);
+                t = (float) (Vec3DDouble.from(wx, wy, wz).minus(pos2).dot(axis) / len2);
             }
 
             if (s.gradientClampToEdge && (t < 0f || t > 1f)) return;

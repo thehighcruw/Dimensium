@@ -4,14 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.window;
 
-import net.minecraft.block.Block;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.init.Blocks;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.MovingObjectPosition;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.DimensiumConfig;
@@ -23,6 +15,13 @@ import imgui.ImGui;
 import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
+import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.init.Blocks;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.MovingObjectPosition;
 
 @SideOnly(Side.CLIENT)
 public class BlockInfoWindow extends ToggleableWindow {
@@ -30,8 +29,8 @@ public class BlockInfoWindow extends ToggleableWindow {
     public static final BlockInfoWindow INSTANCE = new BlockInfoWindow();
 
     private static final String WINDOW_ID = "###block_info_window";
-    private static final int FLAGS = ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar
-        | ImGuiWindowFlags.NoScrollWithMouse;
+    private static final int FLAGS =
+            ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
 
     private BlockInfoWindow() {}
 
@@ -89,17 +88,16 @@ public class BlockInfoWindow extends ToggleableWindow {
                     ImGui.text(I18n.format("dimensium.block_info.meta") + " " + meta);
                 }
 
-                ImGui.text(
-                    I18n.format("dimensium.block_info.pos") + " " + mop.blockX + ", " + mop.blockY + ", " + mop.blockZ);
+                ImGui.text(I18n.format("dimensium.block_info.pos") + " " + mop.blockX + ", " + mop.blockY + ", "
+                        + mop.blockZ);
 
                 EntityLivingBase eye = mc.renderViewEntity;
                 if (eye != null) {
-                    double dist = Vec3DDouble
-                        .from(
-                            mop.blockX + 0.5 - eye.posX,
-                            mop.blockY + 0.5 - (eye.posY + eye.getEyeHeight()),
-                            mop.blockZ + 0.5 - eye.posZ)
-                        .length();
+                    double dist = Vec3DDouble.from(
+                                    mop.blockX + 0.5 - eye.posX,
+                                    mop.blockY + 0.5 - (eye.posY + eye.getEyeHeight()),
+                                    mop.blockZ + 0.5 - eye.posZ)
+                            .length();
                     ImGui.text(I18n.format("dimensium.block_info.distance") + " " + String.format("%.1f", dist) + " m");
                 }
             } else {

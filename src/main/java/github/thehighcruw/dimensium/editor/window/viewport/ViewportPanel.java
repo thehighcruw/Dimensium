@@ -4,8 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.window.viewport;
 
-import net.minecraft.client.resources.I18n;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.overlay.MenuBar;
@@ -19,6 +17,7 @@ import imgui.flag.ImGuiStyleVar;
 import imgui.flag.ImGuiTabItemFlags;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
+import net.minecraft.client.resources.I18n;
 
 @SideOnly(Side.CLIENT)
 public final class ViewportPanel {
@@ -85,8 +84,9 @@ public final class ViewportPanel {
                 ImBoolean open = ViewportRegistry.INSTANCE.viewports.size() > 1 ? new ImBoolean(true) : null;
                 int tabFlags = (i == pendingSelectIndex) ? ImGuiTabItemFlags.SetSelected : ImGuiTabItemFlags.None;
                 if (i == pendingSelectIndex) pendingSelectIndex = -1;
-                boolean tabVisible = open != null ? ImGui.beginTabItem(vp.label + "##vp" + i, open, tabFlags)
-                    : ImGui.beginTabItem(vp.label + "##vp" + i, tabFlags);
+                boolean tabVisible = open != null
+                        ? ImGui.beginTabItem(vp.label + "##vp" + i, open, tabFlags)
+                        : ImGui.beginTabItem(vp.label + "##vp" + i, tabFlags);
                 boolean closed = open != null && !open.get();
 
                 if (tabVisible) {
@@ -98,11 +98,11 @@ public final class ViewportPanel {
                         ImGui.pushStyleColor(ImGuiCol.Border, 0.24f, 0.50f, 1.00f, 0.60f);
 
                         boolean childOpen = ImGui.beginChild(
-                            "##vpimg" + i,
-                            0f,
-                            0f,
-                            true,
-                            ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse);
+                                "##vpimg" + i,
+                                0f,
+                                0f,
+                                true,
+                                ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse);
 
                         if (childOpen) {
                             float imgX = ImGui.getCursorScreenPosX();

@@ -4,8 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.tool.selecting.freehand;
 
-import net.minecraft.client.resources.I18n;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.tool.ToolSection;
@@ -14,6 +12,7 @@ import github.thehighcruw.dimensium.editor.tool.brushes.BrushState;
 import github.thehighcruw.dimensium.editor.tool.creating.freehand.FreehandToolState;
 import imgui.ImGui;
 import imgui.type.ImBoolean;
+import net.minecraft.client.resources.I18n;
 
 @SideOnly(Side.CLIENT)
 public class FreehandSelectSection implements ToolSection {

@@ -4,13 +4,16 @@
  */
 package github.thehighcruw.dimensium.world.inventory.colorPicker;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import github.thehighcruw.dimensium.shared.BlockColorCache;
+import github.thehighcruw.dimensium.world.inventory.CreativeGuiUtils;
+import github.thehighcruw.dimensium.world.inventory.GuiToggleButton;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import javax.annotation.Nonnull;
-
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.client.gui.inventory.GuiContainer;
@@ -20,15 +23,8 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.client.C10PacketCreativeInventoryAction;
-
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
-
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
-import github.thehighcruw.dimensium.shared.BlockColorCache;
-import github.thehighcruw.dimensium.world.inventory.CreativeGuiUtils;
-import github.thehighcruw.dimensium.world.inventory.GuiToggleButton;
 
 @SideOnly(Side.CLIENT)
 public class GuiColourPicker extends GuiContainer {
@@ -72,7 +68,6 @@ public class GuiColourPicker extends GuiContainer {
 
     // ── State ─────────────────────────────────────────────────────────────────
     private float hue = 0.254f, sat = 0.814f, bri = 0.675f;
-
     private ColourPickerSlider sliderR, sliderG, sliderB;
     private ColourPickerSlider sliderH, sliderS, sliderBr;
     private GuiTextField fieldR, fieldG, fieldB;
@@ -136,11 +131,7 @@ public class GuiColourPicker extends GuiContainer {
 
         // Hex field: right column, same x as slider labels, spanning full slider+value width
         hexField = new GuiTextField(
-            fontRendererObj,
-            guiLeft + SLID_REL_X + 7,
-            guiTop + HEX_REL_Y,
-            PANEL_W - SLID_REL_X - 7 - 8,
-            12);
+                fontRendererObj, guiLeft + SLID_REL_X + 7, guiTop + HEX_REL_Y, PANEL_W - SLID_REL_X - 7 - 8, 12);
         hexField.setMaxStringLength(8);
         hexField.setText(String.format("#%06x", rgb & 0xFFFFFF));
         hexField.setTextColor(0xFFFFFFFF);
@@ -156,12 +147,7 @@ public class GuiColourPicker extends GuiContainer {
     protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
         if (dirty && BlockColorCache.INSTANCE.isInitialized()) {
             results = BlockColorCache.INSTANCE.findSimilarBlocks(
-                hsbToRgb(hue, sat, bri),
-                filterFullCube,
-                filterSolid,
-                filterOpaque,
-                filterSameTexture,
-                40);
+                    hsbToRgb(hue, sat, bri), filterFullCube, filterSolid, filterOpaque, filterSameTexture, 40);
             dirty = false;
             colourPickerContainer().updatePalette(results, scrollOffset);
         }
@@ -241,9 +227,10 @@ public class GuiColourPicker extends GuiContainer {
 
     private void drawFsotTooltip(int mouseX, int mouseY) {
         for (GuiButton btn : buttonList) {
-            if (mouseX >= btn.xPosition && mouseX < btn.xPosition + btn.width
-                && mouseY >= btn.yPosition
-                && mouseY < btn.yPosition + btn.height) {
+            if (mouseX >= btn.xPosition
+                    && mouseX < btn.xPosition + btn.width
+                    && mouseY >= btn.yPosition
+                    && mouseY < btn.yPosition + btn.height) {
                 String key = fsotTooltipKey(btn.id);
                 if (key != null) {
                     drawHoveringText(Collections.singletonList(I18n.format(key)), mouseX, mouseY, fontRendererObj);
@@ -269,17 +256,17 @@ public class GuiColourPicker extends GuiContainer {
         drawRect(x, y, x + GuiColourPicker.PANEL_W, y + 2, C_PANEL_HI);
         drawRect(x, y, x + 2, y + GuiColourPicker.PANEL_H, C_PANEL_HI);
         drawRect(
-            x,
-            y + GuiColourPicker.PANEL_H - 2,
-            x + GuiColourPicker.PANEL_W,
-            y + GuiColourPicker.PANEL_H,
-            C_PANEL_SH);
+                x,
+                y + GuiColourPicker.PANEL_H - 2,
+                x + GuiColourPicker.PANEL_W,
+                y + GuiColourPicker.PANEL_H,
+                C_PANEL_SH);
         drawRect(
-            x + GuiColourPicker.PANEL_W - 2,
-            y,
-            x + GuiColourPicker.PANEL_W,
-            y + GuiColourPicker.PANEL_H,
-            C_PANEL_SH);
+                x + GuiColourPicker.PANEL_W - 2,
+                y,
+                x + GuiColourPicker.PANEL_W,
+                y + GuiColourPicker.PANEL_H,
+                C_PANEL_SH);
     }
 
     /** Classic MC inset area (shadow top-left, highlight bottom-right). */
@@ -360,7 +347,7 @@ public class GuiColourPicker extends GuiContainer {
     // ── Hue bar ───────────────────────────────────────────────────────────────
 
     private void drawHueBar(int x, int y) {
-        float[][] stops = { { 1, 0, 0 }, { 1, 1, 0 }, { 0, 1, 0 }, { 0, 1, 1 }, { 0, 0, 1 }, { 1, 0, 1 }, { 1, 0, 0 } };
+        float[][] stops = {{1, 0, 0}, {1, 1, 0}, {0, 1, 0}, {0, 1, 1}, {0, 0, 1}, {1, 0, 1}, {1, 0, 0}};
         GL11.glDisable(GL11.GL_TEXTURE_2D);
         GL11.glDisable(GL11.GL_LIGHTING);
         GL11.glEnable(GL11.GL_BLEND);
@@ -438,8 +425,8 @@ public class GuiColourPicker extends GuiContainer {
                 if (held != null) {
                     net.minecraft.block.Block b = net.minecraft.block.Block.getBlockFromItem(held.getItem());
                     if (b != null) {
-                        int rgb = BlockColorCache.INSTANCE
-                            .blockColor(net.minecraft.block.Block.getIdFromBlock(b), held.getItemDamage());
+                        int rgb = BlockColorCache.INSTANCE.blockColor(
+                                net.minecraft.block.Block.getIdFromBlock(b), held.getItemDamage());
                         if (rgb >= 0) applyRgb(rgb);
                     }
                 }
@@ -527,8 +514,8 @@ public class GuiColourPicker extends GuiContainer {
                 slotItem.stackSize -= amount;
                 ItemStack remaining = slotItem.stackSize > 0 ? slotItem : null;
                 slot.putStack(remaining);
-                mc.thePlayer.sendQueue
-                    .addToSendQueue(new C10PacketCreativeInventoryAction(36 + hotbarIndex, remaining));
+                mc.thePlayer.sendQueue.addToSendQueue(
+                        new C10PacketCreativeInventoryAction(36 + hotbarIndex, remaining));
             }
             return;
         }
@@ -637,12 +624,12 @@ public class GuiColourPicker extends GuiContainer {
         }
         if (hexField.isFocused()) {
             hexField.textboxKeyTyped(typedChar, keyCode);
-            String txt = hexField.getText()
-                .replaceAll("[^0-9a-fA-F]", "");
+            String txt = hexField.getText().replaceAll("[^0-9a-fA-F]", "");
             if (txt.length() == 6) {
                 try {
                     applyRgb(Integer.parseInt(txt, 16));
-                } catch (NumberFormatException ignored) {}
+                } catch (NumberFormatException ignored) {
+                }
             }
             return;
         }
@@ -657,28 +644,17 @@ public class GuiColourPicker extends GuiContainer {
 
     private void parseIntField(GuiTextField f, ColourPickerSlider s) {
         try {
-            s.setValue(
-                Math.max(
-                    0,
-                    Math.min(
-                        255,
-                        Integer.parseInt(
-                            f.getText()
-                                .trim()))));
-        } catch (NumberFormatException ignored) {}
+            s.setValue(Math.max(0, Math.min(255, Integer.parseInt(f.getText().trim()))));
+        } catch (NumberFormatException ignored) {
+        }
     }
 
     private void parseFloatField(GuiTextField f, ColourPickerSlider s, float max) {
         try {
-            s.setValue(
-                Math.max(
-                    (float) 0,
-                    Math.min(
-                        max,
-                        Float.parseFloat(
-                            f.getText()
-                                .trim()))));
-        } catch (NumberFormatException ignored) {}
+            s.setValue(Math.max(
+                    (float) 0, Math.min(max, Float.parseFloat(f.getText().trim()))));
+        } catch (NumberFormatException ignored) {
+        }
     }
 
     @Override
@@ -776,11 +752,12 @@ public class GuiColourPicker extends GuiContainer {
     // ── Util ──────────────────────────────────────────────────────────────────
 
     private boolean trySliderPress(int mx, int my) {
-        return sliderR.mousePressed(mx, my) || sliderG.mousePressed(mx, my)
-            || sliderB.mousePressed(mx, my)
-            || sliderH.mousePressed(mx, my)
-            || sliderS.mousePressed(mx, my)
-            || sliderBr.mousePressed(mx, my);
+        return sliderR.mousePressed(mx, my)
+                || sliderG.mousePressed(mx, my)
+                || sliderB.mousePressed(mx, my)
+                || sliderH.mousePressed(mx, my)
+                || sliderS.mousePressed(mx, my)
+                || sliderBr.mousePressed(mx, my);
     }
 
     private void trySliderDrag(int mx) {
@@ -818,9 +795,10 @@ public class GuiColourPicker extends GuiContainer {
             int oy = isHotbar ? -1 : 0;
             int ow = isHotbar ? 18 : 16;
             int oh = isHotbar ? 18 : 16;
-            if (mx >= guiLeft + s.xDisplayPosition + ox && mx < guiLeft + s.xDisplayPosition + ox + ow
-                && my >= guiTop + s.yDisplayPosition + oy
-                && my < guiTop + s.yDisplayPosition + oy + oh) {
+            if (mx >= guiLeft + s.xDisplayPosition + ox
+                    && mx < guiLeft + s.xDisplayPosition + ox + ow
+                    && my >= guiTop + s.yDisplayPosition + oy
+                    && my < guiTop + s.yDisplayPosition + oy + oh) {
                 return s;
             }
         }

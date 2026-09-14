@@ -4,8 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.tool.manipulating.smooth;
 
-import net.minecraft.client.resources.I18n;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.tool.ToolSection;
@@ -15,6 +13,7 @@ import github.thehighcruw.dimensium.editor.tool.manipulating.smooth.SmoothToolSt
 import imgui.ImGui;
 import imgui.type.ImBoolean;
 import imgui.type.ImInt;
+import net.minecraft.client.resources.I18n;
 
 @SideOnly(Side.CLIENT)
 public class SmoothSection implements ToolSection {

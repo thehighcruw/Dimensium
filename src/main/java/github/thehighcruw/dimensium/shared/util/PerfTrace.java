@@ -48,7 +48,7 @@ public final class PerfTrace {
     public static void push(String name) {
         PerfTrace t = CURRENT.get();
         if (t == null) return;
-        t.stack.push(new long[] { System.nanoTime(), t.depth, spans_index(t, name) });
+        t.stack.push(new long[] {System.nanoTime(), t.depth, spans_index(t, name)});
         t.depth++;
     }
 
@@ -82,16 +82,13 @@ public final class PerfTrace {
         if (totalMs < thresholdMs) return;
         StringBuilder sb = new StringBuilder();
         sb.append("[DIMTRACE] ")
-            .append(t.rootName)
-            .append(" total=")
-            .append(totalMs)
-            .append("ms\n");
+                .append(t.rootName)
+                .append(" total=")
+                .append(totalMs)
+                .append("ms\n");
         for (Span s : t.spans) {
             for (int i = 0; i < s.depth; i++) sb.append("  ");
-            sb.append(s.name)
-                .append(' ')
-                .append(s.ms)
-                .append("ms\n");
+            sb.append(s.name).append(' ').append(s.ms).append("ms\n");
         }
         System.err.print(sb);
     }

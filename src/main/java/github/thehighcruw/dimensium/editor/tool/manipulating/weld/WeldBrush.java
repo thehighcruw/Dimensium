@@ -4,10 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.tool.manipulating.weld;
 
-import net.minecraft.block.Block;
-import net.minecraft.util.MovingObjectPosition;
-import net.minecraft.world.World;
-
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushState;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushStrategy;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushUtil;
@@ -15,6 +11,9 @@ import github.thehighcruw.dimensium.editor.tool.brushes.GaussianKernel;
 import github.thehighcruw.dimensium.editor.tool.selecting.SelectedBlockState;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
+import net.minecraft.block.Block;
+import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.world.World;
 
 public class WeldBrush implements BrushStrategy {
 

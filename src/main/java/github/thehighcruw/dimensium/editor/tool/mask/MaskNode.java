@@ -6,7 +6,6 @@ package github.thehighcruw.dimensium.editor.tool.mask;
 
 import java.util.Collections;
 import java.util.List;
-
 import net.minecraft.block.Block;
 import net.minecraft.world.World;
 

@@ -4,12 +4,11 @@
  */
 package github.thehighcruw.dimensium.editor.freecam;
 
+import github.thehighcruw.dimensium.editor.window.viewport.ViewportRegistry;
+import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.entity.EntityLivingBase;
-
-import github.thehighcruw.dimensium.editor.window.viewport.ViewportRegistry;
-import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 
 public class FreecamState {
 
@@ -78,8 +77,8 @@ public class FreecamState {
         } else {
             // First open (or after a world disconnect cleared everything) — create a fresh viewport.
             cameraEntity = new FreecamEntity(mc.theWorld);
-            cameraEntity
-                .setPosition(mc.thePlayer.posX, mc.thePlayer.posY + mc.thePlayer.getEyeHeight(), mc.thePlayer.posZ);
+            cameraEntity.setPosition(
+                    mc.thePlayer.posX, mc.thePlayer.posY + mc.thePlayer.getEyeHeight(), mc.thePlayer.posZ);
             cameraEntity.rotationYaw = mc.thePlayer.rotationYaw;
             cameraEntity.rotationPitch = mc.thePlayer.rotationPitch;
             cameraEntity.prevRotationYaw = cameraEntity.rotationYaw;

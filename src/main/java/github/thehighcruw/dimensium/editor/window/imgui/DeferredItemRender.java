@@ -4,12 +4,11 @@
  */
 package github.thehighcruw.dimensium.editor.window.imgui;
 
-import net.minecraft.item.ItemStack;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import imgui.ImGui;
 import imgui.ImVec2;
+import net.minecraft.item.ItemStack;
 
 /**
  * Draws MC item icons via ImGui's draw list so they participate in
@@ -44,8 +43,7 @@ public final class DeferredItemRender {
         if (stack == null) return;
         int texId = ItemIconCache.INSTANCE.getTexture(stack);
         if (texId == 0) return;
-        ImGui.getWindowDrawList()
-            .addImage(texId, x, y, x + size, y + size, 0f, 1f, 1f, 0f);
+        ImGui.getWindowDrawList().addImage(texId, x, y, x + size, y + size, 0f, 1f, 1f, 0f);
     }
 
     /** Reserve a dummy widget at the cursor and draw the icon there. */
@@ -85,8 +83,7 @@ public final class DeferredItemRender {
         else if (hovered) bg = COL_BG_HOVERED;
         else bg = COL_BG_NORMAL;
 
-        ImGui.getWindowDrawList()
-            .addRectFilled(pos.x, pos.y, pos.x + btnSize, pos.y + btnSize, bg, 3f);
+        ImGui.getWindowDrawList().addRectFilled(pos.x, pos.y, pos.x + btnSize, pos.y + btnSize, bg, 3f);
         schedule(stack, pos.x + ITEM_PAD, pos.y + ITEM_PAD, renderSize);
 
         if (hovered) {

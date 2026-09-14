@@ -4,8 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.window;
 
-import net.minecraft.client.resources.I18n;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.DimensiumConfig;
@@ -18,6 +16,7 @@ import github.thehighcruw.dimensium.shared.SelectionState;
 import imgui.ImGui;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
+import net.minecraft.client.resources.I18n;
 
 @SideOnly(Side.CLIENT)
 public class OperationsWindow extends ToggleableWindow {
@@ -41,8 +40,8 @@ public class OperationsWindow extends ToggleableWindow {
         if (!open) return;
 
         ImBoolean pOpen = new ImBoolean(true);
-        boolean visible = ImGui
-            .begin(I18n.format("dimensium.ui.window.operations") + WINDOW_ID, pOpen, ImGuiWindowFlags.None);
+        boolean visible =
+                ImGui.begin(I18n.format("dimensium.ui.window.operations") + WINDOW_ID, pOpen, ImGuiWindowFlags.None);
         captureBounds();
 
         if (visible && pOpen.get()) {
@@ -67,14 +66,13 @@ public class OperationsWindow extends ToggleableWindow {
                 int meta = sbs.getPaintMeta();
                 java.util.List<int[]> ops = new java.util.ArrayList<>(_sel.size());
                 for (long key : _sel.getSelectedBlocks()) {
-                    ops.add(
-                        new int[] { SelectionState.unpack(key)
-                            .x(),
-                            SelectionState.unpack(key)
-                                .y(),
-                            SelectionState.unpack(key)
-                                .z(),
-                            bid, meta });
+                    ops.add(new int[] {
+                        SelectionState.unpack(key).x(),
+                        SelectionState.unpack(key).y(),
+                        SelectionState.unpack(key).z(),
+                        bid,
+                        meta
+                    });
                 }
                 BlockSender.sendChunked(ops, I18n.format("dimensium.action.fill"));
             }

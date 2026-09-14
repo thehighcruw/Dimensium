@@ -6,9 +6,8 @@ package github.thehighcruw.dimensium;
 
 import static org.junit.Assert.*;
 
-import org.junit.Test;
-
 import github.thehighcruw.dimensium.editor.handler.ExtrudeHelper;
+import org.junit.Test;
 
 /**
  * Tests pure-logic methods of ExtrudeHelper that require no Minecraft or World.
@@ -19,12 +18,12 @@ public class ExtrudeHelperTest {
 
     @Test
     public void sideToOutwardDirAllSixSides() {
-        assertArrayEquals(new int[] { 0, -1, 0 }, ExtrudeHelper.sideToOutwardDir(0));
-        assertArrayEquals(new int[] { 0, 1, 0 }, ExtrudeHelper.sideToOutwardDir(1));
-        assertArrayEquals(new int[] { 0, 0, -1 }, ExtrudeHelper.sideToOutwardDir(2));
-        assertArrayEquals(new int[] { 0, 0, 1 }, ExtrudeHelper.sideToOutwardDir(3));
-        assertArrayEquals(new int[] { -1, 0, 0 }, ExtrudeHelper.sideToOutwardDir(4));
-        assertArrayEquals(new int[] { 1, 0, 0 }, ExtrudeHelper.sideToOutwardDir(5));
+        assertArrayEquals(new int[] {0, -1, 0}, ExtrudeHelper.sideToOutwardDir(0));
+        assertArrayEquals(new int[] {0, 1, 0}, ExtrudeHelper.sideToOutwardDir(1));
+        assertArrayEquals(new int[] {0, 0, -1}, ExtrudeHelper.sideToOutwardDir(2));
+        assertArrayEquals(new int[] {0, 0, 1}, ExtrudeHelper.sideToOutwardDir(3));
+        assertArrayEquals(new int[] {-1, 0, 0}, ExtrudeHelper.sideToOutwardDir(4));
+        assertArrayEquals(new int[] {1, 0, 0}, ExtrudeHelper.sideToOutwardDir(5));
     }
 
     @Test(expected = RuntimeException.class)
@@ -58,30 +57,30 @@ public class ExtrudeHelperTest {
     @Test
     public void perpAxesForYAxisReturnsXZ() {
         // dir=(0,1,0) → perp axes should be X and Z
-        int[][] perp = ExtrudeHelper.perpAxes(new int[] { 0, 1, 0 });
-        assertArrayEquals(new int[] { 1, 0, 0 }, perp[0]);
-        assertArrayEquals(new int[] { 0, 0, 1 }, perp[1]);
+        int[][] perp = ExtrudeHelper.perpAxes(new int[] {0, 1, 0});
+        assertArrayEquals(new int[] {1, 0, 0}, perp[0]);
+        assertArrayEquals(new int[] {0, 0, 1}, perp[1]);
     }
 
     @Test
     public void perpAxesForNegYAxisReturnsXZ() {
-        int[][] perp = ExtrudeHelper.perpAxes(new int[] { 0, -1, 0 });
-        assertArrayEquals(new int[] { 1, 0, 0 }, perp[0]);
-        assertArrayEquals(new int[] { 0, 0, 1 }, perp[1]);
+        int[][] perp = ExtrudeHelper.perpAxes(new int[] {0, -1, 0});
+        assertArrayEquals(new int[] {1, 0, 0}, perp[0]);
+        assertArrayEquals(new int[] {0, 0, 1}, perp[1]);
     }
 
     @Test
     public void perpAxesForZAxisReturnsXY() {
-        int[][] perp = ExtrudeHelper.perpAxes(new int[] { 0, 0, 1 });
-        assertArrayEquals(new int[] { 1, 0, 0 }, perp[0]);
-        assertArrayEquals(new int[] { 0, 1, 0 }, perp[1]);
+        int[][] perp = ExtrudeHelper.perpAxes(new int[] {0, 0, 1});
+        assertArrayEquals(new int[] {1, 0, 0}, perp[0]);
+        assertArrayEquals(new int[] {0, 1, 0}, perp[1]);
     }
 
     @Test
     public void perpAxesForXAxisReturnsYZ() {
-        int[][] perp = ExtrudeHelper.perpAxes(new int[] { 1, 0, 0 });
-        assertArrayEquals(new int[] { 0, 1, 0 }, perp[0]);
-        assertArrayEquals(new int[] { 0, 0, 1 }, perp[1]);
+        int[][] perp = ExtrudeHelper.perpAxes(new int[] {1, 0, 0});
+        assertArrayEquals(new int[] {0, 1, 0}, perp[0]);
+        assertArrayEquals(new int[] {0, 0, 1}, perp[1]);
     }
 
     @Test

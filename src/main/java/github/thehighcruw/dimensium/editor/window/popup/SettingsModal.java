@@ -4,17 +4,8 @@
  */
 package github.thehighcruw.dimensium.editor.window.popup;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.function.IntSupplier;
-
-import net.minecraft.client.resources.I18n;
-
-import org.lwjgl.input.Keyboard;
-
 import com.github.bsideup.jabel.Desugar;
 import com.gtnewhorizon.gtnhlib.config.ConfigurationManager;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.Dimensium;
@@ -28,6 +19,11 @@ import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiKey;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.IntSupplier;
+import net.minecraft.client.resources.I18n;
+import org.lwjgl.input.Keyboard;
 
 @SideOnly(Side.CLIENT)
 public class SettingsModal {
@@ -39,13 +35,13 @@ public class SettingsModal {
     private boolean pendingClose = false;
 
     private int selectedCategory = 0;
-    private final float[] pendingScale = { 1.0f };
-    private final float[] pendingWorldScrollSpeed = { 1.0f };
-    private final float[] pendingUiScrollSpeed = { 1.0f };
-    private final float[] pendingRotationSnap = { 1.0f };
-    private final float[] pendingMovementSpeed = { 1.0f };
+    private final float[] pendingScale = {1.0f};
+    private final float[] pendingWorldScrollSpeed = {1.0f};
+    private final float[] pendingUiScrollSpeed = {1.0f};
+    private final float[] pendingRotationSnap = {1.0f};
+    private final float[] pendingMovementSpeed = {1.0f};
     private final ImBoolean pendingOrbitUseCursor = new ImBoolean(true);
-    private final float[] pendingShapeThreshold = { 0.75f };
+    private final float[] pendingShapeThreshold = {0.75f};
 
     // Tool keybind capture: which Tool is being re-bound, null = not capturing a tool bind.
     private Tool capturingTool = null;
@@ -76,75 +72,176 @@ public class SettingsModal {
 
     // @formatter:off
     private static final List<ActionBind> ACTIONS = Arrays.asList(
-        new ActionBind("dimensium.settings.keybind.undo",
-            Dimensium.actionUndo::getKeyCode, () -> Dimensium.actionUndoMods,
-            (k, m) -> { Dimensium.actionUndo.setKeyCode(k); Dimensium.actionUndoMods = m;
-                        DimensiumConfig.keyActionUndo = k; DimensiumConfig.modsActionUndo = m; }),
-        new ActionBind("dimensium.settings.keybind.redo",
-            Dimensium.actionRedo::getKeyCode, () -> Dimensium.actionRedoMods,
-            (k, m) -> { Dimensium.actionRedo.setKeyCode(k); Dimensium.actionRedoMods = m;
-                        DimensiumConfig.keyActionRedo = k; DimensiumConfig.modsActionRedo = m; }),
-        new ActionBind("dimensium.settings.keybind.copy",
-            Dimensium.actionCopy::getKeyCode, () -> Dimensium.actionCopyMods,
-            (k, m) -> { Dimensium.actionCopy.setKeyCode(k); Dimensium.actionCopyMods = m;
-                        DimensiumConfig.keyActionCopy = k; DimensiumConfig.modsActionCopy = m; }),
-        new ActionBind("dimensium.settings.keybind.cut",
-            Dimensium.actionCut::getKeyCode, () -> Dimensium.actionCutMods,
-            (k, m) -> { Dimensium.actionCut.setKeyCode(k); Dimensium.actionCutMods = m;
-                        DimensiumConfig.keyActionCut = k; DimensiumConfig.modsActionCut = m; }),
-        new ActionBind("dimensium.settings.keybind.paste",
-            Dimensium.actionPaste::getKeyCode, () -> Dimensium.actionPasteMods,
-            (k, m) -> { Dimensium.actionPaste.setKeyCode(k); Dimensium.actionPasteMods = m;
-                        DimensiumConfig.keyActionPaste = k; DimensiumConfig.modsActionPaste = m; }),
-        new ActionBind("dimensium.settings.keybind.fill",
-            Dimensium.actionFill::getKeyCode, () -> Dimensium.actionFillMods,
-            (k, m) -> { Dimensium.actionFill.setKeyCode(k); Dimensium.actionFillMods = m;
-                        DimensiumConfig.keyActionFill = k; DimensiumConfig.modsActionFill = m; }),
-        new ActionBind("dimensium.settings.keybind.erase",
-            Dimensium.actionErase::getKeyCode, () -> Dimensium.actionEraseMods,
-            (k, m) -> { Dimensium.actionErase.setKeyCode(k); Dimensium.actionEraseMods = m;
-                        DimensiumConfig.keyActionErase = k; DimensiumConfig.modsActionErase = m; }),
-        new ActionBind("dimensium.settings.keybind.confirm",
-            Dimensium.actionConfirm::getKeyCode, () -> Dimensium.actionConfirmMods,
-            (k, m) -> { Dimensium.actionConfirm.setKeyCode(k); Dimensium.actionConfirmMods = m;
-                        DimensiumConfig.keyActionConfirm = k; DimensiumConfig.modsActionConfirm = m; }),
-        new ActionBind("dimensium.settings.keybind.save_blueprint",
-            Dimensium.actionSaveBlueprint::getKeyCode, () -> Dimensium.actionSaveBlueprintMods,
-            (k, m) -> { Dimensium.actionSaveBlueprint.setKeyCode(k); Dimensium.actionSaveBlueprintMods = m;
-                        DimensiumConfig.keyActionSaveBlueprint = k; DimensiumConfig.modsActionSaveBlueprint = m; }),
-        new ActionBind("dimensium.settings.keybind.blueprint_browser",
-            Dimensium.actionBlueprintBrowser::getKeyCode, () -> Dimensium.actionBlueprintBrowserMods,
-            (k, m) -> { Dimensium.actionBlueprintBrowser.setKeyCode(k); Dimensium.actionBlueprintBrowserMods = m;
-                        DimensiumConfig.keyActionBlueprintBrowser = k; DimensiumConfig.modsActionBlueprintBrowser = m; }),
-        new ActionBind("dimensium.settings.keybind.settings",
-            Dimensium.actionSettings::getKeyCode, () -> Dimensium.actionSettingsMods,
-            (k, m) -> { Dimensium.actionSettings.setKeyCode(k); Dimensium.actionSettingsMods = m;
-                        DimensiumConfig.keyActionSettings = k; DimensiumConfig.modsActionSettings = m; }),
-        new ActionBind("dimensium.settings.keybind.gizmo_nudge_forward",
-            Dimensium.gizmoNudgeForward::getKeyCode, () -> Dimensium.gizmoNudgeForwardMods,
-            (k, m) -> { Dimensium.gizmoNudgeForward.setKeyCode(k); Dimensium.gizmoNudgeForwardMods = m;
-                        DimensiumConfig.keyGizmoNudgeForward = k; DimensiumConfig.modsGizmoNudgeForward = m; }),
-        new ActionBind("dimensium.settings.keybind.gizmo_nudge_backward",
-            Dimensium.gizmoNudgeBackward::getKeyCode, () -> Dimensium.gizmoNudgeBackwardMods,
-            (k, m) -> { Dimensium.gizmoNudgeBackward.setKeyCode(k); Dimensium.gizmoNudgeBackwardMods = m;
-                        DimensiumConfig.keyGizmoNudgeBackward = k; DimensiumConfig.modsGizmoNudgeBackward = m; }),
-        new ActionBind("dimensium.settings.keybind.gizmo_nudge_right",
-            Dimensium.gizmoNudgeRight::getKeyCode, () -> Dimensium.gizmoNudgeRightMods,
-            (k, m) -> { Dimensium.gizmoNudgeRight.setKeyCode(k); Dimensium.gizmoNudgeRightMods = m;
-                        DimensiumConfig.keyGizmoNudgeRight = k; DimensiumConfig.modsGizmoNudgeRight = m; }),
-        new ActionBind("dimensium.settings.keybind.gizmo_nudge_left",
-            Dimensium.gizmoNudgeLeft::getKeyCode, () -> Dimensium.gizmoNudgeLeftMods,
-            (k, m) -> { Dimensium.gizmoNudgeLeft.setKeyCode(k); Dimensium.gizmoNudgeLeftMods = m;
-                        DimensiumConfig.keyGizmoNudgeLeft = k; DimensiumConfig.modsGizmoNudgeLeft = m; }),
-        new ActionBind("dimensium.settings.keybind.gizmo_nudge_up",
-            Dimensium.gizmoNudgeUp::getKeyCode, () -> Dimensium.gizmoNudgeUpMods,
-            (k, m) -> { Dimensium.gizmoNudgeUp.setKeyCode(k); Dimensium.gizmoNudgeUpMods = m;
-                        DimensiumConfig.keyGizmoNudgeUp = k; DimensiumConfig.modsGizmoNudgeUp = m; }),
-        new ActionBind("dimensium.settings.keybind.gizmo_nudge_down",
-            Dimensium.gizmoNudgeDown::getKeyCode, () -> Dimensium.gizmoNudgeDownMods,
-            (k, m) -> { Dimensium.gizmoNudgeDown.setKeyCode(k); Dimensium.gizmoNudgeDownMods = m;
-                        DimensiumConfig.keyGizmoNudgeDown = k; DimensiumConfig.modsGizmoNudgeDown = m; })
-    );
+            new ActionBind(
+                    "dimensium.settings.keybind.undo",
+                    Dimensium.actionUndo::getKeyCode,
+                    () -> Dimensium.actionUndoMods,
+                    (k, m) -> {
+                        Dimensium.actionUndo.setKeyCode(k);
+                        Dimensium.actionUndoMods = m;
+                        DimensiumConfig.keyActionUndo = k;
+                        DimensiumConfig.modsActionUndo = m;
+                    }),
+            new ActionBind(
+                    "dimensium.settings.keybind.redo",
+                    Dimensium.actionRedo::getKeyCode,
+                    () -> Dimensium.actionRedoMods,
+                    (k, m) -> {
+                        Dimensium.actionRedo.setKeyCode(k);
+                        Dimensium.actionRedoMods = m;
+                        DimensiumConfig.keyActionRedo = k;
+                        DimensiumConfig.modsActionRedo = m;
+                    }),
+            new ActionBind(
+                    "dimensium.settings.keybind.copy",
+                    Dimensium.actionCopy::getKeyCode,
+                    () -> Dimensium.actionCopyMods,
+                    (k, m) -> {
+                        Dimensium.actionCopy.setKeyCode(k);
+                        Dimensium.actionCopyMods = m;
+                        DimensiumConfig.keyActionCopy = k;
+                        DimensiumConfig.modsActionCopy = m;
+                    }),
+            new ActionBind(
+                    "dimensium.settings.keybind.cut",
+                    Dimensium.actionCut::getKeyCode,
+                    () -> Dimensium.actionCutMods,
+                    (k, m) -> {
+                        Dimensium.actionCut.setKeyCode(k);
+                        Dimensium.actionCutMods = m;
+                        DimensiumConfig.keyActionCut = k;
+                        DimensiumConfig.modsActionCut = m;
+                    }),
+            new ActionBind(
+                    "dimensium.settings.keybind.paste",
+                    Dimensium.actionPaste::getKeyCode,
+                    () -> Dimensium.actionPasteMods,
+                    (k, m) -> {
+                        Dimensium.actionPaste.setKeyCode(k);
+                        Dimensium.actionPasteMods = m;
+                        DimensiumConfig.keyActionPaste = k;
+                        DimensiumConfig.modsActionPaste = m;
+                    }),
+            new ActionBind(
+                    "dimensium.settings.keybind.fill",
+                    Dimensium.actionFill::getKeyCode,
+                    () -> Dimensium.actionFillMods,
+                    (k, m) -> {
+                        Dimensium.actionFill.setKeyCode(k);
+                        Dimensium.actionFillMods = m;
+                        DimensiumConfig.keyActionFill = k;
+                        DimensiumConfig.modsActionFill = m;
+                    }),
+            new ActionBind(
+                    "dimensium.settings.keybind.erase",
+                    Dimensium.actionErase::getKeyCode,
+                    () -> Dimensium.actionEraseMods,
+                    (k, m) -> {
+                        Dimensium.actionErase.setKeyCode(k);
+                        Dimensium.actionEraseMods = m;
+                        DimensiumConfig.keyActionErase = k;
+                        DimensiumConfig.modsActionErase = m;
+                    }),
+            new ActionBind(
+                    "dimensium.settings.keybind.confirm",
+                    Dimensium.actionConfirm::getKeyCode,
+                    () -> Dimensium.actionConfirmMods,
+                    (k, m) -> {
+                        Dimensium.actionConfirm.setKeyCode(k);
+                        Dimensium.actionConfirmMods = m;
+                        DimensiumConfig.keyActionConfirm = k;
+                        DimensiumConfig.modsActionConfirm = m;
+                    }),
+            new ActionBind(
+                    "dimensium.settings.keybind.save_blueprint",
+                    Dimensium.actionSaveBlueprint::getKeyCode,
+                    () -> Dimensium.actionSaveBlueprintMods,
+                    (k, m) -> {
+                        Dimensium.actionSaveBlueprint.setKeyCode(k);
+                        Dimensium.actionSaveBlueprintMods = m;
+                        DimensiumConfig.keyActionSaveBlueprint = k;
+                        DimensiumConfig.modsActionSaveBlueprint = m;
+                    }),
+            new ActionBind(
+                    "dimensium.settings.keybind.blueprint_browser",
+                    Dimensium.actionBlueprintBrowser::getKeyCode,
+                    () -> Dimensium.actionBlueprintBrowserMods,
+                    (k, m) -> {
+                        Dimensium.actionBlueprintBrowser.setKeyCode(k);
+                        Dimensium.actionBlueprintBrowserMods = m;
+                        DimensiumConfig.keyActionBlueprintBrowser = k;
+                        DimensiumConfig.modsActionBlueprintBrowser = m;
+                    }),
+            new ActionBind(
+                    "dimensium.settings.keybind.settings",
+                    Dimensium.actionSettings::getKeyCode,
+                    () -> Dimensium.actionSettingsMods,
+                    (k, m) -> {
+                        Dimensium.actionSettings.setKeyCode(k);
+                        Dimensium.actionSettingsMods = m;
+                        DimensiumConfig.keyActionSettings = k;
+                        DimensiumConfig.modsActionSettings = m;
+                    }),
+            new ActionBind(
+                    "dimensium.settings.keybind.gizmo_nudge_forward",
+                    Dimensium.gizmoNudgeForward::getKeyCode,
+                    () -> Dimensium.gizmoNudgeForwardMods,
+                    (k, m) -> {
+                        Dimensium.gizmoNudgeForward.setKeyCode(k);
+                        Dimensium.gizmoNudgeForwardMods = m;
+                        DimensiumConfig.keyGizmoNudgeForward = k;
+                        DimensiumConfig.modsGizmoNudgeForward = m;
+                    }),
+            new ActionBind(
+                    "dimensium.settings.keybind.gizmo_nudge_backward",
+                    Dimensium.gizmoNudgeBackward::getKeyCode,
+                    () -> Dimensium.gizmoNudgeBackwardMods,
+                    (k, m) -> {
+                        Dimensium.gizmoNudgeBackward.setKeyCode(k);
+                        Dimensium.gizmoNudgeBackwardMods = m;
+                        DimensiumConfig.keyGizmoNudgeBackward = k;
+                        DimensiumConfig.modsGizmoNudgeBackward = m;
+                    }),
+            new ActionBind(
+                    "dimensium.settings.keybind.gizmo_nudge_right",
+                    Dimensium.gizmoNudgeRight::getKeyCode,
+                    () -> Dimensium.gizmoNudgeRightMods,
+                    (k, m) -> {
+                        Dimensium.gizmoNudgeRight.setKeyCode(k);
+                        Dimensium.gizmoNudgeRightMods = m;
+                        DimensiumConfig.keyGizmoNudgeRight = k;
+                        DimensiumConfig.modsGizmoNudgeRight = m;
+                    }),
+            new ActionBind(
+                    "dimensium.settings.keybind.gizmo_nudge_left",
+                    Dimensium.gizmoNudgeLeft::getKeyCode,
+                    () -> Dimensium.gizmoNudgeLeftMods,
+                    (k, m) -> {
+                        Dimensium.gizmoNudgeLeft.setKeyCode(k);
+                        Dimensium.gizmoNudgeLeftMods = m;
+                        DimensiumConfig.keyGizmoNudgeLeft = k;
+                        DimensiumConfig.modsGizmoNudgeLeft = m;
+                    }),
+            new ActionBind(
+                    "dimensium.settings.keybind.gizmo_nudge_up",
+                    Dimensium.gizmoNudgeUp::getKeyCode,
+                    () -> Dimensium.gizmoNudgeUpMods,
+                    (k, m) -> {
+                        Dimensium.gizmoNudgeUp.setKeyCode(k);
+                        Dimensium.gizmoNudgeUpMods = m;
+                        DimensiumConfig.keyGizmoNudgeUp = k;
+                        DimensiumConfig.modsGizmoNudgeUp = m;
+                    }),
+            new ActionBind(
+                    "dimensium.settings.keybind.gizmo_nudge_down",
+                    Dimensium.gizmoNudgeDown::getKeyCode,
+                    () -> Dimensium.gizmoNudgeDownMods,
+                    (k, m) -> {
+                        Dimensium.gizmoNudgeDown.setKeyCode(k);
+                        Dimensium.gizmoNudgeDownMods = m;
+                        DimensiumConfig.keyGizmoNudgeDown = k;
+                        DimensiumConfig.modsGizmoNudgeDown = m;
+                    }));
     // @formatter:on
 
     public void open() {
@@ -202,8 +299,7 @@ public class SettingsModal {
             applyToolKeybind(capturingTool, key, mods);
             capturingTool = null;
         } else {
-            ACTIONS.get(capturingActionIndex)
-                .apply(key, mods);
+            ACTIONS.get(capturingActionIndex).apply(key, mods);
             saveConfig();
             capturingActionIndex = -1;
         }
@@ -211,13 +307,14 @@ public class SettingsModal {
     }
 
     private boolean isModifierKey(int key) {
-        return key == Keyboard.KEY_LCONTROL || key == Keyboard.KEY_RCONTROL
-            || key == Keyboard.KEY_LSHIFT
-            || key == Keyboard.KEY_RSHIFT
-            || key == Keyboard.KEY_LMENU
-            || key == Keyboard.KEY_RMENU
-            || key == Keyboard.KEY_LMETA
-            || key == Keyboard.KEY_RMETA;
+        return key == Keyboard.KEY_LCONTROL
+                || key == Keyboard.KEY_RCONTROL
+                || key == Keyboard.KEY_LSHIFT
+                || key == Keyboard.KEY_RSHIFT
+                || key == Keyboard.KEY_LMENU
+                || key == Keyboard.KEY_RMENU
+                || key == Keyboard.KEY_LMETA
+                || key == Keyboard.KEY_RMETA;
     }
 
     private int captureCurrentMods() {
@@ -225,8 +322,7 @@ public class SettingsModal {
     }
 
     private void applyToolKeybind(Tool tool, int key, int mods) {
-        Dimensium.toolKeybinds.get(tool)
-            .setKeyCode(key);
+        Dimensium.toolKeybinds.get(tool).setKeyCode(key);
         Dimensium.toolKeybindMods.put(tool, mods);
         saveToolKeybindToConfig(tool, key, mods);
         saveConfig();
@@ -364,20 +460,19 @@ public class SettingsModal {
         float scale = ImGuiManager.INSTANCE.getUIScale();
         float modalW = 600f * scale;
         float modalH = 400f * scale;
-        float vpW = ImGui.getIO()
-            .getDisplaySizeX();
-        float vpH = ImGui.getIO()
-            .getDisplaySizeY();
+        float vpW = ImGui.getIO().getDisplaySizeX();
+        float vpH = ImGui.getIO().getDisplaySizeY();
         ImGui.setNextWindowPos((vpW - modalW) * 0.5f, (vpH - modalH) * 0.5f);
         ImGui.setNextWindowSize(modalW, modalH);
 
         ImBoolean pOpen = new ImBoolean(!pendingClose);
         if (ImGui.beginPopupModal(
-            I18n.format("dimensium.settings.title") + "###" + POPUP_ID,
-            pOpen,
-            ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove
-                | ImGuiWindowFlags.NoScrollbar
-                | ImGuiWindowFlags.NoScrollWithMouse)) {
+                I18n.format("dimensium.settings.title") + "###" + POPUP_ID,
+                pOpen,
+                ImGuiWindowFlags.NoResize
+                        | ImGuiWindowFlags.NoMove
+                        | ImGuiWindowFlags.NoScrollbar
+                        | ImGuiWindowFlags.NoScrollWithMouse)) {
 
             if (ImGui.isKeyPressed(ImGuiKey.Escape)) {
                 doClose();
@@ -389,15 +484,16 @@ public class SettingsModal {
             float sidebarW = 140f * scale;
             float contentW = modalW - sidebarW - 16f * scale;
             float bottomBarH = ImGui.getFrameHeight() + 8f;
-            float separatorH = 1f + ImGui.getStyle()
-                .getItemSpacingY() * 2f;
+            float separatorH = 1f + ImGui.getStyle().getItemSpacingY() * 2f;
             float innerH = ImGui.getContentRegionAvailY() - bottomBarH - separatorH;
 
             // ── Left: category list ───────────────────────────────────────────
             ImGui.beginChild("##settings_cats", sidebarW, innerH, true);
-            String[] categories = { I18n.format("dimensium.settings.category.general"),
+            String[] categories = {
+                I18n.format("dimensium.settings.category.general"),
                 I18n.format("dimensium.settings.category.navigation"),
-                I18n.format("dimensium.settings.category.keybinds"), };
+                I18n.format("dimensium.settings.category.keybinds"),
+            };
             for (int i = 0; i < categories.length; i++) {
                 if (ImGui.selectable(categories[i] + "##cat_" + i, selectedCategory == i)) {
                     selectedCategory = i;
@@ -422,20 +518,18 @@ public class SettingsModal {
 
             // ── Bottom bar — pinned to bottom ─────────────────────────────────
             ImGui.setCursorPosY(
-                ImGui.getWindowHeight() - bottomBarH
-                    - ImGui.getStyle()
-                        .getWindowPaddingY());
+                    ImGui.getWindowHeight() - bottomBarH - ImGui.getStyle().getWindowPaddingY());
             ImGui.separator();
             float applyW = 80f * scale;
             float closeW = 70f * scale;
             float gap = 6f * scale;
             boolean hasChanges = pendingScale[0] != ImGuiManager.INSTANCE.getUIScale()
-                || pendingWorldScrollSpeed[0] != DimensiumConfig.worldScrollSpeedModifier
-                || pendingUiScrollSpeed[0] != DimensiumConfig.uiScrollSpeedModifier
-                || pendingRotationSnap[0] != DimensiumConfig.rotationSnapDegrees
-                || pendingMovementSpeed[0] != DimensiumConfig.movementSpeedMultiplier
-                || pendingOrbitUseCursor.get() != DimensiumConfig.orbitUseCursor
-                || pendingShapeThreshold[0] != DimensiumConfig.shapeThreshold;
+                    || pendingWorldScrollSpeed[0] != DimensiumConfig.worldScrollSpeedModifier
+                    || pendingUiScrollSpeed[0] != DimensiumConfig.uiScrollSpeedModifier
+                    || pendingRotationSnap[0] != DimensiumConfig.rotationSnapDegrees
+                    || pendingMovementSpeed[0] != DimensiumConfig.movementSpeedMultiplier
+                    || pendingOrbitUseCursor.get() != DimensiumConfig.orbitUseCursor
+                    || pendingShapeThreshold[0] != DimensiumConfig.shapeThreshold;
             ImGui.setCursorPosX(modalW - applyW - closeW - gap - 16f * scale);
             if (hasChanges) {
                 ImGui.pushStyleColor(ImGuiCol.Button, 0.18f, 0.42f, 0.90f, 1.00f);
@@ -506,8 +600,8 @@ public class SettingsModal {
 
         ImGui.spacing();
         ImGui.checkbox(
-            I18n.format("dimensium.settings.navigation.orbit_use_cursor") + "##orbit_use_cursor",
-            pendingOrbitUseCursor);
+                I18n.format("dimensium.settings.navigation.orbit_use_cursor") + "##orbit_use_cursor",
+                pendingOrbitUseCursor);
         ImGui.textDisabled(I18n.format("dimensium.settings.navigation.orbit_use_cursor.hint"));
     }
 
@@ -534,8 +628,10 @@ public class SettingsModal {
             ImGui.sameLine(labelW);
 
             boolean listening = capturingTool == tool;
-            String btnLabel = (listening ? I18n.format("dimensium.settings.keybind.press_key_short")
-                : UIUtils.getKeyShortcutName(kb.getKeyCode(), mods)) + "##kbt_" + tool.name();
+            String btnLabel = (listening
+                            ? I18n.format("dimensium.settings.keybind.press_key_short")
+                            : UIUtils.getKeyShortcutName(kb.getKeyCode(), mods))
+                    + "##kbt_" + tool.name();
 
             if (listening) ImGui.pushStyleColor(ImGuiCol.Button, 0.6f, 0.2f, 0.2f, 1.0f);
             if (ImGui.button(btnLabel, btnW, 0)) {
@@ -557,8 +653,10 @@ public class SettingsModal {
             ImGui.sameLine(labelW);
 
             boolean listening = capturingActionIndex == i;
-            String btnLabel = (listening ? I18n.format("dimensium.settings.keybind.press_key_short")
-                : UIUtils.getKeyShortcutName(action.getKey(), action.getMods())) + "##kba_" + i;
+            String btnLabel = (listening
+                            ? I18n.format("dimensium.settings.keybind.press_key_short")
+                            : UIUtils.getKeyShortcutName(action.getKey(), action.getMods()))
+                    + "##kba_" + i;
 
             if (listening) ImGui.pushStyleColor(ImGuiCol.Button, 0.6f, 0.2f, 0.2f, 1.0f);
             if (ImGui.button(btnLabel, btnW, 0)) {

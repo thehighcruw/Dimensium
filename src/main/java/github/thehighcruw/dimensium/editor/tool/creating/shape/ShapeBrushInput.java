@@ -4,10 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.tool.creating.shape;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.util.MovingObjectPosition;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.freecam.FreecamState;
@@ -19,6 +15,9 @@ import github.thehighcruw.dimensium.editor.window.viewport.world.ScalingGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.TranslationGizmo;
 import github.thehighcruw.dimensium.shared.KeyConstants;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import net.minecraft.client.Minecraft;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.util.MovingObjectPosition;
 
 @SideOnly(Side.CLIENT)
 public class ShapeBrushInput implements BrushInput {
@@ -47,49 +46,49 @@ public class ShapeBrushInput implements BrushInput {
             double cx = ps.centerX(), cy = ps.centerY(), cz = ps.centerZ();
             EntityLivingBase eye = mc.renderViewEntity;
             if (ps.viewPlaneGizmo.hovered) {
-                ps.viewPlaneGizmo
-                    .startDrag(mouseX, mouseY, eye, cx, cy, cz, ps.anchorF.x(), ps.anchorF.y(), ps.anchorF.z());
+                ps.viewPlaneGizmo.startDrag(
+                        mouseX, mouseY, eye, cx, cy, cz, ps.anchorF.x(), ps.anchorF.y(), ps.anchorF.z());
             } else if (ps.getAxisTranslationGizmo().hoveredAxis != TranslationGizmo.Axis.NONE) {
                 ps.getAxisTranslationGizmo()
-                    .startDrag(
-                        mouseX,
-                        mouseY,
-                        cx,
-                        cy,
-                        cz,
-                        ps.anchorF.x(),
-                        ps.anchorF.y(),
-                        ps.anchorF.z(),
-                        ps.rot.x(),
-                        ps.rot.y(),
-                        ps.rot.z());
+                        .startDrag(
+                                mouseX,
+                                mouseY,
+                                cx,
+                                cy,
+                                cz,
+                                ps.anchorF.x(),
+                                ps.anchorF.y(),
+                                ps.anchorF.z(),
+                                ps.rot.x(),
+                                ps.rot.y(),
+                                ps.rot.z());
             } else if (ps.getRotationGizmo().hoveredAxis != RotationGizmo.Axis.NONE) {
                 ps.rotDragBase = ps.rot;
-                ps.getRotationGizmo()
-                    .startDrag(mouseX, mouseY, cx, cy, cz, ps.rot.x(), ps.rot.y(), ps.rot.z());
+                ps.getRotationGizmo().startDrag(mouseX, mouseY, cx, cy, cz, ps.rot.x(), ps.rot.y(), ps.rot.z());
             } else if (ps.getScalingGizmo().hoveredAxis != ScalingGizmo.Axis.NONE) {
-                float currentScale = ps.getScalingGizmo().hoveredAxis == ScalingGizmo.Axis.X ? ps.scale.x()
-                    : ps.getScalingGizmo().hoveredAxis == ScalingGizmo.Axis.Y ? ps.scale.y() : ps.scale.z();
+                float currentScale = ps.getScalingGizmo().hoveredAxis == ScalingGizmo.Axis.X
+                        ? ps.scale.x()
+                        : ps.getScalingGizmo().hoveredAxis == ScalingGizmo.Axis.Y ? ps.scale.y() : ps.scale.z();
                 ShapeToolState sts = ShapeToolState.INSTANCE;
                 ps.scaleDragBaseW = sts.shapeWidth;
                 ps.scaleDragBaseH = sts.shapeHeight;
                 ps.scaleDragBaseD = sts.shapeDepth;
                 ps.getScalingGizmo()
-                    .startDrag(mouseX, mouseY, cx, cy, cz, currentScale, ps.rot.x(), ps.rot.y(), ps.rot.z());
+                        .startDrag(mouseX, mouseY, cx, cy, cz, currentScale, ps.rot.x(), ps.rot.y(), ps.rot.z());
             } else if (ps.getPlaneTranslationGizmo().hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
                 ps.getPlaneTranslationGizmo()
-                    .startDrag(
-                        mouseX,
-                        mouseY,
-                        cx,
-                        cy,
-                        cz,
-                        ps.anchorF.x(),
-                        ps.anchorF.y(),
-                        ps.anchorF.z(),
-                        ps.rot.x(),
-                        ps.rot.y(),
-                        ps.rot.z());
+                        .startDrag(
+                                mouseX,
+                                mouseY,
+                                cx,
+                                cy,
+                                cz,
+                                ps.anchorF.x(),
+                                ps.anchorF.y(),
+                                ps.anchorF.z(),
+                                ps.rot.x(),
+                                ps.rot.y(),
+                                ps.rot.z());
             }
         } else if (button == KeyConstants.RMB) {
             GuiDimensiumOverlay.confirmPlacement();

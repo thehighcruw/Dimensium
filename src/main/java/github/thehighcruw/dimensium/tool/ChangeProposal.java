@@ -4,17 +4,15 @@
  */
 package github.thehighcruw.dimensium.tool;
 
+import github.thehighcruw.dimensium.editor.tool.ActiveDragState;
+import github.thehighcruw.dimensium.editor.tool.mask.ToolMask;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import net.minecraft.block.Block;
 import net.minecraft.world.World;
-
-import github.thehighcruw.dimensium.editor.tool.ActiveDragState;
-import github.thehighcruw.dimensium.editor.tool.mask.ToolMask;
-import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 
 /**
  * Accumulates block changes for a drag stroke before committing them to the server.
@@ -40,6 +38,7 @@ public class ChangeProposal {
 
     /** Crease-edge wireframe cache. Recomputed when proposed.size() changes. */
     public float[] cachedWire = null;
+
     public Vec3DInt wireOrigin = Vec3DInt.ZERO;
     public int wireCacheSize = -1;
 
@@ -71,7 +70,7 @@ public class ChangeProposal {
         for (Map.Entry<Long, int[]> e : drag.proposed.entrySet()) {
             long key = e.getKey();
             int[] bm = e.getValue();
-            ops.add(new int[] { unpackX(key), unpackY(key), unpackZ(key), bm[0], bm[1] });
+            ops.add(new int[] {unpackX(key), unpackY(key), unpackZ(key), bm[0], bm[1]});
         }
         return ops;
     }
@@ -87,7 +86,7 @@ public class ChangeProposal {
         ChangeProposal drag = ActiveDragState.INSTANCE.activeDrag;
         if (drag != null) {
             if (drag.dragMask != null && !drag.dragMask.test(world, x, y, z)) return;
-            drag.proposed.put(packKey(x, y, z), new int[] { Block.getIdFromBlock(blk), meta });
+            drag.proposed.put(packKey(x, y, z), new int[] {Block.getIdFromBlock(blk), meta});
         } else {
             world.setBlock(x, y, z, blk, meta, 3);
         }

@@ -4,6 +4,8 @@
  */
 package github.thehighcruw.dimensium.editor.tool.state;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -11,7 +13,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
@@ -19,9 +20,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
 public class PaletteRegistry {
@@ -128,7 +126,8 @@ public class PaletteRegistry {
         root.setTag("categories", catList);
         try (FileOutputStream fos = new FileOutputStream(saveFile())) {
             CompressedStreamTools.writeCompressed(root, fos);
-        } catch (IOException ignored) {}
+        } catch (IOException ignored) {
+        }
     }
 
     public void load() {
@@ -152,6 +151,7 @@ public class PaletteRegistry {
                 }
                 categories.add(cat);
             }
-        } catch (IOException ignored) {}
+        } catch (IOException ignored) {
+        }
     }
 }

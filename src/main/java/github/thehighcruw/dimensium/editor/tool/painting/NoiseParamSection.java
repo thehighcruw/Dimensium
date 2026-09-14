@@ -4,18 +4,16 @@
  */
 package github.thehighcruw.dimensium.editor.tool.painting;
 
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
-
-import net.minecraft.client.resources.I18n;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.tool.painting.noise.NoiseParams;
 import github.thehighcruw.dimensium.editor.tool.painting.noise.NoiseToolState.NoiseType;
 import imgui.ImGui;
 import imgui.type.ImInt;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+import net.minecraft.client.resources.I18n;
 
 /**
  * Reusable noise parameter controls (type, scale, fbm, jitter, seed).
@@ -49,13 +47,10 @@ public class NoiseParamSection {
         NoiseType[] types = NoiseType.values();
         String[] typeLabels = new String[types.length];
         for (int i = 0; i < types.length; i++) typeLabels[i] = I18n.format(types[i].label);
-        noiseTypeIdx.set(
-            params.noiseType()
-                .ordinal());
-        if (ImGui
-            .combo(I18n.format("dimensium.ui.noise.type") + "##noise_type_" + idSuffix, noiseTypeIdx, typeLabels)) {
-            setter.accept(
-                new NoiseParams(
+        noiseTypeIdx.set(params.noiseType().ordinal());
+        if (ImGui.combo(
+                I18n.format("dimensium.ui.noise.type") + "##noise_type_" + idSuffix, noiseTypeIdx, typeLabels)) {
+            setter.accept(new NoiseParams(
                     types[noiseTypeIdx.get()],
                     params.noiseScale(),
                     params.noiseOctaves(),
@@ -72,12 +67,8 @@ public class NoiseParamSection {
 
         noiseScale[0] = params.noiseScale();
         if (ImGui.sliderFloat(
-            I18n.format("dimensium.ui.noise.scale") + "##noise_scale_" + idSuffix,
-            noiseScale,
-            0.5f,
-            100f)) {
-            setter.accept(
-                new NoiseParams(
+                I18n.format("dimensium.ui.noise.scale") + "##noise_scale_" + idSuffix, noiseScale, 0.5f, 100f)) {
+            setter.accept(new NoiseParams(
                     params.noiseType(),
                     noiseScale[0],
                     params.noiseOctaves(),
@@ -95,8 +86,7 @@ public class NoiseParamSection {
         if (params.noiseType() == NoiseType.SIMPLEX || params.noiseType() == NoiseType.PERLIN) {
             octaves[0] = params.noiseOctaves();
             if (ImGui.sliderInt(I18n.format("dimensium.ui.noise.octaves") + "##noise_oct_" + idSuffix, octaves, 1, 8)) {
-                setter.accept(
-                    new NoiseParams(
+                setter.accept(new NoiseParams(
                         params.noiseType(),
                         params.noiseScale(),
                         octaves[0],
@@ -113,12 +103,8 @@ public class NoiseParamSection {
 
             lacunarity[0] = params.noiseLacunarity();
             if (ImGui.sliderFloat(
-                I18n.format("dimensium.ui.noise.lacunarity") + "##noise_lac_" + idSuffix,
-                lacunarity,
-                1.0f,
-                4.0f)) {
-                setter.accept(
-                    new NoiseParams(
+                    I18n.format("dimensium.ui.noise.lacunarity") + "##noise_lac_" + idSuffix, lacunarity, 1.0f, 4.0f)) {
+                setter.accept(new NoiseParams(
                         params.noiseType(),
                         params.noiseScale(),
                         params.noiseOctaves(),
@@ -134,10 +120,9 @@ public class NoiseParamSection {
             }
 
             gain[0] = params.noiseGain();
-            if (ImGui
-                .sliderFloat(I18n.format("dimensium.ui.noise.gain") + "##noise_gain_" + idSuffix, gain, 0.0f, 1.0f)) {
-                setter.accept(
-                    new NoiseParams(
+            if (ImGui.sliderFloat(
+                    I18n.format("dimensium.ui.noise.gain") + "##noise_gain_" + idSuffix, gain, 0.0f, 1.0f)) {
+                setter.accept(new NoiseParams(
                         params.noiseType(),
                         params.noiseScale(),
                         params.noiseOctaves(),
@@ -156,12 +141,8 @@ public class NoiseParamSection {
         if (params.noiseType() == NoiseType.VORONOI_EDGES || params.noiseType() == NoiseType.WORLEY) {
             jitter[0] = params.noiseJitter();
             if (ImGui.sliderFloat(
-                I18n.format("dimensium.ui.noise.jitter") + "##noise_jitter_" + idSuffix,
-                jitter,
-                0.0f,
-                1.0f)) {
-                setter.accept(
-                    new NoiseParams(
+                    I18n.format("dimensium.ui.noise.jitter") + "##noise_jitter_" + idSuffix, jitter, 0.0f, 1.0f)) {
+                setter.accept(new NoiseParams(
                         params.noiseType(),
                         params.noiseScale(),
                         params.noiseOctaves(),
@@ -178,8 +159,7 @@ public class NoiseParamSection {
 
             w1[0] = params.noiseW1();
             if (ImGui.sliderFloat(I18n.format("dimensium.ui.noise.w1") + "##noise_w1_" + idSuffix, w1, -1.0f, 1.0f)) {
-                setter.accept(
-                    new NoiseParams(
+                setter.accept(new NoiseParams(
                         params.noiseType(),
                         params.noiseScale(),
                         params.noiseOctaves(),
@@ -196,8 +176,7 @@ public class NoiseParamSection {
 
             w2[0] = params.noiseW2();
             if (ImGui.sliderFloat(I18n.format("dimensium.ui.noise.w2") + "##noise_w2_" + idSuffix, w2, -1.0f, 1.0f)) {
-                setter.accept(
-                    new NoiseParams(
+                setter.accept(new NoiseParams(
                         params.noiseType(),
                         params.noiseScale(),
                         params.noiseOctaves(),
@@ -214,8 +193,7 @@ public class NoiseParamSection {
 
             w3[0] = params.noiseW3();
             if (ImGui.sliderFloat(I18n.format("dimensium.ui.noise.w3") + "##noise_w3_" + idSuffix, w3, -1.0f, 1.0f)) {
-                setter.accept(
-                    new NoiseParams(
+                setter.accept(new NoiseParams(
                         params.noiseType(),
                         params.noiseScale(),
                         params.noiseOctaves(),
@@ -234,12 +212,11 @@ public class NoiseParamSection {
         if (params.noiseType() == NoiseType.METABALL) {
             metaballRange[0] = params.noiseMetaballRange();
             if (ImGui.sliderFloat(
-                I18n.format("dimensium.ui.noise.metaball_range") + "##noise_meta_" + idSuffix,
-                metaballRange,
-                1.0f,
-                20.0f)) {
-                setter.accept(
-                    new NoiseParams(
+                    I18n.format("dimensium.ui.noise.metaball_range") + "##noise_meta_" + idSuffix,
+                    metaballRange,
+                    1.0f,
+                    20.0f)) {
+                setter.accept(new NoiseParams(
                         params.noiseType(),
                         params.noiseScale(),
                         params.noiseOctaves(),
@@ -256,15 +233,13 @@ public class NoiseParamSection {
 
         if (ImGui.button(I18n.format("dimensium.ui.noise.randomize_seed") + "##noise_seed_" + idSuffix)) {
             NoiseParams p = getter.get();
-            setter.accept(
-                new NoiseParams(
+            setter.accept(new NoiseParams(
                     p.noiseType(),
                     p.noiseScale(),
                     p.noiseOctaves(),
                     p.noiseLacunarity(),
                     p.noiseGain(),
-                    ThreadLocalRandom.current()
-                        .nextLong(),
+                    ThreadLocalRandom.current().nextLong(),
                     p.noiseJitter(),
                     p.noiseW1(),
                     p.noiseW2(),

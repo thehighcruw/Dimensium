@@ -4,17 +4,16 @@
  */
 package github.thehighcruw.dimensium.editor.tool.creating.sculpt;
 
-import net.minecraft.block.Block;
-import net.minecraft.init.Blocks;
-import net.minecraft.util.MovingObjectPosition;
-import net.minecraft.world.World;
-
 import github.thehighcruw.dimensium.editor.handler.ExtrudeHelper;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushState;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushStrategy;
 import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
+import net.minecraft.block.Block;
+import net.minecraft.init.Blocks;
+import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.world.World;
 
 public class SculptBrush implements BrushStrategy {
 
@@ -37,8 +36,7 @@ public class SculptBrush implements BrushStrategy {
         Vec3DFloat pa1 = normal.cross(Vec3DFloat.from(0f, 1f, 0f));
         if (pa1.lengthSq() < 0.001f) pa1 = normal.cross(Vec3DFloat.from(1f, 0f, 0f));
         pa1 = pa1.normalize();
-        Vec3DFloat pa2 = normal.cross(pa1)
-            .normalize();
+        Vec3DFloat pa2 = normal.cross(pa1).normalize();
 
         int radius = Math.max(1, bs.brushRadius);
         int dim = 2 * radius + 1;
@@ -56,10 +54,7 @@ public class SculptBrush implements BrushStrategy {
                 }
                 float falloff = (float) Math.sqrt(Math.max(0f, 1f - dist * dist));
                 disp[idx] = Math.max(0, Math.round(s.sculptStrength * falloff));
-                basePos[idx] = center.plus(
-                    pa1.times(d1)
-                        .plus(pa2.times(d2))
-                        .round());
+                basePos[idx] = center.plus(pa1.times(d1).plus(pa2.times(d2)).round());
             }
         }
 
@@ -103,9 +98,7 @@ public class SculptBrush implements BrushStrategy {
                 if (surfBlock == null || surfBlock == Blocks.air) surfBlock = Blocks.dirt;
                 Vec3DInt prev = surf;
                 for (int d = 1; d <= depth; d++) {
-                    Vec3DInt t = surf.plus(
-                        normal.times(d)
-                            .round());
+                    Vec3DInt t = surf.plus(normal.times(d).round());
                     if (t.y() < 0 || t.y() > 255) break;
                     if (t.equals(prev)) continue;
                     prev = t;
@@ -115,9 +108,7 @@ public class SculptBrush implements BrushStrategy {
             } else {
                 Vec3DInt prev = surf;
                 for (int d = 0; d < depth; d++) {
-                    Vec3DInt t = surf.minus(
-                        normal.times(d)
-                            .round());
+                    Vec3DInt t = surf.minus(normal.times(d).round());
                     if (t.y() < 0 || t.y() > 255) break;
                     if (t.equals(prev)) continue;
                     prev = t;
@@ -162,8 +153,7 @@ public class SculptBrush implements BrushStrategy {
 
         // Normal from height gradient: surface z = h(x,z), tangents are (1,dX,0) and (0,dZ,1)
         // normal = cross(tangents) = (-dX, 1, -dZ) normalized
-        return Vec3DFloat.from(-dX, 1f, -dZ)
-            .normalize();
+        return Vec3DFloat.from(-dX, 1f, -dZ).normalize();
     }
 
     private static int findTopY(World world, int x, int z, int cy, int search) {
@@ -176,9 +166,7 @@ public class SculptBrush implements BrushStrategy {
     private static Vec3DInt findSculptSurface(World world, Vec3DInt base, Vec3DFloat normal, int range) {
         Vec3DInt last = null;
         for (float step = range; step >= -range; step -= 0.5f) {
-            Vec3DInt t = base.plus(
-                normal.times(step)
-                    .round());
+            Vec3DInt t = base.plus(normal.times(step).round());
             if (t.y() < 0 || t.y() > 255) continue;
             if (t.equals(last)) continue;
             last = t;
@@ -186,5 +174,4 @@ public class SculptBrush implements BrushStrategy {
         }
         return null;
     }
-
 }

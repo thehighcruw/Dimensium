@@ -4,6 +4,12 @@
  */
 package github.thehighcruw.dimensium.world.inventory;
 
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import github.thehighcruw.dimensium.network.PacketHandler;
+import github.thehighcruw.dimensium.network.PacketOpenGradientGui;
+import github.thehighcruw.dimensium.world.inventory.colorPicker.GuiColourPicker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.inventory.GuiContainerCreative;
@@ -13,16 +19,8 @@ import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.common.MinecraftForge;
-
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
-
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
-import github.thehighcruw.dimensium.network.PacketHandler;
-import github.thehighcruw.dimensium.network.PacketOpenGradientGui;
-import github.thehighcruw.dimensium.world.inventory.colorPicker.GuiColourPicker;
 
 @SideOnly(Side.CLIENT)
 public class CreativeGuiHandler {
@@ -77,9 +75,10 @@ public class CreativeGuiHandler {
         @Override
         public void drawButton(Minecraft mc, int mouseX, int mouseY) {
             if (!visible) return;
-            boolean hovered = mouseX >= xPosition && mouseY >= yPosition
-                && mouseX < xPosition + width
-                && mouseY < yPosition + height;
+            boolean hovered = mouseX >= xPosition
+                    && mouseY >= yPosition
+                    && mouseX < xPosition + width
+                    && mouseY < yPosition + height;
             int fill = hovered ? 0xFFD4D4D4 : C_PANEL;
             drawRect(xPosition, yPosition, xPosition + width, yPosition + height, fill);
             drawRect(xPosition, yPosition, xPosition + width, yPosition + 1, C_PANEL_HI);
@@ -91,11 +90,7 @@ public class CreativeGuiHandler {
             GL11.glEnable(GL12.GL_RESCALE_NORMAL);
             renderer.zLevel = 100f;
             renderer.renderItemAndEffectIntoGUI(
-                mc.fontRenderer,
-                mc.getTextureManager(),
-                ICON,
-                xPosition + 2,
-                yPosition + 2);
+                    mc.fontRenderer, mc.getTextureManager(), ICON, xPosition + 2, yPosition + 2);
             renderer.zLevel = 0f;
             GL11.glDisable(GL12.GL_RESCALE_NORMAL);
             RenderHelper.disableStandardItemLighting();
@@ -119,9 +114,10 @@ public class CreativeGuiHandler {
         @Override
         public void drawButton(Minecraft mc, int mouseX, int mouseY) {
             if (!visible) return;
-            boolean hovered = mouseX >= xPosition && mouseY >= yPosition
-                && mouseX < xPosition + width
-                && mouseY < yPosition + height;
+            boolean hovered = mouseX >= xPosition
+                    && mouseY >= yPosition
+                    && mouseX < xPosition + width
+                    && mouseY < yPosition + height;
             int fill = hovered ? 0xFFD4D4D4 : C_PANEL;
             drawRect(xPosition, yPosition, xPosition + width, yPosition + height, fill);
             drawRect(xPosition, yPosition, xPosition + width, yPosition + 1, C_PANEL_HI);
@@ -133,11 +129,7 @@ public class CreativeGuiHandler {
             GL11.glEnable(GL12.GL_RESCALE_NORMAL);
             renderer.zLevel = 100f;
             renderer.renderItemAndEffectIntoGUI(
-                mc.fontRenderer,
-                mc.getTextureManager(),
-                ICON,
-                xPosition + 2,
-                yPosition + 2);
+                    mc.fontRenderer, mc.getTextureManager(), ICON, xPosition + 2, yPosition + 2);
             renderer.zLevel = 0f;
             GL11.glDisable(GL12.GL_RESCALE_NORMAL);
             RenderHelper.disableStandardItemLighting();

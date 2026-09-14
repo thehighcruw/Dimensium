@@ -4,11 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.handler;
 
-import net.minecraft.client.Minecraft;
-import net.minecraftforge.client.event.MouseEvent;
-
-import org.lwjgl.input.Keyboard;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.DimensiumConfig;
@@ -21,6 +16,9 @@ import github.thehighcruw.dimensium.editor.window.imgui.ImGuiWindowRegistry;
 import github.thehighcruw.dimensium.shared.InputHandler;
 import github.thehighcruw.dimensium.shared.KeyConstants;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
+import net.minecraft.client.Minecraft;
+import net.minecraftforge.client.event.MouseEvent;
+import org.lwjgl.input.Keyboard;
 
 /**
  * Handles mouse input while the editor overlay is open (DimensiumMode.isActive()).
@@ -40,8 +38,8 @@ public class EditorMouseHandler {
         float pmx = fs.cursorX * sf;
         float pmy = fs.cursorY * sf;
         boolean onPanel = ImGuiManager.INSTANCE.anyModalOpen()
-            || MenuBar.INSTANCE.containsMouse(pmx, pmy, mc.displayWidth)
-            || ImGuiWindowRegistry.INSTANCE.anyContainsMouse(pmx, pmy);
+                || MenuBar.INSTANCE.containsMouse(pmx, pmy, mc.displayWidth)
+                || ImGuiWindowRegistry.INSTANCE.anyContainsMouse(pmx, pmy);
 
         if (event.dwheel != 0) {
             if (onPanel) {

@@ -4,11 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.window;
 
-import java.util.EnumMap;
-import java.util.Map;
-
-import net.minecraft.client.resources.I18n;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.DimensiumConfig;
@@ -25,6 +20,9 @@ import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiStyleVar;
 import imgui.type.ImBoolean;
 import imgui.type.ImInt;
+import java.util.EnumMap;
+import java.util.Map;
+import net.minecraft.client.resources.I18n;
 
 @SideOnly(Side.CLIENT)
 public class ToolWindow extends ToggleableWindow {
@@ -43,18 +41,32 @@ public class ToolWindow extends ToggleableWindow {
     // ── Tool categories ───────────────────────────────────────────────────────
 
     private static String[] categoryNames() {
-        return new String[] { I18n.format("dimensium.ui.category.selecting"),
-            I18n.format("dimensium.ui.category.creating"), I18n.format("dimensium.ui.category.painting"),
-            I18n.format("dimensium.ui.category.manipulating"), I18n.format("dimensium.ui.category.utility") };
+        return new String[] {
+            I18n.format("dimensium.ui.category.selecting"),
+            I18n.format("dimensium.ui.category.creating"),
+            I18n.format("dimensium.ui.category.painting"),
+            I18n.format("dimensium.ui.category.manipulating"),
+            I18n.format("dimensium.ui.category.utility")
+        };
     }
 
     static final Tool[][] CATEGORY_TOOLS = {
-        { Tool.POINTER, Tool.SELECT, Tool.MAGIC_SELECT, Tool.FREEHAND_SELECT, Tool.LASSO_SELECT },
-        { Tool.FREEHAND_DRAW, Tool.SCULPT_DRAW, Tool.SHAPE, Tool.FILL, Tool.STAMP, Tool.PATH, Tool.MODELLING,
-            Tool.ROCK },
-        { Tool.PAINTER, Tool.NOISE, Tool.GRADIENT }, { Tool.SMOOTH, Tool.WELD, Tool.MELT, Tool.ROUGHEN, Tool.EXTRUDE,
-            Tool.MOVE, Tool.ELEVATION, Tool.DISTORT, Tool.SHATTER },
-        { Tool.RULER } };
+        {Tool.POINTER, Tool.SELECT, Tool.MAGIC_SELECT, Tool.FREEHAND_SELECT, Tool.LASSO_SELECT},
+        {Tool.FREEHAND_DRAW, Tool.SCULPT_DRAW, Tool.SHAPE, Tool.FILL, Tool.STAMP, Tool.PATH, Tool.MODELLING, Tool.ROCK},
+        {Tool.PAINTER, Tool.NOISE, Tool.GRADIENT},
+        {
+            Tool.SMOOTH,
+            Tool.WELD,
+            Tool.MELT,
+            Tool.ROUGHEN,
+            Tool.EXTRUDE,
+            Tool.MOVE,
+            Tool.ELEVATION,
+            Tool.DISTORT,
+            Tool.SHATTER
+        },
+        {Tool.RULER}
+    };
 
     // ── Per-tool section cache ────────────────────────────────────────────────
 

@@ -4,14 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.window;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
-import net.minecraft.block.Block;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.item.ItemStack;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.overlay.OverlayRenderer;
@@ -25,6 +17,12 @@ import imgui.ImGui;
 import imgui.flag.ImGuiCond;
 import imgui.type.ImBoolean;
 import imgui.type.ImInt;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import net.minecraft.block.Block;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.item.ItemStack;
 
 @SideOnly(Side.CLIENT)
 public class FillSelectionWindow extends ToggleableWindow {
@@ -39,8 +37,7 @@ public class FillSelectionWindow extends ToggleableWindow {
     private static final int MODE_FILL_TOP = 3;
     private static final int MODE_FILL_BOTTOM = 4;
 
-    private static final int[][] FACE_DIRS = { { 1, 0, 0 }, { -1, 0, 0 }, { 0, 1, 0 }, { 0, -1, 0 }, { 0, 0, 1 },
-        { 0, 0, -1 } };
+    private static final int[][] FACE_DIRS = {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
 
     private ItemStack selectedBlock = null;
     private final ImInt fillMode = new ImInt(MODE_FILL_ALL);
@@ -61,10 +58,7 @@ public class FillSelectionWindow extends ToggleableWindow {
         if (!open) return;
 
         float scale = ImGuiManager.INSTANCE.getUIScale();
-        float vpW = ImGui.getIO()
-            .getDisplaySizeX(),
-            vpH = ImGui.getIO()
-                .getDisplaySizeY();
+        float vpW = ImGui.getIO().getDisplaySizeX(), vpH = ImGui.getIO().getDisplaySizeY();
         float w = 320f * scale;
         ImGui.setNextWindowPos((vpW - w) * 0.5f, vpH * 0.3f, ImGuiCond.Appearing);
         ImGui.setNextWindowSize(w, 240f * scale, ImGuiCond.Appearing);
@@ -79,13 +73,11 @@ public class FillSelectionWindow extends ToggleableWindow {
 
             float windowW = ImGui.getWindowWidth();
             float btnW = 70f * scale;
-            float footerH = ImGui.getStyle()
-                .getItemSpacingY() + 1f
-                + ImGui.getStyle()
-                    .getItemSpacingY()
-                + ImGui.getFrameHeight()
-                + ImGui.getStyle()
-                    .getWindowPaddingY();
+            float footerH = ImGui.getStyle().getItemSpacingY()
+                    + 1f
+                    + ImGui.getStyle().getItemSpacingY()
+                    + ImGui.getFrameHeight()
+                    + ImGui.getStyle().getWindowPaddingY();
             float childH = Math.max(0f, ImGui.getContentRegionAvailY() - footerH);
             ImGui.beginChild("##fill_body", 0f, childH);
 
@@ -103,26 +95,28 @@ public class FillSelectionWindow extends ToggleableWindow {
                 ImGui.sameLine();
                 ImGui.text(selectedBlock.getDisplayName());
             } else {
-                if (ImGui
-                    .button(I18n.format("dimensium.op.replace.no_block") + "##fill_pick", cellSize * 2f, cellSize)) {
+                if (ImGui.button(
+                        I18n.format("dimensium.op.replace.no_block") + "##fill_pick", cellSize * 2f, cellSize)) {
                     openPicker();
                 }
             }
 
             ImGui.spacing();
 
-            String[] modeLabels = { I18n.format("dimensium.op.fill.mode.fill"),
-                I18n.format("dimensium.op.fill.mode.outline"), I18n.format("dimensium.op.fill.mode.walls"),
-                I18n.format("dimensium.op.fill.mode.top"), I18n.format("dimensium.op.fill.mode.bottom") };
+            String[] modeLabels = {
+                I18n.format("dimensium.op.fill.mode.fill"),
+                I18n.format("dimensium.op.fill.mode.outline"),
+                I18n.format("dimensium.op.fill.mode.walls"),
+                I18n.format("dimensium.op.fill.mode.top"),
+                I18n.format("dimensium.op.fill.mode.bottom")
+            };
             ImGui.setNextItemWidth(ImGui.getContentRegionAvailX() * 0.7f);
             ImGui.combo("##fill_mode", fillMode, modeLabels, modeLabels.length);
 
             ImGui.endChild();
 
             ImGui.separator();
-            ImGui.setCursorPosX(
-                windowW - ImGui.getStyle()
-                    .getWindowPaddingX() - btnW);
+            ImGui.setCursorPosX(windowW - ImGui.getStyle().getWindowPaddingX() - btnW);
             if (!canApply) ImGui.beginDisabled();
             if (ImGui.button(I18n.format("dimensium.op.apply") + "##fill_apply", btnW, 0)) {
                 applyFill();
@@ -153,7 +147,7 @@ public class FillSelectionWindow extends ToggleableWindow {
             Vec3DInt cv = SelectionState.unpack(key);
             int x = cv.x(), y = cv.y(), z = cv.z();
             if (matchesFillMode(selected, x, y, z, fillMode.get())) {
-                ops.add(new int[] { x, y, z, blockId, blockMeta });
+                ops.add(new int[] {x, y, z, blockId, blockMeta});
             }
         }
 
@@ -170,10 +164,11 @@ public class FillSelectionWindow extends ToggleableWindow {
                 }
                 yield false;
             }
-            case MODE_FILL_WALLS -> !selected.contains(SelectionState.pack(Vec3DInt.from(x + 1, y, z)))
-                || !selected.contains(SelectionState.pack(Vec3DInt.from(x - 1, y, z)))
-                || !selected.contains(SelectionState.pack(Vec3DInt.from(x, y, z + 1)))
-                || !selected.contains(SelectionState.pack(Vec3DInt.from(x, y, z - 1)));
+            case MODE_FILL_WALLS ->
+                !selected.contains(SelectionState.pack(Vec3DInt.from(x + 1, y, z)))
+                        || !selected.contains(SelectionState.pack(Vec3DInt.from(x - 1, y, z)))
+                        || !selected.contains(SelectionState.pack(Vec3DInt.from(x, y, z + 1)))
+                        || !selected.contains(SelectionState.pack(Vec3DInt.from(x, y, z - 1)));
             case MODE_FILL_TOP -> !selected.contains(SelectionState.pack(Vec3DInt.from(x, y + 1, z)));
             case MODE_FILL_BOTTOM -> !selected.contains(SelectionState.pack(Vec3DInt.from(x, y - 1, z)));
             default -> true;

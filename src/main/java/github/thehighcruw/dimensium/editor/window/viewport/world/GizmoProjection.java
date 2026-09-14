@@ -4,21 +4,18 @@
  */
 package github.thehighcruw.dimensium.editor.window.viewport.world;
 
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
-
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ScaledResolution;
-
-import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.util.glu.GLU;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.window.viewport.ViewportRegistry;
 import github.thehighcruw.dimensium.editor.window.viewport.ViewportState;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.ScaledResolution;
+import org.lwjgl.BufferUtils;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.util.glu.GLU;
 
 /**
  * Captures GL modelview/projection/viewport matrices at render time and uses
@@ -69,13 +66,13 @@ public final class GizmoProjection {
         viewport.rewind();
         win.rewind();
         boolean ok = GLU.gluProject(
-            (float) (wx - renderOffset.x()),
-            (float) (wy - renderOffset.y()),
-            (float) (wz - renderOffset.z()),
-            modelview,
-            projection,
-            viewport,
-            win);
+                (float) (wx - renderOffset.x()),
+                (float) (wy - renderOffset.y()),
+                (float) (wz - renderOffset.z()),
+                modelview,
+                projection,
+                viewport,
+                win);
         if (!ok) return null;
         float winX = win.get(0);
         float winY = win.get(1);
@@ -93,9 +90,9 @@ public final class GizmoProjection {
         if (vp != null && vp.contentW > 1 && vp.contentH > 1) {
             double guiX = (vp.contentX + winX - displayW / 2.0 + vp.contentW / 2.0) / sf;
             double guiY = (vp.contentY + vp.contentH / 2.0 + displayH / 2.0 - winY) / sf;
-            return new double[] { guiX, guiY };
+            return new double[] {guiX, guiY};
         }
-        return new double[] { winX / sf, (displayH - winY) / sf };
+        return new double[] {winX / sf, (displayH - winY) / sf};
     }
 
     /**
@@ -149,6 +146,6 @@ public final class GizmoProjection {
         double len = dir.length();
         if (len < 1e-10) return null;
         Vec3DDouble dirN = dir.divide(len);
-        return new double[] { nx, ny, nz, dirN.x(), dirN.y(), dirN.z() };
+        return new double[] {nx, ny, nz, dirN.x(), dirN.y(), dirN.z()};
     }
 }

@@ -4,6 +4,10 @@
  */
 package github.thehighcruw.dimensium.editor.overlay;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import github.thehighcruw.dimensium.Dimensium;
+import imgui.ImGui;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -20,11 +24,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
-
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
-import github.thehighcruw.dimensium.Dimensium;
-import imgui.ImGui;
 
 @SideOnly(Side.CLIENT)
 public final class LayoutPresetRegistry {
@@ -63,14 +62,8 @@ public final class LayoutPresetRegistry {
         File[] files = dir.listFiles();
         if (files == null) return Collections.emptyList();
         for (File f : files) {
-            if (f.isFile() && f.getName()
-                .endsWith(EXT)) {
-                names.add(
-                    f.getName()
-                        .substring(
-                            0,
-                            f.getName()
-                                .length() - EXT.length()));
+            if (f.isFile() && f.getName().endsWith(EXT)) {
+                names.add(f.getName().substring(0, f.getName().length() - EXT.length()));
             }
         }
         names.sort(String.CASE_INSENSITIVE_ORDER);
@@ -93,21 +86,16 @@ public final class LayoutPresetRegistry {
         }
 
         StringBuilder sb = new StringBuilder(ImGui.saveIniSettingsToMemory());
-        sb.append('\n')
-            .append(WINDOWS_MARKER)
-            .append('\n');
+        sb.append('\n').append(WINDOWS_MARKER).append('\n');
         for (Map.Entry<String, BooleanSupplier> e : getters.entrySet()) {
             sb.append(e.getKey())
-                .append('=')
-                .append(
-                    e.getValue()
-                        .getAsBoolean())
-                .append('\n');
+                    .append('=')
+                    .append(e.getValue().getAsBoolean())
+                    .append('\n');
         }
 
-        try (OutputStreamWriter fw = new OutputStreamWriter(
-            new FileOutputStream(new File(dir, name + EXT)),
-            StandardCharsets.UTF_8)) {
+        try (OutputStreamWriter fw =
+                new OutputStreamWriter(new FileOutputStream(new File(dir, name + EXT)), StandardCharsets.UTF_8)) {
             fw.write(sb.toString());
         } catch (IOException e) {
             Dimensium.logger.error("Failed to save layout preset '{}'", name, e);
@@ -152,8 +140,7 @@ public final class LayoutPresetRegistry {
         }
         for (Map.Entry<String, Consumer<Boolean>> e : setters.entrySet()) {
             String val = props.getProperty(e.getKey());
-            if (val != null) e.getValue()
-                .accept(Boolean.parseBoolean(val));
+            if (val != null) e.getValue().accept(Boolean.parseBoolean(val));
         }
     }
 

@@ -16,6 +16,7 @@ public class LassoSelectToolState {
 
     /** Screen-space polygon points [screenX, screenY] accumulated during RMB drag. */
     public final List<float[]> polygonPoints = new ArrayList<>();
+
     public boolean dragging = false;
 
     private LassoSelectToolState() {}

@@ -4,14 +4,6 @@
  */
 package github.thehighcruw.dimensium.world.handler;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
-import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.MovingObjectPosition;
-import net.minecraft.world.World;
-import net.minecraftforge.client.event.MouseEvent;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.freecam.FreecamUtils;
@@ -28,6 +20,12 @@ import github.thehighcruw.dimensium.tool.BuilderToolState;
 import github.thehighcruw.dimensium.tool.BuilderToolState.Phase;
 import github.thehighcruw.dimensium.world.tool.BuilderToolApplicator;
 import github.thehighcruw.dimensium.world.tool.strategy.SmearStrategy;
+import java.util.concurrent.atomic.AtomicInteger;
+import net.minecraft.client.Minecraft;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.world.World;
+import net.minecraftforge.client.event.MouseEvent;
 
 @SideOnly(Side.CLIENT)
 public class BuilderToolsHandler {
@@ -89,14 +87,14 @@ public class BuilderToolsHandler {
             PerfTrace.begin("builder SELECTING release");
             PerfTrace.push("applyOp selSize=" + sel.size());
             sel.applyOp(
-                SelectionState.aabbBlocks(
-                    sel.pendingPos.x(),
-                    sel.pendingPos.y(),
-                    sel.pendingPos.z(),
-                    mop.blockX,
-                    mop.blockY,
-                    mop.blockZ),
-                BooleanOp.REPLACE);
+                    SelectionState.aabbBlocks(
+                            sel.pendingPos.x(),
+                            sel.pendingPos.y(),
+                            sel.pendingPos.z(),
+                            mop.blockX,
+                            mop.blockY,
+                            mop.blockZ),
+                    BooleanOp.REPLACE);
             PerfTrace.pop();
             sel.pendingPos1 = false;
 
@@ -114,15 +112,8 @@ public class BuilderToolsHandler {
             // Phase transitions to MANIPULATING when PacketCaptureResponse arrives.
             PerfTrace.push("sendCaptureRequest");
             int captureId = CAPTURE_ID_GEN.incrementAndGet();
-            PacketHandler.CHANNEL.sendToServer(
-                new PacketCaptureRequest(
-                    captureId,
-                    sel.minX(),
-                    sel.minY(),
-                    sel.minZ(),
-                    sel.maxX(),
-                    sel.maxY(),
-                    sel.maxZ()));
+            PacketHandler.CHANNEL.sendToServer(new PacketCaptureRequest(
+                    captureId, sel.minX(), sel.minY(), sel.minZ(), sel.maxX(), sel.maxY(), sel.maxZ()));
             bts.phase = Phase.CAPTURING;
             PerfTrace.pop();
             PerfTrace.end(0);
@@ -145,5 +136,4 @@ public class BuilderToolsHandler {
         if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return;
         ExtrudeHelper.applyExtrudeAt(world, mop.blockX, mop.blockY, mop.blockZ, mop.sideHit);
     }
-
 }

@@ -4,10 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.window;
 
-import java.util.List;
-
-import net.minecraft.client.resources.I18n;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.DimensiumConfig;
@@ -18,6 +14,8 @@ import imgui.ImGui;
 import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
+import java.util.List;
+import net.minecraft.client.resources.I18n;
 
 @SideOnly(Side.CLIENT)
 public class HistoryWindow extends ToggleableWindow {
@@ -32,11 +30,11 @@ public class HistoryWindow extends ToggleableWindow {
         DimensiumConfig.setWindowHistoryOpen(value);
     }
 
-    private static final float[] C_CURRENT = { 0.87f, 0.93f, 1.0f, 1.0f };
-    private static final float[] C_REDO = { 0.55f, 0.70f, 0.55f, 0.80f };
-    private static final float[] C_PAST = { 0.55f, 0.55f, 0.60f, 1.0f };
-    private static final float[] C_DANGER = { 1.0f, 0.35f, 0.35f, 1.0f };
-    private static final float[] C_SEP = { 1.0f, 1.0f, 1.0f, 0.06f };
+    private static final float[] C_CURRENT = {0.87f, 0.93f, 1.0f, 1.0f};
+    private static final float[] C_REDO = {0.55f, 0.70f, 0.55f, 0.80f};
+    private static final float[] C_PAST = {0.55f, 0.55f, 0.60f, 1.0f};
+    private static final float[] C_DANGER = {1.0f, 0.35f, 0.35f, 1.0f};
+    private static final float[] C_SEP = {1.0f, 1.0f, 1.0f, 0.06f};
 
     private HistoryWindow() {}
 
@@ -73,17 +71,9 @@ public class HistoryWindow extends ToggleableWindow {
         ImGui.sameLine(contentW - clearW);
         String clearLabel = I18n.format("dimensium.ui.history.clear") + "##hist_clear";
         ImGui.pushStyleColor(
-            imgui.flag.ImGuiCol.Button,
-            C_DANGER[0] * 0.4f,
-            C_DANGER[1] * 0.4f,
-            C_DANGER[2] * 0.4f,
-            0.9f);
+                imgui.flag.ImGuiCol.Button, C_DANGER[0] * 0.4f, C_DANGER[1] * 0.4f, C_DANGER[2] * 0.4f, 0.9f);
         ImGui.pushStyleColor(
-            imgui.flag.ImGuiCol.ButtonHovered,
-            C_DANGER[0] * 0.6f,
-            C_DANGER[1] * 0.6f,
-            C_DANGER[2] * 0.6f,
-            0.9f);
+                imgui.flag.ImGuiCol.ButtonHovered, C_DANGER[0] * 0.6f, C_DANGER[1] * 0.6f, C_DANGER[2] * 0.6f, 0.9f);
         boolean doClear = size > 0 && ImGui.button(clearLabel, clearW, 0);
         ImGui.popStyleColor(2);
         if (doClear) {
@@ -131,8 +121,8 @@ public class HistoryWindow extends ToggleableWindow {
         ImGui.end();
     }
 
-    private void renderRow(List<String> names, int i, int pointer, ClientEditHistory history, boolean isRedo,
-        float fullContentW) {
+    private void renderRow(
+            List<String> names, int i, int pointer, ClientEditHistory history, boolean isRedo, float fullContentW) {
         boolean isCurrent = (i == pointer);
         float scale = ImGuiManager.INSTANCE.getUIScale();
 
@@ -140,12 +130,12 @@ public class HistoryWindow extends ToggleableWindow {
         float cx = ImGui.getCursorScreenPosX();
         float cy = ImGui.getCursorScreenPosY();
         ImGui.getWindowDrawList()
-            .addLine(
-                cx,
-                cy,
-                cx + fullContentW,
-                cy,
-                ImGui.colorConvertFloat4ToU32(C_SEP[0], C_SEP[1], C_SEP[2], C_SEP[3]));
+                .addLine(
+                        cx,
+                        cy,
+                        cx + fullContentW,
+                        cy,
+                        ImGui.colorConvertFloat4ToU32(C_SEP[0], C_SEP[1], C_SEP[2], C_SEP[3]));
 
         // Align all columns to the same baseline by recording Y after padding and setting it per column
         float rowY = cy + 2f * scale;

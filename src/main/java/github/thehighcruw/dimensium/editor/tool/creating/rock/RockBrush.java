@@ -4,17 +4,16 @@
  */
 package github.thehighcruw.dimensium.editor.tool.creating.rock;
 
-import net.minecraft.block.Block;
-import net.minecraft.init.Blocks;
-import net.minecraft.util.MovingObjectPosition;
-import net.minecraft.world.World;
-
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushState;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushStrategy;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushUtil;
 import github.thehighcruw.dimensium.editor.tool.noise.NoiseSampler;
 import github.thehighcruw.dimensium.editor.tool.selecting.SelectedBlockState;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
+import net.minecraft.block.Block;
+import net.minecraft.init.Blocks;
+import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.world.World;
 
 public class RockBrush implements BrushStrategy {
 
@@ -64,8 +63,20 @@ public class RockBrush implements BrushStrategy {
         }
     }
 
-    private static float[] buildDensity(RockToolState s, BrushState bs, int sx, int sy, int sz, int ox, int oy, int oz,
-        int dimX, int dimY, int dimZ, int strideX, int strideY) {
+    private static float[] buildDensity(
+            RockToolState s,
+            BrushState bs,
+            int sx,
+            int sy,
+            int sz,
+            int ox,
+            int oy,
+            int oz,
+            int dimX,
+            int dimY,
+            int dimZ,
+            int strideX,
+            int strideY) {
 
         float[] density = new float[dimX * dimY * dimZ];
         float noiseRadius = Math.max(0.01f, s.noiseRadius);
@@ -147,5 +158,4 @@ public class RockBrush implements BrushStrategy {
         }
         return dst;
     }
-
 }

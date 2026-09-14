@@ -4,21 +4,7 @@
  */
 package github.thehighcruw.dimensium.editor.window.imgui;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.util.ArrayDeque;
-import java.util.Objects;
-import java.util.Queue;
-
-import javax.annotation.Nonnull;
-
-import org.lwjgl.input.Keyboard;
-import org.lwjgl.input.Mouse;
-import org.lwjgl.opengl.GL11;
-
 import com.gtnewhorizon.gtnhlib.config.ConfigurationManager;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.DimensiumConfig;
@@ -29,6 +15,16 @@ import imgui.assertion.ImAssertCallback;
 import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiConfigFlags;
 import imgui.flag.ImGuiKey;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.util.ArrayDeque;
+import java.util.Objects;
+import java.util.Queue;
+import javax.annotation.Nonnull;
+import org.lwjgl.input.Keyboard;
+import org.lwjgl.input.Mouse;
+import org.lwjgl.opengl.GL11;
 
 @SideOnly(Side.CLIENT)
 public final class ImGuiManager {
@@ -75,11 +71,10 @@ public final class ImGuiManager {
             fontTempFile = File.createTempFile("dimensium-font-", ".ttf");
             fontTempFile.deleteOnExit();
             try (InputStream in = ImGuiManager.class.getResourceAsStream("/assets/dimensium/fonts/Nunito.ttf");
-                FileOutputStream out = new FileOutputStream(fontTempFile)) {
+                    FileOutputStream out = new FileOutputStream(fontTempFile)) {
                 byte[] buf = new byte[4096];
                 int n;
-                while ((n = Objects.requireNonNull(in)
-                    .read(buf)) != -1) out.write(buf, 0, n);
+                while ((n = Objects.requireNonNull(in).read(buf)) != -1) out.write(buf, 0, n);
             }
         } catch (Exception e) {
             github.thehighcruw.dimensium.Dimensium.logger.error("Failed to extract font to temp file", e);
@@ -93,10 +88,9 @@ public final class ImGuiManager {
 
             @Override
             public void imAssertCallback(String expr, int line, String file) {
-                github.thehighcruw.dimensium.Dimensium.logger
-                    .error("ImGui assertion failed: {} ({}:{})", expr, file, line, new RuntimeException("stack trace"));
-                cpw.mods.fml.common.FMLCommonHandler.instance()
-                    .exitJava(1, false);
+                github.thehighcruw.dimensium.Dimensium.logger.error(
+                        "ImGui assertion failed: {} ({}:{})", expr, file, line, new RuntimeException("stack trace"));
+                cpw.mods.fml.common.FMLCommonHandler.instance().exitJava(1, false);
             }
         });
         ImGui.createContext();
@@ -113,13 +107,15 @@ public final class ImGuiManager {
         glRenderer.init();
         initialized = true;
         Runtime.getRuntime()
-            .addShutdownHook(new Thread(() -> {
-                if (initialized) {
-                    ImGui.saveIniSettingsToDisk("dimensium_layout.ini");
-                    github.thehighcruw.dimensium.Dimensium.logger.error(
-                        "JVM exiting while ImGui is still active — likely a native crash. Check run/jvm-crash-*.log");
-                }
-            }, "imgui-crash-sentinel"));
+                .addShutdownHook(new Thread(
+                        () -> {
+                            if (initialized) {
+                                ImGui.saveIniSettingsToDisk("dimensium_layout.ini");
+                                github.thehighcruw.dimensium.Dimensium.logger.error(
+                                        "JVM exiting while ImGui is still active — likely a native crash. Check run/jvm-crash-*.log");
+                            }
+                        },
+                        "imgui-crash-sentinel"));
     }
 
     private void buildFontAtlas(ImGuiIO io) {
@@ -139,8 +135,7 @@ public final class ImGuiManager {
         // an assertion in Dear ImGui's popup stack cleanup, crashing via the assert callback.
         // In-place rebuild also preserves docking layout without losing the .ini state.
         ImGuiIO io = ImGui.getIO();
-        io.getFonts()
-            .clear();
+        io.getFonts().clear();
         buildFontAtlas(io);
         glRenderer.rebuildFontTexture();
     }
@@ -235,7 +230,7 @@ public final class ImGuiManager {
     public void addKeyEvent(int lwjglKey, boolean down) {
         int imguiKey = lwjglToImGui(lwjglKey);
         if (imguiKey == -1) return;
-        pendingKeyEvents.add(new int[] { imguiKey, down ? 1 : 0 });
+        pendingKeyEvents.add(new int[] {imguiKey, down ? 1 : 0});
         switch (lwjglKey) {
             case Keyboard.KEY_LCONTROL:
                 trackedLCtrl = down;
@@ -269,13 +264,11 @@ public final class ImGuiManager {
     }
 
     public boolean wantCaptureMouse() {
-        return initialized && ImGui.getIO()
-            .getWantCaptureMouse();
+        return initialized && ImGui.getIO().getWantCaptureMouse();
     }
 
     public boolean wantCaptureKeyboard() {
-        return initialized && ImGui.getIO()
-            .getWantCaptureKeyboard();
+        return initialized && ImGui.getIO().getWantCaptureKeyboard();
     }
 
     public boolean anyModalOpen() {

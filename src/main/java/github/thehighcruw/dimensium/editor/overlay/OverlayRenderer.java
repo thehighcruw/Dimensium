@@ -4,21 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.overlay;
 
-import java.io.File;
-
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ScaledResolution;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.client.event.RenderGameOverlayEvent;
-
-import org.lwjgl.opengl.GL11;
-
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -78,6 +63,18 @@ import imgui.ImGui;
 import imgui.flag.ImGuiDockNodeFlags;
 import imgui.flag.ImGuiStyleVar;
 import imgui.flag.ImGuiWindowFlags;
+import java.io.File;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
+import net.minecraft.init.Items;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.client.event.RenderGameOverlayEvent;
+import org.lwjgl.opengl.GL11;
 
 @SideOnly(Side.CLIENT)
 public class OverlayRenderer {
@@ -176,8 +173,7 @@ public class OverlayRenderer {
             if (cps.active && !cps.isAnyGizmoDragging() && mc.renderViewEntity != null) {
                 EntityLivingBase cEye = mc.renderViewEntity;
                 double ccx = cps.centerX(), ccy = cps.centerY(), ccz = cps.centerZ();
-                cps.getAxisTranslationGizmo()
-                    .updateHover(mx, my, cEye, ccx, ccy, ccz, 0, 0, 0);
+                cps.getAxisTranslationGizmo().updateHover(mx, my, cEye, ccx, ccy, ccz, 0, 0, 0);
                 handleGizmoHover(cps, mx, my, cEye, ccx, ccy, ccz, cps.rot.x(), cps.rot.y(), cps.rot.z());
             }
 
@@ -185,8 +181,7 @@ public class OverlayRenderer {
             if (ms.active && !ms.isAnyGizmoDragging() && mc.renderViewEntity != null) {
                 EntityLivingBase eye = mc.renderViewEntity;
                 double gx = ms.gizmoX(), gy = ms.gizmoY(), gz = ms.gizmoZ();
-                ms.getAxisTranslationGizmo()
-                    .updateHover(mx, my, eye, gx, gy, gz, ms.rot.x(), ms.rot.y(), ms.rot.z());
+                ms.getAxisTranslationGizmo().updateHover(mx, my, eye, gx, gy, gz, ms.rot.x(), ms.rot.y(), ms.rot.z());
                 handleGizmoHover(ms, mx, my, eye, gx, gy, gz, ms.rot.x(), ms.rot.y(), ms.rot.z());
             }
 
@@ -254,11 +249,10 @@ public class OverlayRenderer {
 
         // 10th slot is hidden while the editor overlay is active (viewport owns the screen).
         if (!DimensiumEditorMode.INSTANCE.isActive()) renderTenthSlot(mc, sw, sh);
-
     }
 
-    private static void updateShapeGizmoHover(ShapePlacementState ps, int mx, int my, EntityLivingBase eye, double cx,
-        double cy, double cz) {
+    private static void updateShapeGizmoHover(
+            ShapePlacementState ps, int mx, int my, EntityLivingBase eye, double cx, double cy, double cz) {
         ps.viewPlaneGizmo.updateHover(mx, my, eye, cx, cy, cz);
         if (ps.viewPlaneGizmo.hovered) {
             ps.getAxisTranslationGizmo().hoveredAxis = TranslationGizmo.Axis.NONE;
@@ -267,40 +261,43 @@ public class OverlayRenderer {
             ps.getPlaneTranslationGizmo().hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
             return;
         }
-        ps.getAxisTranslationGizmo()
-            .updateHover(mx, my, eye, cx, cy, cz, ps.rot.x(), ps.rot.y(), ps.rot.z());
+        ps.getAxisTranslationGizmo().updateHover(mx, my, eye, cx, cy, cz, ps.rot.x(), ps.rot.y(), ps.rot.z());
         if (ps.getAxisTranslationGizmo().hoveredAxis != TranslationGizmo.Axis.NONE) {
             ps.getScalingGizmo().hoveredAxis = ScalingGizmo.Axis.NONE;
             ps.getRotationGizmo().hoveredAxis = RotationGizmo.Axis.NONE;
             ps.getPlaneTranslationGizmo().hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
             return;
         }
-        ps.getScalingGizmo()
-            .updateHover(mx, my, eye, cx, cy, cz, ps.rot.x(), ps.rot.y(), ps.rot.z());
+        ps.getScalingGizmo().updateHover(mx, my, eye, cx, cy, cz, ps.rot.x(), ps.rot.y(), ps.rot.z());
         if (ps.getScalingGizmo().hoveredAxis != ScalingGizmo.Axis.NONE) {
             ps.getRotationGizmo().hoveredAxis = RotationGizmo.Axis.NONE;
             ps.getPlaneTranslationGizmo().hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
             return;
         }
-        ps.getRotationGizmo()
-            .updateHover(mx, my, eye, cx, cy, cz, ps.rot.x(), ps.rot.y(), ps.rot.z());
+        ps.getRotationGizmo().updateHover(mx, my, eye, cx, cy, cz, ps.rot.x(), ps.rot.y(), ps.rot.z());
         if (ps.getRotationGizmo().hoveredAxis != RotationGizmo.Axis.NONE) {
             ps.getPlaneTranslationGizmo().hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
             return;
         }
-        ps.getPlaneTranslationGizmo()
-            .updateHover(mx, my, eye, cx, cy, cz, ps.rot.x(), ps.rot.y(), ps.rot.z());
+        ps.getPlaneTranslationGizmo().updateHover(mx, my, eye, cx, cy, cz, ps.rot.x(), ps.rot.y(), ps.rot.z());
     }
 
-    private static <T extends WithAxisTranslationGizmo & WithPlaneTranslationGizmo & WithRotationGizmo> void handleGizmoHover(
-        T ms, int mx, int my, EntityLivingBase eye, double gx, double gy, double gz, float rotX, float rotY,
-        float rotZ) {
+    private static <T extends WithAxisTranslationGizmo & WithPlaneTranslationGizmo & WithRotationGizmo>
+            void handleGizmoHover(
+                    T ms,
+                    int mx,
+                    int my,
+                    EntityLivingBase eye,
+                    double gx,
+                    double gy,
+                    double gz,
+                    float rotX,
+                    float rotY,
+                    float rotZ) {
         if (ms.getAxisTranslationGizmo().hoveredAxis == TranslationGizmo.Axis.NONE) {
-            ms.getPlaneTranslationGizmo()
-                .updateHover(mx, my, eye, gx, gy, gz, rotX, rotY, rotZ);
+            ms.getPlaneTranslationGizmo().updateHover(mx, my, eye, gx, gy, gz, rotX, rotY, rotZ);
             if (ms.getPlaneTranslationGizmo().hoveredPlane == PlaneTranslationGizmo.Plane.NONE) {
-                ms.getRotationGizmo()
-                    .updateHover(mx, my, eye, gx, gy, gz, rotX, rotY, rotZ);
+                ms.getRotationGizmo().updateHover(mx, my, eye, gx, gy, gz, rotX, rotY, rotZ);
             } else {
                 ms.getRotationGizmo().hoveredAxis = RotationGizmo.Axis.NONE;
             }
@@ -369,18 +366,19 @@ public class OverlayRenderer {
         GL11.glColor4f(1, 1, 1, 1);
 
         if (active) {
-            String phaseSuffix = switch (bts.phase) {
-                case SELECTING -> " \2476+\247r";
-                case MANIPULATING -> " \247a>\247r";
-                default -> "";
-            };
+            String phaseSuffix =
+                    switch (bts.phase) {
+                        case SELECTING -> " \2476+\247r";
+                        case MANIPULATING -> " \247a>\247r";
+                        default -> "";
+                    };
             String extra = "";
             if (bts.phase == Phase.MANIPULATING && bts.activeTool.equals(BuilderTool.STACK)) {
                 extra = " \247e" + bts.stack.x() + "," + bts.stack.y() + "," + bts.stack.z() + "\247r";
             }
             // Draw tool name + phase above the bar (4px above it)
-            mc.fontRenderer
-                .drawStringWithShadow(bts.activeTool.label + phaseSuffix + extra, slotX + 1, barY - 11, 0xFFFFFF);
+            mc.fontRenderer.drawStringWithShadow(
+                    bts.activeTool.label + phaseSuffix + extra, slotX + 1, barY - 11, 0xFFFFFF);
         } else {
             // Hint text above slot when inactive
             mc.fontRenderer.drawStringWithShadow("\2477>\247r", slotX + 6, barY - 10, 0x888888);
@@ -511,12 +509,13 @@ public class OverlayRenderer {
         ImGui.setNextWindowPos(0, menuH, imgui.flag.ImGuiCond.Always);
         ImGui.setNextWindowSize(sw, sh - menuH - statusH + 1, imgui.flag.ImGuiCond.Always);
         ImGui.pushStyleColor(imgui.flag.ImGuiCol.WindowBg, 0.13f, 0.13f, 0.13f, 1f);
-        int dsFlags = ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoResize
-            | ImGuiWindowFlags.NoMove
-            | ImGuiWindowFlags.NoBringToFrontOnFocus
-            | ImGuiWindowFlags.NoFocusOnAppearing
-            | ImGuiWindowFlags.NoNavFocus
-            | ImGuiWindowFlags.NoScrollbar;
+        int dsFlags = ImGuiWindowFlags.NoTitleBar
+                | ImGuiWindowFlags.NoResize
+                | ImGuiWindowFlags.NoMove
+                | ImGuiWindowFlags.NoBringToFrontOnFocus
+                | ImGuiWindowFlags.NoFocusOnAppearing
+                | ImGuiWindowFlags.NoNavFocus
+                | ImGuiWindowFlags.NoScrollbar;
         ImGui.pushStyleVar(ImGuiStyleVar.WindowPadding, 0f, 0f);
         ImGui.pushStyleVar(ImGuiStyleVar.WindowBorderSize, 0f);
         ImGui.begin("##dockspace_host", dsFlags);
@@ -565,11 +564,12 @@ public class OverlayRenderer {
         ImGui.setNextWindowSize(winW, winH);
         ImGui.setNextWindowBgAlpha(0.55f);
 
-        int winFlags = ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoInputs
-            | ImGuiWindowFlags.NoNav
-            | ImGuiWindowFlags.NoMove
-            | ImGuiWindowFlags.NoBringToFrontOnFocus
-            | ImGuiWindowFlags.NoFocusOnAppearing;
+        int winFlags = ImGuiWindowFlags.NoDecoration
+                | ImGuiWindowFlags.NoInputs
+                | ImGuiWindowFlags.NoNav
+                | ImGuiWindowFlags.NoMove
+                | ImGuiWindowFlags.NoBringToFrontOnFocus
+                | ImGuiWindowFlags.NoFocusOnAppearing;
 
         ImGui.begin("##key_press_log", winFlags);
         for (ViewState.KeyPressEntry entry : log) {

@@ -4,15 +4,13 @@
  */
 package github.thehighcruw.dimensium.editor.window.viewport.world;
 
-import net.minecraft.entity.EntityLivingBase;
-
-import org.lwjgl.opengl.GL11;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.freecam.FreecamUtils;
 import github.thehighcruw.dimensium.shared.math.Vec2DDouble;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
+import net.minecraft.entity.EntityLivingBase;
+import org.lwjgl.opengl.GL11;
 
 /**
  * View-plane translation gizmo — a white transparent cube at the gizmo origin.
@@ -119,32 +117,43 @@ public class ViewPlaneGizmo {
     // ── Hover ─────────────────────────────────────────────────────────────────
 
     public void updateHover(int mouseX, int mouseY, EntityLivingBase player, double gx, double gy, double gz) {
-        float scale = RotationGizmo
-            .computeScale(gx - player.posX, gy - (player.posY + player.getEyeHeight()), gz - player.posZ);
+        float scale = RotationGizmo.computeScale(
+                gx - player.posX, gy - (player.posY + player.getEyeHeight()), gz - player.posZ);
         float h = CUBE_H * scale;
-        float[] offs = { -h, h };
+        float[] offs = {-h, h};
         double minX = Double.MAX_VALUE, maxX = -Double.MAX_VALUE;
         double minY = Double.MAX_VALUE, maxY = -Double.MAX_VALUE;
         boolean anyValid = false;
-        for (float ox : offs) for (float oy : offs) for (float oz : offs) {
-            double[] s = proj.project(gx + ox, gy + oy, gz + oz);
-            if (s == null) continue;
-            anyValid = true;
-            if (s[0] < minX) minX = s[0];
-            if (s[0] > maxX) maxX = s[0];
-            if (s[1] < minY) minY = s[1];
-            if (s[1] > maxY) maxY = s[1];
-        }
-        hovered = anyValid && mouseX >= minX - HIT_PX
-            && mouseX <= maxX + HIT_PX
-            && mouseY >= minY - HIT_PX
-            && mouseY <= maxY + HIT_PX;
+        for (float ox : offs)
+            for (float oy : offs)
+                for (float oz : offs) {
+                    double[] s = proj.project(gx + ox, gy + oy, gz + oz);
+                    if (s == null) continue;
+                    anyValid = true;
+                    if (s[0] < minX) minX = s[0];
+                    if (s[0] > maxX) maxX = s[0];
+                    if (s[1] < minY) minY = s[1];
+                    if (s[1] > maxY) maxY = s[1];
+                }
+        hovered = anyValid
+                && mouseX >= minX - HIT_PX
+                && mouseX <= maxX + HIT_PX
+                && mouseY >= minY - HIT_PX
+                && mouseY <= maxY + HIT_PX;
     }
 
     // ── Drag ─────────────────────────────────────────────────────────────────
 
-    public void startDrag(int mouseX, int mouseY, EntityLivingBase player, double gx, double gy, double gz,
-        double anchorX, double anchorY, double anchorZ) {
+    public void startDrag(
+            int mouseX,
+            int mouseY,
+            EntityLivingBase player,
+            double gx,
+            double gy,
+            double gz,
+            double anchorX,
+            double anchorY,
+            double anchorZ) {
         if (!hovered) return;
         dragging = true;
         dragStartMX = mouseX;
@@ -183,8 +192,7 @@ public class ViewPlaneGizmo {
         Vec2DDouble dm = Vec2DDouble.from(mouseX - dragStartMX, mouseY - dragStartMY);
         double deltaRight = dm.dot(scrRight) / pixelsPerUnitRight;
         double deltaUp = dm.dot(scrUp) / pixelsPerUnitUp;
-        Vec3DDouble delta = cameraRight.times(deltaRight)
-            .plus(cameraUp.times(deltaUp));
+        Vec3DDouble delta = cameraRight.times(deltaRight).plus(cameraUp.times(deltaUp));
         return startAnchor.plus(delta);
     }
 

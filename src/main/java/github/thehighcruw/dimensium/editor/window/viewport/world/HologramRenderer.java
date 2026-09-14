@@ -4,14 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.window.viewport.world;
 
-import net.minecraft.block.Block;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.texture.TextureMap;
-import net.minecraft.init.Blocks;
-
-import org.lwjgl.opengl.GL11;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.shared.BlockColorCache;
@@ -23,6 +15,12 @@ import github.thehighcruw.dimensium.shared.util.PerfTrace;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
 import github.thehighcruw.dimensium.tool.BuilderTool;
 import github.thehighcruw.dimensium.tool.BuilderToolState;
+import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.texture.TextureMap;
+import net.minecraft.init.Blocks;
+import org.lwjgl.opengl.GL11;
 
 @SideOnly(Side.CLIENT)
 class HologramRenderer {
@@ -109,28 +107,37 @@ class HologramRenderer {
         GL11.glColor4f(1.0f, 1.0f, 1.0f, 0.6f);
         GL11.glLineWidth(1.5f);
         SelectionRenderer.drawBox(
-            sel.minX() - sweptMinX,
-            sel.minY() - sweptMinY,
-            sel.minZ() - sweptMinZ,
-            sel.width(),
-            sel.height(),
-            sel.depth());
+                sel.minX() - sweptMinX,
+                sel.minY() - sweptMinY,
+                sel.minZ() - sweptMinZ,
+                sel.width(),
+                sel.height(),
+                sel.depth());
 
         GL11.glColor4f(0.0f, 0.9f, 1.0f, 0.5f + pulse * 0.3f);
         GL11.glLineWidth(2.0f);
         SelectionRenderer.drawBox(
-            sel.minX() + dx - sweptMinX,
-            sel.minY() + dy - sweptMinY,
-            sel.minZ() + dz - sweptMinZ,
-            sel.width(),
-            sel.height(),
-            sel.depth());
+                sel.minX() + dx - sweptMinX,
+                sel.minY() + dy - sweptMinY,
+                sel.minZ() + dz - sweptMinZ,
+                sel.width(),
+                sel.height(),
+                sel.depth());
 
         GL11.glPopMatrix();
     }
 
-    private void renderDestination(Minecraft mc, SelectionState sel, int ox, int oy, int oz, Vec3DDouble camPos,
-        float pulse, boolean perBlock, int copyIndex, int totalCopies) {
+    private void renderDestination(
+            Minecraft mc,
+            SelectionState sel,
+            int ox,
+            int oy,
+            int oz,
+            Vec3DDouble camPos,
+            float pulse,
+            boolean perBlock,
+            int copyIndex,
+            int totalCopies) {
         double hx = sel.minX() + ox - camPos.x();
         double hy = sel.minY() + oy - camPos.y();
         double hz = sel.minZ() + oz - camPos.z();
@@ -139,8 +146,7 @@ class HologramRenderer {
         if (perBlock && sel.clipboard != null) {
             GL11.glEnable(GL11.GL_DEPTH_TEST);
             GL11.glEnable(GL11.GL_TEXTURE_2D);
-            mc.getTextureManager()
-                .bindTexture(TextureMap.locationBlocksTexture);
+            mc.getTextureManager().bindTexture(TextureMap.locationBlocksTexture);
             GL11.glDisable(GL11.GL_LIGHTING);
             GL11.glEnable(GL11.GL_CULL_FACE);
             GL11.glFrontFace(GL11.GL_CW);
@@ -158,8 +164,7 @@ class HologramRenderer {
                 for (int y = 0; y < h; y++) {
                     for (int z = 0; z < d; z++) {
                         BlockData bd = sel.clipboardGet(x, y, z);
-                        if (bd.block() == Blocks.air || bd.block()
-                            .getRenderType() != 0) continue;
+                        if (bd.block() == Blocks.air || bd.block().getRenderType() != 0) continue;
                         for (int face = 0; face < 6; face++) {
                             if (isFacingAir(sel, face, x, y, z, w, h, d)) {
                                 GhostRenderer.addTexturedFace(t, Vec3DInt.from(x, y, z), bd.block(), bd.meta(), face);
@@ -182,8 +187,7 @@ class HologramRenderer {
                 for (int y = 0; y < h; y++) {
                     for (int z = 0; z < d; z++) {
                         BlockData bd = sel.clipboardGet(x, y, z);
-                        if (bd.block() == Blocks.air || bd.block()
-                            .getRenderType() == 0) continue;
+                        if (bd.block() == Blocks.air || bd.block().getRenderType() == 0) continue;
                         int blockId = Block.getIdFromBlock(bd.block());
                         int rgb = BlockColorCache.INSTANCE.blockColor(blockId, bd.meta());
                         if (rgb < 0) rgb = 0x888888;
@@ -225,13 +229,13 @@ class HologramRenderer {
                             int nx = x + GhostRenderer.NX[face];
                             int ny = y + GhostRenderer.NY[face];
                             int nz = z + GhostRenderer.NZ[face];
-                            boolean neighborOccupied = nx >= 0 && nx < w
-                                && ny >= 0
-                                && ny < h
-                                && nz >= 0
-                                && nz < d
-                                && sel.clipboardGet(nx, ny, nz)
-                                    .block() != Blocks.air;
+                            boolean neighborOccupied = nx >= 0
+                                    && nx < w
+                                    && ny >= 0
+                                    && ny < h
+                                    && nz >= 0
+                                    && nz < d
+                                    && sel.clipboardGet(nx, ny, nz).block() != Blocks.air;
                             if (!neighborOccupied) {
                                 GhostRenderer.addSingleFace(t, Vec3DInt.from(x, y, z), face, 0.02f);
                                 if (++batched % 2048 == 0) {
@@ -271,13 +275,13 @@ class HologramRenderer {
 
     private static boolean isFacingAir(SelectionState sel, int face, int x, int y, int z, int w, int h, int d) {
         int nx = x + GhostRenderer.NX[face], ny = y + GhostRenderer.NY[face], nz = z + GhostRenderer.NZ[face];
-        return nx < 0 || nx >= w
-            || ny < 0
-            || ny >= h
-            || nz < 0
-            || nz >= d
-            || sel.clipboardGet(nx, ny, nz)
-                .block() == Blocks.air;
+        return nx < 0
+                || nx >= w
+                || ny < 0
+                || ny >= h
+                || nz < 0
+                || nz >= d
+                || sel.clipboardGet(nx, ny, nz).block() == Blocks.air;
     }
 
     private void ensureClipWireframeCache(SelectionState sel) {
@@ -292,8 +296,9 @@ class HologramRenderer {
 
         java.util.HashSet<Long> set = new java.util.HashSet<>(w * h * d);
         for (int x = 0; x < w; x++)
-            for (int y = 0; y < h; y++) for (int z = 0; z < d; z++) if (sel.clipboardGet(x, y, z)
-                .block() != Blocks.air) set.add(SelectionRenderer.lPack(x, y, z));
+            for (int y = 0; y < h; y++)
+                for (int z = 0; z < d; z++)
+                    if (sel.clipboardGet(x, y, z).block() != Blocks.air) set.add(SelectionRenderer.lPack(x, y, z));
 
         return GhostRenderer.creaseWireframeFromSet(set);
     }
@@ -301,7 +306,7 @@ class HologramRenderer {
     private static void drawAxisLine(SelectionState sel, BuilderToolState bts, Vec3DDouble camPos) {
         int w = sel.clipDim.x(), h = sel.clipDim.y(), d = sel.clipDim.z();
         Vec3DDouble src = Vec3DDouble.from(sel.minX() + w / 2.0, sel.minY() + h / 2.0, sel.minZ() + d / 2.0)
-            .minus(camPos);
+                .minus(camPos);
         Vec3DDouble dst = src.plus(bts.offset.toDouble());
 
         float lr = bts.axisLock == BuilderToolState.AxisLock.X ? 1.0f : 0.3f;

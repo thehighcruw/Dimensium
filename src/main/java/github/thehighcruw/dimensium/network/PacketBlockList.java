@@ -4,6 +4,11 @@
  */
 package github.thehighcruw.dimensium.network;
 
+import com.gtnewhorizon.gtnhlib.network.base.IPacket;
+import github.thehighcruw.dimensium.Dimensium;
+import github.thehighcruw.dimensium.editor.history.EditHistory;
+import github.thehighcruw.dimensium.editor.history.ServerEditQueue;
+import github.thehighcruw.dimensium.shared.util.PerfTrace;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -12,16 +17,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
 import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraft.network.PacketBuffer;
-
-import com.gtnewhorizon.gtnhlib.network.base.IPacket;
-
-import github.thehighcruw.dimensium.Dimensium;
-import github.thehighcruw.dimensium.editor.history.EditHistory;
-import github.thehighcruw.dimensium.editor.history.ServerEditQueue;
-import github.thehighcruw.dimensium.shared.util.PerfTrace;
 
 /** Arbitrary list of (x, y, z, blockId, meta) placements executed server-side. */
 public class PacketBlockList implements IPacket {
@@ -58,8 +55,8 @@ public class PacketBlockList implements IPacket {
         this.isFinalChunk = isFinalChunk;
     }
 
-    public PacketBlockList(List<int[]> blocks, String action, int transactionId, boolean isFinalChunk,
-        boolean skipHistory) {
+    public PacketBlockList(
+            List<int[]> blocks, String action, int transactionId, boolean isFinalChunk, boolean skipHistory) {
         this(blocks, action, transactionId, isFinalChunk);
         this.skipHistory = skipHistory;
     }
@@ -104,8 +101,7 @@ public class PacketBlockList implements IPacket {
         int count = buf.readInt();
         List<int[]> list = new ArrayList<>(count);
         for (int i = 0; i < count; i++) {
-            list.add(
-                new int[] { buf.readInt(), buf.readInt(), buf.readInt(), buf.readInt(), buf.readShort() & 0xFFFF });
+            list.add(new int[] {buf.readInt(), buf.readInt(), buf.readInt(), buf.readInt(), buf.readShort() & 0xFFFF});
         }
         return list;
     }
@@ -116,21 +112,20 @@ public class PacketBlockList implements IPacket {
     public IPacket executeServer(NetHandlerPlayServer handler) {
         if (!handler.playerEntity.capabilities.isCreativeMode) {
             Dimensium.logger.warn(
-                "[Dimensium] Rejected PacketBlockList from non-creative player {}",
-                handler.playerEntity.getCommandSenderName());
+                    "[Dimensium] Rejected PacketBlockList from non-creative player {}",
+                    handler.playerEntity.getCommandSenderName());
             return null;
         }
 
         UUID pid = handler.playerEntity.getUniqueID();
 
         if (!isFinalChunk) {
-            pendingOps.computeIfAbsent(pid, k -> new HashMap<>())
-                .computeIfAbsent(transactionId, k -> new ArrayList<>())
-                .addAll(blocks);
-            pendingActions.computeIfAbsent(pid, k -> new HashMap<>())
-                .putIfAbsent(transactionId, action);
-            pendingSkip.computeIfAbsent(pid, k -> new HashMap<>())
-                .putIfAbsent(transactionId, skipHistory);
+            pendingOps
+                    .computeIfAbsent(pid, k -> new HashMap<>())
+                    .computeIfAbsent(transactionId, k -> new ArrayList<>())
+                    .addAll(blocks);
+            pendingActions.computeIfAbsent(pid, k -> new HashMap<>()).putIfAbsent(transactionId, action);
+            pendingSkip.computeIfAbsent(pid, k -> new HashMap<>()).putIfAbsent(transactionId, skipHistory);
             return null;
         }
 
@@ -163,12 +158,7 @@ public class PacketBlockList implements IPacket {
             PerfTrace.begin("[SERVER] PacketBlockList enqueue ops=" + accumulated.size());
             PerfTrace.push("enqueue");
             ServerEditQueue.enqueue(
-                pid,
-                handler.playerEntity.worldObj,
-                handler.playerEntity,
-                transactionId,
-                fullAction,
-                accumulated);
+                    pid, handler.playerEntity.worldObj, handler.playerEntity, transactionId, fullAction, accumulated);
         }
         PerfTrace.pop();
         PerfTrace.end(0);

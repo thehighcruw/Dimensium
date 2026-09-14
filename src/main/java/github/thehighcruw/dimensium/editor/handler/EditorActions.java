@@ -4,13 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.handler;
 
-import java.util.List;
-
-import net.minecraft.block.Block;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.world.World;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.history.ClientEditHistory;
@@ -19,6 +12,11 @@ import github.thehighcruw.dimensium.editor.window.ClipboardWindow;
 import github.thehighcruw.dimensium.editor.window.popup.ConflictPopup;
 import github.thehighcruw.dimensium.shared.BlockSender;
 import github.thehighcruw.dimensium.shared.SelectionState;
+import java.util.List;
+import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.world.World;
 
 @SideOnly(Side.CLIENT)
 public final class EditorActions {
@@ -32,10 +30,13 @@ public final class EditorActions {
         int[][] expected = history.peekUndoExpected();
         int mismatches = countMismatches(expected);
         if (mismatches > 0) {
-            ConflictPopup.INSTANCE.show(mismatches, () -> {
-                history.commitUndo();
-                BlockSender.sendChunkedSkipHistory(before);
-            }, history::commitUndo);
+            ConflictPopup.INSTANCE.show(
+                    mismatches,
+                    () -> {
+                        history.commitUndo();
+                        BlockSender.sendChunkedSkipHistory(before);
+                    },
+                    history::commitUndo);
         } else {
             history.commitUndo();
             BlockSender.sendChunkedSkipHistory(before);
@@ -49,10 +50,13 @@ public final class EditorActions {
         int[][] expected = history.peekRedoExpected();
         int mismatches = countMismatches(expected);
         if (mismatches > 0) {
-            ConflictPopup.INSTANCE.show(mismatches, () -> {
-                history.commitRedo();
-                BlockSender.sendChunkedSkipHistory(after);
-            }, history::commitRedo);
+            ConflictPopup.INSTANCE.show(
+                    mismatches,
+                    () -> {
+                        history.commitRedo();
+                        BlockSender.sendChunkedSkipHistory(after);
+                    },
+                    history::commitRedo);
         } else {
             history.commitRedo();
             BlockSender.sendChunkedSkipHistory(after);
@@ -83,8 +87,8 @@ public final class EditorActions {
         SelectionState sel = SelectionState.INSTANCE;
         if (!sel.hasSelection()) return;
         World world = Minecraft.getMinecraft().theWorld;
-        BlockSender
-            .sendChunked(SelectionOps.fillNearestOps(sel, world), I18n.format("dimensium.action.op.fill_nearest"));
+        BlockSender.sendChunked(
+                SelectionOps.fillNearestOps(sel, world), I18n.format("dimensium.action.op.fill_nearest"));
     }
 
     public static void hollow() {
@@ -99,8 +103,8 @@ public final class EditorActions {
         World world = Minecraft.getMinecraft().theWorld;
         SelectedBlockState sbs = SelectedBlockState.INSTANCE;
         BlockSender.sendChunked(
-            SelectionOps.fillGapsOps(sel, world, sbs.getPaintBlock(), sbs.getPaintMeta()),
-            I18n.format("dimensium.action.op.fill_gaps"));
+                SelectionOps.fillGapsOps(sel, world, sbs.getPaintBlock(), sbs.getPaintMeta()),
+                I18n.format("dimensium.action.op.fill_gaps"));
     }
 
     public static void simulateGravity() {
@@ -108,8 +112,7 @@ public final class EditorActions {
         if (!sel.hasSelection()) return;
         World world = Minecraft.getMinecraft().theWorld;
         BlockSender.sendChunked(
-            SelectionOps.simulateGravityOps(sel, world),
-            I18n.format("dimensium.action.op.simulate_gravity"));
+                SelectionOps.simulateGravityOps(sel, world), I18n.format("dimensium.action.op.simulate_gravity"));
     }
 
     public static void triggerUpdates() {
@@ -117,16 +120,14 @@ public final class EditorActions {
         if (!sel.hasSelection()) return;
         World world = Minecraft.getMinecraft().theWorld;
         BlockSender.sendChunked(
-            SelectionOps.triggerUpdatesOps(sel, world),
-            I18n.format("dimensium.action.op.trigger_updates"));
+                SelectionOps.triggerUpdatesOps(sel, world), I18n.format("dimensium.action.op.trigger_updates"));
     }
 
     public static void generateColourField(int includeMask) {
         SelectionState sel = SelectionState.INSTANCE;
         if (!sel.hasSelection()) return;
         BlockSender.sendChunked(
-            SelectionOps.generateColourFieldOps(sel, includeMask),
-            I18n.format("dimensium.action.op.colour_field"));
+                SelectionOps.generateColourFieldOps(sel, includeMask), I18n.format("dimensium.action.op.colour_field"));
     }
 
     public static void saveBlueprint() {

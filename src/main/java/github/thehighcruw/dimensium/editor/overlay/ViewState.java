@@ -4,11 +4,10 @@
  */
 package github.thehighcruw.dimensium.editor.overlay;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 @SideOnly(Side.CLIENT)
 public final class ViewState {

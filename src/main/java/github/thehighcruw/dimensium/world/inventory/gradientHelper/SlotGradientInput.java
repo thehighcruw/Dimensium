@@ -12,5 +12,4 @@ class SlotGradientInput extends Slot {
     SlotGradientInput(IInventory inventory, int slotIndex, int x) {
         super(inventory, slotIndex, x, GradientHelperContainer.INPUT_Y);
     }
-
 }

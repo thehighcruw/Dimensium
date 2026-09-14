@@ -4,17 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.tool.creating.stamp;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
-
-import net.minecraft.block.Block;
-import net.minecraft.client.Minecraft;
-import net.minecraft.init.Blocks;
-import net.minecraft.util.MovingObjectPosition;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.tool.BrushInput;
@@ -27,6 +16,15 @@ import github.thehighcruw.dimensium.shared.math.Mat3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Random;
+import java.util.Set;
+import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
+import net.minecraft.init.Blocks;
+import net.minecraft.util.MovingObjectPosition;
 
 @SideOnly(Side.CLIENT)
 public final class StampBrushInput implements BrushInput {
@@ -40,6 +38,7 @@ public final class StampBrushInput implements BrushInput {
     private final List<int[]> strokePositions = new ArrayList<>();
     /** Seed fixed at drag-start so preview stays stable as the stroke grows. */
     private long dragSeed;
+
     private final Random rng = new Random();
     private final Random previewRng = new Random();
 
@@ -89,7 +88,7 @@ public final class StampBrushInput implements BrushInput {
         BrushUtil.forBrush(bs, (dx, dy, dz) -> {
             if (dy != 0) return;
             long key = ChangeProposal.packKey(cx + dx, 0, cz + dz);
-            if (strokeSet.add(key)) strokePositions.add(new int[] { cx + dx, cy, cz + dz });
+            if (strokeSet.add(key)) strokePositions.add(new int[] {cx + dx, cy, cz + dz});
         });
     }
 
@@ -109,7 +108,7 @@ public final class StampBrushInput implements BrushInput {
         List<int[]> ops = buildOps(instances, state, mc);
         for (int[] op : ops) {
             long key = ChangeProposal.packKey(op[0], op[1], op[2]);
-            p.proposed.put(key, new int[] { op[3], op[4] });
+            p.proposed.put(key, new int[] {op[3], op[4]});
         }
         dragPreview = p;
     }
@@ -123,8 +122,7 @@ public final class StampBrushInput implements BrushInput {
 
             boolean rotated = inst.yaw != 0f;
             Mat3DFloat R = rotated ? ShapeMath.buildRotationMatrix(0f, inst.yaw, 0f) : null;
-            Vec3DFloat center = dim.toFloat()
-                .divide(2f);
+            Vec3DFloat center = dim.toFloat().divide(2f);
 
             for (int[] o : offsets) {
                 int lx = o[0], ly = o[1], lz = o[2];
@@ -134,11 +132,8 @@ public final class StampBrushInput implements BrushInput {
 
                 int wx, wy, wz;
                 if (rotated) {
-                    Vec3DFloat local = Vec3DFloat.from(lx, ly, lz)
-                        .plus(0.5f)
-                        .minus(center);
-                    Vec3DFloat rv = R.mul(local)
-                        .plus(center);
+                    Vec3DFloat local = Vec3DFloat.from(lx, ly, lz).plus(0.5f).minus(center);
+                    Vec3DFloat rv = R.mul(local).plus(center);
                     wx = inst.anchor.x() + (int) Math.floor(rv.x());
                     wy = inst.anchor.y() + (int) Math.floor(rv.y());
                     wz = inst.anchor.z() + (int) Math.floor(rv.z());
@@ -153,7 +148,7 @@ public final class StampBrushInput implements BrushInput {
                     if (existing != null && existing != Blocks.air) continue;
                 }
 
-                ops.add(new int[] { wx, wy, wz, o[3], o[4] });
+                ops.add(new int[] {wx, wy, wz, o[3], o[4]});
             }
         }
         return ops;

@@ -4,19 +4,17 @@
  */
 package github.thehighcruw.dimensium.editor.tool.manipulating.smooth;
 
-import java.util.Arrays;
-
-import net.minecraft.block.Block;
-import net.minecraft.init.Blocks;
-import net.minecraft.util.MovingObjectPosition;
-import net.minecraft.world.World;
-
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushState;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushStrategy;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushUtil;
 import github.thehighcruw.dimensium.editor.tool.brushes.GaussianKernel;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
+import java.util.Arrays;
+import net.minecraft.block.Block;
+import net.minecraft.init.Blocks;
+import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.world.World;
 
 public class SmoothBrush implements BrushStrategy {
 
@@ -66,14 +64,16 @@ public class SmoothBrush implements BrushStrategy {
         Vec3DInt[] positions = new Vec3DInt[maxPos];
         int[] pCentre = new int[maxPos];
         int posCount = 0, originalSolid = 0;
-        for (int dx = -sx; dx <= sx; dx++) for (int dy = -sy; dy <= sy; dy++) for (int dz = -sx; dz <= sx; dz++) {
-            if (!BrushUtil.inShape(bs.brushShape, dx, dy, dz, sx, sy, sx)) continue;
-            int ci = (dx + sx + margin) * snStX + (dy + sy + margin) * dimZ + (dz + sx + margin);
-            if (snapId[ci] != 0) originalSolid++;
-            positions[posCount] = Vec3DInt.from(dx, dy, dz);
-            pCentre[posCount] = ci;
-            posCount++;
-        }
+        for (int dx = -sx; dx <= sx; dx++)
+            for (int dy = -sy; dy <= sy; dy++)
+                for (int dz = -sx; dz <= sx; dz++) {
+                    if (!BrushUtil.inShape(bs.brushShape, dx, dy, dz, sx, sy, sx)) continue;
+                    int ci = (dx + sx + margin) * snStX + (dy + sy + margin) * dimZ + (dz + sx + margin);
+                    if (snapId[ci] != 0) originalSolid++;
+                    positions[posCount] = Vec3DInt.from(dx, dy, dz);
+                    pCentre[posCount] = ci;
+                    posCount++;
+                }
 
         if (posCount == 0) return;
 
@@ -158,8 +158,9 @@ public class SmoothBrush implements BrushStrategy {
 
         float[] sorted = Arrays.copyOf(density, posCount);
         Arrays.sort(sorted);
-        float cutoff = (targetSolid > 0 && targetSolid < posCount) ? sorted[posCount - targetSolid]
-            : (targetSolid <= 0 ? Float.MAX_VALUE : Float.NEGATIVE_INFINITY);
+        float cutoff = (targetSolid > 0 && targetSolid < posCount)
+                ? sorted[posCount - targetSolid]
+                : (targetSolid <= 0 ? Float.MAX_VALUE : Float.NEGATIVE_INFINITY);
 
         int above = 0;
         for (int i = posCount - targetSolid; i < posCount && targetSolid > 0 && targetSolid < posCount; i++)
@@ -176,8 +177,7 @@ public class SmoothBrush implements BrushStrategy {
             } else makeSolid = false;
 
             int ci = pCentre[i];
-            Vec3DInt wp = Vec3DInt.from(ox, oy, oz)
-                .plus(positions[i]);
+            Vec3DInt wp = Vec3DInt.from(ox, oy, oz).plus(positions[i]);
             if (makeSolid && bestId[i] != 0 && solidAssigned < targetSolid) {
                 if (bestId[i] == snapId[ci]) {
                     solidAssigned++;

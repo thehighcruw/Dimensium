@@ -4,12 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.tool.creating.rock;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
-
-import net.minecraft.item.ItemStack;
-
 import github.thehighcruw.dimensium.editor.tool.creating.path.PathMath;
 import github.thehighcruw.dimensium.editor.tool.gizmo.WithAxisTranslationGizmo;
 import github.thehighcruw.dimensium.editor.tool.gizmo.WithPlaneTranslationGizmo;
@@ -17,6 +11,10 @@ import github.thehighcruw.dimensium.editor.window.viewport.world.PlaneTranslatio
 import github.thehighcruw.dimensium.editor.window.viewport.world.TranslationGizmo;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
+import net.minecraft.item.ItemStack;
 
 public class PathToolState implements WithAxisTranslationGizmo, WithPlaneTranslationGizmo {
 
@@ -36,7 +34,6 @@ public class PathToolState implements WithAxisTranslationGizmo, WithPlaneTransla
     }
 
     public enum CurveType {
-
         BRESENHAM("Bresenham"),
         DDA("DDA"),
         CATENARY("Catenary"),
@@ -51,7 +48,6 @@ public class PathToolState implements WithAxisTranslationGizmo, WithPlaneTransla
     }
 
     public enum PathInterp {
-
         NEAREST("Nearest"),
         LINEAR("Linear"),
         BEZIER("Bezier");
@@ -69,8 +65,7 @@ public class PathToolState implements WithAxisTranslationGizmo, WithPlaneTransla
     public boolean looped = false;
     public float catenarySlack = 0.5f;
     public PathInterp interp = PathInterp.NEAREST;
-    public long interpSeed = ThreadLocalRandom.current()
-        .nextLong();
+    public long interpSeed = ThreadLocalRandom.current().nextLong();
 
     public ChangeProposal preview = null;
 
@@ -111,7 +106,7 @@ public class PathToolState implements WithAxisTranslationGizmo, WithPlaneTransla
             if (ref != null && b == null) return true;
             if (ref != null) {
                 if (net.minecraft.block.Block.getBlockFromItem(ref.getItem())
-                    != net.minecraft.block.Block.getBlockFromItem(b.getItem())) return true;
+                        != net.minecraft.block.Block.getBlockFromItem(b.getItem())) return true;
                 if (ref.getItemDamage() != b.getItemDamage()) return true;
             }
         }
@@ -148,7 +143,7 @@ public class PathToolState implements WithAxisTranslationGizmo, WithPlaneTransla
         }
         ChangeProposal p = ChangeProposal.forPreview();
         for (int[] b : blocks) {
-            p.proposed.put(ChangeProposal.packKey(b[0], b[1], b[2]), new int[] { b[3], b[4] });
+            p.proposed.put(ChangeProposal.packKey(b[0], b[1], b[2]), new int[] {b[3], b[4]});
         }
         preview = p;
     }
@@ -156,38 +151,36 @@ public class PathToolState implements WithAxisTranslationGizmo, WithPlaneTransla
     private String buildKey(ItemStack activeBlock) {
         StringBuilder sb = new StringBuilder();
         sb.append(curveType.ordinal())
-            .append(',')
-            .append(looped)
-            .append(',')
-            .append(catenarySlack)
-            .append(',')
-            .append(interp.ordinal())
-            .append(',')
-            .append(interpSeed)
-            .append(',');
+                .append(',')
+                .append(looped)
+                .append(',')
+                .append(catenarySlack)
+                .append(',')
+                .append(interp.ordinal())
+                .append(',')
+                .append(interpSeed)
+                .append(',');
         for (PathPoint pt : points) {
             sb.append(pt.pos.x())
-                .append(',')
-                .append(pt.pos.y())
-                .append(',')
-                .append(pt.pos.z())
-                .append(',')
-                .append(pt.radius)
-                .append(',');
+                    .append(',')
+                    .append(pt.pos.y())
+                    .append(',')
+                    .append(pt.pos.z())
+                    .append(',')
+                    .append(pt.radius)
+                    .append(',');
             if (pt.block != null) {
-                sb.append(
-                    net.minecraft.block.Block
-                        .getIdFromBlock(net.minecraft.block.Block.getBlockFromItem(pt.block.getItem())))
-                    .append(',')
-                    .append(pt.block.getItemDamage())
-                    .append(';');
+                sb.append(net.minecraft.block.Block.getIdFromBlock(
+                                net.minecraft.block.Block.getBlockFromItem(pt.block.getItem())))
+                        .append(',')
+                        .append(pt.block.getItemDamage())
+                        .append(';');
             } else if (activeBlock != null) {
-                sb.append(
-                    net.minecraft.block.Block
-                        .getIdFromBlock(net.minecraft.block.Block.getBlockFromItem(activeBlock.getItem())))
-                    .append(',')
-                    .append(activeBlock.getItemDamage())
-                    .append(';');
+                sb.append(net.minecraft.block.Block.getIdFromBlock(
+                                net.minecraft.block.Block.getBlockFromItem(activeBlock.getItem())))
+                        .append(',')
+                        .append(activeBlock.getItemDamage())
+                        .append(';');
             } else {
                 sb.append("null;");
             }

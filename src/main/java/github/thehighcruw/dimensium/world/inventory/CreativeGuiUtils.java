@@ -5,7 +5,6 @@
 package github.thehighcruw.dimensium.world.inventory;
 
 import java.util.List;
-
 import net.minecraft.client.gui.GuiButton;
 
 public class CreativeGuiUtils {

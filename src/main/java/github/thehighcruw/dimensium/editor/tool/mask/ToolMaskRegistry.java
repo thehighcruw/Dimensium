@@ -4,18 +4,16 @@
  */
 package github.thehighcruw.dimensium.editor.tool.mask;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import net.minecraft.client.Minecraft;
-import net.minecraft.world.World;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.World;
 
 @SideOnly(Side.CLIENT)
 public final class ToolMaskRegistry {
@@ -121,7 +119,7 @@ public final class ToolMaskRegistry {
     private String uniqueName(String base) {
         Set<String> existing = allNames();
         if (!existing.contains(base)) return base;
-        for (int i = 1;; i++) {
+        for (int i = 1; ; i++) {
             String candidate = base + " (" + i + ")";
             if (!existing.contains(candidate)) return candidate;
         }

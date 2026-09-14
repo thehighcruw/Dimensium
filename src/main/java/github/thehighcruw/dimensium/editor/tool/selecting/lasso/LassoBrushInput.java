@@ -4,10 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.tool.selecting.lasso;
 
-import net.minecraft.client.Minecraft;
-
-import org.lwjgl.input.Mouse;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.freecam.FreecamState;
@@ -17,6 +13,8 @@ import github.thehighcruw.dimensium.editor.tool.selecting.BooleanOp;
 import github.thehighcruw.dimensium.shared.KeyConstants;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
+import net.minecraft.client.Minecraft;
+import org.lwjgl.input.Mouse;
 
 @SideOnly(Side.CLIENT)
 public class LassoBrushInput implements BrushInput {
@@ -33,24 +31,24 @@ public class LassoBrushInput implements BrushInput {
             lasso.dragging = true;
             float cx = fs.cursorX, cy = fs.cursorY;
             if (lasso.polygonPoints.isEmpty()) {
-                lasso.polygonPoints.add(new float[] { cx, cy });
+                lasso.polygonPoints.add(new float[] {cx, cy});
             } else {
                 float[] last = lasso.polygonPoints.get(lasso.polygonPoints.size() - 1);
                 float dx = cx - last[0], dy = cy - last[1];
                 if (dx * dx + dy * dy >= 4.0f) {
-                    lasso.polygonPoints.add(new float[] { cx, cy });
+                    lasso.polygonPoints.add(new float[] {cx, cy});
                 }
             }
         } else if (lasso.dragging) {
             lasso.dragging = false;
             if (lasso.polygonPoints.size() >= 3) {
                 java.util.Set<Long> blocks = LassoComputer.compute(
-                    mc,
-                    lasso.polygonPoints,
-                    lasso.lassoDepth,
-                    lasso.lassoIncludeNonSolid,
-                    RenderUtils.scaledWidth(),
-                    RenderUtils.scaledHeight());
+                        mc,
+                        lasso.polygonPoints,
+                        lasso.lassoDepth,
+                        lasso.lassoIncludeNonSolid,
+                        RenderUtils.scaledWidth(),
+                        RenderUtils.scaledHeight());
                 SelectionState.INSTANCE.applyOp(ToolMaskRegistry.INSTANCE.filterSelection(blocks), BooleanOp.REPLACE);
             }
             lasso.polygonPoints.clear();

@@ -4,6 +4,10 @@
  */
 package github.thehighcruw.dimensium.editor.history;
 
+import com.github.bsideup.jabel.Desugar;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import github.thehighcruw.dimensium.DimensiumConfig;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
@@ -18,14 +22,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
-
 import net.minecraft.client.Minecraft;
-
-import com.github.bsideup.jabel.Desugar;
-
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
-import github.thehighcruw.dimensium.DimensiumConfig;
 
 @SideOnly(Side.CLIENT)
 public class ClientEditHistory {
@@ -37,9 +34,7 @@ public class ClientEditHistory {
      * @param after  {x,y,z,id,meta}
      */
     @Desugar
-    public record Entry(String action, int[][] before, int[][] after) {
-
-    }
+    public record Entry(String action, int[][] before, int[][] after) {}
 
     private final List<Entry> entries = new ArrayList<>();
     public int pointer = -1;
@@ -160,8 +155,7 @@ public class ClientEditHistory {
     }
 
     private File saveFile() {
-        String uuid = Minecraft.getMinecraft().thePlayer.getUniqueID()
-            .toString();
+        String uuid = Minecraft.getMinecraft().thePlayer.getUniqueID().toString();
         return new File(Minecraft.getMinecraft().mcDataDir, "dimensium_history/" + uuid + ".dat");
     }
 
@@ -171,8 +165,8 @@ public class ClientEditHistory {
         if (!parent.exists() && !parent.mkdirs()) {
             return;
         }
-        try (DataOutputStream out = new DataOutputStream(
-            new BufferedOutputStream(new GZIPOutputStream(new FileOutputStream(file))))) {
+        try (DataOutputStream out =
+                new DataOutputStream(new BufferedOutputStream(new GZIPOutputStream(new FileOutputStream(file))))) {
             out.writeInt(pointer);
             out.writeInt(entries.size());
             for (Entry e : entries) {
@@ -182,7 +176,8 @@ public class ClientEditHistory {
                 writeBlockArray(out, e.before);
                 writeBlockArray(out, e.after);
             }
-        } catch (IOException ignored) {}
+        } catch (IOException ignored) {
+        }
     }
 
     private void load() {
@@ -192,8 +187,8 @@ public class ClientEditHistory {
         if (mc.thePlayer == null) return;
         File file = saveFile();
         if (!file.exists()) return;
-        try (DataInputStream in = new DataInputStream(
-            new BufferedInputStream(new GZIPInputStream(new FileInputStream(file))))) {
+        try (DataInputStream in =
+                new DataInputStream(new BufferedInputStream(new GZIPInputStream(new FileInputStream(file))))) {
             pointer = in.readInt();
             int count = in.readInt();
             for (int i = 0; i < count; i++) {

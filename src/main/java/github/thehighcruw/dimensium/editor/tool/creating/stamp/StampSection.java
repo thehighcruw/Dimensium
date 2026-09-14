@@ -4,10 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.tool.creating.stamp;
 
-import java.util.ArrayList;
-
-import net.minecraft.client.resources.I18n;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.blueprint.Blueprint;
@@ -18,6 +14,8 @@ import github.thehighcruw.dimensium.editor.window.popup.BlueprintBrowserPopup;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import imgui.ImGui;
 import imgui.type.ImBoolean;
+import java.util.ArrayList;
+import net.minecraft.client.resources.I18n;
 
 @SideOnly(Side.CLIENT)
 public class StampSection implements ToolSection {
@@ -46,27 +44,27 @@ public class StampSection implements ToolSection {
             StampEntry entry = state.blueprints.get(i);
             ImGui.pushID(i);
 
-            String label = entry.blueprint.name()
-                .isEmpty() ? I18n.format("dimensium.stamp.unnamed") : entry.blueprint.name();
+            String label =
+                    entry.blueprint.name().isEmpty() ? I18n.format("dimensium.stamp.unnamed") : entry.blueprint.name();
             ImGui.text(label);
             ImGui.sameLine();
             if (ImGui.smallButton(I18n.format("dimensium.stamp.remove") + "##rm")) removeIdx = i;
 
             entryChanBuf[0] = entry.chance;
             if (ImGui.sliderFloat(
-                I18n.format("dimensium.stamp.entry.chance") + "##ec",
-                entryChanBuf,
-                StampToolState.ENTRY_CHANCE_MIN,
-                StampToolState.ENTRY_CHANCE_MAX)) {
+                    I18n.format("dimensium.stamp.entry.chance") + "##ec",
+                    entryChanBuf,
+                    StampToolState.ENTRY_CHANCE_MIN,
+                    StampToolState.ENTRY_CHANCE_MAX)) {
                 entry.chance = entryChanBuf[0];
             }
 
             entryOffY[0] = entry.offsetY;
             if (ImGui.sliderInt(
-                I18n.format("dimensium.stamp.entry.offset_y") + "##ey",
-                entryOffY,
-                StampToolState.OFFSET_Y_MIN,
-                StampToolState.OFFSET_Y_MAX)) {
+                    I18n.format("dimensium.stamp.entry.offset_y") + "##ey",
+                    entryOffY,
+                    StampToolState.OFFSET_Y_MIN,
+                    StampToolState.OFFSET_Y_MAX)) {
                 entry.offsetY = entryOffY[0];
             }
 
@@ -90,19 +88,19 @@ public class StampSection implements ToolSection {
 
         baseChance[0] = state.baseChance;
         if (ImGui.sliderFloat(
-            I18n.format("dimensium.stamp.base_chance") + "##bc",
-            baseChance,
-            StampToolState.BASE_CHANCE_MIN,
-            StampToolState.BASE_CHANCE_MAX)) {
+                I18n.format("dimensium.stamp.base_chance") + "##bc",
+                baseChance,
+                StampToolState.BASE_CHANCE_MIN,
+                StampToolState.BASE_CHANCE_MAX)) {
             state.baseChance = baseChance[0];
         }
 
         minSpacing[0] = state.minSpacingPct;
         if (ImGui.sliderFloat(
-            I18n.format("dimensium.stamp.min_spacing") + "##ms",
-            minSpacing,
-            StampToolState.MIN_SPACING_MIN,
-            StampToolState.MIN_SPACING_MAX)) {
+                I18n.format("dimensium.stamp.min_spacing") + "##ms",
+                minSpacing,
+                StampToolState.MIN_SPACING_MIN,
+                StampToolState.MIN_SPACING_MAX)) {
             state.minSpacingPct = minSpacing[0];
         }
 
@@ -129,11 +127,7 @@ public class StampSection implements ToolSection {
         if (sel.clipboard == null || sel.clipboard.isEmpty()) return;
 
         Blueprint bp = Blueprint.fromClipboard(
-            I18n.format("dimensium.stamp.clipboard_name"),
-            new ArrayList<>(),
-            sel.clipboard,
-            sel.clipDim,
-            null);
+                I18n.format("dimensium.stamp.clipboard_name"), new ArrayList<>(), sel.clipboard, sel.clipDim, null);
         state.blueprints.add(new StampEntry(bp));
     }
 }

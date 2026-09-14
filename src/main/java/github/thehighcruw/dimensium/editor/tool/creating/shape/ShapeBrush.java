@@ -4,18 +4,16 @@
  */
 package github.thehighcruw.dimensium.editor.tool.creating.shape;
 
+import github.thehighcruw.dimensium.DimensiumConfig;
+import github.thehighcruw.dimensium.editor.tool.brushes.BrushStrategy;
+import github.thehighcruw.dimensium.editor.tool.state.PaletteState;
+import github.thehighcruw.dimensium.tool.ChangeProposal;
 import java.util.Random;
-
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.World;
-
-import github.thehighcruw.dimensium.DimensiumConfig;
-import github.thehighcruw.dimensium.editor.tool.brushes.BrushStrategy;
-import github.thehighcruw.dimensium.editor.tool.state.PaletteState;
-import github.thehighcruw.dimensium.tool.ChangeProposal;
 
 public class ShapeBrush implements BrushStrategy {
 
@@ -39,10 +37,11 @@ public class ShapeBrush implements BrushStrategy {
             h = 1;
             d = r * 2 + 1;
         } else if (!s.shapeSeparateAxes
-            && (s.shapeType == ShapeToolState.ShapeType.CYLINDER || s.shapeType == ShapeToolState.ShapeType.CONE
-                || s.shapeType == ShapeToolState.ShapeType.TUBE)) {
-                    d = w;
-                }
+                && (s.shapeType == ShapeToolState.ShapeType.CYLINDER
+                        || s.shapeType == ShapeToolState.ShapeType.CONE
+                        || s.shapeType == ShapeToolState.ShapeType.TUBE)) {
+            d = w;
+        }
 
         // Center on hit block: offset so dx=0..w-1 is symmetric around mop.blockX.
         int x = mop.blockX - (w - 1) / 2;
@@ -67,23 +66,23 @@ public class ShapeBrush implements BrushStrategy {
 
     private static boolean inShapeGeom(ShapeToolState s, int dx, int dy, int dz, int w, int h, int d) {
         return ShapeMath.inShapeGeom(
-            s.shapeType,
-            dx,
-            dy,
-            dz,
-            w,
-            h,
-            d,
-            s.shapeHollow,
-            s.shapeExponent,
-            s.torusRingRadius,
-            s.torusRingRadiusZ,
-            s.torusTubeRadius,
-            s.tubeWallThickness,
-            s.shapeSupersphereExp,
-            s.shapePolygonSides,
-            s.shapeSpiralSpacing,
-            s.shapeSpiralTurns,
-            DimensiumConfig.shapeThreshold);
+                s.shapeType,
+                dx,
+                dy,
+                dz,
+                w,
+                h,
+                d,
+                s.shapeHollow,
+                s.shapeExponent,
+                s.torusRingRadius,
+                s.torusRingRadiusZ,
+                s.torusTubeRadius,
+                s.tubeWallThickness,
+                s.shapeSupersphereExp,
+                s.shapePolygonSides,
+                s.shapeSpiralSpacing,
+                s.shapeSpiralTurns,
+                DimensiumConfig.shapeThreshold);
     }
 }

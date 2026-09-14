@@ -4,14 +4,13 @@
  */
 package github.thehighcruw.dimensium.editor.overlay;
 
-import net.minecraft.client.resources.I18n;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import imgui.flag.ImGuiDir;
 import imgui.flag.ImGuiDockNodeFlags;
 import imgui.internal.ImGui;
 import imgui.type.ImInt;
+import net.minecraft.client.resources.I18n;
 
 @SideOnly(Side.CLIENT)
 final class DockDefaultLayout {

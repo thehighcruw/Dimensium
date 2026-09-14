@@ -4,13 +4,11 @@
  */
 package github.thehighcruw.dimensium.world.inventory.colorPicker;
 
-import net.minecraft.client.gui.Gui;
-import net.minecraft.client.renderer.Tessellator;
-
-import org.lwjgl.opengl.GL11;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import net.minecraft.client.gui.Gui;
+import net.minecraft.client.renderer.Tessellator;
+import org.lwjgl.opengl.GL11;
 
 @SideOnly(Side.CLIENT)
 public class ColourPickerSlider extends Gui {
@@ -20,6 +18,7 @@ public class ColourPickerSlider extends Gui {
 
     /** Gradient stops: packed ARGB pairs (left → right). */
     private int leftColor;
+
     private int rightColor;
     private boolean rainbowHue;
 
@@ -111,13 +110,14 @@ public class ColourPickerSlider extends Gui {
 
     private static void drawRainbow(Tessellator tess, int x, int y, int w) {
         // 6 hue segments: 0°→60°→120°→180°→240°→300°→360°
-        float[][] stops = { { 1f, 0f, 0f }, // red
-            { 1f, 1f, 0f }, // yellow
-            { 0f, 1f, 0f }, // green
-            { 0f, 1f, 1f }, // cyan
-            { 0f, 0f, 1f }, // blue
-            { 1f, 0f, 1f }, // magenta
-            { 1f, 0f, 0f }, // red again
+        float[][] stops = {
+            {1f, 0f, 0f}, // red
+            {1f, 1f, 0f}, // yellow
+            {0f, 1f, 0f}, // green
+            {0f, 1f, 1f}, // cyan
+            {0f, 0f, 1f}, // blue
+            {1f, 0f, 1f}, // magenta
+            {1f, 0f, 0f}, // red again
         };
         int segments = stops.length - 1;
         tess.startDrawingQuads();

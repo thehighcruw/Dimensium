@@ -4,14 +4,13 @@
  */
 package github.thehighcruw.dimensium.editor.tool.creating.path;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.util.MovingObjectPosition;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.tool.ToolRenderer;
 import github.thehighcruw.dimensium.editor.tool.creating.rock.PathToolState;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
+import net.minecraft.client.Minecraft;
+import net.minecraft.util.MovingObjectPosition;
 
 @SideOnly(Side.CLIENT)
 public class PathToolRenderer implements ToolRenderer {
@@ -36,14 +35,13 @@ public class PathToolRenderer implements ToolRenderer {
         if (pathState.selectedIndex < 0 || pathState.points.isEmpty()) return;
         PathToolState.PathPoint selPt = pathState.selectedPoint();
         if (selPt == null) return;
-        if (!pathState.getAxisTranslationGizmo()
-            .isDragging()
-            && !pathState.getPlaneTranslationGizmo()
-                .isDragging()
-            && mc.renderViewEntity != null) {
+        if (!pathState.getAxisTranslationGizmo().isDragging()
+                && !pathState.getPlaneTranslationGizmo().isDragging()
+                && mc.renderViewEntity != null) {
             Vec3DDouble gp = Vec3DDouble.from(selPt.pos.x() + 0.5, selPt.pos.y() + 0.5, selPt.pos.z() + 0.5);
-            pathState.getAxisTranslationGizmo()
-                .updateHover(mx3d, my3d, mc.renderViewEntity, gp.x(), gp.y(), gp.z(), 0, 0, 0);
+            pathState
+                    .getAxisTranslationGizmo()
+                    .updateHover(mx3d, my3d, mc.renderViewEntity, gp.x(), gp.y(), gp.z(), 0, 0, 0);
         }
     }
 }

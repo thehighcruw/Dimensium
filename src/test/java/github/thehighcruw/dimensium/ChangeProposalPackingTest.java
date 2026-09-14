@@ -6,12 +6,10 @@ package github.thehighcruw.dimensium;
 
 import static org.junit.Assert.*;
 
+import github.thehighcruw.dimensium.tool.ChangeProposal;
 import java.util.List;
-
 import org.junit.After;
 import org.junit.Test;
-
-import github.thehighcruw.dimensium.tool.ChangeProposal;
 
 public class ChangeProposalPackingTest {
 
@@ -90,7 +88,7 @@ public class ChangeProposalPackingTest {
     public void flushClearsActiveAndReturnsPending() {
         ChangeProposal.startDrag(null);
         // Manually insert an entry to bypass World dependency
-        ChangeProposal.getActiveDrag().proposed.put(ChangeProposal.packKey(10, 64, 20), new int[] { 1, 0 });
+        ChangeProposal.getActiveDrag().proposed.put(ChangeProposal.packKey(10, 64, 20), new int[] {1, 0});
 
         List<int[]> ops = ChangeProposal.flush();
 
@@ -108,10 +106,11 @@ public class ChangeProposalPackingTest {
     public void laterWriteToSamePositionOverwritesEarlier() {
         ChangeProposal.startDrag(null);
         long key = ChangeProposal.packKey(5, 70, 5);
-        ChangeProposal.getActiveDrag().proposed.put(key, new int[] { 1, 0 });
-        ChangeProposal.getActiveDrag().proposed.put(key, new int[] { 4, 2 });
+        ChangeProposal.getActiveDrag().proposed.put(key, new int[] {1, 0});
+        ChangeProposal.getActiveDrag().proposed.put(key, new int[] {4, 2});
 
         assertEquals(1, ChangeProposal.getActiveDrag().proposed.size());
-        assertArrayEquals(new int[] { 4, 2 }, ChangeProposal.getActiveDrag().proposed.get(key));
+        assertArrayEquals(
+                new int[] {4, 2}, ChangeProposal.getActiveDrag().proposed.get(key));
     }
 }

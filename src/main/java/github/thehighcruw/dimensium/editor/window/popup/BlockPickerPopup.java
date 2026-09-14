@@ -4,15 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.window.popup;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Consumer;
-
-import net.minecraft.block.Block;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.item.ItemStack;
-import net.minecraftforge.oredict.OreDictionary;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.window.RecentBlockHistory;
@@ -26,6 +17,13 @@ import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiKey;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImString;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
+import net.minecraft.block.Block;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.item.ItemStack;
+import net.minecraftforge.oredict.OreDictionary;
 
 @SideOnly(Side.CLIENT)
 public class BlockPickerPopup {
@@ -113,8 +111,7 @@ public class BlockPickerPopup {
 
         float padY = 8f; // windowPadding.y
         float frameH = ImGui.getFrameHeight(); // input field: font + framePadding*2
-        float spacing = ImGui.getStyle()
-            .getItemSpacingY(); // 4px
+        float spacing = ImGui.getStyle().getItemSpacingY(); // 4px
         float sepH = 1f + spacing; // separator line + trailing spacing
 
         float _cell = cell();
@@ -137,15 +134,15 @@ public class BlockPickerPopup {
         float windowH = headerH + airBtnH + gridChildH + recentH + padY;
 
         ImVec2 display = new ImVec2();
-        ImGui.getIO()
-            .getDisplaySize(display);
+        ImGui.getIO().getDisplaySize(display);
         ImGui.setNextWindowPos((display.x - _popupW) * 0.5f, (display.y - windowH) * 0.5f, ImGuiCond.Always);
         ImGui.setNextWindowSize(_popupW, windowH, ImGuiCond.Always);
 
-        int flags = ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoResize
-            | ImGuiWindowFlags.NoMove
-            | ImGuiWindowFlags.NoScrollbar
-            | ImGuiWindowFlags.NoScrollWithMouse;
+        int flags = ImGuiWindowFlags.NoTitleBar
+                | ImGuiWindowFlags.NoResize
+                | ImGuiWindowFlags.NoMove
+                | ImGuiWindowFlags.NoScrollbar
+                | ImGuiWindowFlags.NoScrollWithMouse;
 
         if (!ImGui.beginPopupModal(POPUP_ID, flags)) {
             // ImGui closed it (e.g. ESC)
@@ -232,8 +229,7 @@ public class BlockPickerPopup {
     }
 
     private void confirmSelection(List<ItemStack> results, int clicked) {
-        ItemStack picked = results.get(clicked)
-            .copy();
+        ItemStack picked = results.get(clicked).copy();
         RecentBlockHistory.add(picked);
         if (callback != null) callback.accept(picked);
         ImGui.closeCurrentPopup();
@@ -249,8 +245,7 @@ public class BlockPickerPopup {
         if (query.equals(cachedQuery)) return cachedResults;
         cachedQuery = query;
         cachedResults = new ArrayList<>();
-        String q = query.toLowerCase()
-            .trim();
+        String q = query.toLowerCase().trim();
         for (ItemStack stack : BlockUtils.collectPlaceableBlocks()) {
             if (q.isEmpty() || matchesStack(stack, q)) {
                 cachedResults.add(stack);
@@ -267,17 +262,11 @@ public class BlockPickerPopup {
     }
 
     private static boolean matchesStack(ItemStack stack, String q) {
-        if (stack.getDisplayName()
-            .toLowerCase()
-            .contains(q)) return true;
+        if (stack.getDisplayName().toLowerCase().contains(q)) return true;
         Block b = Block.getBlockFromItem(stack.getItem());
-        if (b != null && b.getUnlocalizedName()
-            .toLowerCase()
-            .contains(q)) return true;
+        if (b != null && b.getUnlocalizedName().toLowerCase().contains(q)) return true;
         for (int oreId : OreDictionary.getOreIDs(stack)) {
-            if (OreDictionary.getOreName(oreId)
-                .toLowerCase()
-                .contains(q)) return true;
+            if (OreDictionary.getOreName(oreId).toLowerCase().contains(q)) return true;
         }
         return false;
     }

@@ -6,17 +6,15 @@ package github.thehighcruw.dimensium;
 
 import static org.junit.Assert.*;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import github.thehighcruw.dimensium.editor.handler.SelectionOps;
 import github.thehighcruw.dimensium.editor.tool.selecting.BooleanOp;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * Tests SelectionOps methods that do not require a live World.
@@ -41,21 +39,19 @@ public class SelectionOpsTest {
 
     @Test
     public void selectionToAirOpsEmptySelectionReturnsEmpty() {
-        assertTrue(
-            SelectionOps.selectionToAirOps(sel)
-                .isEmpty());
+        assertTrue(SelectionOps.selectionToAirOps(sel).isEmpty());
     }
 
     @Test
     public void selectionToAirOpsProducesOneOpPerBlock() {
-        addBlocks(new int[][] { { 1, 64, 1 }, { 2, 64, 2 }, { 3, 64, 3 } });
+        addBlocks(new int[][] {{1, 64, 1}, {2, 64, 2}, {3, 64, 3}});
         List<int[]> ops = SelectionOps.selectionToAirOps(sel);
         assertEquals(3, ops.size());
     }
 
     @Test
     public void selectionToAirOpsSetsBlockIdAndMetaToZero() {
-        addBlocks(new int[][] { { 5, 64, 5 } });
+        addBlocks(new int[][] {{5, 64, 5}});
         List<int[]> ops = SelectionOps.selectionToAirOps(sel);
         assertEquals(1, ops.size());
         int[] op = ops.get(0);
@@ -70,29 +66,27 @@ public class SelectionOpsTest {
 
     @Test
     public void hollowOpsSingleBlockHasNoInterior() {
-        addBlocks(new int[][] { { 5, 64, 5 } });
+        addBlocks(new int[][] {{5, 64, 5}});
         // Single block is always a shell — hollowOps should produce no ops
-        assertTrue(
-            SelectionOps.hollowOps(sel)
-                .isEmpty());
+        assertTrue(SelectionOps.hollowOps(sel).isEmpty());
     }
 
     @Test
     public void hollowOpsLineOfBlocksHasNoInterior() {
         // A 1×1×N line: every block touches air on at least one face
-        addBlocks(new int[][] { { 0, 64, 0 }, { 1, 64, 0 }, { 2, 64, 0 }, { 3, 64, 0 } });
+        addBlocks(new int[][] {{0, 64, 0}, {1, 64, 0}, {2, 64, 0}, {3, 64, 0}});
         assertTrue(
-            "a 1-block-thick line has no interior",
-            SelectionOps.hollowOps(sel)
-                .isEmpty());
+                "a 1-block-thick line has no interior",
+                SelectionOps.hollowOps(sel).isEmpty());
     }
 
     @Test
     public void hollowOps3x3x3CubeHasOneInteriorBlock() {
         // 3×3×3 cube: only the centre block (1,65,1) is fully surrounded
         Set<Long> blocks = new HashSet<>();
-        for (int x = 0; x < 3; x++) for (int y = 64; y < 67; y++)
-            for (int z = 0; z < 3; z++) blocks.add(SelectionState.pack(Vec3DInt.from(x, y, z)));
+        for (int x = 0; x < 3; x++)
+            for (int y = 64; y < 67; y++)
+                for (int z = 0; z < 3; z++) blocks.add(SelectionState.pack(Vec3DInt.from(x, y, z)));
         sel.applyOp(blocks, BooleanOp.REPLACE);
 
         List<int[]> ops = SelectionOps.hollowOps(sel);
@@ -109,8 +103,9 @@ public class SelectionOpsTest {
     public void hollowOps5x5x5CubeCorrectInteriorCount() {
         // 5×5×5 = 125 total, interior 3×3×3 = 27 blocks
         Set<Long> blocks = new HashSet<>();
-        for (int x = 0; x < 5; x++) for (int y = 64; y < 69; y++)
-            for (int z = 0; z < 5; z++) blocks.add(SelectionState.pack(Vec3DInt.from(x, y, z)));
+        for (int x = 0; x < 5; x++)
+            for (int y = 64; y < 69; y++)
+                for (int z = 0; z < 5; z++) blocks.add(SelectionState.pack(Vec3DInt.from(x, y, z)));
         sel.applyOp(blocks, BooleanOp.REPLACE);
 
         List<int[]> ops = SelectionOps.hollowOps(sel);
@@ -121,8 +116,9 @@ public class SelectionOpsTest {
     public void hollowOpsOnlyAirsInterior() {
         // All hollow ops must have blockId=0 meta=0
         Set<Long> blocks = new HashSet<>();
-        for (int x = 0; x < 5; x++) for (int y = 64; y < 69; y++)
-            for (int z = 0; z < 5; z++) blocks.add(SelectionState.pack(Vec3DInt.from(x, y, z)));
+        for (int x = 0; x < 5; x++)
+            for (int y = 64; y < 69; y++)
+                for (int z = 0; z < 5; z++) blocks.add(SelectionState.pack(Vec3DInt.from(x, y, z)));
         sel.applyOp(blocks, BooleanOp.REPLACE);
 
         for (int[] op : SelectionOps.hollowOps(sel)) {
@@ -134,8 +130,9 @@ public class SelectionOpsTest {
     @Test
     public void hollowOpsInteriorBlocksMustBeInsideSelection() {
         Set<Long> blocks = new HashSet<>();
-        for (int x = 0; x < 5; x++) for (int y = 64; y < 69; y++)
-            for (int z = 0; z < 5; z++) blocks.add(SelectionState.pack(Vec3DInt.from(x, y, z)));
+        for (int x = 0; x < 5; x++)
+            for (int y = 64; y < 69; y++)
+                for (int z = 0; z < 5; z++) blocks.add(SelectionState.pack(Vec3DInt.from(x, y, z)));
         sel.applyOp(blocks, BooleanOp.REPLACE);
 
         for (int[] op : SelectionOps.hollowOps(sel)) {

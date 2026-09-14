@@ -4,18 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.tool.creating.fill;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import net.minecraft.block.Block;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.init.Blocks;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.MovingObjectPosition;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.handler.ExtrudeHelper;
@@ -28,6 +16,16 @@ import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.tool.BuilderToolState;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.init.Blocks;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.MovingObjectPosition;
 
 @SideOnly(Side.CLIENT)
 public class FillBrushInput implements BrushInput {
@@ -66,8 +64,8 @@ public class FillBrushInput implements BrushInput {
 
         FloodfillToolState ts = FloodfillToolState.INSTANCE;
         boolean goDown = ts.floodfillDir == FloodfillToolState.FloodfillDir.DOWN;
-        Set<Long> airBlocks = SelectionState
-            .floodFillAir(mc.theWorld, airX, airY, airZ, ts.floodfillLimit, goDown, ts.floodfillCorners);
+        Set<Long> airBlocks = SelectionState.floodFillAir(
+                mc.theWorld, airX, airY, airZ, ts.floodfillLimit, goDown, ts.floodfillCorners);
         if (airBlocks.isEmpty()) return;
 
         ItemStack picked = SelectedBlockState.INSTANCE.selectedBlock;
@@ -81,7 +79,7 @@ public class FillBrushInput implements BrushInput {
         for (long key : airBlocks) {
             Vec3DInt bv = SelectionState.unpack(key);
             int bx = bv.x(), by = bv.y(), bz = bv.z();
-            p.proposed.put(ChangeProposal.packKey(bx, by, bz), new int[] { paintId, paintMeta });
+            p.proposed.put(ChangeProposal.packKey(bx, by, bz), new int[] {paintId, paintMeta});
         }
         BuilderToolState.INSTANCE.fillPreview = p;
     }
@@ -93,9 +91,9 @@ public class FillBrushInput implements BrushInput {
         for (Map.Entry<Long, int[]> e : p.proposed.entrySet()) {
             long key = e.getKey();
             int[] bm = e.getValue();
-            positions.add(
-                new int[] { ChangeProposal.unpackX(key), ChangeProposal.unpackY(key), ChangeProposal.unpackZ(key),
-                    bm[0], bm[1] });
+            positions.add(new int[] {
+                ChangeProposal.unpackX(key), ChangeProposal.unpackY(key), ChangeProposal.unpackZ(key), bm[0], bm[1]
+            });
         }
         BlockSender.sendChunked(positions, I18n.format("dimensium.action.fill"));
     }

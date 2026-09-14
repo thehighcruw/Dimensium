@@ -4,22 +4,19 @@
  */
 package github.thehighcruw.dimensium.network;
 
+import com.gtnewhorizon.gtnhlib.network.base.IPacket;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import github.thehighcruw.dimensium.editor.history.ClientEditHistory;
+import github.thehighcruw.dimensium.shared.BlockSender;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.network.PacketBuffer;
-
-import com.gtnewhorizon.gtnhlib.network.base.IPacket;
-
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
-import github.thehighcruw.dimensium.editor.history.ClientEditHistory;
-import github.thehighcruw.dimensium.shared.BlockSender;
 
 /**
  * Server → client. Carries one history entry (before + after block states).
@@ -44,8 +41,13 @@ public class PacketHistoryEntry implements IPacket {
 
     public PacketHistoryEntry() {}
 
-    private PacketHistoryEntry(int txId, boolean isFinalChunk, boolean includesAfter, String action, List<int[]> before,
-        List<int[]> after) {
+    private PacketHistoryEntry(
+            int txId,
+            boolean isFinalChunk,
+            boolean includesAfter,
+            String action,
+            List<int[]> before,
+            List<int[]> after) {
         this.txId = txId;
         this.isFinalChunk = isFinalChunk;
         this.includesAfter = includesAfter;
@@ -114,12 +116,10 @@ public class PacketHistoryEntry implements IPacket {
     @Override
     @SideOnly(Side.CLIENT)
     public IPacket executeClient(net.minecraft.client.network.NetHandlerPlayClient handler) {
-        pendingBefore.computeIfAbsent(txId, k -> new ArrayList<>())
-            .addAll(beforeChunk);
+        pendingBefore.computeIfAbsent(txId, k -> new ArrayList<>()).addAll(beforeChunk);
         pendingAction.putIfAbsent(txId, action);
         if (includesAfter) {
-            pendingAfter.computeIfAbsent(txId, k -> new ArrayList<>())
-                .addAll(afterChunk);
+            pendingAfter.computeIfAbsent(txId, k -> new ArrayList<>()).addAll(afterChunk);
         }
 
         if (!isFinalChunk) return null;

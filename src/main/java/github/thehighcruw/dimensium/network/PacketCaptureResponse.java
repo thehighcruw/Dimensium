@@ -4,25 +4,22 @@
  */
 package github.thehighcruw.dimensium.network;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import net.minecraft.block.Block;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.init.Blocks;
-import net.minecraft.network.PacketBuffer;
-
 import com.gtnewhorizon.gtnhlib.network.base.IPacket;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.tool.BuilderToolState;
 import github.thehighcruw.dimensium.tool.BuilderToolState.Phase;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import net.minecraft.block.Block;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.init.Blocks;
+import net.minecraft.network.PacketBuffer;
 
 /** Server → client: block data for a captured AABB. Chunked for large selections. */
 public class PacketCaptureResponse implements IPacket {
@@ -37,8 +34,16 @@ public class PacketCaptureResponse implements IPacket {
 
     public PacketCaptureResponse() {}
 
-    private PacketCaptureResponse(int txId, boolean isFinalChunk, int originX, int originY, int originZ, int width,
-        int height, int depth, List<int[]> blocks) {
+    private PacketCaptureResponse(
+            int txId,
+            boolean isFinalChunk,
+            int originX,
+            int originY,
+            int originZ,
+            int width,
+            int height,
+            int depth,
+            List<int[]> blocks) {
         this.txId = txId;
         this.isFinalChunk = isFinalChunk;
         this.originX = originX;
@@ -50,37 +55,37 @@ public class PacketCaptureResponse implements IPacket {
         this.blocks = blocks;
     }
 
-    public static void sendChunked(EntityPlayerMP player, int txId, int originX, int originY, int originZ, int width,
-        int height, int depth, List<int[]> allBlocks) {
+    public static void sendChunked(
+            EntityPlayerMP player,
+            int txId,
+            int originX,
+            int originY,
+            int originZ,
+            int width,
+            int height,
+            int depth,
+            List<int[]> allBlocks) {
         if (allBlocks.isEmpty()) {
             PacketHandler.CHANNEL.sendTo(
-                new PacketCaptureResponse(
-                    txId,
-                    true,
-                    originX,
-                    originY,
-                    originZ,
-                    width,
-                    height,
-                    depth,
-                    new ArrayList<>()),
-                player);
+                    new PacketCaptureResponse(
+                            txId, true, originX, originY, originZ, width, height, depth, new ArrayList<>()),
+                    player);
             return;
         }
         for (int start = 0; start < allBlocks.size(); start += CHUNK_SIZE) {
             int end = Math.min(start + CHUNK_SIZE, allBlocks.size());
             PacketHandler.CHANNEL.sendTo(
-                new PacketCaptureResponse(
-                    txId,
-                    end == allBlocks.size(),
-                    originX,
-                    originY,
-                    originZ,
-                    width,
-                    height,
-                    depth,
-                    new ArrayList<>(allBlocks.subList(start, end))),
-                player);
+                    new PacketCaptureResponse(
+                            txId,
+                            end == allBlocks.size(),
+                            originX,
+                            originY,
+                            originZ,
+                            width,
+                            height,
+                            depth,
+                            new ArrayList<>(allBlocks.subList(start, end))),
+                    player);
         }
     }
 
@@ -118,9 +123,8 @@ public class PacketCaptureResponse implements IPacket {
     @Override
     @SideOnly(Side.CLIENT)
     public IPacket executeClient(net.minecraft.client.network.NetHandlerPlayClient handler) {
-        pendingBlocks.computeIfAbsent(txId, k -> new ArrayList<>())
-            .addAll(blocks);
-        pendingOrigin.putIfAbsent(txId, new int[] { originX, originY, originZ, width, height, depth });
+        pendingBlocks.computeIfAbsent(txId, k -> new ArrayList<>()).addAll(blocks);
+        pendingOrigin.putIfAbsent(txId, new int[] {originX, originY, originZ, width, height, depth});
 
         if (!isFinalChunk) return null;
 
@@ -143,9 +147,9 @@ public class PacketCaptureResponse implements IPacket {
             clipboard.put(SelectionState.clipboardKey(lx, ly, lz), new SelectionState.BlockData(blk, b[4]));
         }
         System.err.println(
-            "[DIMTIMER] PacketCaptureResponse.executeClient clipboard=" + (System.nanoTime() - _t0) / 1_000_000
-                + "ms blocks="
-                + allBlocks.size());
+                "[DIMTIMER] PacketCaptureResponse.executeClient clipboard=" + (System.nanoTime() - _t0) / 1_000_000
+                        + "ms blocks="
+                        + allBlocks.size());
 
         SelectionState sel = SelectionState.INSTANCE;
         sel.clipboard = clipboard;

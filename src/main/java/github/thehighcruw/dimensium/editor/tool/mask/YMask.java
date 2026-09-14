@@ -42,13 +42,14 @@ public class YMask extends MaskNode {
 
     @Override
     public String displayName() {
-        String sym = switch (op) {
-            case EQUAL -> "=";
-            case LESS -> "<";
-            case LESS_EQ -> "<=";
-            case GREATER -> ">";
-            case GREATER_EQ -> ">=";
-        };
+        String sym =
+                switch (op) {
+                    case EQUAL -> "=";
+                    case LESS -> "<";
+                    case LESS_EQ -> "<=";
+                    case GREATER -> ">";
+                    case GREATER_EQ -> ">=";
+                };
         return "Y " + sym + " " + value;
     }
 }

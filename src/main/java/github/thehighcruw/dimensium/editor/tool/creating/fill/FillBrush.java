@@ -4,18 +4,16 @@
  */
 package github.thehighcruw.dimensium.editor.tool.creating.fill;
 
+import github.thehighcruw.dimensium.editor.tool.brushes.BrushStrategy;
+import github.thehighcruw.dimensium.editor.tool.selecting.SelectedBlockState;
+import github.thehighcruw.dimensium.tool.ChangeProposal;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Set;
-
 import net.minecraft.block.Block;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.World;
-
-import github.thehighcruw.dimensium.editor.tool.brushes.BrushStrategy;
-import github.thehighcruw.dimensium.editor.tool.selecting.SelectedBlockState;
-import github.thehighcruw.dimensium.tool.ChangeProposal;
 
 public class FillBrush implements BrushStrategy {
 
@@ -30,10 +28,10 @@ public class FillBrush implements BrushStrategy {
 
         Queue<int[]> queue = new LinkedList<>();
         Set<String> visited = new HashSet<>();
-        int[][] dirs = { { 1, 0, 0 }, { -1, 0, 0 }, { 0, 1, 0 }, { 0, -1, 0 }, { 0, 0, 1 }, { 0, 0, -1 } };
+        int[][] dirs = {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
         int count = 0;
 
-        queue.add(new int[] { sx, sy, sz });
+        queue.add(new int[] {sx, sy, sz});
         visited.add(sx + "," + sy + "," + sz);
 
         while (!queue.isEmpty() && count < FloodfillToolState.FILL_MAX) {
@@ -47,7 +45,7 @@ public class FillBrush implements BrushStrategy {
                 String key = nx + "," + ny + "," + nz;
                 if (!visited.contains(key) && world.getBlock(nx, ny, nz) == target) {
                     visited.add(key);
-                    queue.add(new int[] { nx, ny, nz });
+                    queue.add(new int[] {nx, ny, nz});
                 }
             }
         }

@@ -4,16 +4,14 @@
  */
 package github.thehighcruw.dimensium.editor.window.viewport.world;
 
-import net.minecraft.entity.EntityLivingBase;
-
-import org.lwjgl.opengl.GL11;
-
 import github.thehighcruw.dimensium.DimensiumConfig;
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeMath;
 import github.thehighcruw.dimensium.shared.math.Mat3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec2DDouble;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
+import net.minecraft.entity.EntityLivingBase;
+import org.lwjgl.opengl.GL11;
 
 /**
  * Rotation gizmo — 3 colored arcs, one per axis.
@@ -39,10 +37,11 @@ public class RotationGizmo {
     // X arc: YZ plane, basis (0,1,0) × (0,0,1)
     // Y arc: XZ plane, basis (1,0,0) × (0,0,1)
     // Z arc: XY plane, basis (1,0,0) × (0,1,0)
-    private static final float[][] ARC_P1 = { { 0, 1, 0 }, { 1, 0, 0 }, { 1, 0, 0 } };
-    private static final float[][] ARC_P2 = { { 0, 0, 1 }, { 0, 0, 1 }, { 0, 1, 0 } };
-    private static final float[][] AXIS_COL = { { 1.0f, 0.25f, 0.25f }, { 0.25f, 1.0f, 0.25f },
-        { 0.25f, 0.45f, 1.0f }, };
+    private static final float[][] ARC_P1 = {{0, 1, 0}, {1, 0, 0}, {1, 0, 0}};
+    private static final float[][] ARC_P2 = {{0, 0, 1}, {0, 0, 1}, {0, 1, 0}};
+    private static final float[][] AXIS_COL = {
+        {1.0f, 0.25f, 0.25f}, {0.25f, 1.0f, 0.25f}, {0.25f, 0.45f, 1.0f},
+    };
 
     private final GizmoProjection proj = new GizmoProjection();
 
@@ -104,14 +103,14 @@ public class RotationGizmo {
             double ang = 2.0 * Math.PI * i / ARC_SEG;
             double c = Math.cos(ang) * ARC_R, s = Math.sin(ang) * ARC_R;
             WorldLines.addSegment(
-                t,
-                prevC * p1[0] + prevS * p2[0],
-                prevC * p1[1] + prevS * p2[1],
-                prevC * p1[2] + prevS * p2[2],
-                c * p1[0] + s * p2[0],
-                c * p1[1] + s * p2[1],
-                c * p1[2] + s * p2[2],
-                halfW);
+                    t,
+                    prevC * p1[0] + prevS * p2[0],
+                    prevC * p1[1] + prevS * p2[1],
+                    prevC * p1[2] + prevS * p2[2],
+                    c * p1[0] + s * p2[0],
+                    c * p1[1] + s * p2[1],
+                    c * p1[2] + s * p2[2],
+                    halfW);
             prevC = c;
             prevS = s;
         }
@@ -120,8 +119,16 @@ public class RotationGizmo {
 
     // ── Hover ─────────────────────────────────────────────────────────────────
 
-    public void updateHover(int mouseX, int mouseY, EntityLivingBase player, double gx, double gy, double gz,
-        float rotX, float rotY, float rotZ) {
+    public void updateHover(
+            int mouseX,
+            int mouseY,
+            EntityLivingBase player,
+            double gx,
+            double gy,
+            double gz,
+            float rotX,
+            float rotY,
+            float rotZ) {
         double eyeX = player.posX, eyeY = player.posY + player.getEyeHeight(), eyeZ = player.posZ;
         float scale = computeScale(gx - eyeX, gy - eyeY, gz - eyeZ);
         float scaledR = ARC_R * scale;
@@ -140,9 +147,7 @@ public class RotationGizmo {
                 float c = (float) (Math.cos(ang) * scaledR);
                 float s = (float) (Math.sin(ang) * scaledR);
                 double[] scr = proj.project(
-                    gx + c * rp1.x() + s * rp2.x(),
-                    gy + c * rp1.y() + s * rp2.y(),
-                    gz + c * rp1.z() + s * rp2.z());
+                        gx + c * rp1.x() + s * rp2.x(), gy + c * rp1.y() + s * rp2.y(), gz + c * rp1.z() + s * rp2.z());
                 if (scr == null) {
                     prev = null;
                     continue;
@@ -233,8 +238,8 @@ public class RotationGizmo {
         return (float) (dist / GIZMO_REFERENCE_DIST);
     }
 
-    static void setupGizmoMatrix(double gx, double gy, double gz, Vec3DDouble camPos, float rotX, float rotY,
-        float rotZ, float scale) {
+    static void setupGizmoMatrix(
+            double gx, double gy, double gz, Vec3DDouble camPos, float rotX, float rotY, float rotZ, float scale) {
         GL11.glDisable(GL11.GL_TEXTURE_2D);
         GL11.glDisable(GL11.GL_ALPHA_TEST);
         GL11.glPushMatrix();
@@ -244,10 +249,10 @@ public class RotationGizmo {
         GL11.glRotatef(rotX, 1, 0, 0);
         GL11.glScalef(scale, scale, scale);
         WorldLines.setEyeRotated(
-            ShapeMath.buildRotationMatrix(rotX, rotY, rotZ),
-            (gx - camPos.x()) / scale,
-            (gy - camPos.y()) / scale,
-            (gz - camPos.z()) / scale);
+                ShapeMath.buildRotationMatrix(rotX, rotY, rotZ),
+                (gx - camPos.x()) / scale,
+                (gy - camPos.y()) / scale,
+                (gz - camPos.z()) / scale);
     }
 
     static double segDist(double ax, double ay, double bx, double by, double px, double py) {

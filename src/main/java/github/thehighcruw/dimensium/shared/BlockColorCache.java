@@ -4,6 +4,10 @@
  */
 package github.thehighcruw.dimensium.shared;
 
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import github.thehighcruw.dimensium.shared.util.BlockUtils;
 import java.lang.reflect.Field;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
@@ -13,7 +17,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -24,16 +27,10 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.IIcon;
 import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.oredict.OreDictionary;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
-
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
-import github.thehighcruw.dimensium.shared.util.BlockUtils;
 
 @SideOnly(Side.CLIENT)
 public class BlockColorCache {
@@ -102,12 +99,9 @@ public class BlockColorCache {
         LOG.info("BlockColorCache init: reading GL atlas");
         readAtlasFromGL(atlas);
         LOG.info(
-            "BlockColorCache: spriteRgbByName has {} entries ({} animated)",
-            spriteRgbByName.size(),
-            spriteAnimated.values()
-                .stream()
-                .filter(v -> v)
-                .count());
+                "BlockColorCache: spriteRgbByName has {} entries ({} animated)",
+                spriteRgbByName.size(),
+                spriteAnimated.values().stream().filter(v -> v).count());
 
         buildCandidates();
         initialized = true;
@@ -133,8 +127,8 @@ public class BlockColorCache {
      * @param sameTexture if true, restrict pool to blocks with uniform face colours
      *                    (i.e. colourFieldCandidates), otherwise use all blocks
      */
-    public List<ItemStack> findSimilarBlocks(int targetRgb, boolean fullCube, boolean solidOnly, boolean opaque,
-        boolean sameTexture, int limit) {
+    public List<ItemStack> findSimilarBlocks(
+            int targetRgb, boolean fullCube, boolean solidOnly, boolean opaque, boolean sameTexture, int limit) {
 
         List<int[]> pool = sameTexture ? colourFieldCandidates : allEntriesWithCat;
         double[] targetLab = rgbToLab(targetRgb);
@@ -142,42 +136,40 @@ public class BlockColorCache {
         final double tL = targetLab[0], tA = targetLab[1], tB = targetLab[2];
 
         return pool.stream()
-            .filter(e -> {
-                if (solidOnly && (e[3] & CAT_SOLID) == 0) return false;
-                if (opaque && (e[3] & CAT_TRANSLUCENT) != 0) return false;
-                if (fullCube) {
+                .filter(e -> {
+                    if (solidOnly && (e[3] & CAT_SOLID) == 0) return false;
+                    if (opaque && (e[3] & CAT_TRANSLUCENT) != 0) return false;
+                    if (fullCube) {
+                        Block b = Block.getBlockById(e[0]);
+                        return b != null && b.renderAsNormalBlock();
+                    }
+                    return true;
+                })
+                .sorted(Comparator.comparingDouble(e -> {
+                    double dL = tL - e[5] / 100.0;
+                    double dA = tA - e[6] / 100.0;
+                    double dB = tB - e[7] / 100.0;
+                    return dL * dL + dA * dA + dB * dB;
+                }))
+                .limit(limit)
+                // Secondary sort: prefer uniform textures (lower pixel variance) over noisy ones
+                .sorted(Comparator.comparingDouble(e -> (double) Float.intBitsToFloat(e[4])))
+                .map(e -> {
                     Block b = Block.getBlockById(e[0]);
-                    return b != null && b.renderAsNormalBlock();
-                }
-                return true;
-            })
-            .sorted(Comparator.comparingDouble(e -> {
-                double dL = tL - e[5] / 100.0;
-                double dA = tA - e[6] / 100.0;
-                double dB = tB - e[7] / 100.0;
-                return dL * dL + dA * dA + dB * dB;
-            }))
-            .limit(limit)
-            // Secondary sort: prefer uniform textures (lower pixel variance) over noisy ones
-            .sorted(Comparator.comparingDouble(e -> (double) Float.intBitsToFloat(e[4])))
-            .map(e -> {
-                Block b = Block.getBlockById(e[0]);
-                if (b == null) return null;
-                Item item = Item.getItemFromBlock(b);
-                if (item == null) return null;
-                return new ItemStack(item, 1, e[1]);
-            })
-            .filter(s -> s != null && s.getItem() != null)
-            .collect(Collectors.toList());
+                    if (b == null) return null;
+                    Item item = Item.getItemFromBlock(b);
+                    if (item == null) return null;
+                    return new ItemStack(item, 1, e[1]);
+                })
+                .filter(s -> s != null && s.getItem() != null)
+                .collect(Collectors.toList());
     }
 
     // ── Phase 1: read atlas pixels from GL ───────────────────────────────────
 
     private void readAtlasFromGL(TextureMap atlas) {
         // Bind the atlas texture and read all pixels.
-        Minecraft.getMinecraft()
-            .getTextureManager()
-            .bindTexture(TextureMap.locationBlocksTexture);
+        Minecraft.getMinecraft().getTextureManager().bindTexture(TextureMap.locationBlocksTexture);
         int atlasW = GL11.glGetTexLevelParameteri(GL11.GL_TEXTURE_2D, 0, GL11.GL_TEXTURE_WIDTH);
         int atlasH = GL11.glGetTexLevelParameteri(GL11.GL_TEXTURE_2D, 0, GL11.GL_TEXTURE_HEIGHT);
         if (atlasW <= 0 || atlasH <= 0) {
@@ -247,11 +239,12 @@ public class BlockColorCache {
             double avgR = sumR / (double) count;
             double avgGd = sumG / (double) count;
             double avgBd = sumB / (double) count;
-            float variance = (float) (sumR2 / (double) count - avgR * avgR
-                + sumG2 / (double) count
-                - avgGd * avgGd
-                + sumB2 / (double) count
-                - avgBd * avgBd);
+            float variance = (float) (sumR2 / (double) count
+                    - avgR * avgR
+                    + sumG2 / (double) count
+                    - avgGd * avgGd
+                    + sumB2 / (double) count
+                    - avgBd * avgBd);
             spriteVarianceByName.put(name, variance);
         }
     }
@@ -321,8 +314,9 @@ public class BlockColorCache {
                     continue;
                 }
 
-                int avgRgb = (int) (totalR / validFaces) << 16 | (int) (totalG / validFaces) << 8
-                    | (int) (totalB / validFaces);
+                int avgRgb = (int) (totalR / validFaces) << 16
+                        | (int) (totalG / validFaces) << 8
+                        | (int) (totalB / validFaces);
                 float avgVariance = totalVariance / validFaces;
 
                 int key = blockId * 16 + meta;
@@ -334,7 +328,7 @@ public class BlockColorCache {
                 int labL = (int) (avgLab[0] * 100);
                 int labA = (int) (avgLab[1] * 100);
                 int labB = (int) (avgLab[2] * 100);
-                allEntriesWithCat.add(new int[] { blockId, meta, avgRgb, catBits, varBits, labL, labA, labB });
+                allEntriesWithCat.add(new int[] {blockId, meta, avgRgb, catBits, varBits, labL, labA, labB});
 
                 double maxFaceDelta = 0;
                 for (int i = 0; i < validFaces; i++) {
@@ -348,7 +342,7 @@ public class BlockColorCache {
                     continue;
                 }
 
-                colourFieldCandidates.add(new int[] { blockId, meta, avgRgb, catBits, varBits, labL, labA, labB });
+                colourFieldCandidates.add(new int[] {blockId, meta, avgRgb, catBits, varBits, labL, labA, labB});
                 statAdded++;
             } catch (Throwable t) {
                 LOG.warn("buildCandidates threw for block {} meta {}: {}", blockId, meta, t.toString());
@@ -358,26 +352,27 @@ public class BlockColorCache {
 
         LOG.info("buildCandidates done: processed={} dupes={}", processed, skippedDupe);
         LOG.info(
-            "  animated={} noFaces={} deltaRejected={} added={}",
-            statAnimated,
-            statNoFaces,
-            statDeltaRejected,
-            statAdded);
+                "  animated={} noFaces={} deltaRejected={} added={}",
+                statAnimated,
+                statNoFaces,
+                statDeltaRejected,
+                statAdded);
         LOG.info("  colorByKey.size={} candidates={}", colorByKey.size(), colourFieldCandidates.size());
     }
 
     @SuppressWarnings("unchecked")
     private static Map<String, TextureAtlasSprite> getSpriteMap(TextureMap atlas) {
         // Try known MCP field names first (available after stitch).
-        for (String fieldName : new String[] { "mapUploadedSprites", "mapRegisteredSprites" }) {
+        for (String fieldName : new String[] {"mapUploadedSprites", "mapRegisteredSprites"}) {
             try {
                 Field f = TextureMap.class.getDeclaredField(fieldName);
                 f.setAccessible(true);
                 Object val = f.get(atlas);
-                if (val instanceof Map<?, ?>raw) {
+                if (val instanceof Map<?, ?> raw) {
                     if (!raw.isEmpty()) return (Map<String, TextureAtlasSprite>) raw;
                 }
-            } catch (Throwable ignored) {}
+            } catch (Throwable ignored) {
+            }
         }
         // GTNH/OptiFine may remap field names — scan all declared fields for a non-empty
         // Map whose first value is a TextureAtlasSprite.
@@ -386,16 +381,15 @@ public class BlockColorCache {
             try {
                 f.setAccessible(true);
                 Object val = f.get(atlas);
-                if (!(val instanceof Map<?, ?>raw)) continue;
+                if (!(val instanceof Map<?, ?> raw)) continue;
                 if (raw.isEmpty()) continue;
-                Object firstVal = raw.values()
-                    .iterator()
-                    .next();
+                Object firstVal = raw.values().iterator().next();
                 if (firstVal instanceof TextureAtlasSprite) {
                     LOG.info("BlockColorCache: found sprite map via field '{}'", f.getName());
                     return (Map<String, TextureAtlasSprite>) raw;
                 }
-            } catch (Throwable ignored) {}
+            } catch (Throwable ignored) {
+            }
         }
         return null;
     }
@@ -424,7 +418,7 @@ public class BlockColorCache {
         double y = 0.2126729 * r + 0.7151522 * g + 0.0721750 * b;
         double z = 0.0193339 * r + 0.1191920 * g + 0.9503041 * b;
         double fx = labF(x / 0.95047), fy = labF(y), fz = labF(z / 1.08883);
-        return new double[] { 116.0 * fy - 16.0, 500.0 * (fx - fy), 200.0 * (fy - fz) };
+        return new double[] {116.0 * fy - 16.0, 500.0 * (fx - fy), 200.0 * (fy - fz)};
     }
 
     private static double linearize(double c) {

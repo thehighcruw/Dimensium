@@ -4,13 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.tool;
 
-import java.util.EnumMap;
-import java.util.Map;
-
-import net.minecraft.util.MovingObjectPosition;
-import net.minecraft.util.Vec3;
-import net.minecraft.world.World;
-
 import github.thehighcruw.dimensium.DimensiumEditorMode;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushStrategy;
 import github.thehighcruw.dimensium.editor.tool.creating.fill.FillBrush;
@@ -28,6 +21,11 @@ import github.thehighcruw.dimensium.editor.tool.manipulating.weld.WeldBrush;
 import github.thehighcruw.dimensium.editor.tool.painting.gradient.GradientBrush;
 import github.thehighcruw.dimensium.editor.tool.painting.noise.NoiseBrush;
 import github.thehighcruw.dimensium.editor.tool.painting.painter.PainterBrush;
+import java.util.EnumMap;
+import java.util.Map;
+import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.util.Vec3;
+import net.minecraft.world.World;
 
 public class BrushApplicator {
 
@@ -57,11 +55,7 @@ public class BrushApplicator {
 
     public static void applyTool(World world, int blockX, int blockY, int blockZ) {
         MovingObjectPosition mop = new MovingObjectPosition(
-            blockX,
-            blockY,
-            blockZ,
-            1,
-            Vec3.createVectorHelper(blockX + 0.5, blockY + 0.5, blockZ + 0.5));
+                blockX, blockY, blockZ, 1, Vec3.createVectorHelper(blockX + 0.5, blockY + 0.5, blockZ + 0.5));
         BrushStrategy strategy = BRUSHES.get(DimensiumEditorMode.INSTANCE.selectedTool);
         if (strategy != null) strategy.apply(world, mop);
     }

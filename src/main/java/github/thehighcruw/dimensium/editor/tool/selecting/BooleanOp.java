@@ -5,7 +5,6 @@
 package github.thehighcruw.dimensium.editor.tool.selecting;
 
 public enum BooleanOp {
-
     ADD("dimensium.boolean_op.add"),
     SUBTRACT("dimensium.boolean_op.subtract"),
     REPLACE("dimensium.boolean_op.replace"),
@@ -16,5 +15,4 @@ public enum BooleanOp {
     BooleanOp(String label) {
         this.label = label;
     }
-
 }

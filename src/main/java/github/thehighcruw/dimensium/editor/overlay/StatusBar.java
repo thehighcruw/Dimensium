@@ -4,10 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.overlay;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.entity.EntityLivingBase;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.DimensiumEditorMode;
@@ -19,19 +15,23 @@ import github.thehighcruw.dimensium.shared.SelectionState;
 import imgui.ImGui;
 import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiWindowFlags;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.entity.EntityLivingBase;
 
 @SideOnly(Side.CLIENT)
 public final class StatusBar {
 
     public static final StatusBar INSTANCE = new StatusBar();
 
-    private static final int FLAGS = ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoInputs
-        | ImGuiWindowFlags.NoNav
-        | ImGuiWindowFlags.NoMove
-        | ImGuiWindowFlags.NoBringToFrontOnFocus
-        | ImGuiWindowFlags.NoFocusOnAppearing
-        | ImGuiWindowFlags.NoScrollbar
-        | ImGuiWindowFlags.NoScrollWithMouse;
+    private static final int FLAGS = ImGuiWindowFlags.NoDecoration
+            | ImGuiWindowFlags.NoInputs
+            | ImGuiWindowFlags.NoNav
+            | ImGuiWindowFlags.NoMove
+            | ImGuiWindowFlags.NoBringToFrontOnFocus
+            | ImGuiWindowFlags.NoFocusOnAppearing
+            | ImGuiWindowFlags.NoScrollbar
+            | ImGuiWindowFlags.NoScrollWithMouse;
 
     private static final float PAD_V = 3f;
     private static final float PAD_H = 8f;
@@ -94,8 +94,7 @@ public final class StatusBar {
 
         // ── Clipboard ────────────────────────────────────────────────────────
         if (sel.clipboard != null) {
-            ImGui.text(
-                I18n.format("dimensium.status.clipboard") + " "
+            ImGui.text(I18n.format("dimensium.status.clipboard") + " "
                     + sel.clipDim.x()
                     + "×"
                     + sel.clipDim.y()

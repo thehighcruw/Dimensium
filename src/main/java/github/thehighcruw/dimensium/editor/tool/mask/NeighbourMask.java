@@ -12,8 +12,7 @@ public class NeighbourMask extends MaskNode {
     public int blockId;
     public int meta;
 
-    private static final int[][] OFFSETS = { { 0, 1, 0 }, { 0, -1, 0 }, { 1, 0, 0 }, { -1, 0, 0 }, { 0, 0, 1 },
-        { 0, 0, -1 } };
+    private static final int[][] OFFSETS = {{0, 1, 0}, {0, -1, 0}, {1, 0, 0}, {-1, 0, 0}, {0, 0, 1}, {0, 0, -1}};
 
     public NeighbourMask(int blockId, int meta) {
         this.blockId = blockId;

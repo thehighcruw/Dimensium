@@ -4,30 +4,28 @@
  */
 package github.thehighcruw.dimensium.shared;
 
+import github.thehighcruw.dimensium.editor.tool.brushes.GaussianKernel;
+import github.thehighcruw.dimensium.editor.tool.creating.modelling.ModellingMath;
+import github.thehighcruw.dimensium.editor.tool.creating.modelling.ModellingToolState.ModelPoint;
+import github.thehighcruw.dimensium.editor.tool.noise.NoiseSampler;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import net.minecraft.block.Block;
 import net.minecraft.world.World;
-
-import github.thehighcruw.dimensium.editor.tool.brushes.GaussianKernel;
-import github.thehighcruw.dimensium.editor.tool.creating.modelling.ModellingMath;
-import github.thehighcruw.dimensium.editor.tool.creating.modelling.ModellingToolState.ModelPoint;
-import github.thehighcruw.dimensium.editor.tool.noise.NoiseSampler;
-import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 
 public final class SelectionTransforms {
 
     private SelectionTransforms() {}
 
     private static final int MAX_SMOOTH_DIM = 256;
-    private static final int[] FACE_DX = { 1, -1, 0, 0, 0, 0 };
-    private static final int[] FACE_DY = { 0, 0, 1, -1, 0, 0 };
-    private static final int[] FACE_DZ = { 0, 0, 0, 0, 1, -1 };
+    private static final int[] FACE_DX = {1, -1, 0, 0, 0, 0};
+    private static final int[] FACE_DY = {0, 0, 1, -1, 0, 0};
+    private static final int[] FACE_DZ = {0, 0, 0, 0, 1, -1};
 
     public static Set<Long> expand(Set<Long> blocks, int offset) {
         if (offset <= 0) return new HashSet<>(blocks);
@@ -59,9 +57,10 @@ public final class SelectionTransforms {
                 Vec3DInt coord = SelectionState.unpack(key);
                 for (int d = 0; d < 6; d++) {
                     int ny = coord.y() + FACE_DY[d];
-                    if (ny < 0 || ny > 255
-                        || !result.contains(
-                            SelectionState.pack(Vec3DInt.from(coord.x() + FACE_DX[d], ny, coord.z() + FACE_DZ[d])))) {
+                    if (ny < 0
+                            || ny > 255
+                            || !result.contains(SelectionState.pack(
+                                    Vec3DInt.from(coord.x() + FACE_DX[d], ny, coord.z() + FACE_DZ[d])))) {
                         toRemove.add(key);
                         break;
                     }
@@ -103,26 +102,21 @@ public final class SelectionTransforms {
         GaussianKernel kernel = GaussianKernel.build(strength * 0.5f + 0.5f);
         int margin = kernel.kR;
 
-        Vec3DInt dims = bb.maximum()
-            .minus(bb.minimum())
-            .plus(2 * margin + 1);
+        Vec3DInt dims = bb.maximum().minus(bb.minimum()).plus(2 * margin + 1);
         if (dims.any((x) -> x > MAX_SMOOTH_DIM)) return new HashSet<>(blocks);
 
         int snStX = dims.y() * dims.z();
         int[] snap = new int[dims.product()];
         for (long key : blocks) {
             Vec3DInt coord = SelectionState.unpack(key);
-            Vec3DInt snapper = coord.minus(bb.minimum())
-                .plus(margin)
-                .plus(Vec3DInt.from(snStX, dims.z(), 1));
+            Vec3DInt snapper = coord.minus(bb.minimum()).plus(margin).plus(Vec3DInt.from(snStX, dims.z(), 1));
             snap[snapper.sum()] = 1;
         }
 
         Set<Long> result = new HashSet<>();
         for (long key : blocks) {
             Vec3DInt coord = SelectionState.unpack(key);
-            Vec3DInt localizedCoord = coord.minus(bb.minimum())
-                .plus(margin);
+            Vec3DInt localizedCoord = coord.minus(bb.minimum()).plus(margin);
             float density = kernel.solidWeight(snap, localizedCoord, snStX, dims.z()) / kernel.totalWeight;
             if (density >= threshold) result.add(key);
         }
@@ -132,23 +126,22 @@ public final class SelectionTransforms {
             Vec3DInt localizedCoord = Vec3DInt.from(lx, ly, lz);
             float density = kernel.solidWeight(snap, localizedCoord, snStX, dims.z()) / kernel.totalWeight;
             if (density >= threshold) {
-                Vec3DInt world = localizedCoord.minus(margin)
-                    .plus(bb.minimum());
+                Vec3DInt world = localizedCoord.minus(margin).plus(bb.minimum());
                 if (world.y() >= 0 && world.y() <= 255) result.add(SelectionState.pack(world));
             }
         });
         return result;
     }
 
-    public static Set<Long> filter(Set<Long> blocks, World world, Block targetBlock, int targetMeta,
-        boolean keepMatching, boolean exactMeta) {
+    public static Set<Long> filter(
+            Set<Long> blocks, World world, Block targetBlock, int targetMeta, boolean keepMatching, boolean exactMeta) {
         Set<Long> result = new HashSet<>();
         for (long key : blocks) {
             Vec3DInt coord = SelectionState.unpack(key);
             Block b = world.getBlock(coord.x(), coord.y(), coord.z());
             boolean matches = exactMeta
-                ? (b == targetBlock && world.getBlockMetadata(coord.x(), coord.y(), coord.z()) == targetMeta)
-                : (b == targetBlock);
+                    ? (b == targetBlock && world.getBlockMetadata(coord.x(), coord.y(), coord.z()) == targetMeta)
+                    : (b == targetBlock);
             if (matches == keepMatching) result.add(key);
         }
         return result;
@@ -167,19 +160,13 @@ public final class SelectionTransforms {
         if (faces.isEmpty()) return new HashSet<>(blocks);
 
         // Voxelize hull surface
-        int[] dummy = { 1, 0 };
+        int[] dummy = {1, 0};
         Map<Long, int[]> surfaceMap = new HashMap<>();
         double[][] P = new double[pts.size()][3];
         for (int i = 0; i < pts.size(); i++) {
-            P[i][0] = pts.get(i)
-                .pos()
-                .x();
-            P[i][1] = pts.get(i)
-                .pos()
-                .y();
-            P[i][2] = pts.get(i)
-                .pos()
-                .z();
+            P[i][0] = pts.get(i).pos().x();
+            P[i][1] = pts.get(i).pos().y();
+            P[i][2] = pts.get(i).pos().z();
         }
         for (int[] f : faces) {
             ModellingMath.voxelizeTriangleDPublic(surfaceMap, P[f[0]], P[f[1]], P[f[2]], dummy);
@@ -195,7 +182,7 @@ public final class SelectionTransforms {
             long xzKey = ((long) x << 32) | (z & 0xFFFFFFFFL);
             int[] range = xzYRange.get(xzKey);
             if (range == null) {
-                range = new int[] { y, y };
+                range = new int[] {y, y};
                 xzYRange.put(xzKey, range);
             } else {
                 if (y < range[0]) range[0] = y;

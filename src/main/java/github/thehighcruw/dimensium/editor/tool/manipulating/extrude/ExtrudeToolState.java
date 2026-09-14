@@ -9,7 +9,6 @@ public class ExtrudeToolState {
     public static final ExtrudeToolState INSTANCE = new ExtrudeToolState();
 
     public enum ExtrudeMode {
-
         EXPAND("dimensium.extrude_mode.expand"),
         SHRINK("dimensium.extrude_mode.shrink");
 

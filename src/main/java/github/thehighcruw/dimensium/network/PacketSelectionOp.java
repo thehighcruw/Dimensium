@@ -4,18 +4,15 @@
  */
 package github.thehighcruw.dimensium.network;
 
+import com.gtnewhorizon.gtnhlib.network.base.IPacket;
+import github.thehighcruw.dimensium.Dimensium;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import java.io.IOException;
-
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.world.World;
-
-import com.gtnewhorizon.gtnhlib.network.base.IPacket;
-
-import github.thehighcruw.dimensium.Dimensium;
-import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 
 public class PacketSelectionOp implements IPacket {
 
@@ -60,8 +57,8 @@ public class PacketSelectionOp implements IPacket {
     public IPacket executeServer(NetHandlerPlayServer handler) {
         if (!handler.playerEntity.capabilities.isCreativeMode) {
             Dimensium.logger.warn(
-                "[Dimensium] Rejected PacketSelectionOp from non-creative player {}",
-                handler.playerEntity.getCommandSenderName());
+                    "[Dimensium] Rejected PacketSelectionOp from non-creative player {}",
+                    handler.playerEntity.getCommandSenderName());
             return null;
         }
         World world = handler.playerEntity.worldObj;
@@ -72,9 +69,9 @@ public class PacketSelectionOp implements IPacket {
         long volume = (long) (maxX - minX + 1) * (maxY - minY + 1) * (maxZ - minZ + 1);
         if (volume > 1_000_000L) {
             Dimensium.logger.warn(
-                "[Dimensium] Rejected PacketSelectionOp: volume {} exceeds limit for player {}",
-                volume,
-                handler.playerEntity.getCommandSenderName());
+                    "[Dimensium] Rejected PacketSelectionOp: volume {} exceeds limit for player {}",
+                    volume,
+                    handler.playerEntity.getCommandSenderName());
             return null;
         }
 
@@ -85,9 +82,9 @@ public class PacketSelectionOp implements IPacket {
         final Block blk = block;
         final int m = meta;
         Vec3DInt.forEachInclusive(
-            Vec3DInt.from(minX, minY, minZ),
-            Vec3DInt.from(maxX, maxY, maxZ),
-            (x, y, z) -> world.setBlock(x, y, z, blk, m, 3));
+                Vec3DInt.from(minX, minY, minZ),
+                Vec3DInt.from(maxX, maxY, maxZ),
+                (x, y, z) -> world.setBlock(x, y, z, blk, m, 3));
 
         return null;
     }

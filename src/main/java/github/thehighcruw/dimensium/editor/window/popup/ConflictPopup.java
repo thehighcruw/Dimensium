@@ -4,14 +4,13 @@
  */
 package github.thehighcruw.dimensium.editor.window.popup;
 
-import net.minecraft.client.resources.I18n;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import imgui.ImGui;
 import imgui.flag.ImGuiKey;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
+import net.minecraft.client.resources.I18n;
 
 /**
  * Modal popup shown when undo/redo detects that the world has changed since the
@@ -34,8 +33,9 @@ public class ConflictPopup {
     public void show(int mismatchCount, Runnable onApply, Runnable onSkip) {
         open = true;
         pendingOpen = true;
-        message = mismatchCount == 1 ? I18n.format("dimensium.popup.conflict.message.single")
-            : I18n.format("dimensium.popup.conflict.message.plural", mismatchCount);
+        message = mismatchCount == 1
+                ? I18n.format("dimensium.popup.conflict.message.single")
+                : I18n.format("dimensium.popup.conflict.message.plural", mismatchCount);
         this.onApply = onApply;
         this.onSkip = onSkip;
     }
@@ -63,9 +63,9 @@ public class ConflictPopup {
 
         ImBoolean pOpen = new ImBoolean(true);
         if (ImGui.beginPopupModal(
-            I18n.format("dimensium.popup.conflict.title") + "###conflict_modal",
-            pOpen,
-            ImGuiWindowFlags.AlwaysAutoResize)) {
+                I18n.format("dimensium.popup.conflict.title") + "###conflict_modal",
+                pOpen,
+                ImGuiWindowFlags.AlwaysAutoResize)) {
 
             if (ImGui.isKeyPressed(ImGuiKey.Escape)) {
                 close();

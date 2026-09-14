@@ -12,8 +12,8 @@ import com.github.bsideup.jabel.Desugar;
  * Rotation matrices built here are orthogonal, so inverse = transpose.
  */
 @Desugar
-public record Mat3DFloat(float r00, float r01, float r02, float r10, float r11, float r12, float r20, float r21,
-    float r22) {
+public record Mat3DFloat(
+        float r00, float r01, float r02, float r10, float r11, float r12, float r20, float r21, float r22) {
 
     public static final Mat3DFloat IDENTITY = new Mat3DFloat(1, 0, 0, 0, 1, 0, 0, 0, 1);
 
@@ -31,15 +31,15 @@ public record Mat3DFloat(float r00, float r01, float r02, float r10, float r11, 
         float cy = (float) Math.cos(ry), sy = (float) Math.sin(ry);
         float cz = (float) Math.cos(rz), sz = (float) Math.sin(rz);
         return new Mat3DFloat(
-            cy * cz,
-            cz * sx * sy - cx * sz,
-            cx * cz * sy + sx * sz,
-            cy * sz,
-            cx * cz + sx * sy * sz,
-            cx * sy * sz - cz * sx,
-            -sy,
-            cy * sx,
-            cx * cy);
+                cy * cz,
+                cz * sx * sy - cx * sz,
+                cx * cz * sy + sx * sz,
+                cy * sz,
+                cx * cz + sx * sy * sz,
+                cx * sy * sz - cz * sx,
+                -sy,
+                cy * sx,
+                cx * cy);
     }
 
     // --- matrix operations ---
@@ -47,15 +47,15 @@ public record Mat3DFloat(float r00, float r01, float r02, float r10, float r11, 
     /** R * M */
     public Mat3DFloat mul(Mat3DFloat m) {
         return new Mat3DFloat(
-            r00 * m.r00 + r01 * m.r10 + r02 * m.r20,
-            r00 * m.r01 + r01 * m.r11 + r02 * m.r21,
-            r00 * m.r02 + r01 * m.r12 + r02 * m.r22,
-            r10 * m.r00 + r11 * m.r10 + r12 * m.r20,
-            r10 * m.r01 + r11 * m.r11 + r12 * m.r21,
-            r10 * m.r02 + r11 * m.r12 + r12 * m.r22,
-            r20 * m.r00 + r21 * m.r10 + r22 * m.r20,
-            r20 * m.r01 + r21 * m.r11 + r22 * m.r21,
-            r20 * m.r02 + r21 * m.r12 + r22 * m.r22);
+                r00 * m.r00 + r01 * m.r10 + r02 * m.r20,
+                r00 * m.r01 + r01 * m.r11 + r02 * m.r21,
+                r00 * m.r02 + r01 * m.r12 + r02 * m.r22,
+                r10 * m.r00 + r11 * m.r10 + r12 * m.r20,
+                r10 * m.r01 + r11 * m.r11 + r12 * m.r21,
+                r10 * m.r02 + r11 * m.r12 + r12 * m.r22,
+                r20 * m.r00 + r21 * m.r10 + r22 * m.r20,
+                r20 * m.r01 + r21 * m.r11 + r22 * m.r21,
+                r20 * m.r02 + r21 * m.r12 + r22 * m.r22);
     }
 
     /** R^T */
@@ -68,23 +68,23 @@ public record Mat3DFloat(float r00, float r01, float r02, float r10, float r11, 
     /** R * v */
     public Vec3DFloat mul(Vec3DFloat v) {
         return Vec3DFloat.from(
-            r00 * v.x() + r01 * v.y() + r02 * v.z(),
-            r10 * v.x() + r11 * v.y() + r12 * v.z(),
-            r20 * v.x() + r21 * v.y() + r22 * v.z());
+                r00 * v.x() + r01 * v.y() + r02 * v.z(),
+                r10 * v.x() + r11 * v.y() + r12 * v.z(),
+                r20 * v.x() + r21 * v.y() + r22 * v.z());
     }
 
     /** R^T * v (inverse rotation for orthogonal matrices) */
     public Vec3DFloat mulTranspose(Vec3DFloat v) {
         return Vec3DFloat.from(
-            r00 * v.x() + r10 * v.y() + r20 * v.z(),
-            r01 * v.x() + r11 * v.y() + r21 * v.z(),
-            r02 * v.x() + r12 * v.y() + r22 * v.z());
+                r00 * v.x() + r10 * v.y() + r20 * v.z(),
+                r01 * v.x() + r11 * v.y() + r21 * v.z(),
+                r02 * v.x() + r12 * v.y() + r22 * v.z());
     }
 
     /** R^T * (ox, oy, oz) returning double precision — used when caller holds double coordinates. */
     public Vec3DDouble mulTransposeD(double ox, double oy, double oz) {
-        return Vec3DDouble
-            .from(r00 * ox + r10 * oy + r20 * oz, r01 * ox + r11 * oy + r21 * oz, r02 * ox + r12 * oy + r22 * oz);
+        return Vec3DDouble.from(
+                r00 * ox + r10 * oy + r20 * oz, r01 * ox + r11 * oy + r21 * oz, r02 * ox + r12 * oy + r22 * oz);
     }
 
     // --- decomposition ---

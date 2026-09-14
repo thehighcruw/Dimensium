@@ -4,12 +4,11 @@
  */
 package github.thehighcruw.dimensium.editor.handler;
 
-import net.minecraft.entity.player.EntityPlayerMP;
-
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.PlayerEvent;
 import github.thehighcruw.dimensium.editor.history.ServerEditQueue;
 import github.thehighcruw.dimensium.network.PacketBlockList;
+import net.minecraft.entity.player.EntityPlayerMP;
 
 public class PlayerHistoryEventHandler {
 

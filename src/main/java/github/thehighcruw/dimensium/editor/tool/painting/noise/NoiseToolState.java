@@ -9,7 +9,6 @@ public class NoiseToolState {
     public static final NoiseToolState INSTANCE = new NoiseToolState();
 
     public enum NoiseType {
-
         SIMPLEX("dimensium.noise_type.simplex"),
         PERLIN("dimensium.noise_type.perlin"),
         VORONOI_EDGES("dimensium.noise_type.voronoi_edges"),

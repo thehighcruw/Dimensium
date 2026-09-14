@@ -4,11 +4,10 @@
  */
 package github.thehighcruw.dimensium.editor.overlay;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ScaledResolution;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.ScaledResolution;
 
 /**
  * Coordinate-space utilities for Dimensium's editor UI.
@@ -54,5 +53,4 @@ public final class UICoords {
     public static double guiToNdcY(double guiY) {
         return 1.0 - (guiY / guiH()) * 2.0;
     }
-
 }

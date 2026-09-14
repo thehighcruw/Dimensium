@@ -4,11 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.window;
 
-import java.util.List;
-
-import net.minecraft.client.resources.I18n;
-import net.minecraft.item.ItemStack;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.DimensiumConfig;
@@ -25,6 +20,9 @@ import imgui.flag.ImGuiInputTextFlags;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
 import imgui.type.ImString;
+import java.util.List;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.item.ItemStack;
 
 @SideOnly(Side.CLIENT)
 public class PaletteEditorWindow extends ToggleableWindow {
@@ -76,9 +74,9 @@ public class PaletteEditorWindow extends ToggleableWindow {
 
         ImBoolean openBool = new ImBoolean(open);
         boolean visible = ImGui.begin(
-            I18n.format("dimensium.palette.editor.title") + "###palette_editor_window",
-            openBool,
-            ImGuiWindowFlags.None);
+                I18n.format("dimensium.palette.editor.title") + "###palette_editor_window",
+                openBool,
+                ImGuiWindowFlags.None);
         if (!openBool.get()) close();
         else open = true;
         captureBounds();
@@ -113,22 +111,19 @@ public class PaletteEditorWindow extends ToggleableWindow {
         ImGui.invisibleButton("##paled_split", splitterW, contentH);
         if (ImGui.isItemActive()) {
             ImVec2 delta = new ImVec2();
-            ImGui.getIO()
-                .getMouseDelta(delta);
+            ImGui.getIO().getMouseDelta(delta);
             splitPx += delta.x;
             splitPx = Math.max(minLeft, Math.min(totalW - minRight - splitterW, splitPx));
         }
         int lineColor = ImGui.isItemHovered() || ImGui.isItemActive()
-            ? ImGui.colorConvertFloat4ToU32(0.5f, 0.6f, 0.8f, 0.9f)
-            : ImGui.colorConvertFloat4ToU32(0.3f, 0.3f, 0.35f, 0.7f);
+                ? ImGui.colorConvertFloat4ToU32(0.5f, 0.6f, 0.8f, 0.9f)
+                : ImGui.colorConvertFloat4ToU32(0.3f, 0.3f, 0.35f, 0.7f);
         float midX = pos.x + splitterW * 0.5f;
-        ImGui.getWindowDrawList()
-            .addLine(midX, pos.y + 4f, midX, pos.y + contentH - 4f, lineColor, 1.5f);
+        ImGui.getWindowDrawList().addLine(midX, pos.y + 4f, midX, pos.y + contentH - 4f, lineColor, 1.5f);
     }
 
     private void renderCategoryList(float leftW, float contentH) {
-        float addBtnH = ImGui.getFrameHeight() + ImGui.getStyle()
-            .getItemSpacingY() * 2f;
+        float addBtnH = ImGui.getFrameHeight() + ImGui.getStyle().getItemSpacingY() * 2f;
         float listH = contentH - addBtnH;
 
         ImGui.beginChild("##paled_cats", leftW, contentH, false);
@@ -147,8 +142,7 @@ public class PaletteEditorWindow extends ToggleableWindow {
                 ImGui.setNextItemWidth(-1);
                 boolean enter = ImGui.inputText("##paled_rename_" + i, renameBuf, ImGuiInputTextFlags.EnterReturnsTrue);
                 if (enter || (ImGui.isItemDeactivated() && !ImGui.isItemActive())) {
-                    String trimmed = renameBuf.get()
-                        .trim();
+                    String trimmed = renameBuf.get().trim();
                     if (!trimmed.isEmpty()) PaletteRegistry.INSTANCE.renameCategory(i, trimmed);
                     renamingCategory = -1;
                 }
@@ -195,15 +189,13 @@ public class PaletteEditorWindow extends ToggleableWindow {
         }
         if (pendingRemove >= 0) {
             PaletteRegistry.INSTANCE.removeCategory(pendingRemove);
-            int size = PaletteRegistry.INSTANCE.getCategories()
-                .size();
+            int size = PaletteRegistry.INSTANCE.getCategories().size();
             if (selectedCategory >= size) selectedCategory = size - 1;
         }
 
         if (ImGui.button(I18n.format("dimensium.palette.add_category") + "##paled_add_cat", -1, 0)) {
             PaletteRegistry.INSTANCE.addCategory(I18n.format("dimensium.palette.new_category_name"));
-            selectedCategory = PaletteRegistry.INSTANCE.getCategories()
-                .size() - 1;
+            selectedCategory = PaletteRegistry.INSTANCE.getCategories().size() - 1;
             renamingCategory = selectedCategory;
             renameBuf.set("");
         }
@@ -246,15 +238,17 @@ public class PaletteEditorWindow extends ToggleableWindow {
             }
             if (pendingReplaceBlock >= 0) {
                 final int ci = selectedCategory, bi = pendingReplaceBlock;
-                OverlayRenderer.picker
-                    .open(picked -> { if (picked != null) PaletteRegistry.INSTANCE.replaceBlock(ci, bi, picked); });
+                OverlayRenderer.picker.open(picked -> {
+                    if (picked != null) PaletteRegistry.INSTANCE.replaceBlock(ci, bi, picked);
+                });
             }
 
             ImGui.spacing();
             if (ImGui.button(I18n.format("dimensium.palette.add_block") + "##paled_add_block")) {
                 final int ci = selectedCategory;
-                OverlayRenderer.picker
-                    .open(picked -> { if (picked != null) PaletteRegistry.INSTANCE.addBlock(ci, picked); });
+                OverlayRenderer.picker.open(picked -> {
+                    if (picked != null) PaletteRegistry.INSTANCE.addBlock(ci, picked);
+                });
             }
         } else {
             ImGui.textDisabled(I18n.format("dimensium.palette.editor.no_category_selected"));

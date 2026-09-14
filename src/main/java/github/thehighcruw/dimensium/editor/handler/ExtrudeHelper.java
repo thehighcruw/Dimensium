@@ -4,20 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.handler;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
-import java.util.Set;
-
-import net.minecraft.block.Block;
-import net.minecraft.client.Minecraft;
-import net.minecraft.init.Blocks;
-import net.minecraft.util.MovingObjectPosition;
-import net.minecraft.util.StatCollector;
-import net.minecraft.world.World;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.tool.manipulating.extrude.ExtrudeToolState;
@@ -26,6 +12,18 @@ import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
 import github.thehighcruw.dimensium.tool.BuilderToolState;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
+import java.util.Set;
+import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
+import net.minecraft.init.Blocks;
+import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.util.StatCollector;
+import net.minecraft.world.World;
 
 @SideOnly(Side.CLIENT)
 public class ExtrudeHelper {
@@ -43,43 +41,37 @@ public class ExtrudeHelper {
         boolean expand = s.extrudeMode == ExtrudeToolState.ExtrudeMode.EXPAND;
         int count = Math.max(1, s.extrudeCount);
 
-        List<int[]> connected = floodFillFace(
-            world,
-            tx,
-            ty,
-            tz,
-            dir,
-            targetBlock,
-            targetMeta,
-            s.extrudeLimit,
-            s.extrudeCorners);
+        List<int[]> connected =
+                floodFillFace(world, tx, ty, tz, dir, targetBlock, targetMeta, s.extrudeLimit, s.extrudeCorners);
 
-        List<int[]> ops = buildExtrudeOps(
-            world,
-            expand,
-            count,
-            s.extrudeDisplace,
-            connected,
-            dir,
-            targetBlock,
-            targetMeta);
+        List<int[]> ops =
+                buildExtrudeOps(world, expand, count, s.extrudeDisplace, connected, dir, targetBlock, targetMeta);
 
-        if (!ops.isEmpty()) BlockSender.sendChunked(
-            ops,
-            StatCollector.translateToLocal("dimensium.action.extrude") + " ("
-                + StatCollector.translateToLocal(s.extrudeMode.label)
-                + ")");
+        if (!ops.isEmpty())
+            BlockSender.sendChunked(
+                    ops,
+                    StatCollector.translateToLocal("dimensium.action.extrude") + " ("
+                            + StatCollector.translateToLocal(s.extrudeMode.label)
+                            + ")");
     }
 
-    public static List<int[]> floodFillFace(World world, int sx, int sy, int sz, int[] outDir, Block matchBlock,
-        int matchMeta, int limit, boolean corners) {
+    public static List<int[]> floodFillFace(
+            World world,
+            int sx,
+            int sy,
+            int sz,
+            int[] outDir,
+            Block matchBlock,
+            int matchMeta,
+            int limit,
+            boolean corners) {
         int[][] perp = perpAxes(outDir);
 
         Set<Long> visited = new HashSet<>();
         Queue<int[]> queue = new LinkedList<>();
         List<int[]> result = new ArrayList<>();
 
-        queue.add(new int[] { sx, sy, sz });
+        queue.add(new int[] {sx, sy, sz});
         visited.add(extrudeKey(sx, sy, sz));
 
         while (!queue.isEmpty() && result.size() < limit) {
@@ -95,9 +87,10 @@ public class ExtrudeHelper {
                 long k = extrudeKey(nx, ny, nz);
                 if (visited.contains(k)) continue;
                 visited.add(k);
-                if (world.getBlock(nx, ny, nz) == matchBlock && world.getBlockMetadata(nx, ny, nz) == matchMeta
-                    && world.getBlock(nx + outDir[0], ny + outDir[1], nz + outDir[2]) == Blocks.air) {
-                    queue.add(new int[] { nx, ny, nz });
+                if (world.getBlock(nx, ny, nz) == matchBlock
+                        && world.getBlockMetadata(nx, ny, nz) == matchMeta
+                        && world.getBlock(nx + outDir[0], ny + outDir[1], nz + outDir[2]) == Blocks.air) {
+                    queue.add(new int[] {nx, ny, nz});
                 }
             }
         }
@@ -106,22 +99,38 @@ public class ExtrudeHelper {
     }
 
     private static int[][] orthogonalSteps(int[][] perp) {
-        return new int[][] { { perp[0][0], perp[0][1], perp[0][2] }, { -perp[0][0], -perp[0][1], -perp[0][2] },
-            { perp[1][0], perp[1][1], perp[1][2] }, { -perp[1][0], -perp[1][1], -perp[1][2] } };
+        return new int[][] {
+            {perp[0][0], perp[0][1], perp[0][2]},
+            {-perp[0][0], -perp[0][1], -perp[0][2]},
+            {perp[1][0], perp[1][1], perp[1][2]},
+            {-perp[1][0], -perp[1][1], -perp[1][2]}
+        };
     }
 
     private static int[][] diagonalSteps(int[][] perp) {
         int[][] ortho = orthogonalSteps(perp);
-        return new int[][] { ortho[0], ortho[1], ortho[2], ortho[3],
-            { perp[0][0] + perp[1][0], perp[0][1] + perp[1][1], perp[0][2] + perp[1][2] },
-            { perp[0][0] - perp[1][0], perp[0][1] - perp[1][1], perp[0][2] - perp[1][2] },
-            { -perp[0][0] + perp[1][0], -perp[0][1] + perp[1][1], -perp[0][2] + perp[1][2] },
-            { -perp[0][0] - perp[1][0], -perp[0][1] - perp[1][1], -perp[0][2] - perp[1][2] } };
+        return new int[][] {
+            ortho[0],
+            ortho[1],
+            ortho[2],
+            ortho[3],
+            {perp[0][0] + perp[1][0], perp[0][1] + perp[1][1], perp[0][2] + perp[1][2]},
+            {perp[0][0] - perp[1][0], perp[0][1] - perp[1][1], perp[0][2] - perp[1][2]},
+            {-perp[0][0] + perp[1][0], -perp[0][1] + perp[1][1], -perp[0][2] + perp[1][2]},
+            {-perp[0][0] - perp[1][0], -perp[0][1] - perp[1][1], -perp[0][2] - perp[1][2]}
+        };
     }
 
     /** Returns ops as List of {x, y, z, blockId, meta}. blockId=0 means erase. */
-    private static List<int[]> buildExtrudeOps(World world, boolean expand, int count, boolean displace,
-        List<int[]> connected, int[] dir, Block targetBlock, int targetMeta) {
+    private static List<int[]> buildExtrudeOps(
+            World world,
+            boolean expand,
+            int count,
+            boolean displace,
+            List<int[]> connected,
+            int[] dir,
+            Block targetBlock,
+            int targetMeta) {
         List<int[]> ops = new ArrayList<>();
         int targetId = Block.getIdFromBlock(targetBlock);
         if (expand) {
@@ -130,8 +139,7 @@ public class ExtrudeHelper {
                     int nx = pos[0] + dir[0] * layer;
                     int ny = pos[1] + dir[1] * layer;
                     int nz = pos[2] + dir[2] * layer;
-                    if (world.getBlock(nx, ny, nz) == Blocks.air)
-                        ops.add(new int[] { nx, ny, nz, targetId, targetMeta });
+                    if (world.getBlock(nx, ny, nz) == Blocks.air) ops.add(new int[] {nx, ny, nz, targetId, targetMeta});
                 }
             }
         } else {
@@ -140,7 +148,7 @@ public class ExtrudeHelper {
                     int rx = pos[0] - dir[0] * layer;
                     int ry = pos[1] - dir[1] * layer;
                     int rz = pos[2] - dir[2] * layer;
-                    if (world.getBlock(rx, ry, rz) != Blocks.air) ops.add(new int[] { rx, ry, rz, 0, 0 });
+                    if (world.getBlock(rx, ry, rz) != Blocks.air) ops.add(new int[] {rx, ry, rz, 0, 0});
                 }
             }
             if (displace) {
@@ -152,7 +160,7 @@ public class ExtrudeHelper {
                     int by = pos[1] - dir[1] * count;
                     int bz = pos[2] - dir[2] * count;
                     if (world.getBlock(lx, ly, lz) != Blocks.air && world.getBlock(bx, by, bz) == Blocks.air)
-                        ops.add(new int[] { bx, by, bz, targetId, targetMeta });
+                        ops.add(new int[] {bx, by, bz, targetId, targetMeta});
                 }
             }
         }
@@ -161,20 +169,20 @@ public class ExtrudeHelper {
 
     public static int[] sideToOutwardDir(int side) {
         return switch (side) {
-            case 0 -> new int[] { 0, -1, 0 };
-            case 1 -> new int[] { 0, 1, 0 };
-            case 2 -> new int[] { 0, 0, -1 };
-            case 3 -> new int[] { 0, 0, 1 };
-            case 4 -> new int[] { -1, 0, 0 };
-            case 5 -> new int[] { 1, 0, 0 };
+            case 0 -> new int[] {0, -1, 0};
+            case 1 -> new int[] {0, 1, 0};
+            case 2 -> new int[] {0, 0, -1};
+            case 3 -> new int[] {0, 0, 1};
+            case 4 -> new int[] {-1, 0, 0};
+            case 5 -> new int[] {1, 0, 0};
             default -> throw new RuntimeException("Unknown side: " + side);
         };
     }
 
     public static int[][] perpAxes(int[] dir) {
-        if (dir[1] != 0) return new int[][] { { 1, 0, 0 }, { 0, 0, 1 } };
-        if (dir[2] != 0) return new int[][] { { 1, 0, 0 }, { 0, 1, 0 } };
-        return new int[][] { { 0, 1, 0 }, { 0, 0, 1 } };
+        if (dir[1] != 0) return new int[][] {{1, 0, 0}, {0, 0, 1}};
+        if (dir[2] != 0) return new int[][] {{1, 0, 0}, {0, 1, 0}};
+        return new int[][] {{0, 1, 0}, {0, 0, 1}};
     }
 
     public static long extrudeKey(int x, int y, int z) {
@@ -218,30 +226,23 @@ public class ExtrudeHelper {
         boolean expand = s.extrudeMode == ExtrudeToolState.ExtrudeMode.EXPAND;
 
         List<int[]> connected = floodFillFace(
-            mc.theWorld,
-            tx,
-            ty,
-            tz,
-            dir,
-            targetBlock,
-            targetMeta,
-            Math.min(s.extrudeLimit, 4096),
-            s.extrudeCorners);
+                mc.theWorld,
+                tx,
+                ty,
+                tz,
+                dir,
+                targetBlock,
+                targetMeta,
+                Math.min(s.extrudeLimit, 4096),
+                s.extrudeCorners);
 
         ChangeProposal p = ChangeProposal.forPreview();
         for (int[] op : buildExtrudeOps(
-            mc.theWorld,
-            expand,
-            count,
-            s.extrudeDisplace,
-            connected,
-            dir,
-            targetBlock,
-            targetMeta)) {
+                mc.theWorld, expand, count, s.extrudeDisplace, connected, dir, targetBlock, targetMeta)) {
             if (op[3] == 0) {
-                p.proposed.put(ChangeProposal.packKey(op[0], op[1], op[2]), new int[] { 0, 0 });
+                p.proposed.put(ChangeProposal.packKey(op[0], op[1], op[2]), new int[] {0, 0});
             } else {
-                p.proposed.put(ChangeProposal.packKey(op[0], op[1], op[2]), new int[] { op[3], op[4] });
+                p.proposed.put(ChangeProposal.packKey(op[0], op[1], op[2]), new int[] {op[3], op[4]});
             }
         }
 

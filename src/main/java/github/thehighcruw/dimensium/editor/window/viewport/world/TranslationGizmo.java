@@ -4,15 +4,13 @@
  */
 package github.thehighcruw.dimensium.editor.window.viewport.world;
 
-import net.minecraft.entity.EntityLivingBase;
-
-import org.lwjgl.opengl.GL11;
-
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeMath;
 import github.thehighcruw.dimensium.shared.math.Mat3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec2DDouble;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
+import net.minecraft.entity.EntityLivingBase;
+import org.lwjgl.opengl.GL11;
 
 /**
  * Reusable translation gizmo — any tool can instantiate this.
@@ -36,13 +34,14 @@ public class TranslationGizmo {
 
     private final GizmoProjection proj = new GizmoProjection();
 
-    private static final float[][] AXIS_DIR = { { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 } };
+    private static final float[][] AXIS_DIR = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
     // Perpendicular basis pairs for cone base ring, one pair per axis
-    private static final float[][] CONE_P1 = { { 0, 1, 0 }, { 1, 0, 0 }, { 1, 0, 0 } };
-    private static final float[][] CONE_P2 = { { 0, 0, 1 }, { 0, 0, 1 }, { 0, 1, 0 } };
-    private static final float[][] AXIS_COL = { { 1.0f, 0.25f, 0.25f }, // X: red
-        { 0.25f, 1.0f, 0.25f }, // Y: green
-        { 0.25f, 0.45f, 1.0f }, // Z: blue
+    private static final float[][] CONE_P1 = {{0, 1, 0}, {1, 0, 0}, {1, 0, 0}};
+    private static final float[][] CONE_P2 = {{0, 0, 1}, {0, 0, 1}, {0, 1, 0}};
+    private static final float[][] AXIS_COL = {
+        {1.0f, 0.25f, 0.25f}, // X: red
+        {0.25f, 1.0f, 0.25f}, // Y: green
+        {0.25f, 0.45f, 1.0f}, // Z: blue
     };
 
     // Interaction state
@@ -60,7 +59,7 @@ public class TranslationGizmo {
     private double dragStartT;
 
     /** Per-axis sign: 1 = arrow points in +axis direction, -1 = flipped. */
-    public final float[] axisFlip = { 1f, 1f, 1f };
+    public final float[] axisFlip = {1f, 1f, 1f};
 
     public GizmoProjection getProjection() {
         return proj;
@@ -140,14 +139,14 @@ public class TranslationGizmo {
                     double ang = 2.0 * Math.PI * i / SEG;
                     float c = (float) (Math.cos(ang) * ringR), s2 = (float) (Math.sin(ang) * ringR);
                     WorldLines.addSegment(
-                        wt,
-                        sx + prevC * p1[0] + prevS * p2[0],
-                        sy + prevC * p1[1] + prevS * p2[1],
-                        sz + prevC * p1[2] + prevS * p2[2],
-                        sx + c * p1[0] + s2 * p2[0],
-                        sy + c * p1[1] + s2 * p2[1],
-                        sz + c * p1[2] + s2 * p2[2],
-                        WorldLines.W_THIN);
+                            wt,
+                            sx + prevC * p1[0] + prevS * p2[0],
+                            sy + prevC * p1[1] + prevS * p2[1],
+                            sz + prevC * p1[2] + prevS * p2[2],
+                            sx + c * p1[0] + s2 * p2[0],
+                            sy + c * p1[1] + s2 * p2[1],
+                            sz + c * p1[2] + s2 * p2[2],
+                            WorldLines.W_THIN);
                     prevC = c;
                     prevS = s2;
                 }
@@ -164,8 +163,16 @@ public class TranslationGizmo {
      * Update hoveredAxis from current mouse position.
      * Call every frame from drawScreen (when not dragging).
      */
-    public void updateHover(int mouseX, int mouseY, EntityLivingBase player, double gx, double gy, double gz,
-        float rotX, float rotY, float rotZ) {
+    public void updateHover(
+            int mouseX,
+            int mouseY,
+            EntityLivingBase player,
+            double gx,
+            double gy,
+            double gz,
+            float rotX,
+            float rotY,
+            float rotZ) {
         double eyeX = player.posX, eyeY = player.posY + player.getEyeHeight(), eyeZ = player.posZ;
         float scale = RotationGizmo.computeScale(gx - eyeX, gy - eyeY, gz - eyeZ);
         float scaledArm = (ARM_LEN + CONE_H) * scale;
@@ -180,9 +187,8 @@ public class TranslationGizmo {
         double bestDist = HIT_PX;
 
         for (int a = 0; a < 3; a++) {
-            Vec3DFloat dir = R.mul(
-                Vec3DFloat
-                    .from(AXIS_DIR[a][0] * axisFlip[a], AXIS_DIR[a][1] * axisFlip[a], AXIS_DIR[a][2] * axisFlip[a]));
+            Vec3DFloat dir = R.mul(Vec3DFloat.from(
+                    AXIS_DIR[a][0] * axisFlip[a], AXIS_DIR[a][1] * axisFlip[a], AXIS_DIR[a][2] * axisFlip[a]));
             double[] tip = proj.project(gx + dir.x() * scaledArm, gy + dir.y() * scaledArm, gz + dir.z() * scaledArm);
             if (tip == null) continue;
 
@@ -199,8 +205,18 @@ public class TranslationGizmo {
      * Begin dragging along the currently hovered axis.
      * anchorX/Y/Z is the shape anchor (not center).
      */
-    public void startDrag(int mouseX, int mouseY, double gx, double gy, double gz, double anchorX, double anchorY,
-        double anchorZ, float rotX, float rotY, float rotZ) {
+    public void startDrag(
+            int mouseX,
+            int mouseY,
+            double gx,
+            double gy,
+            double gz,
+            double anchorX,
+            double anchorY,
+            double anchorZ,
+            float rotX,
+            float rotY,
+            float rotZ) {
         if (hoveredAxis == Axis.NONE) return;
         dragAxis = hoveredAxis;
         dragStartMX = mouseX;
@@ -210,8 +226,8 @@ public class TranslationGizmo {
 
         Mat3DFloat R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
         int a = dragAxis == Axis.X ? 0 : dragAxis == Axis.Y ? 1 : 2;
-        rotatedAxisDir = R.mul(
-            Vec3DFloat.from(AXIS_DIR[a][0] * axisFlip[a], AXIS_DIR[a][1] * axisFlip[a], AXIS_DIR[a][2] * axisFlip[a]));
+        rotatedAxisDir = R.mul(Vec3DFloat.from(
+                AXIS_DIR[a][0] * axisFlip[a], AXIS_DIR[a][1] * axisFlip[a], AXIS_DIR[a][2] * axisFlip[a]));
 
         // Screen-based fallback (used when ray unprojection fails)
         double[] os = proj.project(gx, gy, gz);
@@ -265,23 +281,22 @@ public class TranslationGizmo {
                 double t = closestAxisT(ray, dragGizmo.x(), dragGizmo.y(), dragGizmo.z(), rotatedAxisDir);
                 double delta = t - dragStartT;
                 return Vec3DDouble.from(
-                    startAnchor.x() + delta * rotatedAxisDir.x(),
-                    startAnchor.y() + delta * rotatedAxisDir.y(),
-                    startAnchor.z() + delta * rotatedAxisDir.z());
+                        startAnchor.x() + delta * rotatedAxisDir.x(),
+                        startAnchor.y() + delta * rotatedAxisDir.y(),
+                        startAnchor.z() + delta * rotatedAxisDir.z());
             }
         }
         // Screen-based fallback
-        double screenProj = Vec2DDouble.from(mouseX - dragStartMX, mouseY - dragStartMY)
-            .dot(screenDir);
+        double screenProj =
+                Vec2DDouble.from(mouseX - dragStartMX, mouseY - dragStartMY).dot(screenDir);
         double delta = screenProj / pixelsPerBlock;
         return Vec3DDouble.from(
-            startAnchor.x() + delta * rotatedAxisDir.x(),
-            startAnchor.y() + delta * rotatedAxisDir.y(),
-            startAnchor.z() + delta * rotatedAxisDir.z());
+                startAnchor.x() + delta * rotatedAxisDir.x(),
+                startAnchor.y() + delta * rotatedAxisDir.y(),
+                startAnchor.z() + delta * rotatedAxisDir.z());
     }
 
     public void endDrag() {
         dragAxis = Axis.NONE;
     }
-
 }

@@ -7,7 +7,6 @@ package github.thehighcruw.dimensium.editor.tool.state;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-
 import net.minecraft.item.ItemStack;
 
 public class PaletteState {

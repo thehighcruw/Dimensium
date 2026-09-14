@@ -9,7 +9,6 @@ public class FloodfillToolState {
     public static final FloodfillToolState INSTANCE = new FloodfillToolState();
 
     public enum FloodfillDir {
-
         DOWN("dimensium.floodfill_dir.down"),
         UP("dimensium.floodfill_dir.up");
 

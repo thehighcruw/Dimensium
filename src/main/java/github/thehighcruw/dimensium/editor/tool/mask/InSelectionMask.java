@@ -4,9 +4,8 @@
  */
 package github.thehighcruw.dimensium.editor.tool.mask;
 
-import net.minecraft.world.World;
-
 import github.thehighcruw.dimensium.shared.SelectionState;
+import net.minecraft.world.World;
 
 public class InSelectionMask extends MaskNode {
 

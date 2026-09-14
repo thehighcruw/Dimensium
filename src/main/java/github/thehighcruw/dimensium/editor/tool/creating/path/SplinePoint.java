@@ -5,7 +5,6 @@
 package github.thehighcruw.dimensium.editor.tool.creating.path;
 
 import com.github.bsideup.jabel.Desugar;
-
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 
 @Desugar

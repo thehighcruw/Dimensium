@@ -4,18 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.handler;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import net.minecraft.block.Block;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.client.settings.KeyBinding;
-import net.minecraft.util.MovingObjectPosition;
-
-import org.lwjgl.input.Keyboard;
-
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.InputEvent;
 import cpw.mods.fml.relauncher.Side;
@@ -49,6 +37,15 @@ import github.thehighcruw.dimensium.shared.util.RenderUtils;
 import github.thehighcruw.dimensium.tool.BuilderToolState;
 import github.thehighcruw.dimensium.tool.BuilderToolState.Phase;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.util.MovingObjectPosition;
+import org.lwjgl.input.Keyboard;
 
 @SideOnly(Side.CLIENT)
 public class KeyHandler {
@@ -88,9 +85,10 @@ public class KeyHandler {
         Minecraft mc = Minecraft.getMinecraft();
 
         // ── Toggle overlay (RShift) — requires creative mode ─────────────────
-        if (key == Dimensium.toggleDimensium.getKeyCode() && !OverlayRenderer.picker.isOpen()
-            && !CreateBlueprintPopup.INSTANCE.isOpen()
-            && !BlueprintBrowserPopup.INSTANCE.isOpen()) {
+        if (key == Dimensium.toggleDimensium.getKeyCode()
+                && !OverlayRenderer.picker.isOpen()
+                && !CreateBlueprintPopup.INSTANCE.isOpen()
+                && !BlueprintBrowserPopup.INSTANCE.isOpen()) {
             if (OverlayRenderer.isNotCreative()) return;
             OverlayRenderer.picker.close();
             if (DimensiumEditorMode.INSTANCE.isActive()) {
@@ -117,7 +115,7 @@ public class KeyHandler {
 
             // Confirm — box selection gizmo phase, shape placement, clipboard paste, path, or modelling.
             if (matches(key, mods, Dimensium.actionConfirm, Dimensium.actionConfirmMods)
-                || key == Keyboard.KEY_NUMPADENTER) {
+                    || key == Keyboard.KEY_NUMPADENTER) {
                 SelectionState bxConfSel = SelectionState.INSTANCE;
                 if (bxConfSel.boxConfirmed && DimensiumEditorMode.INSTANCE.selectedTool == Tool.SELECT) {
                     GuiDimensiumOverlay.commitBoxSelection(bxConfSel, BoxSelectToolState.INSTANCE);
@@ -205,8 +203,9 @@ public class KeyHandler {
             // Erase — also accepts Backspace as an alias.
             if (matches(key, mods, Dimensium.actionErase, Dimensium.actionEraseMods) || key == Keyboard.KEY_BACK) {
                 PathToolState pts = PathToolState.INSTANCE;
-                if (DimensiumEditorMode.INSTANCE.selectedTool == Tool.PATH && pts.selectedIndex >= 0
-                    && !pts.points.isEmpty()) {
+                if (DimensiumEditorMode.INSTANCE.selectedTool == Tool.PATH
+                        && pts.selectedIndex >= 0
+                        && !pts.points.isEmpty()) {
                     pts.removeCurrentPoint();
                     return;
                 }
@@ -265,14 +264,13 @@ public class KeyHandler {
                     int id = Block.getIdFromBlock(paint);
                     List<int[]> ops = new ArrayList<>(sel.size());
                     for (long packed : sel.getSelectedBlocks()) {
-                        ops.add(
-                            new int[] { SelectionState.unpack(packed)
-                                .x(),
-                                SelectionState.unpack(packed)
-                                    .y(),
-                                SelectionState.unpack(packed)
-                                    .z(),
-                                id, meta });
+                        ops.add(new int[] {
+                            SelectionState.unpack(packed).x(),
+                            SelectionState.unpack(packed).y(),
+                            SelectionState.unpack(packed).z(),
+                            id,
+                            meta
+                        });
                     }
                     BlockSender.sendChunked(ops, I18n.format("dimensium.action.fill"));
                 }
@@ -358,8 +356,7 @@ public class KeyHandler {
             PathToolState.PathPoint pt = pts.selectedPoint();
             if (pt != null) {
                 pt.pos = pt.pos.plus(Vec3DInt.from(delta[0], delta[1], delta[2]));
-                pts.getAxisTranslationGizmo()
-                    .reset();
+                pts.getAxisTranslationGizmo().reset();
                 pts.invalidatePath();
                 return true;
             }
@@ -369,14 +366,13 @@ public class KeyHandler {
             ModellingToolState modts = ModellingToolState.INSTANCE;
             ModellingToolState.ModelPoint pt = modts.selectedPointObj();
             if (pt != null) {
-                modts.rows.get(modts.selectedRow)
-                    .set(
-                        modts.selectedPoint,
-                        new ModellingToolState.ModelPoint(
-                            pt.pos()
-                                .plus(Vec3DInt.from(delta[0], delta[1], delta[2]))));
-                modts.getAxisTranslationGizmo()
-                    .reset();
+                modts.rows
+                        .get(modts.selectedRow)
+                        .set(
+                                modts.selectedPoint,
+                                new ModellingToolState.ModelPoint(
+                                        pt.pos().plus(Vec3DInt.from(delta[0], delta[1], delta[2]))));
+                modts.getAxisTranslationGizmo().reset();
                 modts.invalidate();
                 return true;
             }
@@ -399,28 +395,28 @@ public class KeyHandler {
 
         if (!fwd && !bwd && !rgt && !lft && !up && !dwn) return null;
 
-        if (up) return new int[] { 0, 1, 0 };
-        if (dwn) return new int[] { 0, -1, 0 };
+        if (up) return new int[] {0, 1, 0};
+        if (dwn) return new int[] {0, -1, 0};
 
         net.minecraft.entity.Entity cam = FreecamState.INSTANCE.cameraEntity;
         float yaw = cam != null ? cam.rotationYaw : 0f;
         // Snap yaw to nearest 90°: 0=south(+Z), 1=west(-X), 2=north(-Z), 3=east(+X)
         int q = Math.round(yaw / 90f) & 3;
         // Cardinal forward vectors per quadrant
-        int[] qfx = { 0, -1, 0, 1 };
-        int[] qfz = { 1, 0, -1, 0 };
+        int[] qfx = {0, -1, 0, 1};
+        int[] qfz = {1, 0, -1, 0};
         // Cardinal right vectors: right = direction faced after turning right (yaw+90).
         // Formula: (-cos(yaw), -sin(yaw)) in (x,z). Per quadrant:
         // south→west, west→north, north→east, east→south
-        int[] qrx = { -1, 0, 1, 0 };
-        int[] qrz = { 0, -1, 0, 1 };
+        int[] qrx = {-1, 0, 1, 0};
+        int[] qrz = {0, -1, 0, 1};
 
         // Flip Canvas mirrors the horizontal screen axis, inverting the effective L/R direction.
         int lrSign = ViewState.INSTANCE.flipCanvas ? -1 : 1;
 
-        if (fwd) return new int[] { qfx[q], 0, qfz[q] };
-        if (bwd) return new int[] { -qfx[q], 0, -qfz[q] };
-        if (rgt) return new int[] { lrSign * qrx[q], 0, lrSign * qrz[q] };
-        return new int[] { -lrSign * qrx[q], 0, -lrSign * qrz[q] };
+        if (fwd) return new int[] {qfx[q], 0, qfz[q]};
+        if (bwd) return new int[] {-qfx[q], 0, -qfz[q]};
+        if (rgt) return new int[] {lrSign * qrx[q], 0, lrSign * qrz[q]};
+        return new int[] {-lrSign * qrx[q], 0, -lrSign * qrz[q]};
     }
 }

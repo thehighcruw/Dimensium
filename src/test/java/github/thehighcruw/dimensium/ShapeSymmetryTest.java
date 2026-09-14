@@ -6,10 +6,9 @@ package github.thehighcruw.dimensium;
 
 import static org.junit.Assert.*;
 
-import org.junit.Test;
-
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeMath;
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeToolState.ShapeType;
+import org.junit.Test;
 
 /**
  * Exhaustive symmetry tests for every ShapeType at multiple sizes (odd, even, non-cubic).
@@ -35,56 +34,56 @@ public class ShapeSymmetryTest {
     private static final int SIDES = 6; // hexagon: even, so XZ-symmetric
     private static final float SPIRAL_SP = 1.5f, SPIRAL_T = 3f;
 
-    private static boolean s(ShapeType type, int dx, int dy, int dz, int w, int h, int d, boolean hollow, int ringR,
-        int ringRZ, int tubeR) {
+    private static boolean s(
+            ShapeType type,
+            int dx,
+            int dy,
+            int dz,
+            int w,
+            int h,
+            int d,
+            boolean hollow,
+            int ringR,
+            int ringRZ,
+            int tubeR) {
         return ShapeMath.inShapeGeom(
-            type,
-            dx,
-            dy,
-            dz,
-            w,
-            h,
-            d,
-            hollow,
-            EXP,
-            ringR,
-            ringRZ,
-            tubeR,
-            WALL,
-            EXP,
-            SIDES,
-            SPIRAL_SP,
-            SPIRAL_T,
-            1f);
+                type, dx, dy, dz, w, h, d, hollow, EXP, ringR, ringRZ, tubeR, WALL, EXP, SIDES, SPIRAL_SP, SPIRAL_T,
+                1f);
     }
 
     // ── symmetry assertion helpers ────────────────────────────────────────────
 
     private static void assertXSym(ShapeType type, int w, int h, int d, boolean hollow, int rR, int rRZ, int tR) {
         String tag = type + " w=" + w + " h=" + h + " d=" + d + " hollow=" + hollow;
-        for (int dx = 0; dx < w; dx++) for (int dy = 0; dy < h; dy++) for (int dz = 0; dz < d; dz++) {
-            boolean a = s(type, dx, dy, dz, w, h, d, hollow, rR, rRZ, tR);
-            boolean b = s(type, w - 1 - dx, dy, dz, w, h, d, hollow, rR, rRZ, tR);
-            if (a != b) fail(tag + " X-sym broken at (" + dx + "," + dy + "," + dz + ")");
-        }
+        for (int dx = 0; dx < w; dx++)
+            for (int dy = 0; dy < h; dy++)
+                for (int dz = 0; dz < d; dz++) {
+                    boolean a = s(type, dx, dy, dz, w, h, d, hollow, rR, rRZ, tR);
+                    boolean b = s(type, w - 1 - dx, dy, dz, w, h, d, hollow, rR, rRZ, tR);
+                    if (a != b) fail(tag + " X-sym broken at (" + dx + "," + dy + "," + dz + ")");
+                }
     }
 
     private static void assertYSym(ShapeType type, int w, int h, int d, boolean hollow, int rR, int rRZ, int tR) {
         String tag = type + " w=" + w + " h=" + h + " d=" + d + " hollow=" + hollow;
-        for (int dx = 0; dx < w; dx++) for (int dy = 0; dy < h; dy++) for (int dz = 0; dz < d; dz++) {
-            boolean a = s(type, dx, dy, dz, w, h, d, hollow, rR, rRZ, tR);
-            boolean b = s(type, dx, h - 1 - dy, dz, w, h, d, hollow, rR, rRZ, tR);
-            if (a != b) fail(tag + " Y-sym broken at (" + dx + "," + dy + "," + dz + ")");
-        }
+        for (int dx = 0; dx < w; dx++)
+            for (int dy = 0; dy < h; dy++)
+                for (int dz = 0; dz < d; dz++) {
+                    boolean a = s(type, dx, dy, dz, w, h, d, hollow, rR, rRZ, tR);
+                    boolean b = s(type, dx, h - 1 - dy, dz, w, h, d, hollow, rR, rRZ, tR);
+                    if (a != b) fail(tag + " Y-sym broken at (" + dx + "," + dy + "," + dz + ")");
+                }
     }
 
     private static void assertZSym(ShapeType type, int w, int h, int d, boolean hollow, int rR, int rRZ, int tR) {
         String tag = type + " w=" + w + " h=" + h + " d=" + d + " hollow=" + hollow;
-        for (int dx = 0; dx < w; dx++) for (int dy = 0; dy < h; dy++) for (int dz = 0; dz < d; dz++) {
-            boolean a = s(type, dx, dy, dz, w, h, d, hollow, rR, rRZ, tR);
-            boolean b = s(type, dx, dy, d - 1 - dz, w, h, d, hollow, rR, rRZ, tR);
-            if (a != b) fail(tag + " Z-sym broken at (" + dx + "," + dy + "," + dz + ")");
-        }
+        for (int dx = 0; dx < w; dx++)
+            for (int dy = 0; dy < h; dy++)
+                for (int dz = 0; dz < d; dz++) {
+                    boolean a = s(type, dx, dy, dz, w, h, d, hollow, rR, rRZ, tR);
+                    boolean b = s(type, dx, dy, d - 1 - dz, w, h, d, hollow, rR, rRZ, tR);
+                    if (a != b) fail(tag + " Z-sym broken at (" + dx + "," + dy + "," + dz + ")");
+                }
     }
 
     private static void assertXSym(ShapeType t, int w, int h, int d, boolean hollow) {

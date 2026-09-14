@@ -4,10 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.window;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.util.MovingObjectPosition;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.DimensiumConfig;
@@ -23,6 +19,9 @@ import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import imgui.ImGui;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.util.MovingObjectPosition;
 
 @SideOnly(Side.CLIENT)
 public class ClipboardWindow extends ToggleableWindow {
@@ -64,8 +63,8 @@ public class ClipboardWindow extends ToggleableWindow {
         if (!open) return;
 
         ImBoolean pOpen = new ImBoolean(true);
-        boolean visible = ImGui
-            .begin(I18n.format("dimensium.ui.window.clipboard") + WINDOW_ID, pOpen, ImGuiWindowFlags.None);
+        boolean visible =
+                ImGui.begin(I18n.format("dimensium.ui.window.clipboard") + WINDOW_ID, pOpen, ImGuiWindowFlags.None);
         captureBounds();
 
         if (visible && pOpen.get()) {

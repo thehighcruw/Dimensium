@@ -4,12 +4,11 @@
  */
 package github.thehighcruw.dimensium.editor.tool.creating.stamp;
 
+import github.thehighcruw.dimensium.editor.blueprint.Blueprint;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-
-import github.thehighcruw.dimensium.editor.blueprint.Blueprint;
-import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 
 public class StampScatter {
 
@@ -52,11 +51,8 @@ public class StampScatter {
             StampEntry entry = state.blueprints.get(entryIdx);
             Blueprint bp = entry.blueprint;
 
-            float minDist = state.minSpacingPct * Math.max(
-                bp.clipDim()
-                    .x(),
-                bp.clipDim()
-                    .z());
+            float minDist = state.minSpacingPct
+                    * Math.max(bp.clipDim().x(), bp.clipDim().z());
             if (minDist > 0f && isTooClose(result, pos[0], pos[2], minDist)) continue;
 
             float yaw = state.randomYaw ? rng.nextFloat() * 360f : 0f;

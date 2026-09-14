@@ -4,15 +4,13 @@
  */
 package github.thehighcruw.dimensium.editor.window.viewport.world;
 
-import net.minecraft.entity.EntityLivingBase;
-
-import org.lwjgl.opengl.GL11;
-
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeMath;
 import github.thehighcruw.dimensium.shared.math.Mat3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec2DDouble;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
+import net.minecraft.entity.EntityLivingBase;
+import org.lwjgl.opengl.GL11;
 
 /**
  * Single-axis scale gizmo — a colored box at the tip of each axis arrow.
@@ -32,13 +30,15 @@ public class ScalingGizmo {
     private static final float BOX_CENTER = 1.85f;
     /** Scale units per world-unit of projected drag distance. Lower = less sensitive. */
     private static final float SCALE_SENSITIVITY = 0.25f;
+
     private static final float BOX_HALF = 0.10f;
     private static final double HIT_PX = 6.0;
 
-    private static final float[][] AXIS_DIR = { { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 } };
-    private static final float[][] AXIS_COL = { { 1.0f, 0.25f, 0.25f }, // X: red
-        { 0.25f, 1.0f, 0.25f }, // Y: green
-        { 0.25f, 0.45f, 1.0f }, // Z: blue
+    private static final float[][] AXIS_DIR = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
+    private static final float[][] AXIS_COL = {
+        {1.0f, 0.25f, 0.25f}, // X: red
+        {0.25f, 1.0f, 0.25f}, // Y: green
+        {0.25f, 0.45f, 1.0f}, // Z: blue
     };
 
     private final GizmoProjection proj = new GizmoProjection();
@@ -130,22 +130,47 @@ public class ScalingGizmo {
     private static void renderBoxEdges(Vec3DFloat center, Vec3DFloat p1, Vec3DFloat p2, Vec3DFloat p3) {
         // 8 corners
         float[][] v = {
-            { center.x() - p1.x() - p2.x() - p3.x(), center.y() - p1.y() - p2.y() - p3.y(),
-                center.z() - p1.z() - p2.z() - p3.z() },
-            { center.x() + p1.x() - p2.x() - p3.x(), center.y() + p1.y() - p2.y() - p3.y(),
-                center.z() + p1.z() - p2.z() - p3.z() },
-            { center.x() + p1.x() + p2.x() - p3.x(), center.y() + p1.y() + p2.y() - p3.y(),
-                center.z() + p1.z() + p2.z() - p3.z() },
-            { center.x() - p1.x() + p2.x() - p3.x(), center.y() - p1.y() + p2.y() - p3.y(),
-                center.z() - p1.z() + p2.z() - p3.z() },
-            { center.x() - p1.x() - p2.x() + p3.x(), center.y() - p1.y() - p2.y() + p3.y(),
-                center.z() - p1.z() - p2.z() + p3.z() },
-            { center.x() + p1.x() - p2.x() + p3.x(), center.y() + p1.y() - p2.y() + p3.y(),
-                center.z() + p1.z() - p2.z() + p3.z() },
-            { center.x() + p1.x() + p2.x() + p3.x(), center.y() + p1.y() + p2.y() + p3.y(),
-                center.z() + p1.z() + p2.z() + p3.z() },
-            { center.x() - p1.x() + p2.x() + p3.x(), center.y() - p1.y() + p2.y() + p3.y(),
-                center.z() - p1.z() + p2.z() + p3.z() } };
+            {
+                center.x() - p1.x() - p2.x() - p3.x(),
+                center.y() - p1.y() - p2.y() - p3.y(),
+                center.z() - p1.z() - p2.z() - p3.z()
+            },
+            {
+                center.x() + p1.x() - p2.x() - p3.x(),
+                center.y() + p1.y() - p2.y() - p3.y(),
+                center.z() + p1.z() - p2.z() - p3.z()
+            },
+            {
+                center.x() + p1.x() + p2.x() - p3.x(),
+                center.y() + p1.y() + p2.y() - p3.y(),
+                center.z() + p1.z() + p2.z() - p3.z()
+            },
+            {
+                center.x() - p1.x() + p2.x() - p3.x(),
+                center.y() - p1.y() + p2.y() - p3.y(),
+                center.z() - p1.z() + p2.z() - p3.z()
+            },
+            {
+                center.x() - p1.x() - p2.x() + p3.x(),
+                center.y() - p1.y() - p2.y() + p3.y(),
+                center.z() - p1.z() - p2.z() + p3.z()
+            },
+            {
+                center.x() + p1.x() - p2.x() + p3.x(),
+                center.y() + p1.y() - p2.y() + p3.y(),
+                center.z() + p1.z() - p2.z() + p3.z()
+            },
+            {
+                center.x() + p1.x() + p2.x() + p3.x(),
+                center.y() + p1.y() + p2.y() + p3.y(),
+                center.z() + p1.z() + p2.z() + p3.z()
+            },
+            {
+                center.x() - p1.x() + p2.x() + p3.x(),
+                center.y() - p1.y() + p2.y() + p3.y(),
+                center.z() - p1.z() + p2.z() + p3.z()
+            }
+        };
         GL11.glBegin(GL11.GL_LINES);
         // Bottom ring
         edge(v, 0, 1);
@@ -172,8 +197,16 @@ public class ScalingGizmo {
 
     // ── Hover ──────────────────────────────────────────────────────────────────
 
-    public void updateHover(int mouseX, int mouseY, EntityLivingBase player, double gx, double gy, double gz,
-        float rotX, float rotY, float rotZ) {
+    public void updateHover(
+            int mouseX,
+            int mouseY,
+            EntityLivingBase player,
+            double gx,
+            double gy,
+            double gz,
+            float rotX,
+            float rotY,
+            float rotZ) {
         double eyeX = player.posX, eyeY = player.posY + player.getEyeHeight(), eyeZ = player.posZ;
         float scale = RotationGizmo.computeScale(gx - eyeX, gy - eyeY, gz - eyeZ);
         Mat3DFloat R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
@@ -203,8 +236,8 @@ public class ScalingGizmo {
     /**
      * startScale is the current scale value for the hovered axis.
      */
-    public void startDrag(int mouseX, int mouseY, double gx, double gy, double gz, float scale, float rotX, float rotY,
-        float rotZ) {
+    public void startDrag(
+            int mouseX, int mouseY, double gx, double gy, double gz, float scale, float rotX, float rotY, float rotZ) {
         if (hoveredAxis == Axis.NONE) return;
         dragAxis = hoveredAxis;
         dragStartMX = mouseX;
@@ -233,10 +266,10 @@ public class ScalingGizmo {
      */
     public float[] updateDrag(int mouseX, int mouseY) {
         if (dragAxis == Axis.NONE) return null;
-        double proj = Vec2DDouble.from(mouseX - dragStartMX, mouseY - dragStartMY)
-            .dot(screenDir);
+        double proj =
+                Vec2DDouble.from(mouseX - dragStartMX, mouseY - dragStartMY).dot(screenDir);
         float newScale = Math.max(0.1f, startScale + (float) (proj / pixelsPerUnit) * SCALE_SENSITIVITY);
-        return new float[] { newScale };
+        return new float[] {newScale};
     }
 
     public void endDrag() {

@@ -10,8 +10,7 @@ import net.minecraft.world.World;
 
 public class SurfaceMask extends MaskNode {
 
-    private static final int[][] OFFSETS = { { 0, 1, 0 }, { 0, -1, 0 }, { 1, 0, 0 }, { -1, 0, 0 }, { 0, 0, 1 },
-        { 0, 0, -1 } };
+    private static final int[][] OFFSETS = {{0, 1, 0}, {0, -1, 0}, {1, 0, 0}, {-1, 0, 0}, {0, 0, 1}, {0, 0, -1}};
 
     @Override
     public boolean test(World world, int x, int y, int z) {

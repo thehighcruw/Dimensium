@@ -4,16 +4,14 @@
  */
 package github.thehighcruw.dimensium.editor.window.viewport;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
-
-import net.minecraft.client.Minecraft;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.freecam.FreecamEntity;
 import github.thehighcruw.dimensium.editor.freecam.FreecamState;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import net.minecraft.client.Minecraft;
 
 @SideOnly(Side.CLIENT)
 public final class ViewportRegistry {
@@ -115,8 +113,7 @@ public final class ViewportRegistry {
     public void removeViewport(int index) {
         if (viewports.size() <= 1 || index < 0 || index >= viewports.size()) return;
 
-        viewports.get(index)
-            .destroy();
+        viewports.get(index).destroy();
         viewports.remove(index);
 
         if (index == activeIndex || activeIndex >= viewports.size()) {

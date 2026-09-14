@@ -4,17 +4,15 @@
  */
 package github.thehighcruw.dimensium.world.inventory.colorPicker;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import java.util.List;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.InventoryBasic;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
-
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
 public class ColourPickerContainer extends Container {
@@ -35,12 +33,8 @@ public class ColourPickerContainer extends Container {
 
         for (int row = 0; row < GRID_ROWS; row++) {
             for (int col = 0; col < GRID_COLS; col++) {
-                addSlotToContainer(
-                    new SlotPaletteResult(
-                        paletteInv,
-                        col + row * GRID_COLS,
-                        GRID_REL_X + col * CELL,
-                        CONTENT_REL_Y + row * CELL));
+                addSlotToContainer(new SlotPaletteResult(
+                        paletteInv, col + row * GRID_COLS, GRID_REL_X + col * CELL, CONTENT_REL_Y + row * CELL));
             }
         }
 

@@ -4,15 +4,13 @@
  */
 package github.thehighcruw.dimensium.editor.overlay;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.EntityRenderer;
 import net.minecraft.client.renderer.ItemRenderer;
-
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 
 /**
  * Suppresses the first-person arm/item render while the Dimensium editor is active.
@@ -61,7 +59,8 @@ public final class HandRenderer {
             if (noOp == null) noOp = new NoOpItemRenderer(mc);
             saved = (ItemRenderer) f.get(mc.entityRenderer);
             f.set(mc.entityRenderer, noOp);
-        } catch (IllegalAccessException ignored) {}
+        } catch (IllegalAccessException ignored) {
+        }
     }
 
     /** Restore the original itemRenderer. Call after renderHand, before gameplay uses it. */
@@ -74,7 +73,8 @@ public final class HandRenderer {
         }
         try {
             f.set(mc.entityRenderer, saved);
-        } catch (IllegalAccessException ignored) {}
+        } catch (IllegalAccessException ignored) {
+        }
         saved = null;
     }
 
