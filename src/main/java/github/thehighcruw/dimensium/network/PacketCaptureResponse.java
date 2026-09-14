@@ -149,9 +149,7 @@ public class PacketCaptureResponse implements IPacket {
 
         SelectionState sel = SelectionState.INSTANCE;
         sel.clipboard = clipboard;
-        sel.clipW = w;
-        sel.clipH = h;
-        sel.clipD = d;
+        sel.clipDim = Vec3DInt.from(w, h, d);
         sel.clipboardVersion++;
 
         bts.phase = Phase.MANIPULATING;

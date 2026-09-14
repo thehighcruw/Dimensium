@@ -132,9 +132,7 @@ public class StampSection implements ToolSection {
             I18n.format("dimensium.stamp.clipboard_name"),
             new ArrayList<>(),
             sel.clipboard,
-            sel.clipW,
-            sel.clipH,
-            sel.clipD,
+            sel.clipDim,
             null);
         state.blueprints.add(new StampEntry(bp));
     }

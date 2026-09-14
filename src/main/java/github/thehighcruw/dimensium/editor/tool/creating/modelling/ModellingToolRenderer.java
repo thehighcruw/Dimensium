@@ -39,7 +39,13 @@ public class ModellingToolRenderer implements ToolRenderer {
             && !mts.getPlaneTranslationGizmo()
                 .isDragging()
             && mc.renderViewEntity != null) {
-            Vec3DDouble gp = Vec3DDouble.from(mSelPt.pos.x() + 0.5, mSelPt.pos.y() + 0.5, mSelPt.pos.z() + 0.5);
+            Vec3DDouble gp = Vec3DDouble.from(
+                mSelPt.pos()
+                    .x() + 0.5,
+                mSelPt.pos()
+                    .y() + 0.5,
+                mSelPt.pos()
+                    .z() + 0.5);
             mts.getAxisTranslationGizmo()
                 .updateHover(mx3d, my3d, mc.renderViewEntity, gp.x(), gp.y(), gp.z(), 0, 0, 0);
         }

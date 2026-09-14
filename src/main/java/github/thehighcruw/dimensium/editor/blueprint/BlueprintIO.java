@@ -24,6 +24,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
 
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+
 /**
  * Serialises blueprints in a two-section format:
  *
@@ -59,9 +61,18 @@ public class BlueprintIO {
         NBTTagList tagList = new NBTTagList();
         for (String tg : bp.tags()) tagList.appendTag(new NBTTagString(tg));
         headerTag.setTag("tags", tagList);
-        headerTag.setInteger("clipW", bp.clipW());
-        headerTag.setInteger("clipH", bp.clipH());
-        headerTag.setInteger("clipD", bp.clipD());
+        headerTag.setInteger(
+            "clipW",
+            bp.clipDim()
+                .x());
+        headerTag.setInteger(
+            "clipH",
+            bp.clipDim()
+                .y());
+        headerTag.setInteger(
+            "clipD",
+            bp.clipDim()
+                .z());
 
         NBTTagCompound bodyTag = new NBTTagCompound();
         int n = bp.offsets()
@@ -107,9 +118,7 @@ public class BlueprintIO {
             return new Blueprint(
                 header.name(),
                 header.tags(),
-                header.clipW(),
-                header.clipH(),
-                header.clipD(),
+                header.clipDim(),
                 decodeOffsets(bodyTag.getIntArray("offsets")),
                 null);
         }
@@ -170,9 +179,7 @@ public class BlueprintIO {
         return new Blueprint(
             tag.getString("name"),
             tags,
-            tag.getInteger("clipW"),
-            tag.getInteger("clipH"),
-            tag.getInteger("clipD"),
+            Vec3DInt.from(tag.getInteger("clipW"), tag.getInteger("clipH"), tag.getInteger("clipD")),
             new ArrayList<>(),
             null);
     }

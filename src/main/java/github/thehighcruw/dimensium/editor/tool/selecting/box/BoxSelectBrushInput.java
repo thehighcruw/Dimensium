@@ -36,58 +36,53 @@ public class BoxSelectBrushInput implements BrushInput {
             if (button == KeyConstants.LMB) {
                 EntityLivingBase eye = mc.renderViewEntity;
                 if (eye != null) {
+                    Vec3DDouble g1 = sel.pendingPos.toDouble()
+                        .plus(0.5);
                     if (SelectionRenderer.boxPos1Gizmo.hoveredAxis != TranslationGizmo.Axis.NONE) {
-                        double gx = sel.pendingPos.x() + 0.5, gy = sel.pendingPos.y() + 0.5,
-                            gz = sel.pendingPos.z() + 0.5;
-                        SelectionRenderer.boxPos1Gizmo.startDrag(mouseX, mouseY, gx, gy, gz, gx, gy, gz, 0, 0, 0);
+                        SelectionRenderer.boxPos1Gizmo
+                            .startDrag(mouseX, mouseY, g1.x(), g1.y(), g1.z(), g1.x(), g1.y(), g1.z(), 0, 0, 0);
                         return;
                     }
                     if (SelectionRenderer.boxPos1PlaneGizmo.hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
-                        double gx = sel.pendingPos.x() + 0.5, gy = sel.pendingPos.y() + 0.5,
-                            gz = sel.pendingPos.z() + 0.5;
-                        SelectionRenderer.boxPos1PlaneGizmo.startDrag(mouseX, mouseY, gx, gy, gz, gx, gy, gz, 0, 0, 0);
+                        SelectionRenderer.boxPos1PlaneGizmo
+                            .startDrag(mouseX, mouseY, g1.x(), g1.y(), g1.z(), g1.x(), g1.y(), g1.z(), 0, 0, 0);
                         return;
                     }
+                    Vec3DDouble g2 = sel.pendingPos2.toDouble()
+                        .plus(0.5);
                     if (SelectionRenderer.boxPos2Gizmo.hoveredAxis != TranslationGizmo.Axis.NONE) {
-                        double gx = sel.pendingPos2.x() + 0.5, gy = sel.pendingPos2.y() + 0.5,
-                            gz = sel.pendingPos2.z() + 0.5;
-                        SelectionRenderer.boxPos2Gizmo.startDrag(mouseX, mouseY, gx, gy, gz, gx, gy, gz, 0, 0, 0);
+                        SelectionRenderer.boxPos2Gizmo
+                            .startDrag(mouseX, mouseY, g2.x(), g2.y(), g2.z(), g2.x(), g2.y(), g2.z(), 0, 0, 0);
                         return;
                     }
                     if (SelectionRenderer.boxPos2PlaneGizmo.hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
-                        double gx = sel.pendingPos2.x() + 0.5, gy = sel.pendingPos2.y() + 0.5,
-                            gz = sel.pendingPos2.z() + 0.5;
-                        SelectionRenderer.boxPos2PlaneGizmo.startDrag(mouseX, mouseY, gx, gy, gz, gx, gy, gz, 0, 0, 0);
+                        SelectionRenderer.boxPos2PlaneGizmo
+                            .startDrag(mouseX, mouseY, g2.x(), g2.y(), g2.z(), g2.x(), g2.y(), g2.z(), 0, 0, 0);
                         return;
                     }
+                    Vec3DDouble c = sel.pendingPos.toDouble()
+                        .plus(sel.pendingPos2.toDouble())
+                        .divide(2.0)
+                        .plus(0.5);
                     if (SelectionRenderer.boxCenterViewPlaneGizmo.hovered) {
-                        double cxW = (sel.pendingPos.x() + sel.pendingPos2.x()) / 2.0 + 0.5;
-                        double cyW = (sel.pendingPos.y() + sel.pendingPos2.y()) / 2.0 + 0.5;
-                        double czW = (sel.pendingPos.z() + sel.pendingPos2.z()) / 2.0 + 0.5;
                         SelectionRenderer.INSTANCE.boxCenterDragP1 = sel.pendingPos;
                         SelectionRenderer.INSTANCE.boxCenterDragP2 = sel.pendingPos2;
                         SelectionRenderer.boxCenterViewPlaneGizmo
-                            .startDrag(mouseX, mouseY, eye, cxW, cyW, czW, cxW, cyW, czW);
+                            .startDrag(mouseX, mouseY, eye, c.x(), c.y(), c.z(), c.x(), c.y(), c.z());
                         return;
                     }
                     if (SelectionRenderer.boxCenterGizmo.hoveredAxis != TranslationGizmo.Axis.NONE) {
-                        double cxW = (sel.pendingPos.x() + sel.pendingPos2.x()) / 2.0 + 0.5;
-                        double cyW = (sel.pendingPos.y() + sel.pendingPos2.y()) / 2.0 + 0.5;
-                        double czW = (sel.pendingPos.z() + sel.pendingPos2.z()) / 2.0 + 0.5;
                         SelectionRenderer.INSTANCE.boxCenterDragP1 = sel.pendingPos;
                         SelectionRenderer.INSTANCE.boxCenterDragP2 = sel.pendingPos2;
                         SelectionRenderer.boxCenterGizmo
-                            .startDrag(mouseX, mouseY, cxW, cyW, czW, cxW, cyW, czW, 0, 0, 0);
+                            .startDrag(mouseX, mouseY, c.x(), c.y(), c.z(), c.x(), c.y(), c.z(), 0, 0, 0);
                         return;
                     }
                     if (SelectionRenderer.boxCenterPlaneGizmo.hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
-                        double cxW = (sel.pendingPos.x() + sel.pendingPos2.x()) / 2.0 + 0.5;
-                        double cyW = (sel.pendingPos.y() + sel.pendingPos2.y()) / 2.0 + 0.5;
-                        double czW = (sel.pendingPos.z() + sel.pendingPos2.z()) / 2.0 + 0.5;
                         SelectionRenderer.INSTANCE.boxCenterDragP1 = sel.pendingPos;
                         SelectionRenderer.INSTANCE.boxCenterDragP2 = sel.pendingPos2;
                         SelectionRenderer.boxCenterPlaneGizmo
-                            .startDrag(mouseX, mouseY, cxW, cyW, czW, cxW, cyW, czW, 0, 0, 0);
+                            .startDrag(mouseX, mouseY, c.x(), c.y(), c.z(), c.x(), c.y(), c.z(), 0, 0, 0);
                         return;
                     }
                 }
@@ -111,61 +106,34 @@ public class BoxSelectBrushInput implements BrushInput {
         if (SelectionRenderer.boxPos1Gizmo.isDragging()) {
             Vec3DDouble anchor = SelectionRenderer.boxPos1Gizmo.updateDrag(mx, my);
             if (anchor != null) {
-                bxSel.pendingPos = Vec3DInt.from(
-                    (int) Math.floor(snap ? Math.floor(anchor.x() + 0.5) : anchor.x()),
-                    (int) Math.floor(snap ? Math.floor(anchor.y() + 0.5) : anchor.y()),
-                    (int) Math.floor(snap ? Math.floor(anchor.z() + 0.5) : anchor.z()));
+                bxSel.pendingPos = snap ? Vec3DInt.round(anchor) : Vec3DInt.floor(anchor);
             }
         } else if (SelectionRenderer.boxPos2Gizmo.isDragging()) {
             Vec3DDouble anchor = SelectionRenderer.boxPos2Gizmo.updateDrag(mx, my);
             if (anchor != null) {
-                bxSel.pendingPos2 = Vec3DInt.from(
-                    (int) Math.floor(snap ? Math.floor(anchor.x() + 0.5) : anchor.x()),
-                    (int) Math.floor(snap ? Math.floor(anchor.y() + 0.5) : anchor.y()),
-                    (int) Math.floor(snap ? Math.floor(anchor.z() + 0.5) : anchor.z()));
+                bxSel.pendingPos2 = snap ? Vec3DInt.round(anchor) : Vec3DInt.floor(anchor);
             }
         } else if (SelectionRenderer.boxCenterViewPlaneGizmo.isDragging()) {
             Vec3DDouble anchor = SelectionRenderer.boxCenterViewPlaneGizmo.updateDrag(mx, my);
             if (anchor != null) {
-                double cx0 = (SelectionRenderer.INSTANCE.boxCenterDragP1.x()
-                    + SelectionRenderer.INSTANCE.boxCenterDragP2.x()) / 2.0 + 0.5;
-                double cy0 = (SelectionRenderer.INSTANCE.boxCenterDragP1.y()
-                    + SelectionRenderer.INSTANCE.boxCenterDragP2.y()) / 2.0 + 0.5;
-                double cz0 = (SelectionRenderer.INSTANCE.boxCenterDragP1.z()
-                    + SelectionRenderer.INSTANCE.boxCenterDragP2.z()) / 2.0 + 0.5;
-                int dx = (int) Math.floor(snap ? Math.floor(anchor.x() - cx0 + 0.5) : anchor.x() - cx0);
-                int dy = (int) Math.floor(snap ? Math.floor(anchor.y() - cy0 + 0.5) : anchor.y() - cy0);
-                int dz = (int) Math.floor(snap ? Math.floor(anchor.z() - cz0 + 0.5) : anchor.z() - cz0);
-                bxSel.pendingPos = Vec3DInt.from(
-                    SelectionRenderer.INSTANCE.boxCenterDragP1.x() + dx,
-                    SelectionRenderer.INSTANCE.boxCenterDragP1.y() + dy,
-                    SelectionRenderer.INSTANCE.boxCenterDragP1.z() + dz);
-                bxSel.pendingPos2 = Vec3DInt.from(
-                    SelectionRenderer.INSTANCE.boxCenterDragP2.x() + dx,
-                    SelectionRenderer.INSTANCE.boxCenterDragP2.y() + dy,
-                    SelectionRenderer.INSTANCE.boxCenterDragP2.z() + dz);
+                applyCenter(bxSel, anchor, snap);
             }
         } else if (SelectionRenderer.boxCenterGizmo.isDragging()) {
             Vec3DDouble anchor = SelectionRenderer.boxCenterGizmo.updateDrag(mx, my);
             if (anchor != null) {
-                double cx0 = (SelectionRenderer.INSTANCE.boxCenterDragP1.x()
-                    + SelectionRenderer.INSTANCE.boxCenterDragP2.x()) / 2.0 + 0.5;
-                double cy0 = (SelectionRenderer.INSTANCE.boxCenterDragP1.y()
-                    + SelectionRenderer.INSTANCE.boxCenterDragP2.y()) / 2.0 + 0.5;
-                double cz0 = (SelectionRenderer.INSTANCE.boxCenterDragP1.z()
-                    + SelectionRenderer.INSTANCE.boxCenterDragP2.z()) / 2.0 + 0.5;
-                int dx = (int) Math.floor(snap ? Math.floor(anchor.x() - cx0 + 0.5) : anchor.x() - cx0);
-                int dy = (int) Math.floor(snap ? Math.floor(anchor.y() - cy0 + 0.5) : anchor.y() - cy0);
-                int dz = (int) Math.floor(snap ? Math.floor(anchor.z() - cz0 + 0.5) : anchor.z() - cz0);
-                bxSel.pendingPos = Vec3DInt.from(
-                    SelectionRenderer.INSTANCE.boxCenterDragP1.x() + dx,
-                    SelectionRenderer.INSTANCE.boxCenterDragP1.y() + dy,
-                    SelectionRenderer.INSTANCE.boxCenterDragP1.z() + dz);
-                bxSel.pendingPos2 = Vec3DInt.from(
-                    SelectionRenderer.INSTANCE.boxCenterDragP2.x() + dx,
-                    SelectionRenderer.INSTANCE.boxCenterDragP2.y() + dy,
-                    SelectionRenderer.INSTANCE.boxCenterDragP2.z() + dz);
+                applyCenter(bxSel, anchor, snap);
             }
         }
+    }
+
+    private static void applyCenter(SelectionState bxSel, Vec3DDouble anchor, boolean snap) {
+        Vec3DDouble center0 = SelectionRenderer.INSTANCE.boxCenterDragP1.toDouble()
+            .plus(SelectionRenderer.INSTANCE.boxCenterDragP2.toDouble())
+            .divide(2.0)
+            .plus(0.5);
+        Vec3DDouble delta = anchor.minus(center0);
+        Vec3DInt d = snap ? Vec3DInt.round(delta) : Vec3DInt.floor(delta);
+        bxSel.pendingPos = SelectionRenderer.INSTANCE.boxCenterDragP1.plus(d);
+        bxSel.pendingPos2 = SelectionRenderer.INSTANCE.boxCenterDragP2.plus(d);
     }
 }

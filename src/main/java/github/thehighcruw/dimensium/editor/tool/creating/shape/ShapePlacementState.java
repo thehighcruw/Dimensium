@@ -89,10 +89,10 @@ public class ShapePlacementState
 
     private String shapeKey = "";
 
-    public void start(int x, int y, int z) {
+    public void start(Vec3DInt pos) {
         active = true;
-        anchor = Vec3DInt.from(x, y, z);
-        anchorF = Vec3DFloat.from(x, y, z);
+        anchor = pos;
+        anchorF = pos.toFloat();
         rot = Vec3DFloat.ZERO;
         scale = Vec3DFloat.ONE;
         gizmo.reset();

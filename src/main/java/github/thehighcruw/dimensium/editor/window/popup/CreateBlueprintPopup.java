@@ -251,7 +251,7 @@ public class CreateBlueprintPopup {
             tagsField.get()
                 .trim());
 
-        Blueprint bp = Blueprint.fromClipboard(name, tags, sel.clipboard, sel.clipW, sel.clipH, sel.clipD, thumbnail);
+        Blueprint bp = Blueprint.fromClipboard(name, tags, sel.clipboard, sel.clipDim, thumbnail);
 
         try {
             BlueprintIO.save(bp, BlueprintIO.getBlueprintsDir());

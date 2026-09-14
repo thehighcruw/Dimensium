@@ -30,6 +30,7 @@ import github.thehighcruw.dimensium.editor.tool.brushes.BrushState;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushUtil;
 import github.thehighcruw.dimensium.shared.KeyConstants;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
 
 @SideOnly(Side.CLIENT)
@@ -107,16 +108,14 @@ public class BrushPreviewRenderer {
                         int lx = (int) ((pk >> 26) & 0x1FFF) - 4096;
                         int ly = (int) ((pk >> 13) & 0x1FFF) - 4096;
                         int lz = (int) (pk & 0x1FFF) - 4096;
-                        int ax = lx + bx - sx;
-                        int ay = ly + by - sy;
-                        int az = lz + bz - sx;
+                        Vec3DInt world = Vec3DInt.from(lx + bx - sx, ly + by - sy, lz + bz - sx);
                         for (int face = 0; face < 6; face++) {
                             long nk = SelectionRenderer.lPack(
                                 lx + GhostRenderer.NX[face],
                                 ly + GhostRenderer.NY[face],
                                 lz + GhostRenderer.NZ[face]);
                             if (!affectedSet.contains(nk)) {
-                                GhostRenderer.addSingleFace(t, ax, ay, az, face);
+                                GhostRenderer.addSingleFace(t, world, face);
                                 if (++batched % 2048 == 0) {
                                     t.draw();
                                     t.startDrawingQuads();
@@ -176,7 +175,7 @@ public class BrushPreviewRenderer {
                             ly + GhostRenderer.NY[faceDir],
                             lz + GhostRenderer.NZ[faceDir]);
                         if (!cachedBrushSet.contains(nk)) {
-                            GhostRenderer.addSingleFace(tf, lx, ly, lz, faceDir);
+                            GhostRenderer.addSingleFace(tf, Vec3DInt.from(lx, ly, lz), faceDir);
                             if (++batched % 2048 == 0) {
                                 tf.draw();
                                 tf.startDrawingQuads();

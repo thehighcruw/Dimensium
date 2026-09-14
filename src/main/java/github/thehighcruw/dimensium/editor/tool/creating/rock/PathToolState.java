@@ -28,8 +28,8 @@ public class PathToolState implements WithAxisTranslationGizmo, WithPlaneTransla
         public int radius;
         public ItemStack block;
 
-        public PathPoint(int x, int y, int z, int radius, ItemStack block) {
-            this.pos = Vec3DInt.from(x, y, z);
+        public PathPoint(Vec3DInt pos, int radius, ItemStack block) {
+            this.pos = pos;
             this.radius = radius;
             this.block = block;
         }

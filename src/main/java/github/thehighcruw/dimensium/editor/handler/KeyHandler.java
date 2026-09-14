@@ -230,7 +230,7 @@ public class KeyHandler {
                 } else if (sel.clipboard != null) {
                     MovingObjectPosition mop = RenderUtils.raycastAtCursor();
                     if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-                        cps.start(sel, mop.blockX, mop.blockY, mop.blockZ);
+                        cps.start(sel, Vec3DInt.from(mop.blockX, mop.blockY, mop.blockZ));
                     }
                 }
                 return;
@@ -369,7 +369,12 @@ public class KeyHandler {
             ModellingToolState modts = ModellingToolState.INSTANCE;
             ModellingToolState.ModelPoint pt = modts.selectedPointObj();
             if (pt != null) {
-                pt.pos = pt.pos.plus(Vec3DInt.from(delta[0], delta[1], delta[2]));
+                modts.rows.get(modts.selectedRow)
+                    .set(
+                        modts.selectedPoint,
+                        new ModellingToolState.ModelPoint(
+                            pt.pos()
+                                .plus(Vec3DInt.from(delta[0], delta[1], delta[2]))));
                 modts.getAxisTranslationGizmo()
                     .reset();
                 modts.invalidate();

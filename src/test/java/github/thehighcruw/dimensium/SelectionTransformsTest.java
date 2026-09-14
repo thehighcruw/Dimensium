@@ -27,49 +27,6 @@ public class SelectionTransformsTest {
         return set.contains(SelectionState.pack(Vec3DInt.from(x, y, z)));
     }
 
-    // ── move ─────────────────────────────────────────────────────────────────
-
-    @Test
-    public void moveByZeroIsIdentity() {
-        Set<Long> blocks = pack(new int[][] { { 5, 64, 10 }, { 6, 64, 10 } });
-        Set<Long> result = SelectionTransforms.move(blocks, 0, 0, 0);
-        assertEquals(blocks, result);
-    }
-
-    @Test
-    public void moveTranslatesAllCoords() {
-        Set<Long> blocks = pack(new int[][] { { 0, 64, 0 } });
-        Set<Long> result = SelectionTransforms.move(blocks, 3, -2, 7);
-        assertEquals(1, result.size());
-        assertTrue(has(result, 3, 62, 7));
-    }
-
-    @Test
-    public void moveDropsBlocksBelowY0() {
-        Set<Long> blocks = pack(new int[][] { { 0, 1, 0 }, { 0, 0, 0 } });
-        Set<Long> result = SelectionTransforms.move(blocks, 0, -1, 0);
-        // y=1 → y=0 kept, y=0 → y=-1 dropped
-        assertEquals(1, result.size());
-        assertTrue(has(result, 0, 0, 0));
-    }
-
-    @Test
-    public void moveDropsBlocksAboveY255() {
-        Set<Long> blocks = pack(new int[][] { { 0, 255, 0 }, { 0, 254, 0 } });
-        Set<Long> result = SelectionTransforms.move(blocks, 0, 1, 0);
-        // y=255 → 256 dropped, y=254 → 255 kept
-        assertEquals(1, result.size());
-        assertTrue(has(result, 0, 255, 0));
-    }
-
-    @Test
-    public void moveNegativeXZ() {
-        Set<Long> blocks = pack(new int[][] { { 100, 64, 200 } });
-        Set<Long> result = SelectionTransforms.move(blocks, -100, 0, -200);
-        assertEquals(1, result.size());
-        assertTrue(has(result, 0, 64, 0));
-    }
-
     // ── expand ────────────────────────────────────────────────────────────────
 
     @Test

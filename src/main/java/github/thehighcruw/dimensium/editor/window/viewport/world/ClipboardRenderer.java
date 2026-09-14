@@ -157,17 +157,10 @@ public class ClipboardRenderer {
         ensureFbo();
         if (fboFailed || fboId == -1) return;
         System.out.println(
-            "[ClipboardRenderer] rebaking " + sel.clipW
-                + "x"
-                + sel.clipH
-                + "x"
-                + sel.clipD
-                + " into fbo="
-                + fboId
-                + " tex="
-                + texId);
+            "[ClipboardRenderer] rebaking " + sel.clipDim
+                .x() + "x" + sel.clipDim.y() + "x" + sel.clipDim.z() + " into fbo=" + fboId + " tex=" + texId);
 
-        int W = sel.clipW, H = sel.clipH, D = sel.clipD;
+        int W = sel.clipDim.x(), H = sel.clipDim.y(), D = sel.clipDim.z();
 
         // Save full GL state before touching anything
         GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);

@@ -29,19 +29,6 @@ public final class SelectionTransforms {
     private static final int[] FACE_DY = { 0, 0, 1, -1, 0, 0 };
     private static final int[] FACE_DZ = { 0, 0, 0, 0, 1, -1 };
 
-    public static Set<Long> move(Set<Long> blocks, int dx, int dy, int dz) {
-        Set<Long> result = new HashSet<>(blocks.size());
-        for (long key : blocks) {
-            Vec3DInt coord = SelectionState.unpack(key);
-            int x = coord.x() + dx;
-            int y = coord.y() + dy;
-            int z = coord.z() + dz;
-            if (y < 0 || y > 255) continue;
-            result.add(SelectionState.pack(Vec3DInt.from(x, y, z)));
-        }
-        return result;
-    }
-
     public static Set<Long> expand(Set<Long> blocks, int offset) {
         if (offset <= 0) return new HashSet<>(blocks);
         Set<Long> result = new HashSet<>(blocks);
@@ -140,27 +127,16 @@ public final class SelectionTransforms {
             if (density >= threshold) result.add(key);
         }
         // Also check non-selected voxels in the bounding box that might grow in
-        for (int lx = margin; lx < dims.x() - margin; lx++) {
-            for (int ly = margin; ly < dims.y() - margin; ly++) {
-                for (int lz = margin; lz < dims.z() - margin; lz++) {
-                    Vec3DInt localizedCoord = Vec3DInt.from(lx, ly, lz);
-                    if (snap[lx * snStX + ly * dims.z() + lz] != 0) continue; // already handled above
-                    float density = kernel.solidWeight(snap, localizedCoord, snStX, dims.z()) / kernel.totalWeight;
-                    if (density >= threshold) {
-                        int wx = lx - margin
-                            + bb.minimum()
-                                .x();
-                        int wy = ly - margin
-                            + bb.minimum()
-                                .y();
-                        int wz = lz - margin
-                            + bb.minimum()
-                                .z();
-                        if (wy >= 0 && wy <= 255) result.add(SelectionState.pack(Vec3DInt.from(wx, wy, wz)));
-                    }
-                }
+        Vec3DInt.forEachInclusive(Vec3DInt.from(margin), dims.minus(margin + 1), (lx, ly, lz) -> {
+            if (snap[lx * snStX + ly * dims.z() + lz] != 0) return; // already handled above
+            Vec3DInt localizedCoord = Vec3DInt.from(lx, ly, lz);
+            float density = kernel.solidWeight(snap, localizedCoord, snStX, dims.z()) / kernel.totalWeight;
+            if (density >= threshold) {
+                Vec3DInt world = localizedCoord.minus(margin)
+                    .plus(bb.minimum());
+                if (world.y() >= 0 && world.y() <= 255) result.add(SelectionState.pack(world));
             }
-        }
+        });
         return result;
     }
 
@@ -184,7 +160,7 @@ public final class SelectionTransforms {
         List<ModelPoint> pts = new ArrayList<>(blocks.size());
         for (long key : blocks) {
             Vec3DInt coord = SelectionState.unpack(key);
-            pts.add(new ModelPoint(coord.x(), coord.y(), coord.z()));
+            pts.add(new ModelPoint(coord));
         }
 
         List<int[]> faces = ModellingMath.convexHull3DPublic(pts);
@@ -195,9 +171,15 @@ public final class SelectionTransforms {
         Map<Long, int[]> surfaceMap = new HashMap<>();
         double[][] P = new double[pts.size()][3];
         for (int i = 0; i < pts.size(); i++) {
-            P[i][0] = pts.get(i).pos.x();
-            P[i][1] = pts.get(i).pos.y();
-            P[i][2] = pts.get(i).pos.z();
+            P[i][0] = pts.get(i)
+                .pos()
+                .x();
+            P[i][1] = pts.get(i)
+                .pos()
+                .y();
+            P[i][2] = pts.get(i)
+                .pos()
+                .z();
         }
         for (int[] f : faces) {
             ModellingMath.voxelizeTriangleDPublic(surfaceMap, P[f[0]], P[f[1]], P[f[2]], dummy);

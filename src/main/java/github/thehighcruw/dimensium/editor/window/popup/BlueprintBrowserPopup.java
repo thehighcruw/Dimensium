@@ -299,9 +299,7 @@ public class BlueprintBrowserPopup {
             clipboard.put(SelectionState.clipboardKey(o[0], o[1], o[2]), new SelectionState.BlockData(block, o[4]));
         }
         sel.clipboard = clipboard;
-        sel.clipW = bp.clipW();
-        sel.clipH = bp.clipH();
-        sel.clipD = bp.clipD();
+        sel.clipDim = bp.clipDim();
         sel.clipboardVersion++;
     }
 }

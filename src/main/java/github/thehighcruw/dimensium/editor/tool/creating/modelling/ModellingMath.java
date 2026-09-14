@@ -17,6 +17,7 @@ import net.minecraft.item.ItemStack;
 
 import github.thehighcruw.dimensium.editor.tool.creating.modelling.ModellingToolState.ModelPoint;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.BlockUtils;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 
@@ -29,27 +30,13 @@ public class ModellingMath {
         Map<Long, int[]> out = new HashMap<>();
 
         switch (state.mode) {
-            case CONVEX_HULL:
-                computeConvexHull(out, state.allPoints(), bm);
-                break;
-            case SMART_SURFACE:
-                computeSmartSurface(out, state.allPoints(), bm);
-                break;
-            case TRIANGLE_STRIP:
-                computeTriangleStrip(out, state.allPoints(), bm);
-                break;
-            case TRIANGLE_FAN:
-                computeTriangleFan(out, state.allPoints(), bm);
-                break;
-            case FLAT:
-                computeLoftedFlat(out, state.rows, bm);
-                break;
-            case CATMULL_ROM:
-                computeLoftedCatmullRom(out, state.rows, bm);
-                break;
-            case BEZIER:
-                computeLoftedBezier(out, state.rows, bm);
-                break;
+            case CONVEX_HULL -> computeConvexHull(out, state.allPoints(), bm);
+            case SMART_SURFACE -> computeSmartSurface(out, state.allPoints(), bm);
+            case TRIANGLE_STRIP -> computeTriangleStrip(out, state.allPoints(), bm);
+            case TRIANGLE_FAN -> computeTriangleFan(out, state.allPoints(), bm);
+            case FLAT -> computeLoftedFlat(out, state.rows, bm);
+            case CATMULL_ROM -> computeLoftedCatmullRom(out, state.rows, bm);
+            case BEZIER -> computeLoftedBezier(out, state.rows, bm);
         }
 
         List<int[]> result = new ArrayList<>(out.size());
@@ -105,12 +92,15 @@ public class ModellingMath {
         }
 
         Vec3DDouble centroid = Vec3DDouble.ZERO;
-        for (ModelPoint p : pts) centroid = centroid.plus(p.pos.toDouble());
+        for (ModelPoint p : pts) centroid = centroid.plus(
+            p.pos()
+                .toDouble());
         centroid = centroid.divide(n);
 
         double[][] cov = new double[3][3];
         for (ModelPoint p : pts) {
-            Vec3DDouble d = p.pos.toDouble()
+            Vec3DDouble d = p.pos()
+                .toDouble()
                 .minus(centroid);
             double[] da = { d.x(), d.y(), d.z() };
             for (int i = 0; i < 3; i++) for (int j = 0; j < 3; j++) cov[i][j] += da[i] * da[j];
@@ -122,7 +112,9 @@ public class ModellingMath {
 
         double[][] proj = new double[n][2];
         for (int i = 0; i < n; i++) {
-            Vec3DDouble delta = pts.get(i).pos.toDouble()
+            Vec3DDouble delta = pts.get(i)
+                .pos()
+                .toDouble()
                 .minus(centroid);
             proj[i][0] = delta.x() * u[0] + delta.y() * u[1] + delta.z() * u[2];
             proj[i][1] = delta.x() * v[0] + delta.y() * v[1] + delta.z() * v[2];
@@ -448,11 +440,12 @@ public class ModellingMath {
             return;
         }
         if (m == 1) {
-            ModelPoint p = row.get(0);
+            Vec3DInt p0 = row.get(0)
+                .pos();
             for (int i = 0; i < n; i++) {
-                out[i][0] = p.pos.x();
-                out[i][1] = p.pos.y();
-                out[i][2] = p.pos.z();
+                out[i][0] = p0.x();
+                out[i][1] = p0.y();
+                out[i][2] = p0.z();
             }
             return;
         }
@@ -461,9 +454,12 @@ public class ModellingMath {
         arc[0] = 0;
         for (int i = 1; i < m; i++) {
             ModelPoint ri = row.get(i), ri1 = row.get(i - 1);
-            arc[i] = arc[i - 1]
-                + Vec3DDouble.from(ri.pos.x() - ri1.pos.x(), ri.pos.y() - ri1.pos.y(), ri.pos.z() - ri1.pos.z())
-                    .length();
+            arc[i] = arc[i - 1] + ri.pos()
+                .toDouble()
+                .minus(
+                    ri1.pos()
+                        .toDouble())
+                .length();
         }
         double totalLen = arc[m - 1];
         for (int k = 0; k < n; k++) {
@@ -479,9 +475,16 @@ public class ModellingMath {
             double segLen = arc[seg + 1] - arc[seg];
             double st = segLen > 0 ? (t - arc[seg]) / segLen : 0;
             ModelPoint a = row.get(seg), b = row.get(seg + 1);
-            out[k][0] = a.pos.x() + (b.pos.x() - a.pos.x()) * st;
-            out[k][1] = a.pos.y() + (b.pos.y() - a.pos.y()) * st;
-            out[k][2] = a.pos.z() + (b.pos.z() - a.pos.z()) * st;
+            Vec3DDouble pa = a.pos()
+                .toDouble(),
+                pb = b.pos()
+                    .toDouble();
+            Vec3DDouble lerp = pa.plus(
+                pb.minus(pa)
+                    .times(st));
+            out[k][0] = lerp.x();
+            out[k][1] = lerp.y();
+            out[k][2] = lerp.z();
         }
     }
 
@@ -496,9 +499,15 @@ public class ModellingMath {
         int n = pts.size();
         double[][] P = new double[n][3];
         for (int i = 0; i < n; i++) {
-            P[i][0] = pts.get(i).pos.x();
-            P[i][1] = pts.get(i).pos.y();
-            P[i][2] = pts.get(i).pos.z();
+            P[i][0] = pts.get(i)
+                .pos()
+                .x();
+            P[i][1] = pts.get(i)
+                .pos()
+                .y();
+            P[i][2] = pts.get(i)
+                .pos()
+                .z();
         }
 
         int[] tet = findInitialTetrahedron(P, n);
@@ -651,9 +660,24 @@ public class ModellingMath {
     }
 
     static void voxelizeTriangle(Map<Long, int[]> out, ModelPoint A, ModelPoint B, ModelPoint C, int[] bm) {
-        double[] a = { A.pos.x(), A.pos.y(), A.pos.z() };
-        double[] b = { B.pos.x(), B.pos.y(), B.pos.z() };
-        double[] c = { C.pos.x(), C.pos.y(), C.pos.z() };
+        double[] a = { A.pos()
+            .x(),
+            A.pos()
+                .y(),
+            A.pos()
+                .z() };
+        double[] b = { B.pos()
+            .x(),
+            B.pos()
+                .y(),
+            B.pos()
+                .z() };
+        double[] c = { C.pos()
+            .x(),
+            C.pos()
+                .y(),
+            C.pos()
+                .z() };
         voxelizeTriangleD(out, a, b, c, bm);
     }
 
@@ -684,8 +708,9 @@ public class ModellingMath {
     // ── Line rasterizer ───────────────────────────────────────────────────────
 
     static void bresenhamLine(Map<Long, int[]> out, ModelPoint a, ModelPoint b, int[] bm) {
-        int x = a.pos.x(), y = a.pos.y(), z = a.pos.z();
-        int x1 = b.pos.x(), y1 = b.pos.y(), z1 = b.pos.z();
+        Vec3DInt pa = a.pos(), pb = b.pos();
+        int x = pa.x(), y = pa.y(), z = pa.z();
+        int x1 = pb.x(), y1 = pb.y(), z1 = pb.z();
         int dx = Math.abs(x1 - x), dy = Math.abs(y1 - y), dz = Math.abs(z1 - z);
         int sx = x < x1 ? 1 : -1, sy = y < y1 ? 1 : -1, sz = z < z1 ? 1 : -1;
         addPoint(out, x, y, z, bm);
@@ -725,7 +750,15 @@ public class ModellingMath {
     // ── Utilities ─────────────────────────────────────────────────────────────
 
     private static void addPoint(Map<Long, int[]> out, ModelPoint p, int[] bm) {
-        out.put(ChangeProposal.packKey(p.pos.x(), p.pos.y(), p.pos.z()), bm);
+        out.put(
+            ChangeProposal.packKey(
+                p.pos()
+                    .x(),
+                p.pos()
+                    .y(),
+                p.pos()
+                    .z()),
+            bm);
     }
 
     private static void addPoint(Map<Long, int[]> out, int x, int y, int z, int[] bm) {

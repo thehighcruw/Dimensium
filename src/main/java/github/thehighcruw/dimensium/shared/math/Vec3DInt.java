@@ -119,6 +119,20 @@ public record Vec3DInt(int x, int y, int z) {
         return tester.test(x) && tester.test(y) && tester.test(z);
     }
 
+    // --- iteration ---
+
+    /** Iterates (0,0,0) inclusive to (x,y,z) exclusive — treats this vec as dimensions. */
+    public void forEach(TriIntConsumer fn) {
+        for (int ix = 0; ix < x; ix++)
+            for (int iy = 0; iy < y; iy++) for (int iz = 0; iz < z; iz++) fn.accept(ix, iy, iz);
+    }
+
+    /** Iterates min to max inclusive on all axes. */
+    public static void forEachInclusive(Vec3DInt min, Vec3DInt max, TriIntConsumer fn) {
+        for (int ix = min.x; ix <= max.x; ix++)
+            for (int iy = min.y; iy <= max.y; iy++) for (int iz = min.z; iz <= max.z; iz++) fn.accept(ix, iy, iz);
+    }
+
     // --- conversions ---
 
     public Vec3DDouble toDouble() {

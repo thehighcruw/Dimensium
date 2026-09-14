@@ -52,7 +52,11 @@ public class StampScatter {
             StampEntry entry = state.blueprints.get(entryIdx);
             Blueprint bp = entry.blueprint;
 
-            float minDist = state.minSpacingPct * Math.max(bp.clipW(), bp.clipD());
+            float minDist = state.minSpacingPct * Math.max(
+                bp.clipDim()
+                    .x(),
+                bp.clipDim()
+                    .z());
             if (minDist > 0f && isTooClose(result, pos[0], pos[2], minDist)) continue;
 
             float yaw = state.randomYaw ? rng.nextFloat() * 360f : 0f;

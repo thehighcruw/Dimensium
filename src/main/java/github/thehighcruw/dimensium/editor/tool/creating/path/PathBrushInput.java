@@ -46,7 +46,7 @@ public class PathBrushInput implements BrushInput {
                 int px = mop.blockX + off[0], py = mop.blockY + off[1], pz = mop.blockZ + off[2];
                 net.minecraft.item.ItemStack blk = SelectedBlockState.INSTANCE.selectedBlock;
                 if (blk != null) blk = blk.copy();
-                PathToolState.PathPoint pt = new PathToolState.PathPoint(px, py, pz, 0, blk);
+                PathToolState.PathPoint pt = new PathToolState.PathPoint(Vec3DInt.from(px, py, pz), 0, blk);
                 pts.points.add(pt);
                 pts.selectedIndex = pts.points.size() - 1;
                 pts.getAxisTranslationGizmo()

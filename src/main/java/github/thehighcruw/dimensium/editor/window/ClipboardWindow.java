@@ -19,6 +19,7 @@ import github.thehighcruw.dimensium.editor.window.viewport.world.ClipboardRender
 import github.thehighcruw.dimensium.network.PacketHandler;
 import github.thehighcruw.dimensium.network.PacketPaste;
 import github.thehighcruw.dimensium.shared.SelectionState;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import imgui.ImGui;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
@@ -99,7 +100,7 @@ public class ClipboardWindow extends ToggleableWindow {
             ImGui.separator();
 
             if (hasClipboard) {
-                ImGui.text(String.format("%d × %d × %d blocks", sel.clipW, sel.clipH, sel.clipD));
+                ImGui.text(String.format("%d × %d × %d blocks", sel.clipDim.x(), sel.clipDim.y(), sel.clipDim.z()));
                 int texId = clipRenderer.getTexture(sel);
                 if (texId != -1) {
                     ImGui.image(texId, w, w, 0, 1, 1, 0);
@@ -128,12 +129,10 @@ public class ClipboardWindow extends ToggleableWindow {
     private static void executePaste(SelectionState sel) {
         Minecraft mc = Minecraft.getMinecraft();
         MovingObjectPosition mop = mc.objectMouseOver;
-        int ox = (int) mc.thePlayer.posX, oy = (int) mc.thePlayer.posY, oz = (int) mc.thePlayer.posZ;
+        Vec3DInt origin = Vec3DInt.from((int) mc.thePlayer.posX, (int) mc.thePlayer.posY, (int) mc.thePlayer.posZ);
         if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-            ox = mop.blockX;
-            oy = mop.blockY;
-            oz = mop.blockZ;
+            origin = Vec3DInt.from(mop.blockX, mop.blockY, mop.blockZ);
         }
-        PacketHandler.CHANNEL.sendToServer(new PacketPaste(ox, oy, oz, sel.clipboard, sel.clipW, sel.clipH, sel.clipD));
+        PacketHandler.CHANNEL.sendToServer(new PacketPaste(origin, sel.clipboard, sel.clipDim));
     }
 }

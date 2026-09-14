@@ -51,7 +51,7 @@ public class ModellingBrushInput implements BrushInput {
             if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) && mts.mode.usesRows()) {
                 mts.addRow();
             }
-            mts.addPoint(px, py, pz);
+            mts.addPoint(Vec3DInt.from(px, py, pz));
             mts.selectedRow = mts.currentRowIndex;
             mts.selectedPoint = mts.rows.get(mts.currentRowIndex)
                 .size() - 1;
@@ -70,7 +70,13 @@ public class ModellingBrushInput implements BrushInput {
                 for (int c = 0; c < row.size(); c++) {
                     if (r == mts.selectedRow && c == mts.selectedPoint) skipFlat = positions.size();
                     ModellingToolState.ModelPoint p = row.get(c);
-                    positions.add(new int[] { p.pos.x(), p.pos.y(), p.pos.z() });
+                    positions.add(
+                        new int[] { p.pos()
+                            .x(),
+                            p.pos()
+                                .y(),
+                            p.pos()
+                                .z() });
                 }
             }
             int bestFlat = GuiDimensiumOverlay.findNearestPointOnScreen(
@@ -100,18 +106,30 @@ public class ModellingBrushInput implements BrushInput {
                 && mts.selectedPointObj() != null
                 && eye != null) {
                     Vec3DDouble gp = Vec3DDouble.from(
-                        mts.selectedPointObj().pos.x() + 0.5,
-                        mts.selectedPointObj().pos.y() + 0.5,
-                        mts.selectedPointObj().pos.z() + 0.5);
+                        mts.selectedPointObj()
+                            .pos()
+                            .x() + 0.5,
+                        mts.selectedPointObj()
+                            .pos()
+                            .y() + 0.5,
+                        mts.selectedPointObj()
+                            .pos()
+                            .z() + 0.5);
                     mts.getAxisTranslationGizmo()
                         .startDrag(mouseX, mouseY, gp.x(), gp.y(), gp.z(), gp.x(), gp.y(), gp.z(), 0, 0, 0);
                 } else if (mts.getPlaneTranslationGizmo().hoveredPlane != PlaneTranslationGizmo.Plane.NONE
                     && mts.selectedPointObj() != null
                     && eye != null) {
                         Vec3DDouble gp = Vec3DDouble.from(
-                            mts.selectedPointObj().pos.x() + 0.5,
-                            mts.selectedPointObj().pos.y() + 0.5,
-                            mts.selectedPointObj().pos.z() + 0.5);
+                            mts.selectedPointObj()
+                                .pos()
+                                .x() + 0.5,
+                            mts.selectedPointObj()
+                                .pos()
+                                .y() + 0.5,
+                            mts.selectedPointObj()
+                                .pos()
+                                .z() + 0.5);
                         mts.getPlaneTranslationGizmo()
                             .startDrag(mouseX, mouseY, gp.x(), gp.y(), gp.z(), gp.x(), gp.y(), gp.z(), 0, 0, 0);
                     }
@@ -135,10 +153,14 @@ public class ModellingBrushInput implements BrushInput {
                     : mts.getPlaneTranslationGizmo()
                         .updateDrag(mx, my);
             if (anchor != null) {
-                mSelPt.pos = Vec3DInt.from(
-                    AnchorSnap.toInt(anchor.x(), snap),
-                    AnchorSnap.toInt(anchor.y(), snap),
-                    AnchorSnap.toInt(anchor.z(), snap));
+                mts.rows.get(mts.selectedRow)
+                    .set(
+                        mts.selectedPoint,
+                        new ModellingToolState.ModelPoint(
+                            Vec3DInt.from(
+                                AnchorSnap.toInt(anchor.x(), snap),
+                                AnchorSnap.toInt(anchor.y(), snap),
+                                AnchorSnap.toInt(anchor.z(), snap))));
                 mts.invalidate();
             }
         }

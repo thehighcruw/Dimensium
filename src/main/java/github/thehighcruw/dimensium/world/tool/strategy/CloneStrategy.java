@@ -7,6 +7,7 @@ package github.thehighcruw.dimensium.world.tool.strategy;
 import github.thehighcruw.dimensium.editor.handler.SelectionOps;
 import github.thehighcruw.dimensium.shared.BlockSender;
 import github.thehighcruw.dimensium.shared.SelectionState;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.tool.BuilderToolState;
 
 public class CloneStrategy implements BuilderToolStrategy {
@@ -18,10 +19,9 @@ public class CloneStrategy implements BuilderToolStrategy {
 
     @Override
     public void confirm(BuilderToolState bts, SelectionState sel) {
-        int ox = sel.minX(), oy = sel.minY(), oz = sel.minZ();
-        int dx = bts.offset.x(), dy = bts.offset.y(), dz = bts.offset.z();
+        Vec3DInt origin = Vec3DInt.from(sel.minX(), sel.minY(), sel.minZ())
+            .plus(bts.offset);
         final SelectionState selSnap = sel;
-        BlockSender
-            .sendChunkedLazy(() -> SelectionOps.clipboardToPlacements(selSnap, ox + dx, oy + dy, oz + dz), "Clone");
+        BlockSender.sendChunkedLazy(() -> SelectionOps.clipboardToPlacements(selSnap, origin), "Clone");
     }
 }

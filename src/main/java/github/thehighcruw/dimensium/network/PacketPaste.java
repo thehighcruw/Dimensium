@@ -16,27 +16,24 @@ import com.gtnewhorizon.gtnhlib.network.base.IPacket;
 
 import github.thehighcruw.dimensium.Dimensium;
 import github.thehighcruw.dimensium.shared.SelectionState;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 
 public class PacketPaste implements IPacket {
 
     // Paste origin (min corner of clipboard placed here)
-    public int ox, oy, oz;
-    public int w, h, d;
-    // Flat block data: [x][y][z] → index x*h*d + y*d + z
+    public Vec3DInt origin = Vec3DInt.ZERO;
+    public Vec3DInt dim = Vec3DInt.ZERO;
+    // Flat block data: [x][y][z] → index x*dim.y()*dim.z() + y*dim.z() + z
     public int[] blockIds;
     public short[] blockMetas;
 
     public PacketPaste() {}
 
-    public PacketPaste(int ox, int oy, int oz, java.util.Map<Long, SelectionState.BlockData> clip, int w, int h,
-        int d) {
-        this.ox = ox;
-        this.oy = oy;
-        this.oz = oz;
-        this.w = w;
-        this.h = h;
-        this.d = d;
-        int count = w * h * d;
+    public PacketPaste(Vec3DInt origin, java.util.Map<Long, SelectionState.BlockData> clip, Vec3DInt dim) {
+        this.origin = origin;
+        this.dim = dim;
+        int h = dim.y(), d = dim.z();
+        int count = dim.product();
         blockIds = new int[count];
         blockMetas = new short[count];
         for (java.util.Map.Entry<Long, SelectionState.BlockData> entry : clip.entrySet()) {
@@ -55,24 +52,21 @@ public class PacketPaste implements IPacket {
 
     @Override
     public void encode(PacketBuffer buf) throws IOException {
-        buf.writeInt(ox);
-        buf.writeInt(oy);
-        buf.writeInt(oz);
-        buf.writeInt(w);
-        buf.writeInt(h);
-        buf.writeInt(d);
+        buf.writeInt(origin.x());
+        buf.writeInt(origin.y());
+        buf.writeInt(origin.z());
+        buf.writeInt(dim.x());
+        buf.writeInt(dim.y());
+        buf.writeInt(dim.z());
         for (int id : blockIds) buf.writeInt(id);
         for (short meta : blockMetas) buf.writeShort(meta);
     }
 
     @Override
     public void decode(PacketBuffer buf) throws IOException {
-        ox = buf.readInt();
-        oy = buf.readInt();
-        oz = buf.readInt();
-        w = buf.readInt();
-        h = buf.readInt();
-        d = buf.readInt();
+        origin = Vec3DInt.from(buf.readInt(), buf.readInt(), buf.readInt());
+        int w = buf.readInt(), h = buf.readInt(), d = buf.readInt();
+        dim = Vec3DInt.from(w, h, d);
         long countL = (long) w * h * d;
         if (countL > 1_000_000L || countL < 0) throw new IOException("PacketPaste volume " + countL + " exceeds limit");
         int count = (int) countL;
@@ -91,12 +85,18 @@ public class PacketPaste implements IPacket {
             return null;
         }
         World world = handler.playerEntity.worldObj;
-        for (int x = 0; x < w; x++) for (int y = 0; y < h; y++) for (int z = 0; z < d; z++) {
+        int h = dim.y(), d = dim.z();
+        dim.forEach((x, y, z) -> {
             int i = x * h * d + y * d + z;
             Block blk = Block.getBlockById(blockIds[i]);
-            if (blk == null) blk = Blocks.air;
-            world.setBlock(ox + x, oy + y, oz + z, blk, blockMetas[i] & 0xFFFF, 3);
-        }
+            world.setBlock(
+                origin.x() + x,
+                origin.y() + y,
+                origin.z() + z,
+                blk != null ? blk : Blocks.air,
+                blockMetas[i] & 0xFFFF,
+                3);
+        });
         return null;
     }
 }

@@ -15,6 +15,7 @@ import net.minecraft.world.World;
 import com.gtnewhorizon.gtnhlib.network.base.IPacket;
 
 import github.thehighcruw.dimensium.Dimensium;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 
 public class PacketSelectionOp implements IPacket {
 
@@ -81,8 +82,12 @@ public class PacketSelectionOp implements IPacket {
         if (block == null) block = Blocks.air;
         int meta = op == Op.DELETE ? 0 : blockMeta;
 
-        for (int x = minX; x <= maxX; x++) for (int y = minY; y <= maxY; y++)
-            for (int z = minZ; z <= maxZ; z++) world.setBlock(x, y, z, block, meta, 3);
+        final Block blk = block;
+        final int m = meta;
+        Vec3DInt.forEachInclusive(
+            Vec3DInt.from(minX, minY, minZ),
+            Vec3DInt.from(maxX, maxY, maxZ),
+            (x, y, z) -> world.setBlock(x, y, z, blk, m, 3));
 
         return null;
     }

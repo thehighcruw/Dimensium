@@ -94,7 +94,13 @@ public final class StatusBar {
 
         // ── Clipboard ────────────────────────────────────────────────────────
         if (sel.clipboard != null) {
-            ImGui.text(I18n.format("dimensium.status.clipboard") + " " + sel.clipW + "×" + sel.clipH + "×" + sel.clipD);
+            ImGui.text(
+                I18n.format("dimensium.status.clipboard") + " "
+                    + sel.clipDim.x()
+                    + "×"
+                    + sel.clipDim.y()
+                    + "×"
+                    + sel.clipDim.z());
         } else {
             ImGui.pushStyleColor(ImGuiCol.Text, dimColor, dimColor, dimColor, 1f);
             ImGui.text(I18n.format("dimensium.status.no_clipboard"));

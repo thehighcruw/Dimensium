@@ -45,19 +45,19 @@ public class ClipboardPlacementState implements WithAxisTranslationGizmo, WithPl
     private final PlaneTranslationGizmo planeGizmo = new PlaneTranslationGizmo();
     private final RotationGizmo rotGizmo = new RotationGizmo();
 
+    public Vec3DInt clipDim = Vec3DInt.ZERO;
+
     public double centerX() {
-        return anchorF.x() + clipW / 2.0;
+        return anchorF.x() + clipDim.x() / 2.0;
     }
 
     public double centerY() {
-        return anchorF.y() + clipH / 2.0;
+        return anchorF.y() + clipDim.y() / 2.0;
     }
 
     public double centerZ() {
-        return anchorF.z() + clipD / 2.0;
+        return anchorF.z() + clipDim.z() / 2.0;
     }
-
-    public int clipW, clipH, clipD;
 
     @Override
     public TranslationGizmo getAxisTranslationGizmo() {
@@ -74,15 +74,13 @@ public class ClipboardPlacementState implements WithAxisTranslationGizmo, WithPl
         return rotGizmo;
     }
 
-    public void start(SelectionState sel, int x, int y, int z) {
+    public void start(SelectionState sel, Vec3DInt pos) {
         if (sel.clipboard == null) return;
         active = true;
-        anchor = Vec3DInt.from(x, y, z);
-        anchorF = Vec3DFloat.from(x, y, z);
+        anchor = pos;
+        anchorF = pos.toFloat();
         rot = Vec3DFloat.ZERO;
-        clipW = sel.clipW;
-        clipH = sel.clipH;
-        clipD = sel.clipD;
+        clipDim = sel.clipDim;
         offsets = ClipboardUtils.toOffsets(sel.clipboard);
         viewPlaneGizmo.reset();
         gizmo.reset();
@@ -115,17 +113,17 @@ public class ClipboardPlacementState implements WithAxisTranslationGizmo, WithPl
             }
         } else {
             Mat3DFloat R = ShapeMath.buildRotationMatrix(rot.x(), rot.y(), rot.z());
-            float cx = clipW / 2f, cy = clipH / 2f, cz = clipD / 2f;
+            Vec3DFloat center = clipDim.toFloat()
+                .divide(2f);
             for (int[] o : offsets) {
-                float dx = o[0] + 0.5f - cx, dy = o[1] + 0.5f - cy, dz = o[2] + 0.5f - cz;
-                Vec3DFloat rv = R.mul(Vec3DFloat.from(dx, dy, dz));
-                float wx = rv.x() + cx;
-                float wy = rv.y() + cy;
-                float wz = rv.z() + cz;
-                long key = ChangeProposal.packKey(
-                    anchor.x() + (int) Math.floor(wx),
-                    anchor.y() + (int) Math.floor(wy),
-                    anchor.z() + (int) Math.floor(wz));
+                Vec3DFloat local = Vec3DFloat.from(o[0], o[1], o[2])
+                    .plus(0.5f)
+                    .minus(center);
+                Vec3DInt world = anchor.plus(
+                    R.mul(local)
+                        .plus(center)
+                        .floor());
+                long key = ChangeProposal.packKey(world.x(), world.y(), world.z());
                 p.proposed.put(key, new int[] { o[3], o[4] });
             }
         }

@@ -32,42 +32,40 @@ public class SmearStrategy implements BuilderToolStrategy {
     @Override
     public void confirm(BuilderToolState bts, SelectionState sel) {
         if (sel.clipboard == null) return;
-        int ox = sel.minX(), oy = sel.minY(), oz = sel.minZ();
-        int dx = bts.offset.x(), dy = bts.offset.y(), dz = bts.offset.z();
-        if (dx == 0 && dy == 0 && dz == 0) return;
+        Vec3DInt origin = Vec3DInt.from(sel.minX(), sel.minY(), sel.minZ());
+        Vec3DInt offset = bts.offset;
+        if (offset.equals(Vec3DInt.ZERO)) return;
 
-        int stepX = 0, stepY = 0, stepZ = 0, steps;
-        if (Math.abs(dx) >= Math.abs(dy) && Math.abs(dx) >= Math.abs(dz)) {
-            steps = Math.abs(dx);
-            stepX = dx > 0 ? 1 : -1;
-        } else if (Math.abs(dy) >= Math.abs(dx) && Math.abs(dy) >= Math.abs(dz)) {
-            steps = Math.abs(dy);
-            stepY = dy > 0 ? 1 : -1;
+        Vec3DInt abs = offset.abs();
+        Vec3DInt step;
+        int steps;
+        if (abs.x() >= abs.y() && abs.x() >= abs.z()) {
+            steps = abs.x();
+            step = Vec3DInt.from(offset.x() > 0 ? 1 : -1, 0, 0);
+        } else if (abs.y() >= abs.x() && abs.y() >= abs.z()) {
+            steps = abs.y();
+            step = Vec3DInt.from(0, offset.y() > 0 ? 1 : -1, 0);
         } else {
-            steps = Math.abs(dz);
-            stepZ = dz > 0 ? 1 : -1;
+            steps = abs.z();
+            step = Vec3DInt.from(0, 0, offset.z() > 0 ? 1 : -1);
         }
 
         World world = Minecraft.getMinecraft().theWorld;
         List<int[]> ops = new ArrayList<>();
         for (int i = 1; i <= steps; i++) {
-            int baseX = ox + stepX * i, baseY = oy + stepY * i, baseZ = oz + stepZ * i;
-            for (int x = 0; x < sel.clipW; x++) {
-                for (int y = 0; y < sel.clipH; y++) {
-                    for (int z = 0; z < sel.clipD; z++) {
-                        BlockData bd = sel.clipboardGet(x, y, z);
-                        if (bd.block() == Blocks.air) continue;
-                        int px = baseX + x, py = baseY + y, pz = baseZ + z;
-                        boolean inOrigSel = px >= sel.minX() && px <= sel.maxX()
-                            && py >= sel.minY()
-                            && py <= sel.maxY()
-                            && pz >= sel.minZ()
-                            && pz <= sel.maxZ();
-                        if (!inOrigSel && world.getBlock(px, py, pz) != Blocks.air) continue;
-                        ops.add(new int[] { px, py, pz, Block.getIdFromBlock(bd.block()), bd.meta() });
-                    }
-                }
-            }
+            Vec3DInt base = origin.plus(step.times(i));
+            sel.clipDim.forEach((x, y, z) -> {
+                BlockData bd = sel.clipboardGet(x, y, z);
+                if (bd.block() == Blocks.air) return;
+                Vec3DInt dest = base.plus(Vec3DInt.from(x, y, z));
+                boolean inOrigSel = dest.x() >= sel.minX() && dest.x() <= sel.maxX()
+                    && dest.y() >= sel.minY()
+                    && dest.y() <= sel.maxY()
+                    && dest.z() >= sel.minZ()
+                    && dest.z() <= sel.maxZ();
+                if (!inOrigSel && world.getBlock(dest.x(), dest.y(), dest.z()) != Blocks.air) return;
+                ops.add(new int[] { dest.x(), dest.y(), dest.z(), Block.getIdFromBlock(bd.block()), bd.meta() });
+            });
             if (ops.size() > DimensiumConfig.smearBlockCap) break;
         }
         if (!ops.isEmpty()) BlockSender.sendChunked(ops, "Smear");
@@ -81,49 +79,50 @@ public class SmearStrategy implements BuilderToolStrategy {
             return;
         }
 
-        int ox = sel.minX(), oy = sel.minY(), oz = sel.minZ();
-        int dx = mop.blockX - ox, dy = mop.blockY - oy, dz = mop.blockZ - oz;
-        bts.offset = Vec3DInt.from(dx, dy, dz);
-        if (dx == 0 && dy == 0 && dz == 0) {
+        Vec3DInt origin = Vec3DInt.from(sel.minX(), sel.minY(), sel.minZ());
+        Vec3DInt offset = Vec3DInt.from(mop.blockX, mop.blockY, mop.blockZ)
+            .minus(origin);
+        bts.offset = offset;
+        if (offset.equals(Vec3DInt.ZERO)) {
             bts.smearPreview = null;
             return;
         }
 
-        int stepX = 0, stepY = 0, stepZ = 0, steps;
-        if (Math.abs(dx) >= Math.abs(dy) && Math.abs(dx) >= Math.abs(dz)) {
-            steps = Math.abs(dx);
-            stepX = dx > 0 ? 1 : -1;
-        } else if (Math.abs(dy) >= Math.abs(dx) && Math.abs(dy) >= Math.abs(dz)) {
-            steps = Math.abs(dy);
-            stepY = dy > 0 ? 1 : -1;
+        Vec3DInt abs = offset.abs();
+        Vec3DInt step;
+        int steps;
+        if (abs.x() >= abs.y() && abs.x() >= abs.z()) {
+            steps = abs.x();
+            step = Vec3DInt.from(offset.x() > 0 ? 1 : -1, 0, 0);
+        } else if (abs.y() >= abs.x() && abs.y() >= abs.z()) {
+            steps = abs.y();
+            step = Vec3DInt.from(0, offset.y() > 0 ? 1 : -1, 0);
         } else {
-            steps = Math.abs(dz);
-            stepZ = dz > 0 ? 1 : -1;
+            steps = abs.z();
+            step = Vec3DInt.from(0, 0, offset.z() > 0 ? 1 : -1);
         }
 
         ChangeProposal p = ChangeProposal.forPreview();
-        outer: for (int i = 1; i <= steps; i++) {
-            int baseX = ox + stepX * i, baseY = oy + stepY * i, baseZ = oz + stepZ * i;
-            for (int x = 0; x < sel.clipW; x++) {
-                for (int y = 0; y < sel.clipH; y++) {
-                    for (int z = 0; z < sel.clipD; z++) {
-                        BlockData bd = sel.clipboardGet(x, y, z);
-                        if (bd.block() == Blocks.air) continue;
-                        int px = baseX + x, py = baseY + y, pz = baseZ + z;
-                        boolean inOrigSel = px >= sel.minX() && px <= sel.maxX()
-                            && py >= sel.minY()
-                            && py <= sel.maxY()
-                            && pz >= sel.minZ()
-                            && pz <= sel.maxZ();
-                        if (!inOrigSel) {
-                            p.proposed.put(
-                                ChangeProposal.packKey(px, py, pz),
-                                new int[] { Block.getIdFromBlock(bd.block()), bd.meta() });
-                        }
-                        if (p.proposed.size() > DimensiumConfig.smearBlockCap) break outer;
-                    }
+        boolean[] done = { false };
+        for (int i = 1; i <= steps && !done[0]; i++) {
+            Vec3DInt base = origin.plus(step.times(i));
+            sel.clipDim.forEach((x, y, z) -> {
+                if (done[0]) return;
+                BlockData bd = sel.clipboardGet(x, y, z);
+                if (bd.block() == Blocks.air) return;
+                Vec3DInt dest = base.plus(Vec3DInt.from(x, y, z));
+                boolean inOrigSel = dest.x() >= sel.minX() && dest.x() <= sel.maxX()
+                    && dest.y() >= sel.minY()
+                    && dest.y() <= sel.maxY()
+                    && dest.z() >= sel.minZ()
+                    && dest.z() <= sel.maxZ();
+                if (!inOrigSel) {
+                    p.proposed.put(
+                        ChangeProposal.packKey(dest.x(), dest.y(), dest.z()),
+                        new int[] { Block.getIdFromBlock(bd.block()), bd.meta() });
                 }
-            }
+                if (p.proposed.size() > DimensiumConfig.smearBlockCap) done[0] = true;
+            });
         }
         bts.smearPreview = p.proposed.isEmpty() ? null : p;
     }

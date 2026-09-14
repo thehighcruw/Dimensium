@@ -9,6 +9,8 @@ import java.util.List;
 
 import net.minecraft.item.ItemStack;
 
+import com.github.bsideup.jabel.Desugar;
+
 import github.thehighcruw.dimensium.editor.tool.gizmo.WithAxisTranslationGizmo;
 import github.thehighcruw.dimensium.editor.tool.gizmo.WithPlaneTranslationGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.PlaneTranslationGizmo;
@@ -53,14 +55,8 @@ public class ModellingToolState implements WithAxisTranslationGizmo, WithPlaneTr
         }
     }
 
-    public static class ModelPoint {
-
-        public Vec3DInt pos;
-
-        public ModelPoint(int x, int y, int z) {
-            this.pos = Vec3DInt.from(x, y, z);
-        }
-    }
+    @Desugar
+    public record ModelPoint(Vec3DInt pos) {}
 
     public Mode mode = Mode.CONVEX_HULL;
     public PasteMode pasteMode = PasteMode.PASTE_COPY;
@@ -95,10 +91,10 @@ public class ModellingToolState implements WithAxisTranslationGizmo, WithPlaneTr
         }
     }
 
-    public void addPoint(int x, int y, int z) {
+    public void addPoint(Vec3DInt pos) {
         ensureRow();
         rows.get(currentRowIndex)
-            .add(new ModelPoint(x, y, z));
+            .add(new ModelPoint(pos));
         invalidate();
     }
 
@@ -191,11 +187,17 @@ public class ModellingToolState implements WithAxisTranslationGizmo, WithPlaneTr
         for (List<ModelPoint> row : rows) {
             sb.append('R');
             for (ModelPoint p : row) {
-                sb.append(p.pos.x())
+                sb.append(
+                    p.pos()
+                        .x())
                     .append(',')
-                    .append(p.pos.y())
+                    .append(
+                        p.pos()
+                            .y())
                     .append(',')
-                    .append(p.pos.z())
+                    .append(
+                        p.pos()
+                            .z())
                     .append(';');
             }
         }

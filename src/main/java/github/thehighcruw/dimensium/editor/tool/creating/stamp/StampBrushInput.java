@@ -25,6 +25,7 @@ import github.thehighcruw.dimensium.editor.tool.creating.stamp.StampScatter.Stam
 import github.thehighcruw.dimensium.shared.BlockSender;
 import github.thehighcruw.dimensium.shared.math.Mat3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 
 @SideOnly(Side.CLIENT)
@@ -118,27 +119,29 @@ public final class StampBrushInput implements BrushInput {
         for (StampInstance inst : instances) {
             StampEntry entry = state.blueprints.get(inst.entryIdx);
             List<int[]> offsets = entry.blueprint.offsets();
-            int clipW = entry.blueprint.clipW();
-            int clipH = entry.blueprint.clipH();
-            int clipD = entry.blueprint.clipD();
+            Vec3DInt dim = entry.blueprint.clipDim();
 
             boolean rotated = inst.yaw != 0f;
             Mat3DFloat R = rotated ? ShapeMath.buildRotationMatrix(0f, inst.yaw, 0f) : null;
-            float cx = clipW / 2f, cy = clipH / 2f, cz = clipD / 2f;
+            Vec3DFloat center = dim.toFloat()
+                .divide(2f);
 
             for (int[] o : offsets) {
                 int lx = o[0], ly = o[1], lz = o[2];
 
-                if (inst.flipX) lx = (clipW - 1) - lx;
-                if (inst.flipZ) lz = (clipD - 1) - lz;
+                if (inst.flipX) lx = (dim.x() - 1) - lx;
+                if (inst.flipZ) lz = (dim.z() - 1) - lz;
 
                 int wx, wy, wz;
                 if (rotated) {
-                    float dx = lx + 0.5f - cx, dy = ly + 0.5f - cy, dz = lz + 0.5f - cz;
-                    Vec3DFloat rv = R.mul(Vec3DFloat.from(dx, dy, dz));
-                    wx = inst.anchor.x() + (int) Math.floor(rv.x() + cx);
-                    wy = inst.anchor.y() + (int) Math.floor(rv.y() + cy);
-                    wz = inst.anchor.z() + (int) Math.floor(rv.z() + cz);
+                    Vec3DFloat local = Vec3DFloat.from(lx, ly, lz)
+                        .plus(0.5f)
+                        .minus(center);
+                    Vec3DFloat rv = R.mul(local)
+                        .plus(center);
+                    wx = inst.anchor.x() + (int) Math.floor(rv.x());
+                    wy = inst.anchor.y() + (int) Math.floor(rv.y());
+                    wz = inst.anchor.z() + (int) Math.floor(rv.z());
                 } else {
                     wx = inst.anchor.x() + lx;
                     wy = inst.anchor.y() + ly;

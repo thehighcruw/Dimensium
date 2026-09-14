@@ -18,6 +18,7 @@ import github.thehighcruw.dimensium.editor.window.viewport.world.RotationGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.ScalingGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.TranslationGizmo;
 import github.thehighcruw.dimensium.shared.KeyConstants;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 
 @SideOnly(Side.CLIENT)
 public class ShapeBrushInput implements BrushInput {
@@ -36,7 +37,7 @@ public class ShapeBrushInput implements BrushInput {
         if (!ps.active) {
             if (button == KeyConstants.RMB) {
                 if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-                    ps.start(mop.blockX, mop.blockY, mop.blockZ);
+                    ps.start(Vec3DInt.from(mop.blockX, mop.blockY, mop.blockZ));
                 }
             }
             return;

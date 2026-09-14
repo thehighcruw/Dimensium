@@ -297,22 +297,21 @@ public class SelectionRenderer {
                 int batched = 0;
                 for (long key : selBlocks) {
                     Vec3DInt bv = SelectionState.unpack(key);
-                    int bx = bv.x(), by = bv.y(), bz = bv.z();
-                    Block b = mc.theWorld.getBlock(bx, by, bz);
+                    Block b = mc.theWorld.getBlock(bv.x(), bv.y(), bv.z());
                     if (b == null || b == Blocks.air || b.getRenderType() != 0) continue;
-                    int meta = mc.theWorld.getBlockMetadata(bx, by, bz);
+                    int meta = mc.theWorld.getBlockMetadata(bv.x(), bv.y(), bv.z());
                     int tint = 0xFFFFFF;
                     try {
-                        tint = b.colorMultiplier(mc.theWorld, bx, by, bz);
+                        tint = b.colorMultiplier(mc.theWorld, bv.x(), bv.y(), bv.z());
                     } catch (Exception ignored) {}
                     for (int face = 0; face < 6; face++) {
                         long nk = SelectionState.pack(
                             Vec3DInt.from(
-                                bx + GhostRenderer.NX[face],
-                                by + GhostRenderer.NY[face],
-                                bz + GhostRenderer.NZ[face]));
+                                bv.x() + GhostRenderer.NX[face],
+                                bv.y() + GhostRenderer.NY[face],
+                                bv.z() + GhostRenderer.NZ[face]));
                         if (!selBlocks.contains(nk)) {
-                            GhostRenderer.addTexturedFace(t, bx, by, bz, b, meta, face, tint);
+                            GhostRenderer.addTexturedFace(t, bv, b, meta, face, tint);
                             if (++batched % 2048 == 0) {
                                 t.draw();
                                 t.startDrawingQuads();
@@ -328,18 +327,17 @@ public class SelectionRenderer {
                 t.startDrawingQuads();
                 batched = 0;
                 for (long key : selBlocks) {
-                    Vec3DInt bv2 = SelectionState.unpack(key);
-                    int bx = bv2.x(), by = bv2.y(), bz = bv2.z();
-                    Block b = mc.theWorld.getBlock(bx, by, bz);
+                    Vec3DInt bv = SelectionState.unpack(key);
+                    Block b = mc.theWorld.getBlock(bv.x(), bv.y(), bv.z());
                     if (b != null && b != Blocks.air && b.getRenderType() != 0) {
                         for (int face = 0; face < 6; face++) {
                             long nk = SelectionState.pack(
                                 Vec3DInt.from(
-                                    bx + GhostRenderer.NX[face],
-                                    by + GhostRenderer.NY[face],
-                                    bz + GhostRenderer.NZ[face]));
+                                    bv.x() + GhostRenderer.NX[face],
+                                    bv.y() + GhostRenderer.NY[face],
+                                    bv.z() + GhostRenderer.NZ[face]));
                             if (!selBlocks.contains(nk)) {
-                                GhostRenderer.addSingleFace(t, bx, by, bz, face);
+                                GhostRenderer.addSingleFace(t, bv, face);
                                 if (++batched % 2048 == 0) {
                                     t.draw();
                                     t.startDrawingQuads();
@@ -360,18 +358,17 @@ public class SelectionRenderer {
                 t.startDrawingQuads();
                 batched = 0;
                 for (long key : selBlocks) {
-                    Vec3DInt bv3 = SelectionState.unpack(key);
-                    int bx = bv3.x(), by = bv3.y(), bz = bv3.z();
-                    Block b = mc.theWorld.getBlock(bx, by, bz);
+                    Vec3DInt bv = SelectionState.unpack(key);
+                    Block b = mc.theWorld.getBlock(bv.x(), bv.y(), bv.z());
                     if (b == null || b == Blocks.air) continue;
                     for (int face = 0; face < 6; face++) {
                         long nk = SelectionState.pack(
                             Vec3DInt.from(
-                                bx + GhostRenderer.NX[face],
-                                by + GhostRenderer.NY[face],
-                                bz + GhostRenderer.NZ[face]));
+                                bv.x() + GhostRenderer.NX[face],
+                                bv.y() + GhostRenderer.NY[face],
+                                bv.z() + GhostRenderer.NZ[face]));
                         if (!selBlocks.contains(nk)) {
-                            GhostRenderer.addSingleFace(t, bx, by, bz, face, 0.02f);
+                            GhostRenderer.addSingleFace(t, bv, face, 0.02f);
                             if (++batched % 2048 == 0) {
                                 t.draw();
                                 t.startDrawingQuads();
@@ -615,7 +612,13 @@ public class SelectionRenderer {
                 List<ModellingToolState.ModelPoint> row = mts.rows.get(r);
                 // Lines within row
                 List<int[]> rowXyz = new ArrayList<>(row.size());
-                for (ModellingToolState.ModelPoint p : row) rowXyz.add(new int[] { p.pos.x(), p.pos.y(), p.pos.z() });
+                for (ModellingToolState.ModelPoint p : row) rowXyz.add(
+                    new int[] { p.pos()
+                        .x(),
+                        p.pos()
+                            .y(),
+                        p.pos()
+                            .z() });
                 renderLineStrip(rowXyz, camPos);
                 // Point boxes
                 for (int c = 0; c < row.size(); c++) {
@@ -625,7 +628,7 @@ public class SelectionRenderer {
                     float pr = ptSel ? 1.0f : activeRow ? 0.80f : 0.55f;
                     float pg = ptSel ? 0.80f : activeRow ? 0.55f : 0.50f;
                     float pb = ptSel ? 0.20f : activeRow ? 0.90f : 0.65f;
-                    renderPointBox(mpt.pos, pr, pg, pb, camPos);
+                    renderPointBox(mpt.pos(), pr, pg, pb, camPos);
                 }
             }
             // Capture GL matrices unconditionally so GizmoProjection is valid for findNearestPointOnScreen
@@ -637,9 +640,29 @@ public class SelectionRenderer {
             ModellingToolState.ModelPoint mSelPt = mts.selectedPointObj();
             if (mSelPt != null) {
                 mts.getPlaneTranslationGizmo()
-                    .render(mSelPt.pos.x() + 0.5, mSelPt.pos.y() + 0.5, mSelPt.pos.z() + 0.5, camPos, 0, 0, 0);
+                    .render(
+                        mSelPt.pos()
+                            .x() + 0.5,
+                        mSelPt.pos()
+                            .y() + 0.5,
+                        mSelPt.pos()
+                            .z() + 0.5,
+                        camPos,
+                        0,
+                        0,
+                        0);
                 mts.getAxisTranslationGizmo()
-                    .render(mSelPt.pos.x() + 0.5, mSelPt.pos.y() + 0.5, mSelPt.pos.z() + 0.5, camPos, 0, 0, 0);
+                    .render(
+                        mSelPt.pos()
+                            .x() + 0.5,
+                        mSelPt.pos()
+                            .y() + 0.5,
+                        mSelPt.pos()
+                            .z() + 0.5,
+                        camPos,
+                        0,
+                        0,
+                        0);
             }
             // Lines between adjacent rows (column-matched)
             if (mts.rows.size() >= 2) {
@@ -654,13 +677,25 @@ public class SelectionRenderer {
                         ModellingToolState.ModelPoint a = rowA.get(c);
                         ModellingToolState.ModelPoint b = rowB.get(c);
                         GL11.glVertex3d(
-                            a.pos.x() + 0.5 - camPos.x(),
-                            a.pos.y() + 0.5 - camPos.y(),
-                            a.pos.z() + 0.5 - camPos.z());
+                            a.pos()
+                                .x() + 0.5
+                                - camPos.x(),
+                            a.pos()
+                                .y() + 0.5
+                                - camPos.y(),
+                            a.pos()
+                                .z() + 0.5
+                                - camPos.z());
                         GL11.glVertex3d(
-                            b.pos.x() + 0.5 - camPos.x(),
-                            b.pos.y() + 0.5 - camPos.y(),
-                            b.pos.z() + 0.5 - camPos.z());
+                            b.pos()
+                                .x() + 0.5
+                                - camPos.x(),
+                            b.pos()
+                                .y() + 0.5
+                                - camPos.y(),
+                            b.pos()
+                                .z() + 0.5
+                                - camPos.z());
                     }
                 }
                 GL11.glEnd();
@@ -935,11 +970,13 @@ public class SelectionRenderer {
         }
         drag.wireOrigin = Vec3DInt.from(minX, minY, minZ);
 
-        List<int[]> local = new ArrayList<>(drag.proposed.size());
+        List<Vec3DInt> local = new ArrayList<>(drag.proposed.size());
         for (long key : drag.proposed.keySet()) {
             local.add(
-                new int[] { ChangeProposal.unpackX(key) - minX, ChangeProposal.unpackY(key) - minY,
-                    ChangeProposal.unpackZ(key) - minZ });
+                Vec3DInt.from(
+                    ChangeProposal.unpackX(key) - minX,
+                    ChangeProposal.unpackY(key) - minY,
+                    ChangeProposal.unpackZ(key) - minZ));
         }
         drag.cachedWire = GhostRenderer.INSTANCE.computeLocalWireframe(local);
     }
@@ -1109,18 +1146,19 @@ public class SelectionRenderer {
             int[] bm = e.getValue();
             Block blk = Block.getBlockById(bm[0]);
             if (blk == null || blk == Blocks.air || blk.getRenderType() != 0) continue;
-            int bx = ChangeProposal.unpackX(key);
-            int by = ChangeProposal.unpackY(key);
-            int bz = ChangeProposal.unpackZ(key);
+            Vec3DInt bv = Vec3DInt
+                .from(ChangeProposal.unpackX(key), ChangeProposal.unpackY(key), ChangeProposal.unpackZ(key));
             int tint = 0xFFFFFF;
             try {
-                tint = blk.colorMultiplier(mc.theWorld, bx, by, bz);
+                tint = blk.colorMultiplier(mc.theWorld, bv.x(), bv.y(), bv.z());
             } catch (Exception ignored) {}
             for (int face = 0; face < 6; face++) {
-                long nk = ChangeProposal
-                    .packKey(bx + GhostRenderer.NX[face], by + GhostRenderer.NY[face], bz + GhostRenderer.NZ[face]);
+                long nk = ChangeProposal.packKey(
+                    bv.x() + GhostRenderer.NX[face],
+                    bv.y() + GhostRenderer.NY[face],
+                    bv.z() + GhostRenderer.NZ[face]);
                 if (!proposed.containsKey(nk)) {
-                    GhostRenderer.addTexturedFace(t, bx, by, bz, blk, bm[1], face, tint);
+                    GhostRenderer.addTexturedFace(t, bv, blk, bm[1], face, tint);
                     if (++batched % 2048 == 0) {
                         t.draw();
                         t.startDrawingQuads();

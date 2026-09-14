@@ -18,6 +18,7 @@ import github.thehighcruw.dimensium.shared.BlockColorCache;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.SelectionState.BlockData;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.PerfTrace;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
 import github.thehighcruw.dimensium.tool.BuilderTool;
@@ -37,7 +38,7 @@ class HologramRenderer {
         boolean isStack = bts.activeTool == BuilderTool.STACK;
         boolean isSmear = bts.activeTool == BuilderTool.SMEAR;
 
-        int volume = sel.clipW * sel.clipH * sel.clipD;
+        int volume = sel.clipDim.x() * sel.clipDim.y() * sel.clipDim.z();
         boolean perBlock = volume <= PER_BLOCK_MAX;
 
         if (isMove) {
@@ -133,7 +134,7 @@ class HologramRenderer {
         double hx = sel.minX() + ox - camPos.x();
         double hy = sel.minY() + oy - camPos.y();
         double hz = sel.minZ() + oz - camPos.z();
-        int w = sel.clipW, h = sel.clipH, d = sel.clipD;
+        int w = sel.clipDim.x(), h = sel.clipDim.y(), d = sel.clipDim.z();
 
         if (perBlock && sel.clipboard != null) {
             GL11.glEnable(GL11.GL_DEPTH_TEST);
@@ -161,7 +162,7 @@ class HologramRenderer {
                             .getRenderType() != 0) continue;
                         for (int face = 0; face < 6; face++) {
                             if (isFacingAir(sel, face, x, y, z, w, h, d)) {
-                                GhostRenderer.addTexturedFace(t, x, y, z, bd.block(), bd.meta(), face);
+                                GhostRenderer.addTexturedFace(t, Vec3DInt.from(x, y, z), bd.block(), bd.meta(), face);
                                 if (++batched % 2048 == 0) {
                                     t.draw();
                                     t.startDrawingQuads();
@@ -192,7 +193,7 @@ class HologramRenderer {
                         GL11.glColor4f(r, g, b, 1.0f);
                         for (int face = 0; face < 6; face++) {
                             if (isFacingAir(sel, face, x, y, z, w, h, d)) {
-                                GhostRenderer.addSingleFace(t, x, y, z, face);
+                                GhostRenderer.addSingleFace(t, Vec3DInt.from(x, y, z), face);
                                 if (++batched % 2048 == 0) {
                                     t.draw();
                                     t.startDrawingQuads();
@@ -232,7 +233,7 @@ class HologramRenderer {
                                 && sel.clipboardGet(nx, ny, nz)
                                     .block() != Blocks.air;
                             if (!neighborOccupied) {
-                                GhostRenderer.addSingleFace(t, x, y, z, face, 0.02f);
+                                GhostRenderer.addSingleFace(t, Vec3DInt.from(x, y, z), face, 0.02f);
                                 if (++batched % 2048 == 0) {
                                     t.draw();
                                     t.startDrawingQuads();
@@ -287,7 +288,7 @@ class HologramRenderer {
 
     private static float[] computeClipWireframe(SelectionState sel) {
         if (sel.clipboard == null) return new float[0];
-        int w = sel.clipW, h = sel.clipH, d = sel.clipD;
+        int w = sel.clipDim.x(), h = sel.clipDim.y(), d = sel.clipDim.z();
 
         java.util.HashSet<Long> set = new java.util.HashSet<>(w * h * d);
         for (int x = 0; x < w; x++)
@@ -298,7 +299,7 @@ class HologramRenderer {
     }
 
     private static void drawAxisLine(SelectionState sel, BuilderToolState bts, Vec3DDouble camPos) {
-        int w = sel.clipW, h = sel.clipH, d = sel.clipD;
+        int w = sel.clipDim.x(), h = sel.clipDim.y(), d = sel.clipDim.z();
         Vec3DDouble src = Vec3DDouble.from(sel.minX() + w / 2.0, sel.minY() + h / 2.0, sel.minZ() + d / 2.0)
             .minus(camPos);
         Vec3DDouble dst = src.plus(bts.offset.toDouble());

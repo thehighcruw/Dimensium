@@ -69,7 +69,7 @@ public class SelectionState {
      * Sparse map: key = clipboardKey(x,y,z), value = non-air block. Air positions are absent.
      */
     public Map<Long, BlockData> clipboard = null;
-    public int clipW, clipH, clipD;
+    public Vec3DInt clipDim = Vec3DInt.ZERO;
 
     // ── Query ────────────────────────────────────────────────────────────────
 
@@ -306,8 +306,10 @@ public class SelectionState {
         int minY = Math.min(y1, y2), maxY = Math.max(y1, y2);
         int minZ = Math.min(z1, z2), maxZ = Math.max(z1, z2);
         Set<Long> set = new HashSet<>();
-        for (int x = minX; x <= maxX; x++)
-            for (int y = minY; y <= maxY; y++) for (int z = minZ; z <= maxZ; z++) set.add(pack(Vec3DInt.from(x, y, z)));
+        Vec3DInt.forEachInclusive(
+            Vec3DInt.from(minX, minY, minZ),
+            Vec3DInt.from(maxX, maxY, maxZ),
+            (x, y, z) -> set.add(pack(Vec3DInt.from(x, y, z))));
         return set;
     }
 
@@ -338,13 +340,11 @@ public class SelectionState {
         int limit = DimensiumConfig.maxCopyVolume;
         int w = width(), h = height(), d = depth();
         if (w <= 0 || h <= 0 || d <= 0 || w > limit || h > limit || d > limit) return;
-        clipW = w;
-        clipH = h;
-        clipD = d;
+        clipDim = Vec3DInt.from(w, h, d);
         Map<Long, BlockData> map = new HashMap<>();
         clipboardVersion++;
         int ox = minX(), oy = minY(), oz = minZ();
-        for (int x = 0; x < w; x++) for (int y = 0; y < h; y++) for (int z = 0; z < d; z++) {
+        clipDim.forEach((x, y, z) -> {
             if (contains(ox + x, oy + y, oz + z)) {
                 Block block = world.getBlock(ox + x, oy + y, oz + z);
                 if (block != Blocks.air) {
@@ -352,7 +352,7 @@ public class SelectionState {
                     map.put(clipboardKey(x, y, z), new BlockData(block, meta));
                 }
             }
-        }
+        });
         clipboard = map;
     }
 

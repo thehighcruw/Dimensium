@@ -34,13 +34,13 @@ public class SelectionOps {
         return ops;
     }
 
-    public static List<int[]> clipboardToPlacements(SelectionState sel, int ox, int oy, int oz) {
+    public static List<int[]> clipboardToPlacements(SelectionState sel, Vec3DInt origin) {
         if (sel.clipboard == null) return new ArrayList<>();
         List<int[]> ops = new ArrayList<>(sel.clipboard.size());
         for (java.util.Map.Entry<Long, SelectionState.BlockData> e : sel.clipboard.entrySet()) {
-            Vec3DInt p = SelectionState.decodeClipboardKey(e.getKey());
+            Vec3DInt dest = origin.plus(SelectionState.decodeClipboardKey(e.getKey()));
             SelectionState.BlockData bd = e.getValue();
-            ops.add(new int[] { ox + p.x(), oy + p.y(), oz + p.z(), Block.getIdFromBlock(bd.block()), bd.meta() });
+            ops.add(new int[] { dest.x(), dest.y(), dest.z(), Block.getIdFromBlock(bd.block()), bd.meta() });
         }
         return ops;
     }
@@ -146,13 +146,13 @@ public class SelectionOps {
 
         // Any non-visited, non-selected block inside the bbox that is air in world = enclosed gap.
         List<int[]> ops = new ArrayList<>();
-        for (int x = minX; x <= maxX; x++) for (int y = minY; y <= maxY; y++) for (int z = minZ; z <= maxZ; z++) {
-            if (selected.contains(SelectionState.pack(Vec3DInt.from(x, y, z)))) continue;
+        Vec3DInt.forEachInclusive(Vec3DInt.from(minX, minY, minZ), Vec3DInt.from(maxX, maxY, maxZ), (x, y, z) -> {
+            if (selected.contains(SelectionState.pack(Vec3DInt.from(x, y, z)))) return;
             int i = idx(x - ox, y - oy, z - oz, sy, sz);
             if (!visited[i] && world.getBlock(x, y, z) == Blocks.air) {
                 ops.add(new int[] { x, y, z, Block.getIdFromBlock(fillBlock), fillMeta });
             }
-        }
+        });
         return ops;
     }
 
