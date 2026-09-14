@@ -8,7 +8,6 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.shared.util.BlockUtils;
-import java.lang.reflect.Field;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -52,13 +51,6 @@ public class BlockColorCache {
     // All placeable blocks with colour data: int[] { blockId, meta, avgRgb, catBits }
     private final List<int[]> allEntriesWithCat = new ArrayList<>();
 
-    // iconName → avgRgb, populated from GL atlas read
-    private final Map<String, Integer> spriteRgbByName = new HashMap<>();
-    // iconName → within-face RGB variance (summed over R/G/B channels), populated from GL atlas read
-    private final Map<String, Float> spriteVarianceByName = new HashMap<>();
-    // iconName → animated flag
-    private final Map<String, Boolean> spriteAnimated = new HashMap<>();
-
     // Set when TextureStitchEvent.Post fires for the block atlas.
     private volatile TextureMap pendingAtlas = null;
     // Set after GL read + candidate build completes.
@@ -74,9 +66,6 @@ public class BlockColorCache {
         pendingAtlas = event.map;
         // Reset so we re-scan on resource reload (F3+T).
         initialized = false;
-        spriteRgbByName.clear();
-        spriteVarianceByName.clear();
-        spriteAnimated.clear();
         colorByKey.clear();
         nameByBlock.clear();
         colourFieldCandidates.clear();
@@ -93,17 +82,14 @@ public class BlockColorCache {
      */
     public synchronized void init() {
         if (initialized) return;
-        TextureMap atlas = pendingAtlas;
-        if (atlas == null) return; // atlas not stitched yet
+        if (pendingAtlas == null) return; // atlas not stitched yet
 
         LOG.info("BlockColorCache init: reading GL atlas");
-        readAtlasFromGL(atlas);
-        LOG.info(
-                "BlockColorCache: spriteRgbByName has {} entries ({} animated)",
-                spriteRgbByName.size(),
-                spriteAnimated.values().stream().filter(v -> v).count());
+        int[] dims = new int[2];
+        int[] pixels = readAtlasPixels(dims);
+        if (pixels == null) return;
 
-        buildCandidates();
+        buildCandidates(pixels, dims[0], dims[1]);
         initialized = true;
     }
 
@@ -167,14 +153,18 @@ public class BlockColorCache {
 
     // ── Phase 1: read atlas pixels from GL ───────────────────────────────────
 
-    private void readAtlasFromGL(TextureMap atlas) {
-        // Bind the atlas texture and read all pixels.
+    /**
+     * Reads the full block atlas texture from GL into an ARGB int array.
+     * dims[0] = width, dims[1] = height on success; both 0 on failure.
+     * Returns null on failure.
+     */
+    private static int[] readAtlasPixels(int[] dims) {
         Minecraft.getMinecraft().getTextureManager().bindTexture(TextureMap.locationBlocksTexture);
         int atlasW = GL11.glGetTexLevelParameteri(GL11.GL_TEXTURE_2D, 0, GL11.GL_TEXTURE_WIDTH);
         int atlasH = GL11.glGetTexLevelParameteri(GL11.GL_TEXTURE_2D, 0, GL11.GL_TEXTURE_HEIGHT);
         if (atlasW <= 0 || atlasH <= 0) {
             LOG.warn("BlockColorCache: atlas size {}x{} — aborting", atlasW, atlasH);
-            return;
+            return null;
         }
         LOG.info("BlockColorCache: atlas size {}x{}", atlasW, atlasH);
 
@@ -193,65 +183,19 @@ public class BlockColorCache {
             pixels[i] = (a << 24) | (r << 16) | (g << 8) | b;
         }
 
-        // Sample each registered sprite — field is package-private, access via reflection.
-        Map<String, TextureAtlasSprite> sprites = getSpriteMap(atlas);
-        if (sprites == null || sprites.isEmpty()) {
-            LOG.warn("BlockColorCache: could not access sprite map, got {}", sprites);
-            return;
-        }
-
-        for (Map.Entry<String, TextureAtlasSprite> entry : sprites.entrySet()) {
-            String name = entry.getKey();
-            TextureAtlasSprite sprite = entry.getValue();
-            int ox = sprite.getOriginX();
-            int oy = sprite.getOriginY();
-            int sw = sprite.getIconWidth();
-            int sh = sprite.getIconHeight();
-            boolean animated = sprite.getFrameCount() > 1;
-            spriteAnimated.put(name, animated);
-            if (animated) continue;
-            if (ox < 0 || oy < 0 || sw <= 0 || sh <= 0 || ox + sw > atlasW || oy + sh > atlasH) continue;
-
-            long sumR = 0, sumG = 0, sumB = 0;
-            long sumR2 = 0, sumG2 = 0, sumB2 = 0;
-            long count = 0;
-            for (int py = oy; py < oy + sh; py++) {
-                for (int px2 = ox; px2 < ox + sw; px2++) {
-                    int px = pixels[py * atlasW + px2];
-                    int alpha = (px >> 24) & 0xFF;
-                    if (alpha < 64) continue;
-                    long pr = (px >> 16) & 0xFF;
-                    long pg = (px >> 8) & 0xFF;
-                    long pb = px & 0xFF;
-                    sumR += pr;
-                    sumG += pg;
-                    sumB += pb;
-                    sumR2 += pr * pr;
-                    sumG2 += pg * pg;
-                    sumB2 += pb * pb;
-                    count++;
-                }
-            }
-            if (count == 0) continue;
-            int avgRgb = (int) (sumR / count) << 16 | (int) (sumG / count) << 8 | (int) (sumB / count);
-            spriteRgbByName.put(name, avgRgb);
-            // Var(X) = E[X²] - E[X]² — summed over R, G, B channels
-            double avgR = sumR / (double) count;
-            double avgGd = sumG / (double) count;
-            double avgBd = sumB / (double) count;
-            float variance = (float) (sumR2 / (double) count
-                    - avgR * avgR
-                    + sumG2 / (double) count
-                    - avgGd * avgGd
-                    + sumB2 / (double) count
-                    - avgBd * avgBd);
-            spriteVarianceByName.put(name, variance);
-        }
+        dims[0] = atlasW;
+        dims[1] = atlasH;
+        return pixels;
     }
 
-    // ── Phase 2: build candidates using ItemInfo ──────────────────────────────
+    // ── Phase 2: build candidates ─────────────────────────────────────────────
 
-    private void buildCandidates() {
+    private void buildCandidates(int[] pixels, int atlasW, int atlasH) {
+        // Per-sprite caches: avoid resampling icons shared across multiple blocks/faces.
+        Map<String, Integer> spriteRgbCache = new HashMap<>();
+        Map<String, Float> spriteVarianceCache = new HashMap<>();
+        Map<String, Boolean> spriteAnimatedCache = new HashMap<>();
+
         List<ItemStack> allItems = BlockUtils.collectPlaceableBlocks();
         LOG.info("buildCandidates: {} placeable stacks", allItems.size());
 
@@ -288,19 +232,27 @@ public class BlockColorCache {
 
                 for (int face = 0; face < 6; face++) {
                     IIcon icon = block.getIcon(face, meta);
-                    if (icon == null) continue;
-                    String iconName = icon.getIconName();
-                    if (Boolean.TRUE.equals(spriteAnimated.get(iconName))) {
+                    if (!(icon instanceof TextureAtlasSprite)) continue;
+                    TextureAtlasSprite sprite = (TextureAtlasSprite) icon;
+                    String iconName = sprite.getIconName();
+
+                    Boolean animated = spriteAnimatedCache.computeIfAbsent(iconName, k -> sprite.getFrameCount() > 1);
+                    if (animated) {
                         anim = true;
                         break;
                     }
-                    Integer rgb = spriteRgbByName.get(iconName);
+
+                    if (!spriteRgbCache.containsKey(iconName)) {
+                        sampleSprite(sprite, pixels, atlasW, atlasH, spriteRgbCache, spriteVarianceCache);
+                    }
+                    Integer rgb = spriteRgbCache.get(iconName);
                     if (rgb == null) continue;
+
                     faceRgbs[validFaces] = rgb;
                     totalR += (rgb >> 16) & 0xFF;
                     totalG += (rgb >> 8) & 0xFF;
                     totalB += rgb & 0xFF;
-                    Float fvar = spriteVarianceByName.get(iconName);
+                    Float fvar = spriteVarianceCache.get(iconName);
                     if (fvar != null) totalVariance += fvar;
                     validFaces++;
                 }
@@ -360,41 +312,63 @@ public class BlockColorCache {
         LOG.info("  colorByKey.size={} candidates={}", colorByKey.size(), colourFieldCandidates.size());
     }
 
-    @SuppressWarnings("unchecked")
-    private static Map<String, TextureAtlasSprite> getSpriteMap(TextureMap atlas) {
-        // Try known MCP field names first (available after stitch).
-        for (String fieldName : new String[] {"mapUploadedSprites", "mapRegisteredSprites"}) {
-            try {
-                Field f = TextureMap.class.getDeclaredField(fieldName);
-                f.setAccessible(true);
-                Object val = f.get(atlas);
-                if (val instanceof Map<?, ?> raw) {
-                    if (!raw.isEmpty()) return (Map<String, TextureAtlasSprite>) raw;
-                }
-            } catch (Throwable ignored) {
-            }
-        }
-        // GTNH/OptiFine may remap field names — scan all declared fields for a non-empty
-        // Map whose first value is a TextureAtlasSprite.
-        for (Field f : TextureMap.class.getDeclaredFields()) {
-            if (!Map.class.isAssignableFrom(f.getType())) continue;
-            try {
-                f.setAccessible(true);
-                Object val = f.get(atlas);
-                if (!(val instanceof Map<?, ?> raw)) continue;
-                if (raw.isEmpty()) continue;
-                Object firstVal = raw.values().iterator().next();
-                if (firstVal instanceof TextureAtlasSprite) {
-                    LOG.info("BlockColorCache: found sprite map via field '{}'", f.getName());
-                    return (Map<String, TextureAtlasSprite>) raw;
-                }
-            } catch (Throwable ignored) {
-            }
-        }
-        return null;
-    }
-
     // ── Helpers ───────────────────────────────────────────────────────────────
+
+    /**
+     * Samples average color and variance for a sprite from the atlas pixel array.
+     * Populates rgbOut and varianceOut on success; leaves them unchanged if the sprite
+     * has no opaque pixels or invalid bounds.
+     */
+    private static void sampleSprite(
+            TextureAtlasSprite sprite,
+            int[] pixels,
+            int atlasW,
+            int atlasH,
+            Map<String, Integer> rgbOut,
+            Map<String, Float> varianceOut) {
+        int ox = sprite.getOriginX();
+        int oy = sprite.getOriginY();
+        int sw = sprite.getIconWidth();
+        int sh = sprite.getIconHeight();
+        if (ox < 0 || oy < 0 || sw <= 0 || sh <= 0 || ox + sw > atlasW || oy + sh > atlasH) return;
+
+        long sumR = 0, sumG = 0, sumB = 0;
+        long sumR2 = 0, sumG2 = 0, sumB2 = 0;
+        long count = 0;
+        for (int py = oy; py < oy + sh; py++) {
+            for (int px2 = ox; px2 < ox + sw; px2++) {
+                int px = pixels[py * atlasW + px2];
+                int alpha = (px >> 24) & 0xFF;
+                if (alpha < 64) continue;
+                long pr = (px >> 16) & 0xFF;
+                long pg = (px >> 8) & 0xFF;
+                long pb = px & 0xFF;
+                sumR += pr;
+                sumG += pg;
+                sumB += pb;
+                sumR2 += pr * pr;
+                sumG2 += pg * pg;
+                sumB2 += pb * pb;
+                count++;
+            }
+        }
+        if (count == 0) return;
+
+        String name = sprite.getIconName();
+        int avgRgb = (int) (sumR / count) << 16 | (int) (sumG / count) << 8 | (int) (sumB / count);
+        rgbOut.put(name, avgRgb);
+        // Var(X) = E[X²] - E[X]² — summed over R, G, B channels
+        double avgR = sumR / (double) count;
+        double avgGd = sumG / (double) count;
+        double avgBd = sumB / (double) count;
+        float variance = (float) (sumR2 / (double) count
+                - avgR * avgR
+                + sumG2 / (double) count
+                - avgGd * avgGd
+                + sumB2 / (double) count
+                - avgBd * avgBd);
+        varianceOut.put(name, variance);
+    }
 
     private static int categoryOf(Block block, int meta) {
         boolean hasTe = block.hasTileEntity(meta);
