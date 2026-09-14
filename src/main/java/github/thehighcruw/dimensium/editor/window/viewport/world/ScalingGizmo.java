@@ -9,9 +9,10 @@ import net.minecraft.entity.EntityLivingBase;
 import org.lwjgl.opengl.GL11;
 
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeMath;
-import github.thehighcruw.dimensium.shared.Vec2DDouble;
-import github.thehighcruw.dimensium.shared.Vec3DDouble;
-import github.thehighcruw.dimensium.shared.Vec3DFloat;
+import github.thehighcruw.dimensium.shared.math.Mat3DFloat;
+import github.thehighcruw.dimensium.shared.math.Vec2DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 
 /**
  * Single-axis scale gizmo — a colored box at the tip of each axis arrow.
@@ -175,16 +176,16 @@ public class ScalingGizmo {
         float rotX, float rotY, float rotZ) {
         double eyeX = player.posX, eyeY = player.posY + player.getEyeHeight(), eyeZ = player.posZ;
         float scale = RotationGizmo.computeScale(gx - eyeX, gy - eyeY, gz - eyeZ);
-        float[] R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
+        Mat3DFloat R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
 
         Axis best = Axis.NONE;
         double bestDist = HIT_PX;
 
         for (int a = 0; a < 3; a++) {
-            float[] dirRot = RotationGizmo.rotateVec(AXIS_DIR[a], R);
-            double wcx = gx + dirRot[0] * BOX_CENTER * scale;
-            double wcy = gy + dirRot[1] * BOX_CENTER * scale;
-            double wcz = gz + dirRot[2] * BOX_CENTER * scale;
+            Vec3DFloat dirRot = R.mul(Vec3DFloat.from(AXIS_DIR[a][0], AXIS_DIR[a][1], AXIS_DIR[a][2]));
+            double wcx = gx + dirRot.x() * BOX_CENTER * scale;
+            double wcy = gy + dirRot.y() * BOX_CENTER * scale;
+            double wcz = gz + dirRot.z() * BOX_CENTER * scale;
             double[] sc = proj.project(wcx, wcy, wcz);
             if (sc == null) continue;
             double dx = sc[0] - mouseX, dy = sc[1] - mouseY;
@@ -211,11 +212,11 @@ public class ScalingGizmo {
         startScale = scale;
 
         int a = dragAxis == Axis.X ? 0 : dragAxis == Axis.Y ? 1 : 2;
-        float[] R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
-        float[] dir = RotationGizmo.rotateVec(AXIS_DIR[a], R);
+        Mat3DFloat R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
+        Vec3DFloat dir = R.mul(Vec3DFloat.from(AXIS_DIR[a][0], AXIS_DIR[a][1], AXIS_DIR[a][2]));
 
         double[] os = proj.project(gx, gy, gz);
-        double[] ts = proj.project(gx + dir[0], gy + dir[1], gz + dir[2]);
+        double[] ts = proj.project(gx + dir.x(), gy + dir.y(), gz + dir.z());
         if (os == null || ts == null) {
             screenDir = Vec2DDouble.from(1, 0);
             pixelsPerUnit = 50;

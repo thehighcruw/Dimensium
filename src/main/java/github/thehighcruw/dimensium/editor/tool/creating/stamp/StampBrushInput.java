@@ -23,6 +23,8 @@ import github.thehighcruw.dimensium.editor.tool.brushes.BrushUtil;
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeMath;
 import github.thehighcruw.dimensium.editor.tool.creating.stamp.StampScatter.StampInstance;
 import github.thehighcruw.dimensium.shared.BlockSender;
+import github.thehighcruw.dimensium.shared.math.Mat3DFloat;
+import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 
 @SideOnly(Side.CLIENT)
@@ -121,7 +123,7 @@ public final class StampBrushInput implements BrushInput {
             int clipD = entry.blueprint.clipD();
 
             boolean rotated = inst.yaw != 0f;
-            float[] R = rotated ? ShapeMath.buildRotationMatrix(0f, inst.yaw, 0f) : null;
+            Mat3DFloat R = rotated ? ShapeMath.buildRotationMatrix(0f, inst.yaw, 0f) : null;
             float cx = clipW / 2f, cy = clipH / 2f, cz = clipD / 2f;
 
             for (int[] o : offsets) {
@@ -133,9 +135,10 @@ public final class StampBrushInput implements BrushInput {
                 int wx, wy, wz;
                 if (rotated) {
                     float dx = lx + 0.5f - cx, dy = ly + 0.5f - cy, dz = lz + 0.5f - cz;
-                    wx = inst.anchor.x() + (int) Math.floor(R[0] * dx + R[1] * dy + R[2] * dz + cx);
-                    wy = inst.anchor.y() + (int) Math.floor(R[3] * dx + R[4] * dy + R[5] * dz + cy);
-                    wz = inst.anchor.z() + (int) Math.floor(R[6] * dx + R[7] * dy + R[8] * dz + cz);
+                    Vec3DFloat rv = R.mul(Vec3DFloat.from(dx, dy, dz));
+                    wx = inst.anchor.x() + (int) Math.floor(rv.x() + cx);
+                    wy = inst.anchor.y() + (int) Math.floor(rv.y() + cy);
+                    wz = inst.anchor.z() + (int) Math.floor(rv.z() + cz);
                 } else {
                     wx = inst.anchor.x() + lx;
                     wy = inst.anchor.y() + ly;

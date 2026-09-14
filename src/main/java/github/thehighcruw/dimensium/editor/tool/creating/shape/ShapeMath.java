@@ -4,6 +4,9 @@
  */
 package github.thehighcruw.dimensium.editor.tool.creating.shape;
 
+import github.thehighcruw.dimensium.shared.math.Mat3DFloat;
+import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
+
 /**
  * Pure-math shape geometry — no Minecraft state.
  * Shared between BrushApplicator (server placement) and ShapePlacementState (client ghost).
@@ -245,19 +248,11 @@ public class ShapeMath {
     }
 
     /**
-     * Build a 3×3 rotation matrix R = Rz(rotZ) * Ry(rotY) * Rx(rotX), angles in degrees.
-     * Result is row-major float[9]: [r00,r01,r02, r10,r11,r12, r20,r21,r22].
-     * Inverse = transpose (it's orthogonal): R^T[i][j] = R[j][i].
+     * Build a rotation matrix R = Rz(rotZ) * Ry(rotY) * Rx(rotX), angles in degrees.
+     * Delegates to {@link Mat3DFloat#fromEulerDeg}.
      */
-    public static float[] buildRotationMatrix(float rotXDeg, float rotYDeg, float rotZDeg) {
-        double rx = Math.toRadians(rotXDeg);
-        double ry = Math.toRadians(rotYDeg);
-        double rz = Math.toRadians(rotZDeg);
-        float cx = (float) Math.cos(rx), sx = (float) Math.sin(rx);
-        float cy = (float) Math.cos(ry), sy = (float) Math.sin(ry);
-        float cz = (float) Math.cos(rz), sz = (float) Math.sin(rz);
-        return new float[] { cy * cz, cz * sx * sy - cx * sz, cx * cz * sy + sx * sz, cy * sz, cx * cz + sx * sy * sz,
-            cx * sy * sz - cz * sx, -sy, cy * sx, cx * cy };
+    public static Mat3DFloat buildRotationMatrix(float rotXDeg, float rotYDeg, float rotZDeg) {
+        return Mat3DFloat.fromEulerDeg(rotXDeg, rotYDeg, rotZDeg);
     }
 
     /**
@@ -421,7 +416,7 @@ public class ShapeMath {
      * Computes the integer AABB of a shape's base bounding box after rotation.
      * Returns int[6] = {ix0, iy0, iz0, ix1, iy1, iz1}.
      */
-    public static int[] computeRotatedBounds(float[] R, int w, int h, int d) {
+    public static int[] computeRotatedBounds(Mat3DFloat R, int w, int h, int d) {
         float ccx = w / 2f, ccy = h / 2f, ccz = d / 2f;
         float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE, minZ = Float.MAX_VALUE;
         float maxX = -Float.MAX_VALUE, maxY = -Float.MAX_VALUE, maxZ = -Float.MAX_VALUE;
@@ -429,9 +424,10 @@ public class ShapeMath {
             float hx = ((mask & 1) != 0 ? w : 0) - ccx;
             float hy = ((mask & 2) != 0 ? h : 0) - ccy;
             float hz = ((mask & 4) != 0 ? d : 0) - ccz;
-            float wx = R[0] * hx + R[1] * hy + R[2] * hz + ccx;
-            float wy = R[3] * hx + R[4] * hy + R[5] * hz + ccy;
-            float wz = R[6] * hx + R[7] * hy + R[8] * hz + ccz;
+            Vec3DFloat rot = R.mul(Vec3DFloat.from(hx, hy, hz));
+            float wx = rot.x() + ccx;
+            float wy = rot.y() + ccy;
+            float wz = rot.z() + ccz;
             if (wx < minX) minX = wx;
             if (wx > maxX) maxX = wx;
             if (wy < minY) minY = wy;
@@ -450,8 +446,8 @@ public class ShapeMath {
      */
     public static void iterateRotatedShape(ShapeToolState.ShapeType type, int w, int h, int d, boolean hollow,
         float exponent, int torusRingR, int torusRingRZ, int torusTubeR, int tubeWallThickness, float supersphereExp,
-        int polygonSides, float spiralSpacing, float spiralTurns, float threshold, float[] R, int ix0, int iy0, int iz0,
-        int ix1, int iy1, int iz1, ShapeVoxelConsumer consumer) {
+        int polygonSides, float spiralSpacing, float spiralTurns, float threshold, Mat3DFloat R, int ix0, int iy0,
+        int iz0, int ix1, int iy1, int iz1, ShapeVoxelConsumer consumer) {
         float ccx = w / 2f, ccy = h / 2f, ccz = d / 2f;
         outer: for (int ox = ix0; ox <= ix1; ox++) {
             for (int oy = iy0; oy <= iy1; oy++) {
@@ -459,9 +455,10 @@ public class ShapeMath {
                     float dx0 = (ox + 0.5f) - ccx;
                     float dy0 = (oy + 0.5f) - ccy;
                     float dz0 = (oz + 0.5f) - ccz;
-                    float ldx = R[0] * dx0 + R[3] * dy0 + R[6] * dz0 + ccx;
-                    float ldy = R[1] * dx0 + R[4] * dy0 + R[7] * dz0 + ccy;
-                    float ldz = R[2] * dx0 + R[5] * dy0 + R[8] * dz0 + ccz;
+                    Vec3DFloat ld = R.mulTranspose(Vec3DFloat.from(dx0, dy0, dz0));
+                    float ldx = ld.x() + ccx;
+                    float ldy = ld.y() + ccy;
+                    float ldz = ld.z() + ccz;
                     if (!inShapeGeomF(
                         type,
                         ldx,
@@ -487,35 +484,4 @@ public class ShapeMath {
         }
     }
 
-    /**
-     * Multiply two row-major 3×3 matrices: C = A * B.
-     */
-    public static float[] multiplyRotationMatrices(float[] A, float[] B) {
-        float[] C = new float[9];
-        for (int i = 0; i < 3; i++)
-            for (int j = 0; j < 3; j++) for (int k = 0; k < 3; k++) C[i * 3 + j] += A[i * 3 + k] * B[k * 3 + j];
-        return C;
-    }
-
-    /**
-     * Decompose a row-major 3×3 rotation matrix R = Rz(rz)*Ry(ry)*Rx(rx)
-     * back to Euler angles in degrees. Returns [rotX, rotY, rotZ].
-     * Uses R[6]=-sin(ry), R[7]=cos(ry)*sin(rx), R[8]=cos(ry)*cos(rx),
-     * R[3]=cos(ry)*sin(rz), R[0]=cos(ry)*cos(rz).
-     */
-    public static float[] decomposeRotationMatrix(float[] R) {
-        float sinRy = -R[6];
-        float ry = (float) Math.asin(Math.max(-1f, Math.min(1f, sinRy)));
-        float cosRy = (float) Math.cos(ry);
-        float rx, rz;
-        if (cosRy > 0.001f) {
-            rx = (float) Math.atan2(R[7], R[8]);
-            rz = (float) Math.atan2(R[3], R[0]);
-        } else {
-            // Gimbal lock: set rz=0, solve rx from remaining terms
-            rx = (float) Math.atan2(-R[5], R[4]);
-            rz = 0f;
-        }
-        return new float[] { (float) Math.toDegrees(rx), (float) Math.toDegrees(ry), (float) Math.toDegrees(rz) };
-    }
 }

@@ -12,8 +12,8 @@ import net.minecraft.world.World;
 import github.thehighcruw.dimensium.editor.handler.ExtrudeHelper;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushState;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushStrategy;
-import github.thehighcruw.dimensium.shared.Vec3DFloat;
-import github.thehighcruw.dimensium.shared.Vec3DInt;
+import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 
 public class SculptBrush implements BrushStrategy {

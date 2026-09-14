@@ -13,7 +13,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.overlay.OverlayRenderer;
 import github.thehighcruw.dimensium.editor.window.viewport.world.BrushPreviewRenderer;
 import github.thehighcruw.dimensium.editor.window.viewport.world.SelectionRenderer;
-import github.thehighcruw.dimensium.shared.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 
 /**
  * Per-tool world-space rendering contract. Every tool must register one in

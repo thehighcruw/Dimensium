@@ -13,7 +13,7 @@ import java.util.Random;
 import net.minecraft.item.ItemStack;
 
 import github.thehighcruw.dimensium.editor.tool.creating.rock.PathToolState;
-import github.thehighcruw.dimensium.shared.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 import github.thehighcruw.dimensium.shared.util.BlockUtils;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 

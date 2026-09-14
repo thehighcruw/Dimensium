@@ -6,6 +6,8 @@ package github.thehighcruw.dimensium.shared;
 
 import com.github.bsideup.jabel.Desugar;
 
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+
 @Desugar
 public record BoundingBox(Vec3DInt minimum, Vec3DInt maximum) {
 

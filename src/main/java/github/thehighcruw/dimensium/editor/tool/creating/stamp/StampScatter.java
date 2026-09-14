@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Random;
 
 import github.thehighcruw.dimensium.editor.blueprint.Blueprint;
-import github.thehighcruw.dimensium.shared.Vec3DInt;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 
 public class StampScatter {
 

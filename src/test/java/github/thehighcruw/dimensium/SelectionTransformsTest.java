@@ -13,7 +13,7 @@ import org.junit.Test;
 
 import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.SelectionTransforms;
-import github.thehighcruw.dimensium.shared.Vec3DInt;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 
 public class SelectionTransformsTest {
 

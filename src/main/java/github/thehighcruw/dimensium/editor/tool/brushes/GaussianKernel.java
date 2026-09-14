@@ -4,7 +4,7 @@
  */
 package github.thehighcruw.dimensium.editor.tool.brushes;
 
-import github.thehighcruw.dimensium.shared.Vec3DInt;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 
 public final class GaussianKernel {
 

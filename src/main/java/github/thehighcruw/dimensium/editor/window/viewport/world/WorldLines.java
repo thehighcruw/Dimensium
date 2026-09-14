@@ -8,7 +8,8 @@ import net.minecraft.client.renderer.Tessellator;
 
 import org.lwjgl.opengl.GL11;
 
-import github.thehighcruw.dimensium.shared.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Mat3DFloat;
+import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 
 /**
  * Shader-compatible line rendering.
@@ -62,13 +63,8 @@ public class WorldLines {
      * tx/ty/tz are the glTranslated arguments (localOrigin - cameraWorld).
      * Camera in translated-then-rotated local space = R^T * (-tx,-ty,-tz).
      */
-    static void setEyeRotated(float[] R, double tx, double ty, double tz) {
-        double ox = -tx, oy = -ty, oz = -tz;
-        // R^T * (ox, oy, oz)
-        eye = Vec3DDouble.from(
-            R[0] * ox + R[3] * oy + R[6] * oz,
-            R[1] * ox + R[4] * oy + R[7] * oz,
-            R[2] * ox + R[5] * oy + R[8] * oz);
+    static void setEyeRotated(Mat3DFloat R, double tx, double ty, double tz) {
+        eye = R.mulTransposeD(-tx, -ty, -tz);
     }
 
     /**

@@ -9,7 +9,7 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 
 import github.thehighcruw.dimensium.shared.SelectionState;
-import github.thehighcruw.dimensium.shared.Vec3DInt;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 
 /**
  * Tests SelectionState coordinate packing in isolation (no Minecraft deps).

@@ -11,7 +11,7 @@ import java.util.Map;
 import net.minecraft.block.Block;
 
 import github.thehighcruw.dimensium.shared.SelectionState;
-import github.thehighcruw.dimensium.shared.Vec3DInt;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 
 public final class ClipboardUtils {
 

@@ -25,6 +25,7 @@ import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeMath;
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapePlacementState;
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeToolState;
 import github.thehighcruw.dimensium.editor.tool.selecting.SelectedBlockState;
+import github.thehighcruw.dimensium.shared.math.Mat3DFloat;
 
 public class PacketShapePlacement implements IPacket {
 
@@ -165,7 +166,7 @@ public class PacketShapePlacement implements IPacket {
 
         ShapeToolState.ShapeType type = ShapeToolState.ShapeType.values()[shapeTypeOrd];
 
-        float[] R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
+        Mat3DFloat R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
 
         int[] bounds = ShapeMath.computeRotatedBounds(R, w, h, d);
         int ix0 = bounds[0], iy0 = bounds[1], iz0 = bounds[2];

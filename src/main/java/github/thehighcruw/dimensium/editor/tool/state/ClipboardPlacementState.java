@@ -18,8 +18,9 @@ import github.thehighcruw.dimensium.editor.window.viewport.world.RotationGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.TranslationGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.ViewPlaneGizmo;
 import github.thehighcruw.dimensium.shared.SelectionState;
-import github.thehighcruw.dimensium.shared.Vec3DFloat;
-import github.thehighcruw.dimensium.shared.Vec3DInt;
+import github.thehighcruw.dimensium.shared.math.Mat3DFloat;
+import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 
 public class ClipboardPlacementState implements WithAxisTranslationGizmo, WithPlaneTranslationGizmo, WithRotationGizmo {
@@ -113,13 +114,14 @@ public class ClipboardPlacementState implements WithAxisTranslationGizmo, WithPl
                 p.proposed.put(key, new int[] { o[3], o[4] });
             }
         } else {
-            float[] R = ShapeMath.buildRotationMatrix(rot.x(), rot.y(), rot.z());
+            Mat3DFloat R = ShapeMath.buildRotationMatrix(rot.x(), rot.y(), rot.z());
             float cx = clipW / 2f, cy = clipH / 2f, cz = clipD / 2f;
             for (int[] o : offsets) {
                 float dx = o[0] + 0.5f - cx, dy = o[1] + 0.5f - cy, dz = o[2] + 0.5f - cz;
-                float wx = R[0] * dx + R[1] * dy + R[2] * dz + cx;
-                float wy = R[3] * dx + R[4] * dy + R[5] * dz + cy;
-                float wz = R[6] * dx + R[7] * dy + R[8] * dz + cz;
+                Vec3DFloat rv = R.mul(Vec3DFloat.from(dx, dy, dz));
+                float wx = rv.x() + cx;
+                float wy = rv.y() + cy;
+                float wz = rv.z() + cz;
                 long key = ChangeProposal.packKey(
                     anchor.x() + (int) Math.floor(wx),
                     anchor.y() + (int) Math.floor(wy),

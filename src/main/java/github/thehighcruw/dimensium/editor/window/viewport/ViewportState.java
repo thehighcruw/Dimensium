@@ -15,7 +15,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.freecam.FreecamEntity;
 import github.thehighcruw.dimensium.editor.overlay.ViewState;
-import github.thehighcruw.dimensium.shared.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 
 @SideOnly(Side.CLIENT)
 public final class ViewportState {

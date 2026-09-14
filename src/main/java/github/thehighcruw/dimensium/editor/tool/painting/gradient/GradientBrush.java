@@ -15,7 +15,7 @@ import github.thehighcruw.dimensium.editor.tool.brushes.BrushStrategy;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushUtil;
 import github.thehighcruw.dimensium.editor.tool.creating.path.PathMath;
 import github.thehighcruw.dimensium.editor.tool.state.PaletteState;
-import github.thehighcruw.dimensium.shared.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 
 public class GradientBrush implements BrushStrategy {

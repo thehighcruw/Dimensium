@@ -10,6 +10,8 @@ import org.junit.Test;
 
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeMath;
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeToolState.ShapeType;
+import github.thehighcruw.dimensium.shared.math.Mat3DFloat;
+import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 
 public class ShapeMathTest {
 
@@ -505,31 +507,46 @@ public class ShapeMathTest {
 
     @Test
     public void rotationMatrixIdentity() {
-        float[] I = ShapeMath.buildRotationMatrix(0, 0, 0);
-        assertEquals(1f, I[0], 1e-6f);
-        assertEquals(1f, I[4], 1e-6f);
-        assertEquals(1f, I[8], 1e-6f);
-        assertEquals(0f, I[1], 1e-6f);
-        assertEquals(0f, I[3], 1e-6f);
+        Mat3DFloat I = ShapeMath.buildRotationMatrix(0, 0, 0);
+        assertEquals(1f, I.r00(), 1e-6f);
+        assertEquals(1f, I.r11(), 1e-6f);
+        assertEquals(1f, I.r22(), 1e-6f);
+        assertEquals(0f, I.r01(), 1e-6f);
+        assertEquals(0f, I.r10(), 1e-6f);
     }
 
     @Test
     public void rotationMatrixRoundtrip() {
         float[][] cases = { { 30, 45, 60 }, { -15, 70, 0 }, { 45, 0, -30 } };
         for (float[] c : cases) {
-            float[] R = ShapeMath.buildRotationMatrix(c[0], c[1], c[2]);
-            float[] back = ShapeMath.decomposeRotationMatrix(R);
-            float[] R2 = ShapeMath.buildRotationMatrix(back[0], back[1], back[2]);
-            for (int i = 0; i < 9; i++)
-                assertEquals("element " + i + " for (" + c[0] + "," + c[1] + "," + c[2] + ")", R[i], R2[i], 1e-4f);
+            Mat3DFloat R = ShapeMath.buildRotationMatrix(c[0], c[1], c[2]);
+            Vec3DFloat back = R.toEulerDeg();
+            Mat3DFloat R2 = ShapeMath.buildRotationMatrix(back.x(), back.y(), back.z());
+            assertEquals("r00 for (" + c[0] + "," + c[1] + "," + c[2] + ")", R.r00(), R2.r00(), 1e-4f);
+            assertEquals("r01", R.r01(), R2.r01(), 1e-4f);
+            assertEquals("r02", R.r02(), R2.r02(), 1e-4f);
+            assertEquals("r10", R.r10(), R2.r10(), 1e-4f);
+            assertEquals("r11", R.r11(), R2.r11(), 1e-4f);
+            assertEquals("r12", R.r12(), R2.r12(), 1e-4f);
+            assertEquals("r20", R.r20(), R2.r20(), 1e-4f);
+            assertEquals("r21", R.r21(), R2.r21(), 1e-4f);
+            assertEquals("r22", R.r22(), R2.r22(), 1e-4f);
         }
     }
 
     @Test
     public void rotationMatrixGimbalLockY90() {
-        float[] R = ShapeMath.buildRotationMatrix(0, 90, 0);
-        float[] back = ShapeMath.decomposeRotationMatrix(R);
-        float[] R2 = ShapeMath.buildRotationMatrix(back[0], back[1], back[2]);
-        for (int i = 0; i < 9; i++) assertEquals("element " + i, R[i], R2[i], 1e-4f);
+        Mat3DFloat R = ShapeMath.buildRotationMatrix(0, 90, 0);
+        Vec3DFloat back = R.toEulerDeg();
+        Mat3DFloat R2 = ShapeMath.buildRotationMatrix(back.x(), back.y(), back.z());
+        assertEquals("r00", R.r00(), R2.r00(), 1e-4f);
+        assertEquals("r01", R.r01(), R2.r01(), 1e-4f);
+        assertEquals("r02", R.r02(), R2.r02(), 1e-4f);
+        assertEquals("r10", R.r10(), R2.r10(), 1e-4f);
+        assertEquals("r11", R.r11(), R2.r11(), 1e-4f);
+        assertEquals("r12", R.r12(), R2.r12(), 1e-4f);
+        assertEquals("r20", R.r20(), R2.r20(), 1e-4f);
+        assertEquals("r21", R.r21(), R2.r21(), 1e-4f);
+        assertEquals("r22", R.r22(), R2.r22(), 1e-4f);
     }
 }

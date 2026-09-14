@@ -20,7 +20,7 @@ import com.gtnewhorizon.gtnhlib.network.base.IPacket;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.shared.SelectionState;
-import github.thehighcruw.dimensium.shared.Vec3DInt;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.tool.BuilderToolState;
 import github.thehighcruw.dimensium.tool.BuilderToolState.Phase;
 

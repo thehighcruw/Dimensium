@@ -11,7 +11,7 @@ import java.util.Arrays;
 import org.junit.Test;
 
 import github.thehighcruw.dimensium.editor.tool.brushes.GaussianKernel;
-import github.thehighcruw.dimensium.shared.Vec3DInt;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 
 public class GaussianKernelTest {
 

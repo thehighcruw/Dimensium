@@ -13,7 +13,7 @@ import github.thehighcruw.dimensium.editor.tool.gizmo.WithAxisTranslationGizmo;
 import github.thehighcruw.dimensium.editor.tool.gizmo.WithPlaneTranslationGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.PlaneTranslationGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.TranslationGizmo;
-import github.thehighcruw.dimensium.shared.Vec3DInt;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 
 public class ModellingToolState implements WithAxisTranslationGizmo, WithPlaneTranslationGizmo {

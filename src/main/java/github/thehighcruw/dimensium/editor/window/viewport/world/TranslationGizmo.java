@@ -9,8 +9,10 @@ import net.minecraft.entity.EntityLivingBase;
 import org.lwjgl.opengl.GL11;
 
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeMath;
-import github.thehighcruw.dimensium.shared.Vec2DDouble;
-import github.thehighcruw.dimensium.shared.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Mat3DFloat;
+import github.thehighcruw.dimensium.shared.math.Vec2DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 
 /**
  * Reusable translation gizmo — any tool can instantiate this.
@@ -51,7 +53,7 @@ public class TranslationGizmo {
     private Vec2DDouble screenDir = Vec2DDouble.ZERO;
     private double pixelsPerBlock;
     private Vec3DDouble startAnchor = Vec3DDouble.ZERO;
-    private float[] rotatedAxisDir = new float[3];
+    private Vec3DFloat rotatedAxisDir = Vec3DFloat.ZERO;
     // Ray-based drag
     private boolean useRayDrag;
     private Vec3DDouble dragGizmo = Vec3DDouble.ZERO;
@@ -173,14 +175,15 @@ public class TranslationGizmo {
             return;
         }
 
-        float[] R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
+        Mat3DFloat R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
         Axis best = Axis.NONE;
         double bestDist = HIT_PX;
 
         for (int a = 0; a < 3; a++) {
-            float[] base = { AXIS_DIR[a][0] * axisFlip[a], AXIS_DIR[a][1] * axisFlip[a], AXIS_DIR[a][2] * axisFlip[a] };
-            float[] dir = RotationGizmo.rotateVec(base, R);
-            double[] tip = proj.project(gx + dir[0] * scaledArm, gy + dir[1] * scaledArm, gz + dir[2] * scaledArm);
+            Vec3DFloat dir = R.mul(
+                Vec3DFloat
+                    .from(AXIS_DIR[a][0] * axisFlip[a], AXIS_DIR[a][1] * axisFlip[a], AXIS_DIR[a][2] * axisFlip[a]));
+            double[] tip = proj.project(gx + dir.x() * scaledArm, gy + dir.y() * scaledArm, gz + dir.z() * scaledArm);
             if (tip == null) continue;
 
             double dist = RotationGizmo.segDist(origin[0], origin[1], tip[0], tip[1], mouseX, mouseY);
@@ -205,15 +208,14 @@ public class TranslationGizmo {
         startAnchor = Vec3DDouble.from(anchorX, anchorY, anchorZ);
         dragGizmo = Vec3DDouble.from(gx, gy, gz);
 
-        float[] R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
+        Mat3DFloat R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
         int a = dragAxis == Axis.X ? 0 : dragAxis == Axis.Y ? 1 : 2;
-        float[] base = { AXIS_DIR[a][0] * axisFlip[a], AXIS_DIR[a][1] * axisFlip[a], AXIS_DIR[a][2] * axisFlip[a] };
-        float[] dir = RotationGizmo.rotateVec(base, R);
-        rotatedAxisDir = dir;
+        rotatedAxisDir = R.mul(
+            Vec3DFloat.from(AXIS_DIR[a][0] * axisFlip[a], AXIS_DIR[a][1] * axisFlip[a], AXIS_DIR[a][2] * axisFlip[a]));
 
         // Screen-based fallback (used when ray unprojection fails)
         double[] os = proj.project(gx, gy, gz);
-        double[] ts = proj.project(gx + dir[0], gy + dir[1], gz + dir[2]);
+        double[] ts = proj.project(gx + rotatedAxisDir.x(), gy + rotatedAxisDir.y(), gz + rotatedAxisDir.z());
         if (os == null || ts == null) {
             screenDir = Vec2DDouble.from(1, 0);
             pixelsPerBlock = 50;
@@ -227,7 +229,7 @@ public class TranslationGizmo {
         // Ray-based drag: find initial parameter along axis
         double[] ray = proj.unprojectRay(mouseX, mouseY);
         if (ray != null) {
-            dragStartT = closestAxisT(ray, dragGizmo.x(), dragGizmo.y(), dragGizmo.z(), dir);
+            dragStartT = closestAxisT(ray, dragGizmo.x(), dragGizmo.y(), dragGizmo.z(), rotatedAxisDir);
             useRayDrag = true;
         } else {
             dragStartT = 0;
@@ -236,10 +238,10 @@ public class TranslationGizmo {
     }
 
     /** Returns t such that gizmoCenter + t*axisDir is closest to the ray. */
-    private static double closestAxisT(double[] ray, double px, double py, double pz, float[] axisDir) {
+    private static double closestAxisT(double[] ray, double px, double py, double pz, Vec3DFloat axisDir) {
         double ox = ray[0], oy = ray[1], oz = ray[2];
         double dx = ray[3], dy = ray[4], dz = ray[5];
-        double ax = axisDir[0], ay = axisDir[1], az = axisDir[2];
+        double ax = axisDir.x(), ay = axisDir.y(), az = axisDir.z();
         double dDotA = dx * ax + dy * ay + dz * az;
         double aDoA = ax * ax + ay * ay + az * az;
         double denom = aDoA - dDotA * dDotA; // = 1 - cos²θ = sin²θ
@@ -263,9 +265,9 @@ public class TranslationGizmo {
                 double t = closestAxisT(ray, dragGizmo.x(), dragGizmo.y(), dragGizmo.z(), rotatedAxisDir);
                 double delta = t - dragStartT;
                 return Vec3DDouble.from(
-                    startAnchor.x() + delta * rotatedAxisDir[0],
-                    startAnchor.y() + delta * rotatedAxisDir[1],
-                    startAnchor.z() + delta * rotatedAxisDir[2]);
+                    startAnchor.x() + delta * rotatedAxisDir.x(),
+                    startAnchor.y() + delta * rotatedAxisDir.y(),
+                    startAnchor.z() + delta * rotatedAxisDir.z());
             }
         }
         // Screen-based fallback
@@ -273,9 +275,9 @@ public class TranslationGizmo {
             .dot(screenDir);
         double delta = screenProj / pixelsPerBlock;
         return Vec3DDouble.from(
-            startAnchor.x() + delta * rotatedAxisDir[0],
-            startAnchor.y() + delta * rotatedAxisDir[1],
-            startAnchor.z() + delta * rotatedAxisDir[2]);
+            startAnchor.x() + delta * rotatedAxisDir.x(),
+            startAnchor.y() + delta * rotatedAxisDir.y(),
+            startAnchor.z() + delta * rotatedAxisDir.z());
     }
 
     public void endDrag() {

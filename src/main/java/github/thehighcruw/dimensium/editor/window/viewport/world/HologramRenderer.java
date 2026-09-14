@@ -17,7 +17,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.shared.BlockColorCache;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.SelectionState.BlockData;
-import github.thehighcruw.dimensium.shared.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 import github.thehighcruw.dimensium.shared.util.PerfTrace;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
 import github.thehighcruw.dimensium.tool.BuilderTool;

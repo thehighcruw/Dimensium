@@ -18,8 +18,8 @@ import github.thehighcruw.dimensium.editor.window.viewport.world.SelectionRender
 import github.thehighcruw.dimensium.editor.window.viewport.world.TranslationGizmo;
 import github.thehighcruw.dimensium.shared.KeyConstants;
 import github.thehighcruw.dimensium.shared.SelectionState;
-import github.thehighcruw.dimensium.shared.Vec3DDouble;
-import github.thehighcruw.dimensium.shared.Vec3DInt;
+import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 
 @SideOnly(Side.CLIENT)
 public class BoxSelectBrushInput implements BrushInput {

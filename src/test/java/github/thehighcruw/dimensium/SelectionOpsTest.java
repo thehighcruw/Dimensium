@@ -16,7 +16,7 @@ import org.junit.Test;
 import github.thehighcruw.dimensium.editor.handler.SelectionOps;
 import github.thehighcruw.dimensium.editor.tool.selecting.BooleanOp;
 import github.thehighcruw.dimensium.shared.SelectionState;
-import github.thehighcruw.dimensium.shared.Vec3DInt;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 
 /**
  * Tests SelectionOps methods that do not require a live World.

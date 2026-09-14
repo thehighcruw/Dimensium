@@ -2,7 +2,7 @@
  * Copyright (c) 2026 TheHighcruw
  * SPDX-License-Identifier: MIT
  */
-package github.thehighcruw.dimensium.shared;
+package github.thehighcruw.dimensium.shared.math;
 
 import com.github.bsideup.jabel.Desugar;
 

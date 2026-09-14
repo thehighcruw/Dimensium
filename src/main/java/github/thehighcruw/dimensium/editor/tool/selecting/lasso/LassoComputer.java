@@ -23,8 +23,8 @@ import github.thehighcruw.dimensium.editor.freecam.FreecamState;
 import github.thehighcruw.dimensium.editor.window.viewport.ViewportRegistry;
 import github.thehighcruw.dimensium.editor.window.viewport.ViewportState;
 import github.thehighcruw.dimensium.shared.SelectionState;
-import github.thehighcruw.dimensium.shared.Vec3DDouble;
-import github.thehighcruw.dimensium.shared.Vec3DInt;
+import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
 
 @SideOnly(Side.CLIENT)

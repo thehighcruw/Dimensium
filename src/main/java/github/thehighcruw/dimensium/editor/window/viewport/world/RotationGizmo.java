@@ -10,8 +10,10 @@ import org.lwjgl.opengl.GL11;
 
 import github.thehighcruw.dimensium.DimensiumConfig;
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeMath;
-import github.thehighcruw.dimensium.shared.Vec2DDouble;
-import github.thehighcruw.dimensium.shared.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Mat3DFloat;
+import github.thehighcruw.dimensium.shared.math.Vec2DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 
 /**
  * Rotation gizmo — 3 colored arcs, one per axis.
@@ -123,13 +125,13 @@ public class RotationGizmo {
         double eyeX = player.posX, eyeY = player.posY + player.getEyeHeight(), eyeZ = player.posZ;
         float scale = computeScale(gx - eyeX, gy - eyeY, gz - eyeZ);
         float scaledR = ARC_R * scale;
-        float[] R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
+        Mat3DFloat R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
         Axis best = Axis.NONE;
         double bestDist = HIT_PX;
 
         for (int a = 0; a < 3; a++) {
-            float[] rp1 = rotateVec(ARC_P1[a], R);
-            float[] rp2 = rotateVec(ARC_P2[a], R);
+            Vec3DFloat rp1 = R.mul(Vec3DFloat.from(ARC_P1[a][0], ARC_P1[a][1], ARC_P1[a][2]));
+            Vec3DFloat rp2 = R.mul(Vec3DFloat.from(ARC_P2[a][0], ARC_P2[a][1], ARC_P2[a][2]));
             double[] prev = null;
             double minD = Double.MAX_VALUE;
 
@@ -137,8 +139,10 @@ public class RotationGizmo {
                 double ang = 2.0 * Math.PI * i / ARC_SEG;
                 float c = (float) (Math.cos(ang) * scaledR);
                 float s = (float) (Math.sin(ang) * scaledR);
-                double[] scr = proj
-                    .project(gx + c * rp1[0] + s * rp2[0], gy + c * rp1[1] + s * rp2[1], gz + c * rp1[2] + s * rp2[2]);
+                double[] scr = proj.project(
+                    gx + c * rp1.x() + s * rp2.x(),
+                    gy + c * rp1.y() + s * rp2.y(),
+                    gz + c * rp1.z() + s * rp2.z());
                 if (scr == null) {
                     prev = null;
                     continue;
@@ -171,10 +175,10 @@ public class RotationGizmo {
         // Y arc's p1×p2 = -Y, so its atan2 winds opposite to X and Z arcs.
         dragSign = (hoveredAxis == Axis.Y) ? -1.0 : 1.0;
 
-        float[] R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
+        Mat3DFloat R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
         int a = dragAxis == Axis.X ? 0 : dragAxis == Axis.Y ? 1 : 2;
-        float[] rp1 = rotateVec(ARC_P1[a], R);
-        float[] rp2 = rotateVec(ARC_P2[a], R);
+        Vec3DFloat rp1 = R.mul(Vec3DFloat.from(ARC_P1[a][0], ARC_P1[a][1], ARC_P1[a][2]));
+        Vec3DFloat rp2 = R.mul(Vec3DFloat.from(ARC_P2[a][0], ARC_P2[a][1], ARC_P2[a][2]));
 
         double[] cScr = proj.project(gx, gy, gz);
         if (cScr == null) {
@@ -184,8 +188,8 @@ public class RotationGizmo {
         centerScr = Vec2DDouble.from(cScr[0], cScr[1]);
 
         // Screen-space direction of each arc basis vector (unit length)
-        double[] s1 = proj.project(gx + rp1[0], gy + rp1[1], gz + rp1[2]);
-        double[] s2 = proj.project(gx + rp2[0], gy + rp2[1], gz + rp2[2]);
+        double[] s1 = proj.project(gx + rp1.x(), gy + rp1.y(), gz + rp1.z());
+        double[] s2 = proj.project(gx + rp2.x(), gy + rp2.y(), gz + rp2.z());
 
         if (s1 == null || s2 == null) {
             e1 = Vec2DDouble.from(1, 0);
@@ -239,13 +243,11 @@ public class RotationGizmo {
         GL11.glRotatef(rotY, 0, 1, 0);
         GL11.glRotatef(rotX, 1, 0, 0);
         GL11.glScalef(scale, scale, scale);
-        float[] R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
-        WorldLines.setEyeRotated(R, (gx - camPos.x()) / scale, (gy - camPos.y()) / scale, (gz - camPos.z()) / scale);
-    }
-
-    static float[] rotateVec(float[] v, float[] R) {
-        return new float[] { R[0] * v[0] + R[1] * v[1] + R[2] * v[2], R[3] * v[0] + R[4] * v[1] + R[5] * v[2],
-            R[6] * v[0] + R[7] * v[1] + R[8] * v[2] };
+        WorldLines.setEyeRotated(
+            ShapeMath.buildRotationMatrix(rotX, rotY, rotZ),
+            (gx - camPos.x()) / scale,
+            (gy - camPos.y()) / scale,
+            (gz - camPos.z()) / scale);
     }
 
     static double segDist(double ax, double ay, double bx, double by, double px, double py) {

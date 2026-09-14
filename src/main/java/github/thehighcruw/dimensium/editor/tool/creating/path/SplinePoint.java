@@ -6,7 +6,7 @@ package github.thehighcruw.dimensium.editor.tool.creating.path;
 
 import com.github.bsideup.jabel.Desugar;
 
-import github.thehighcruw.dimensium.shared.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 
 @Desugar
 record SplinePoint(double x, double y, double z, double t) {

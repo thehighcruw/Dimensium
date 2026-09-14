@@ -17,7 +17,7 @@ import github.thehighcruw.dimensium.DimensiumEditorMode;
 import github.thehighcruw.dimensium.editor.freecam.FreecamUtils;
 import github.thehighcruw.dimensium.shared.InputHandler;
 import github.thehighcruw.dimensium.shared.SelectionState;
-import github.thehighcruw.dimensium.shared.Vec3DInt;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.tool.BuilderTool;
 import github.thehighcruw.dimensium.tool.BuilderToolState;
 import github.thehighcruw.dimensium.tool.BuilderToolState.AxisLock;

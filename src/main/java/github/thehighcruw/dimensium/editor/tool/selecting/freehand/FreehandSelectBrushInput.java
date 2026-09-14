@@ -24,7 +24,7 @@ import github.thehighcruw.dimensium.editor.tool.mask.ToolMaskRegistry;
 import github.thehighcruw.dimensium.editor.tool.selecting.BooleanOp;
 import github.thehighcruw.dimensium.shared.KeyConstants;
 import github.thehighcruw.dimensium.shared.SelectionState;
-import github.thehighcruw.dimensium.shared.Vec3DInt;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
 
 @SideOnly(Side.CLIENT)

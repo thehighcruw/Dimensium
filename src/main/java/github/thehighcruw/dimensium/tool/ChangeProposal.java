@@ -14,7 +14,7 @@ import net.minecraft.world.World;
 
 import github.thehighcruw.dimensium.editor.tool.ActiveDragState;
 import github.thehighcruw.dimensium.editor.tool.mask.ToolMask;
-import github.thehighcruw.dimensium.shared.Vec3DInt;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 
 /**
  * Accumulates block changes for a drag stroke before committing them to the server.

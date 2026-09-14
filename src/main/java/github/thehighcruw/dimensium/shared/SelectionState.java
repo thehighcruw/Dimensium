@@ -27,6 +27,7 @@ import com.github.bsideup.jabel.Desugar;
 import github.thehighcruw.dimensium.DimensiumConfig;
 import github.thehighcruw.dimensium.editor.tool.selecting.BooleanOp;
 import github.thehighcruw.dimensium.editor.tool.selecting.magic.MagicSelectToolState;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.WorldUtils;
 
 public class SelectionState {

@@ -18,6 +18,7 @@ import github.thehighcruw.dimensium.editor.tool.brushes.GaussianKernel;
 import github.thehighcruw.dimensium.editor.tool.creating.modelling.ModellingMath;
 import github.thehighcruw.dimensium.editor.tool.creating.modelling.ModellingToolState.ModelPoint;
 import github.thehighcruw.dimensium.editor.tool.noise.NoiseSampler;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 
 public final class SelectionTransforms {
 

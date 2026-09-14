@@ -24,8 +24,9 @@ import github.thehighcruw.dimensium.editor.window.viewport.world.ScalingGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.TranslationGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.ViewPlaneGizmo;
 import github.thehighcruw.dimensium.shared.SelectionState;
-import github.thehighcruw.dimensium.shared.Vec3DFloat;
-import github.thehighcruw.dimensium.shared.Vec3DInt;
+import github.thehighcruw.dimensium.shared.math.Mat3DFloat;
+import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 
 /**
@@ -163,7 +164,7 @@ public class MoveToolState
         lastRot = rot;
         snapshotVersion = currentSnapshotVersion;
 
-        float[] R = ShapeMath.buildRotationMatrix(rot.x(), rot.y(), rot.z());
+        Mat3DFloat R = ShapeMath.buildRotationMatrix(rot.x(), rot.y(), rot.z());
 
         List<int[]> blocks = new ArrayList<>(snapshot.size());
         for (Map.Entry<Long, SelectionState.BlockData> e : snapshot.entrySet()) {
@@ -175,9 +176,8 @@ public class MoveToolState
             float dy = wy + 0.5f - cm.y();
             float dz = wz + 0.5f - cm.z();
 
-            float rx = R[0] * dx + R[1] * dy + R[2] * dz;
-            float ry = R[3] * dx + R[4] * dy + R[5] * dz;
-            float rz = R[6] * dx + R[7] * dy + R[8] * dz;
+            Vec3DFloat rv = R.mul(Vec3DFloat.from(dx, dy, dz));
+            float rx = rv.x(), ry = rv.y(), rz = rv.z();
 
             int nx = (int) Math.floor(cm.x() + delta.x() + rx);
             int ny = (int) Math.floor(cm.y() + delta.y() + ry);

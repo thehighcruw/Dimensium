@@ -23,8 +23,8 @@ import github.thehighcruw.dimensium.editor.tool.BrushInput;
 import github.thehighcruw.dimensium.editor.window.viewport.world.PlaneTranslationGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.TranslationGizmo;
 import github.thehighcruw.dimensium.shared.KeyConstants;
-import github.thehighcruw.dimensium.shared.Vec3DDouble;
-import github.thehighcruw.dimensium.shared.Vec3DInt;
+import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 
 @SideOnly(Side.CLIENT)
 public class ModellingBrushInput implements BrushInput {

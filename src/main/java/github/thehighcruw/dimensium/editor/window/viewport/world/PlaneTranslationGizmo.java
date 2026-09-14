@@ -9,8 +9,10 @@ import net.minecraft.entity.EntityLivingBase;
 import org.lwjgl.opengl.GL11;
 
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeMath;
-import github.thehighcruw.dimensium.shared.Vec2DDouble;
-import github.thehighcruw.dimensium.shared.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Mat3DFloat;
+import github.thehighcruw.dimensium.shared.math.Vec2DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 
 /**
  * Plane-translation gizmo — 3 small colored squares between axis arrow pairs.
@@ -56,8 +58,8 @@ public class PlaneTranslationGizmo {
     private int dragStartMX;
     private int dragStartMY;
     private Vec3DDouble startAnchor = Vec3DDouble.ZERO;
-    private float[] worldAxisA = new float[3];
-    private float[] worldAxisB = new float[3];
+    private Vec3DFloat worldAxisA = Vec3DFloat.ZERO;
+    private Vec3DFloat worldAxisB = Vec3DFloat.ZERO;
     private Vec2DDouble screenAxisA = Vec2DDouble.ZERO;
     private double pixelsPerUnitA;
     private Vec2DDouble screenAxisB = Vec2DDouble.ZERO;
@@ -142,7 +144,7 @@ public class PlaneTranslationGizmo {
         float rotX, float rotY, float rotZ) {
         double eyeX = player.posX, eyeY = player.posY + player.getEyeHeight(), eyeZ = player.posZ;
         float scale = RotationGizmo.computeScale(gx - eyeX, gy - eyeY, gz - eyeZ);
-        float[] R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
+        Mat3DFloat R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
 
         Plane best = Plane.NONE;
         double bestDist = HIT_PX;
@@ -150,27 +152,27 @@ public class PlaneTranslationGizmo {
         for (int p = 0; p < 3; p++) {
             float cx = CENTERS[p][0], cy = CENTERS[p][1], cz = CENTERS[p][2];
             float[] a = PLANE_A[p], b = PLANE_B[p];
-            float[] ha = RotationGizmo.rotateVec(new float[] { a[0] * SQ_HALF, a[1] * SQ_HALF, a[2] * SQ_HALF }, R);
-            float[] hb = RotationGizmo.rotateVec(new float[] { b[0] * SQ_HALF, b[1] * SQ_HALF, b[2] * SQ_HALF }, R);
-            float[] cRot = RotationGizmo.rotateVec(new float[] { cx, cy, cz }, R);
-            double wcx = gx + cRot[0] * scale, wcy = gy + cRot[1] * scale, wcz = gz + cRot[2] * scale;
+            Vec3DFloat ha = R.mul(Vec3DFloat.from(a[0] * SQ_HALF, a[1] * SQ_HALF, a[2] * SQ_HALF));
+            Vec3DFloat hb = R.mul(Vec3DFloat.from(b[0] * SQ_HALF, b[1] * SQ_HALF, b[2] * SQ_HALF));
+            Vec3DFloat cRot = R.mul(Vec3DFloat.from(cx, cy, cz));
+            double wcx = gx + cRot.x() * scale, wcy = gy + cRot.y() * scale, wcz = gz + cRot.z() * scale;
             double[][] corners = new double[4][];
             corners[0] = proj.project(
-                wcx + (-ha[0] - hb[0]) * (double) scale,
-                wcy + (-ha[1] - hb[1]) * (double) scale,
-                wcz + (-ha[2] - hb[2]) * (double) scale);
+                wcx + (-ha.x() - hb.x()) * (double) scale,
+                wcy + (-ha.y() - hb.y()) * (double) scale,
+                wcz + (-ha.z() - hb.z()) * (double) scale);
             corners[1] = proj.project(
-                wcx + (ha[0] - hb[0]) * (double) scale,
-                wcy + (ha[1] - hb[1]) * (double) scale,
-                wcz + (ha[2] - hb[2]) * (double) scale);
+                wcx + (ha.x() - hb.x()) * (double) scale,
+                wcy + (ha.y() - hb.y()) * (double) scale,
+                wcz + (ha.z() - hb.z()) * (double) scale);
             corners[2] = proj.project(
-                wcx + (ha[0] + hb[0]) * (double) scale,
-                wcy + (ha[1] + hb[1]) * (double) scale,
-                wcz + (ha[2] + hb[2]) * (double) scale);
+                wcx + (ha.x() + hb.x()) * (double) scale,
+                wcy + (ha.y() + hb.y()) * (double) scale,
+                wcz + (ha.z() + hb.z()) * (double) scale);
             corners[3] = proj.project(
-                wcx + (-ha[0] + hb[0]) * (double) scale,
-                wcy + (-ha[1] + hb[1]) * (double) scale,
-                wcz + (-ha[2] + hb[2]) * (double) scale);
+                wcx + (-ha.x() + hb.x()) * (double) scale,
+                wcy + (-ha.y() + hb.y()) * (double) scale,
+                wcz + (-ha.z() + hb.z()) * (double) scale);
             boolean anyNull = false;
             for (double[] c : corners) if (c == null) {
                 anyNull = true;
@@ -202,20 +204,20 @@ public class PlaneTranslationGizmo {
         dragGizmo = Vec3DDouble.from(gx, gy, gz);
 
         int p = dragPlane == Plane.XY ? 0 : dragPlane == Plane.XZ ? 1 : 2;
-        float[] R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
-        worldAxisA = RotationGizmo.rotateVec(PLANE_A[p], R);
-        worldAxisB = RotationGizmo.rotateVec(PLANE_B[p], R);
+        Mat3DFloat R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
+        worldAxisA = R.mul(Vec3DFloat.from(PLANE_A[p][0], PLANE_A[p][1], PLANE_A[p][2]));
+        worldAxisB = R.mul(Vec3DFloat.from(PLANE_B[p][0], PLANE_B[p][1], PLANE_B[p][2]));
 
         // Plane normal = worldAxisA × worldAxisB
         dragPlaneN = Vec3DDouble.from(
-            (double) worldAxisA[1] * worldAxisB[2] - (double) worldAxisA[2] * worldAxisB[1],
-            (double) worldAxisA[2] * worldAxisB[0] - (double) worldAxisA[0] * worldAxisB[2],
-            (double) worldAxisA[0] * worldAxisB[1] - (double) worldAxisA[1] * worldAxisB[0]);
+            (double) worldAxisA.y() * worldAxisB.z() - (double) worldAxisA.z() * worldAxisB.y(),
+            (double) worldAxisA.z() * worldAxisB.x() - (double) worldAxisA.x() * worldAxisB.z(),
+            (double) worldAxisA.x() * worldAxisB.y() - (double) worldAxisA.y() * worldAxisB.x());
 
         // Screen-based fallback setup
         double[] os = proj.project(gx, gy, gz);
-        double[] tsA = proj.project(gx + worldAxisA[0], gy + worldAxisA[1], gz + worldAxisA[2]);
-        double[] tsB = proj.project(gx + worldAxisB[0], gy + worldAxisB[1], gz + worldAxisB[2]);
+        double[] tsA = proj.project(gx + worldAxisA.x(), gy + worldAxisA.y(), gz + worldAxisA.z());
+        double[] tsB = proj.project(gx + worldAxisB.x(), gy + worldAxisB.y(), gz + worldAxisB.z());
         if (os == null || tsA == null || tsB == null) {
             screenAxisA = Vec2DDouble.from(1, 0);
             pixelsPerUnitA = 50;
@@ -288,9 +290,9 @@ public class PlaneTranslationGizmo {
         double deltaA = dm.dot(screenAxisA) / pixelsPerUnitA;
         double deltaB = dm.dot(screenAxisB) / pixelsPerUnitB;
         return Vec3DDouble.from(
-            startAnchor.x() + deltaA * worldAxisA[0] + deltaB * worldAxisB[0],
-            startAnchor.y() + deltaA * worldAxisA[1] + deltaB * worldAxisB[1],
-            startAnchor.z() + deltaA * worldAxisA[2] + deltaB * worldAxisB[2]);
+            startAnchor.x() + deltaA * worldAxisA.x() + deltaB * worldAxisB.x(),
+            startAnchor.y() + deltaA * worldAxisA.y() + deltaB * worldAxisB.y(),
+            startAnchor.z() + deltaA * worldAxisA.z() + deltaB * worldAxisB.z());
     }
 
     public void endDrag() {

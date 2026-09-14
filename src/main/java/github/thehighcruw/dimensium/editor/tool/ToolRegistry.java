@@ -64,7 +64,7 @@ import github.thehighcruw.dimensium.editor.tool.utility.ruler.RulerBrushInput;
 import github.thehighcruw.dimensium.editor.tool.utility.ruler.RulerSection;
 import github.thehighcruw.dimensium.editor.tool.utility.ruler.RulerToolRenderer;
 import github.thehighcruw.dimensium.editor.window.viewport.world.BrushPreviewRenderer;
-import github.thehighcruw.dimensium.shared.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 
 /**
  * Central registry mapping each {@link Tool} to its {@link ToolDescriptor}.

@@ -13,7 +13,7 @@ import github.thehighcruw.dimensium.editor.tool.brushes.BrushStrategy;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushUtil;
 import github.thehighcruw.dimensium.editor.tool.brushes.GaussianKernel;
 import github.thehighcruw.dimensium.editor.tool.selecting.SelectedBlockState;
-import github.thehighcruw.dimensium.shared.Vec3DInt;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 
 public class WeldBrush implements BrushStrategy {

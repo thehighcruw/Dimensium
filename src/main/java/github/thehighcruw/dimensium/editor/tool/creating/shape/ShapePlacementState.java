@@ -22,8 +22,9 @@ import github.thehighcruw.dimensium.editor.window.viewport.world.RotationGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.ScalingGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.TranslationGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.ViewPlaneGizmo;
-import github.thehighcruw.dimensium.shared.Vec3DFloat;
-import github.thehighcruw.dimensium.shared.Vec3DInt;
+import github.thehighcruw.dimensium.shared.math.Mat3DFloat;
+import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 
 /**
@@ -166,7 +167,7 @@ public class ShapePlacementState
         baseH = h;
         baseD = d;
 
-        float[] R = ShapeMath.buildRotationMatrix(rot.x(), rot.y(), rot.z());
+        Mat3DFloat R = ShapeMath.buildRotationMatrix(rot.x(), rot.y(), rot.z());
 
         int[] bounds = ShapeMath.computeRotatedBounds(R, w, h, d);
         int ix0 = bounds[0], iy0 = bounds[1], iz0 = bounds[2];
@@ -207,7 +208,7 @@ public class ShapePlacementState
         preview = p;
     }
 
-    private static List<int[]> buildGhostBlocks(ShapeToolState s, int w, int h, int d, float[] R, int ix0, int iy0,
+    private static List<int[]> buildGhostBlocks(ShapeToolState s, int w, int h, int d, Mat3DFloat R, int ix0, int iy0,
         int iz0, int ix1, int iy1, int iz1) {
         int maxGhost = DimensiumConfig.maxGhostBlocks;
         List<int[]> blocks = new ArrayList<>();

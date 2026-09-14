@@ -46,9 +46,9 @@ import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
 import github.thehighcruw.dimensium.editor.window.viewport.world.ScalingGizmo;
 import github.thehighcruw.dimensium.shared.BlockSender;
 import github.thehighcruw.dimensium.shared.KeyConstants;
-import github.thehighcruw.dimensium.shared.Vec3DDouble;
-import github.thehighcruw.dimensium.shared.Vec3DFloat;
-import github.thehighcruw.dimensium.shared.Vec3DInt;
+import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.PerfTrace;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
@@ -349,16 +349,16 @@ public class TickHandler {
                 }
             } else if (ps.getRotationGizmo()
                 .isDragging()) {
-                    float[] angles = AnchorSnap.applyRotGizmo(
+                    Vec3DFloat angles = AnchorSnap.applyRotGizmo(
                         ps.getRotationGizmo(),
                         ps.rotDragBase.x(),
                         ps.rotDragBase.y(),
                         ps.rotDragBase.z(),
                         mx,
                         my);
-                    if (Math.abs(angles[0] - ps.rot.x()) >= 0.5f || Math.abs(angles[1] - ps.rot.y()) >= 0.5f
-                        || Math.abs(angles[2] - ps.rot.z()) >= 0.5f) {
-                        ps.rot = Vec3DFloat.from(angles[0], angles[1], angles[2]);
+                    if (Math.abs(angles.x() - ps.rot.x()) >= 0.5f || Math.abs(angles.y() - ps.rot.y()) >= 0.5f
+                        || Math.abs(angles.z() - ps.rot.z()) >= 0.5f) {
+                        ps.rot = angles;
                         ps.invalidateGhost();
                     }
                 } else if (ps.getScalingGizmo()
@@ -418,14 +418,13 @@ public class TickHandler {
                 }
             } else if (cps.getRotationGizmo()
                 .isDragging()) {
-                    float[] angles = AnchorSnap.applyRotGizmo(
+                    cps.rot = AnchorSnap.applyRotGizmo(
                         cps.getRotationGizmo(),
                         cps.rotDragBase.x(),
                         cps.rotDragBase.y(),
                         cps.rotDragBase.z(),
                         mx,
                         my);
-                    cps.rot = Vec3DFloat.from(angles[0], angles[1], angles[2]);
                     cps.rebuildPreview();
                 }
         }
@@ -451,16 +450,16 @@ public class TickHandler {
                 }
             } else if (ms.getRotationGizmo()
                 .isDragging()) {
-                    float[] angles = AnchorSnap.applyRotGizmo(
+                    Vec3DFloat angles = AnchorSnap.applyRotGizmo(
                         ms.getRotationGizmo(),
                         ms.rotDragBase.x(),
                         ms.rotDragBase.y(),
                         ms.rotDragBase.z(),
                         mx,
                         my);
-                    if (Math.abs(angles[0] - ms.rot.x()) >= 0.5f || Math.abs(angles[1] - ms.rot.y()) >= 0.5f
-                        || Math.abs(angles[2] - ms.rot.z()) >= 0.5f) {
-                        ms.rot = Vec3DFloat.from(angles[0], angles[1], angles[2]);
+                    if (Math.abs(angles.x() - ms.rot.x()) >= 0.5f || Math.abs(angles.y() - ms.rot.y()) >= 0.5f
+                        || Math.abs(angles.z() - ms.rot.z()) >= 0.5f) {
+                        ms.rot = angles;
                         ms.invalidateGhost();
                     }
                 }

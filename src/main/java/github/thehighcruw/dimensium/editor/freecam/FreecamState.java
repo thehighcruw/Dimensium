@@ -9,7 +9,7 @@ import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.entity.EntityLivingBase;
 
 import github.thehighcruw.dimensium.editor.window.viewport.ViewportRegistry;
-import github.thehighcruw.dimensium.shared.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 
 public class FreecamState {
 

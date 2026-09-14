@@ -18,7 +18,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.window.viewport.ViewportRegistry;
 import github.thehighcruw.dimensium.editor.window.viewport.ViewportState;
-import github.thehighcruw.dimensium.shared.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 
 /**
  * Captures GL modelview/projection/viewport matrices at render time and uses

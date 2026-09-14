@@ -29,7 +29,7 @@ import github.thehighcruw.dimensium.editor.tool.brushes.BrushShape;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushState;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushUtil;
 import github.thehighcruw.dimensium.shared.KeyConstants;
-import github.thehighcruw.dimensium.shared.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
 
 @SideOnly(Side.CLIENT)
