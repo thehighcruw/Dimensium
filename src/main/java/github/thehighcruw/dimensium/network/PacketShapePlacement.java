@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
@@ -224,7 +225,7 @@ public class PacketShapePlacement implements IPacket {
 
         if (!ops.isEmpty()) {
             String action = (hollow ? "Hollow " : "") + type.label;
-            int txId = java.util.concurrent.ThreadLocalRandom.current().nextInt(Integer.MIN_VALUE, 0);
+            int txId = ThreadLocalRandom.current().nextInt(Integer.MIN_VALUE, 0);
             int[][] after = ops.toArray(new int[0][]);
             EditHistory.record(world, action, ops, player, txId, after);
         }

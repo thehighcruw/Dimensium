@@ -13,6 +13,7 @@ import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
 
 public class ModellingToolState implements WithAxisTranslationGizmo, WithPlaneTranslationGizmo {
@@ -171,8 +172,7 @@ public class ModellingToolState implements WithAxisTranslationGizmo, WithPlaneTr
                 .append(offsetTargetPoint)
                 .append(',');
         if (activeBlock != null) {
-            sb.append(net.minecraft.block.Block.getIdFromBlock(
-                            net.minecraft.block.Block.getBlockFromItem(activeBlock.getItem())))
+            sb.append(Block.getIdFromBlock(Block.getBlockFromItem(activeBlock.getItem())))
                     .append(',')
                     .append(activeBlock.getItemDamage());
         }

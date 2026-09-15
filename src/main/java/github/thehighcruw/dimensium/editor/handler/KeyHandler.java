@@ -44,6 +44,7 @@ import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.entity.Entity;
 import net.minecraft.util.MovingObjectPosition;
 import org.lwjgl.input.Keyboard;
 
@@ -398,7 +399,7 @@ public class KeyHandler {
         if (up) return new int[] {0, 1, 0};
         if (dwn) return new int[] {0, -1, 0};
 
-        net.minecraft.entity.Entity cam = FreecamState.INSTANCE.cameraEntity;
+        Entity cam = FreecamState.INSTANCE.cameraEntity;
         float yaw = cam != null ? cam.rotationYaw : 0f;
         // Snap yaw to nearest 90°: 0=south(+Z), 1=west(-X), 2=north(-Z), 3=east(+X)
         int q = Math.round(yaw / 90f) & 3;

@@ -4,6 +4,7 @@
  */
 package github.thehighcruw.dimensium.editor.tool.mask;
 
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import net.minecraft.world.World;
 
 public class YMask extends MaskNode {
@@ -30,13 +31,13 @@ public class YMask extends MaskNode {
     }
 
     @Override
-    public boolean test(World world, int x, int y, int z) {
+    public boolean test(World world, Vec3DInt coord) {
         return switch (op) {
-            case EQUAL -> y == value;
-            case LESS -> y < value;
-            case LESS_EQ -> y <= value;
-            case GREATER -> y > value;
-            case GREATER_EQ -> y >= value;
+            case EQUAL -> coord.y() == value;
+            case LESS -> coord.y() < value;
+            case LESS_EQ -> coord.y() <= value;
+            case GREATER -> coord.y() > value;
+            case GREATER_EQ -> coord.y() >= value;
         };
     }
 

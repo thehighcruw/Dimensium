@@ -6,6 +6,7 @@ package github.thehighcruw.dimensium.editor.handler;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
+import cpw.mods.fml.common.network.FMLNetworkEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.DimensiumConfig;
@@ -43,6 +44,8 @@ import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.PerfTrace;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
+import java.util.List;
+import java.util.Set;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.resources.I18n;
@@ -71,7 +74,7 @@ public class TickHandler {
     private Vec3DInt lastFreehand = null;
 
     /** Read-only view of accumulated SMOOTH drag positions. */
-    public java.util.Set<Long> getSmoothDragPositions() {
+    public Set<Long> getSmoothDragPositions() {
         return SmoothBrushInput.INSTANCE.getDragPositions();
     }
 
@@ -280,7 +283,7 @@ public class TickHandler {
             PerfTrace.pop();
             if (lastFreehand != null) {
                 PerfTrace.push("flush");
-                java.util.List<int[]> ops = ChangeProposal.flush();
+                List<int[]> ops = ChangeProposal.flush();
                 PerfTrace.pop();
                 PerfTrace.push("sendChunked ops=" + ops.size());
                 if (!ops.isEmpty()) BlockSender.sendChunked(ops, toolActionName(tool));
@@ -528,8 +531,7 @@ public class TickHandler {
     // ── World disconnect cleanup ──────────────────────────────────────────────
 
     @SubscribeEvent
-    public void onClientDisconnect(
-            cpw.mods.fml.common.network.FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
+    public void onClientDisconnect(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
         DimensiumEditorMode.INSTANCE.fullReset();
     }
 

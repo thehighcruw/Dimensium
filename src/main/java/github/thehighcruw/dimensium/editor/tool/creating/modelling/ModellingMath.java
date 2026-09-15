@@ -276,8 +276,8 @@ public class ModellingMath {
         for (List<ModelPoint> row : rows) maxCols = Math.max(maxCols, row.size());
         if (maxCols < 2) return;
 
-        double[][] rowA = new double[maxCols][3];
-        double[][] rowB = new double[maxCols][3];
+        Vec3DDouble[] rowA = new Vec3DDouble[maxCols];
+        Vec3DDouble[] rowB = new Vec3DDouble[maxCols];
 
         for (int r = 0; r + 1 < rows.size(); r++) {
             resampleRow(rows.get(r), maxCols, rowA);
@@ -301,13 +301,13 @@ public class ModellingMath {
         if (maxCols < 1) return;
 
         int R = rows.size();
-        double[][][] grid = new double[R][maxCols][3];
+        Vec3DDouble[][] grid = new Vec3DDouble[R][maxCols];
         for (int r = 0; r < R; r++) resampleRow(rows.get(r), maxCols, grid[r]);
 
         int uSteps = Math.max(4, (R - 1) * 8);
         int vSteps = Math.max(4, (maxCols - 1) * 8);
 
-        double[][][] cache = new double[uSteps + 1][vSteps + 1][3];
+        Vec3DDouble[][] cache = new Vec3DDouble[uSteps + 1][vSteps + 1];
         for (int ui = 0; ui <= uSteps; ui++) {
             double u = (double) ui / uSteps * (R - 1);
             for (int vi = 0; vi <= vSteps; vi++) {
@@ -335,13 +335,13 @@ public class ModellingMath {
         if (maxCols < 1) return;
 
         int R = rows.size();
-        double[][][] grid = new double[R][maxCols][3];
+        Vec3DDouble[][] grid = new Vec3DDouble[R][maxCols];
         for (int r = 0; r < R; r++) resampleRow(rows.get(r), maxCols, grid[r]);
 
         int uSteps = Math.max(4, (R - 1) * 8);
         int vSteps = Math.max(4, (maxCols - 1) * 8);
 
-        double[][][] cache = new double[uSteps + 1][vSteps + 1][3];
+        Vec3DDouble[][] cache = new Vec3DDouble[uSteps + 1][vSteps + 1];
         for (int ui = 0; ui <= uSteps; ui++) {
             double u = (double) ui / uSteps;
             for (int vi = 0; vi <= vSteps; vi++) {
@@ -360,7 +360,7 @@ public class ModellingMath {
 
     // ── Surface sampling ──────────────────────────────────────────────────────
 
-    private static double[] sampleGridCatmullRom(double[][][] grid, int R, int C, double u, double v) {
+    private static Vec3DDouble sampleGridCatmullRom(Vec3DDouble[][] grid, int R, int C, double u, double v) {
         u = Math.max(0, Math.min(R - 1, u));
         v = Math.max(0, Math.min(C - 1, v));
         int ri = Math.min((int) u, R - 2);
@@ -369,31 +369,22 @@ public class ModellingMath {
         double vt = v - ci;
 
         // Catmull-Rom across rows, linear across columns
-        double[] colA = lerpD(grid[ri][ci], grid[ri][ci + 1], vt);
-        double[] colB = ri + 1 < R
-                ? lerpD(grid[ri + 1][ci], grid[ri + 1][ci + 1], vt)
-                : lerpD(grid[ri][ci], grid[ri][ci + 1], vt);
-        double[] colA0 = ri > 0 ? lerpD(grid[ri - 1][ci], grid[ri - 1][ci + 1], vt) : colA;
-        double[] colB1 = ri + 2 < R ? lerpD(grid[ri + 2][ci], grid[ri + 2][ci + 1], vt) : colB;
+        Vec3DDouble colA = grid[ri][ci].lerp(grid[ri][ci + 1], vt);
+        Vec3DDouble colB =
+                ri + 1 < R ? grid[ri + 1][ci].lerp(grid[ri + 1][ci + 1], vt) : grid[ri][ci].lerp(grid[ri][ci + 1], vt);
+        Vec3DDouble colA0 = ri > 0 ? grid[ri - 1][ci].lerp(grid[ri - 1][ci + 1], vt) : colA;
+        Vec3DDouble colB1 = ri + 2 < R ? grid[ri + 2][ci].lerp(grid[ri + 2][ci + 1], vt) : colB;
 
         return catmullRomInterp(colA0, colA, colB, colB1, ut);
     }
 
-    private static double[] sampleGridBezier(double[][][] grid, int R, int C, double u, double v) {
+    private static Vec3DDouble sampleGridBezier(Vec3DDouble[][] grid, int R, int C, double u, double v) {
         // Tensor-product Bezier: evaluate along rows, then columns
-        // First interpolate across row dimension at parameter u
         double[] rowWts = bezierBasis(R, u);
         double[] colWts = bezierBasis(C, v);
-        double px = 0, py = 0, pz = 0;
-        for (int r = 0; r < R; r++) {
-            for (int c = 0; c < C; c++) {
-                double w = rowWts[r] * colWts[c];
-                px += w * grid[r][c][0];
-                py += w * grid[r][c][1];
-                pz += w * grid[r][c][2];
-            }
-        }
-        return new double[] {px, py, pz};
+        Vec3DDouble sum = Vec3DDouble.ZERO;
+        for (int r = 0; r < R; r++) for (int c = 0; c < C; c++) sum = sum.plus(grid[r][c].times(rowWts[r] * colWts[c]));
+        return sum;
     }
 
     private static double[] bezierBasis(int n, double t) {
@@ -414,51 +405,41 @@ public class ModellingMath {
         return w;
     }
 
-    private static double[] catmullRomInterp(double[] p0, double[] p1, double[] p2, double[] p3, double t) {
+    private static Vec3DDouble catmullRomInterp(
+            Vec3DDouble p0, Vec3DDouble p1, Vec3DDouble p2, Vec3DDouble p3, double t) {
         double t2 = t * t, t3 = t2 * t;
-        double[] out = new double[3];
-        for (int i = 0; i < 3; i++) {
-            out[i] = 0.5
-                    * ((2 * p1[i])
-                            + (-p0[i] + p2[i]) * t
-                            + (2 * p0[i] - 5 * p1[i] + 4 * p2[i] - p3[i]) * t2
-                            + (-p0[i] + 3 * p1[i] - 3 * p2[i] + p3[i]) * t3);
-        }
-        return out;
-    }
-
-    private static double[] lerpD(double[] a, double[] b, double t) {
-        return new double[] {a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t};
+        return p1.times(2)
+                .plus(p2.minus(p0).times(t))
+                .plus(p0.times(2).minus(p1.times(5)).plus(p2.times(4)).minus(p3).times(t2))
+                .plus(p0.negate().plus(p1.times(3)).minus(p2.times(3)).plus(p3).times(t3))
+                .times(0.5);
     }
 
     /** Resample row to exactly n evenly-spaced points using linear interpolation. */
-    static void resampleRow(List<ModelPoint> row, int n, double[][] out) {
+    static void resampleRow(List<ModelPoint> row, int n, Vec3DDouble[] out) {
         int m = row.size();
         if (m == 0) {
-            for (int i = 0; i < n; i++) Arrays.fill(out[i], 0);
+            Arrays.fill(out, Vec3DDouble.ZERO);
             return;
         }
         if (m == 1) {
-            Vec3DInt p0 = row.get(0).pos();
-            for (int i = 0; i < n; i++) {
-                out[i][0] = p0.x();
-                out[i][1] = p0.y();
-                out[i][2] = p0.z();
-            }
+            Arrays.fill(out, row.get(0).pos().toDouble());
             return;
         }
         // Build cumulative arc lengths
         double[] arc = new double[m];
         arc[0] = 0;
         for (int i = 1; i < m; i++) {
-            ModelPoint ri = row.get(i), ri1 = row.get(i - 1);
-            arc[i] =
-                    arc[i - 1] + ri.pos().toDouble().minus(ri1.pos().toDouble()).length();
+            arc[i] = arc[i - 1]
+                    + row.get(i)
+                            .pos()
+                            .toDouble()
+                            .minus(row.get(i - 1).pos().toDouble())
+                            .length();
         }
         double totalLen = arc[m - 1];
         for (int k = 0; k < n; k++) {
             double t = (n == 1) ? 0 : (double) k / (n - 1) * totalLen;
-            // Binary search for segment
             int seg = m - 2;
             for (int i = 0; i < m - 1; i++) {
                 if (arc[i + 1] >= t) {
@@ -468,12 +449,9 @@ public class ModellingMath {
             }
             double segLen = arc[seg + 1] - arc[seg];
             double st = segLen > 0 ? (t - arc[seg]) / segLen : 0;
-            ModelPoint a = row.get(seg), b = row.get(seg + 1);
-            Vec3DDouble pa = a.pos().toDouble(), pb = b.pos().toDouble();
-            Vec3DDouble lerp = pa.plus(pb.minus(pa).times(st));
-            out[k][0] = lerp.x();
-            out[k][1] = lerp.y();
-            out[k][2] = lerp.z();
+            Vec3DDouble pa = row.get(seg).pos().toDouble(),
+                    pb = row.get(seg + 1).pos().toDouble();
+            out[k] = pa.lerp(pb, st);
         }
     }
 
@@ -486,22 +464,14 @@ public class ModellingMath {
 
     static List<int[]> convexHull3D(List<ModelPoint> pts) {
         int n = pts.size();
-        double[][] P = new double[n][3];
-        for (int i = 0; i < n; i++) {
-            P[i][0] = pts.get(i).pos().x();
-            P[i][1] = pts.get(i).pos().y();
-            P[i][2] = pts.get(i).pos().z();
-        }
+        Vec3DDouble[] P = new Vec3DDouble[n];
+        for (int i = 0; i < n; i++) P[i] = pts.get(i).pos().toDouble();
 
         int[] tet = findInitialTetrahedron(P, n);
         if (tet == null) return coplanarHull(n);
 
         int a = tet[0], b = tet[1], c = tet[2], d = tet[3];
-        double[] centroid = {
-            (P[a][0] + P[b][0] + P[c][0] + P[d][0]) / 4,
-            (P[a][1] + P[b][1] + P[c][1] + P[d][1]) / 4,
-            (P[a][2] + P[b][2] + P[c][2] + P[d][2]) / 4
-        };
+        Vec3DDouble centroid = P[a].plus(P[b]).plus(P[c]).plus(P[d]).divide(4);
 
         List<int[]> faces = new ArrayList<>();
         addFaceOutward(faces, P, a, b, c, centroid);
@@ -537,7 +507,7 @@ public class ModellingMath {
                 }
             }
 
-            double[] newCentroid = computeCentroid(P, invisible);
+            Vec3DDouble newCentroid = computeCentroid(P, invisible);
             faces = invisible;
             for (int[] edge : horizon) {
                 addFaceOutward(faces, P, edge[0], edge[1], i, newCentroid);
@@ -556,7 +526,7 @@ public class ModellingMath {
         return result;
     }
 
-    private static int[] findInitialTetrahedron(double[][] P, int n) {
+    private static int[] findInitialTetrahedron(Vec3DDouble[] P, int n) {
         int p0 = 0;
         double maxD = -1;
         int p1 = -1;
@@ -597,43 +567,35 @@ public class ModellingMath {
     }
 
     /** Returns the cross product (B-A) × (C-A). */
-    private static double[] triNormal(double[] A, double[] B, double[] C) {
-        return new double[] {
-            (B[1] - A[1]) * (C[2] - A[2]) - (B[2] - A[2]) * (C[1] - A[1]),
-            (B[2] - A[2]) * (C[0] - A[0]) - (B[0] - A[0]) * (C[2] - A[2]),
-            (B[0] - A[0]) * (C[1] - A[1]) - (B[1] - A[1]) * (C[0] - A[0])
-        };
+    private static Vec3DDouble triNormal(Vec3DDouble A, Vec3DDouble B, Vec3DDouble C) {
+        return B.minus(A).cross(C.minus(A));
     }
 
-    private static void addFaceOutward(List<int[]> faces, double[][] P, int a, int b, int c, double[] inside) {
-        double[] A = P[a], B = P[b], C = P[c];
-        double[] n = triNormal(A, B, C);
-        if (n[0] * (A[0] - inside[0]) + n[1] * (A[1] - inside[1]) + n[2] * (A[2] - inside[2]) >= 0) {
+    private static void addFaceOutward(List<int[]> faces, Vec3DDouble[] P, int a, int b, int c, Vec3DDouble inside) {
+        Vec3DDouble A = P[a], B = P[b], C = P[c];
+        if (triNormal(A, B, C).dot(A.minus(inside)) >= 0) {
             faces.add(new int[] {a, b, c});
         } else {
             faces.add(new int[] {a, c, b});
         }
     }
 
-    private static boolean faceVisible(double[][] P, int[] face, double[] p) {
-        double[] A = P[face[0]], B = P[face[1]], C = P[face[2]];
-        double[] n = triNormal(A, B, C);
-        return n[0] * (p[0] - A[0]) + n[1] * (p[1] - A[1]) + n[2] * (p[2] - A[2]) > 1e-9;
+    private static boolean faceVisible(Vec3DDouble[] P, int[] face, Vec3DDouble p) {
+        Vec3DDouble A = P[face[0]], B = P[face[1]], C = P[face[2]];
+        return triNormal(A, B, C).dot(p.minus(A)) > 1e-9;
     }
 
-    private static double[] computeCentroid(double[][] P, List<int[]> faces) {
-        if (faces.isEmpty()) return new double[] {0, 0, 0};
-        double sx = 0, sy = 0, sz = 0;
+    private static Vec3DDouble computeCentroid(Vec3DDouble[] P, List<int[]> faces) {
+        if (faces.isEmpty()) return Vec3DDouble.ZERO;
+        Vec3DDouble sum = Vec3DDouble.ZERO;
         int cnt = 0;
         for (int[] f : faces) {
             for (int i = 0; i < 3; i++) {
-                sx += P[f[i]][0];
-                sy += P[f[i]][1];
-                sz += P[f[i]][2];
+                sum = sum.plus(P[f[i]]);
                 cnt++;
             }
         }
-        return new double[] {sx / cnt, sy / cnt, sz / cnt};
+        return sum.divide(cnt);
     }
 
     private static long edgeKey(int a, int b) {
@@ -643,22 +605,18 @@ public class ModellingMath {
     // ── Triangle voxelizer ────────────────────────────────────────────────────
 
     /** Public entry point for external callers (e.g. SelectionTransforms). */
-    public static void voxelizeTriangleDPublic(Map<Long, int[]> out, double[] A, double[] B, double[] C, int[] bm) {
+    public static void voxelizeTriangleDPublic(
+            Map<Long, int[]> out, Vec3DDouble A, Vec3DDouble B, Vec3DDouble C, int[] bm) {
         voxelizeTriangleD(out, A, B, C, bm);
     }
 
     static void voxelizeTriangle(Map<Long, int[]> out, ModelPoint A, ModelPoint B, ModelPoint C, int[] bm) {
-        double[] a = {A.pos().x(), A.pos().y(), A.pos().z()};
-        double[] b = {B.pos().x(), B.pos().y(), B.pos().z()};
-        double[] c = {C.pos().x(), C.pos().y(), C.pos().z()};
-        voxelizeTriangleD(out, a, b, c, bm);
+        voxelizeTriangleD(out, A.pos().toDouble(), B.pos().toDouble(), C.pos().toDouble(), bm);
     }
 
-    static void voxelizeTriangleD(Map<Long, int[]> out, double[] A, double[] B, double[] C, int[] bm) {
-        double ab = Vec3DDouble.from(B[0] - A[0], B[1] - A[1], B[2] - A[2]).length();
-        double bc = Vec3DDouble.from(C[0] - B[0], C[1] - B[1], C[2] - B[2]).length();
-        double ca = Vec3DDouble.from(A[0] - C[0], A[1] - C[1], A[2] - C[2]).length();
-        double maxEdge = Math.max(ab, Math.max(bc, ca));
+    static void voxelizeTriangleD(Map<Long, int[]> out, Vec3DDouble A, Vec3DDouble B, Vec3DDouble C, int[] bm) {
+        double maxEdge = Math.max(
+                B.minus(A).length(), Math.max(C.minus(B).length(), A.minus(C).length()));
         int steps = Math.max(2, (int) Math.ceil(maxEdge * 2));
 
         for (int ui = 0; ui <= steps; ui++) {
@@ -667,10 +625,10 @@ public class ModellingMath {
             for (int vi = 0; vi <= viMax; vi++) {
                 double v = (double) vi / steps;
                 double w = 1.0 - u - v;
-                int x = (int) Math.round(u * A[0] + v * B[0] + w * C[0]);
-                int y = (int) Math.round(u * A[1] + v * B[1] + w * C[1]);
-                int z = (int) Math.round(u * A[2] + v * B[2] + w * C[2]);
-                addPoint(out, x, y, z, bm);
+                addPoint(
+                        out,
+                        A.times(u).plus(B.times(v)).plus(C.times(w)).plus(0.5).floor(),
+                        bm);
             }
         }
     }
@@ -723,30 +681,31 @@ public class ModellingMath {
         out.put(ChangeProposal.packKey(p.pos().x(), p.pos().y(), p.pos().z()), bm);
     }
 
+    private static void addPoint(Map<Long, int[]> out, Vec3DInt p, int[] bm) {
+        out.put(ChangeProposal.packKey(p.x(), p.y(), p.z()), bm);
+    }
+
     private static void addPoint(Map<Long, int[]> out, int x, int y, int z, int[] bm) {
         out.put(ChangeProposal.packKey(x, y, z), bm);
     }
 
-    private static double dist2(double[] A, double[] B) {
-        double dx = A[0] - B[0], dy = A[1] - B[1], dz = A[2] - B[2];
-        return dx * dx + dy * dy + dz * dz;
+    private static double dist2(Vec3DDouble A, Vec3DDouble B) {
+        return A.minus(B).lengthSq();
     }
 
-    private static double distToLine2(double[] P, double[] A, double[] B) {
-        double dx = B[0] - A[0], dy = B[1] - A[1], dz = B[2] - A[2];
-        double len2 = dx * dx + dy * dy + dz * dz;
+    private static double distToLine2(Vec3DDouble P, Vec3DDouble A, Vec3DDouble B) {
+        Vec3DDouble d = B.minus(A);
+        double len2 = d.lengthSq();
         if (len2 < 1e-12) return dist2(P, A);
-        double t = ((P[0] - A[0]) * dx + (P[1] - A[1]) * dy + (P[2] - A[2]) * dz) / len2;
-        double cx = A[0] + t * dx, cy = A[1] + t * dy, cz = A[2] + t * dz;
-        double ex = P[0] - cx, ey = P[1] - cy, ez = P[2] - cz;
-        return ex * ex + ey * ey + ez * ez;
+        double t = P.minus(A).dot(d) / len2;
+        return P.minus(A.plus(d.times(t))).lengthSq();
     }
 
-    private static double distToPlane(double[] P, double[] A, double[] B, double[] C) {
-        double[] n = triNormal(A, B, C);
-        double len = Vec3DDouble.from(n[0], n[1], n[2]).length();
+    private static double distToPlane(Vec3DDouble P, Vec3DDouble A, Vec3DDouble B, Vec3DDouble C) {
+        Vec3DDouble n = triNormal(A, B, C);
+        double len = n.length();
         if (len < 1e-12) return 0;
-        return (n[0] * (P[0] - A[0]) + n[1] * (P[1] - A[1]) + n[2] * (P[2] - A[2])) / len;
+        return n.dot(P.minus(A)) / len;
     }
 
     private ModellingMath() {}

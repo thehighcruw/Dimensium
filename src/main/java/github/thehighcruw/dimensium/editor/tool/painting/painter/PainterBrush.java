@@ -8,7 +8,10 @@ import github.thehighcruw.dimensium.editor.tool.brushes.BrushState;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushStrategy;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushUtil;
 import github.thehighcruw.dimensium.editor.tool.selecting.SelectedBlockState;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import github.thehighcruw.dimensium.shared.util.WorldUtils;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
+import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.World;
@@ -19,14 +22,14 @@ public class PainterBrush implements BrushStrategy {
     public void apply(World world, MovingObjectPosition mop) {
         PainterToolState s = PainterToolState.INSTANCE;
         BrushState bs = BrushState.INSTANCE;
-        net.minecraft.block.Block paint = SelectedBlockState.INSTANCE.getPaintBlock();
+        Block paint = SelectedBlockState.INSTANCE.getPaintBlock();
         int meta = SelectedBlockState.INSTANCE.getPaintMeta();
-        int x = mop.blockX, y = mop.blockY, z = mop.blockZ;
-        BrushUtil.forBrush(bs, (dx, dy, dz) -> {
-            int wx = x + dx, wy = y + dy, wz = z + dz;
-            if (world.getBlock(wx, wy, wz) == Blocks.air) return;
-            if (s.painterMaskSurface && BrushUtil.hasSolidNeighbor(world, wx, wy, wz)) return;
-            ChangeProposal.write(world, wx, wy, wz, paint, meta);
+        Vec3DInt coord = WorldUtils.mopToCoord(mop);
+        BrushUtil.forBrush(bs, offset -> {
+            Vec3DInt pos = coord.plus(offset);
+            if (WorldUtils.getBlock(world, pos) == Blocks.air) return;
+            if (s.painterMaskSurface && BrushUtil.hasSolidNeighbor(world, pos)) return;
+            ChangeProposal.write(world, pos, paint, meta);
         });
     }
 }

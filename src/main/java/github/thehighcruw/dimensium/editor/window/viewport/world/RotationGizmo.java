@@ -10,6 +10,7 @@ import github.thehighcruw.dimensium.shared.math.Mat3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec2DDouble;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
+import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.entity.EntityLivingBase;
 import org.lwjgl.opengl.GL11;
 
@@ -73,7 +74,7 @@ public class RotationGizmo {
         proj.capture(camPos);
         float scale = computeScale(gx - camPos.x(), gy - camPos.y(), gz - camPos.z());
         setupGizmoMatrix(gx, gy, gz, camPos, rotX, rotY, rotZ, scale);
-        net.minecraft.client.renderer.Tessellator wt = net.minecraft.client.renderer.Tessellator.instance;
+        Tessellator wt = Tessellator.instance;
 
         for (int a = 0; a < 3; a++) {
             Axis axis = a == 0 ? Axis.X : a == 1 ? Axis.Y : Axis.Z;
@@ -93,7 +94,7 @@ public class RotationGizmo {
         GL11.glPopMatrix();
     }
 
-    private static void drawArc(net.minecraft.client.renderer.Tessellator t, float[] p1, float[] p2, float halfW) {
+    private static void drawArc(Tessellator t, float[] p1, float[] p2, float halfW) {
         // Render ring as billboard quads via WorldLines — each segment is a consecutive pair
         // of points on the ring.
         WorldLines.prepareSegmentBatch();

@@ -6,6 +6,9 @@ package github.thehighcruw.dimensium.editor.tool.creating.fill;
 
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushStrategy;
 import github.thehighcruw.dimensium.editor.tool.selecting.SelectedBlockState;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import github.thehighcruw.dimensium.shared.util.BlockUtils;
+import github.thehighcruw.dimensium.shared.util.WorldUtils;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -20,32 +23,34 @@ public class FillBrush implements BrushStrategy {
     @Override
     public void apply(World world, MovingObjectPosition mop) {
         SelectedBlockState s = SelectedBlockState.INSTANCE;
-        int sx = mop.blockX, sy = mop.blockY, sz = mop.blockZ;
-        Block target = world.getBlock(sx, sy, sz);
+        Vec3DInt start = WorldUtils.mopToCoord(mop);
+
+        Block target = WorldUtils.getBlock(world, start);
         Block paint = s.getPaintBlock();
         int meta = s.getPaintMeta();
         if (target == paint) return;
 
-        Queue<int[]> queue = new LinkedList<>();
+        Queue<Vec3DInt> queue = new LinkedList<>();
         Set<String> visited = new HashSet<>();
-        int[][] dirs = {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
         int count = 0;
 
-        queue.add(new int[] {sx, sy, sz});
-        visited.add(sx + "," + sy + "," + sz);
+        queue.add(start);
+        visited.add(start.asCommaString());
 
         while (!queue.isEmpty() && count < FloodfillToolState.FILL_MAX) {
-            int[] pos = queue.poll();
-            int x = pos[0], y = pos[1], z = pos[2];
-            if (world.getBlock(x, y, z) != target) continue;
-            ChangeProposal.write(world, x, y, z, paint, meta);
+            Vec3DInt pos = queue.poll();
+            if (WorldUtils.getBlock(world, pos) != target) continue;
+
+            ChangeProposal.write(world, pos, paint, meta);
             count++;
-            for (int[] dir : dirs) {
-                int nx = x + dir[0], ny = y + dir[1], nz = z + dir[2];
-                String key = nx + "," + ny + "," + nz;
-                if (!visited.contains(key) && world.getBlock(nx, ny, nz) == target) {
+
+            for (Vec3DInt offset : BlockUtils.NEIGHBOUR_OFFSETS) {
+                Vec3DInt neighbour = pos.plus(offset);
+                String key = neighbour.asCommaString();
+
+                if (!visited.contains(key) && WorldUtils.getBlock(world, neighbour) == target) {
                     visited.add(key);
-                    queue.add(new int[] {nx, ny, nz});
+                    queue.add(neighbour);
                 }
             }
         }

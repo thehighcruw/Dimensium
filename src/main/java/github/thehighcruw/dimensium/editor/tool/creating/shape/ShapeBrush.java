@@ -7,6 +7,8 @@ package github.thehighcruw.dimensium.editor.tool.creating.shape;
 import github.thehighcruw.dimensium.DimensiumConfig;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushStrategy;
 import github.thehighcruw.dimensium.editor.tool.state.PaletteState;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import github.thehighcruw.dimensium.shared.util.WorldUtils;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 import java.util.Random;
 import net.minecraft.block.Block;
@@ -44,24 +46,20 @@ public class ShapeBrush implements BrushStrategy {
         }
 
         // Center on hit block: offset so dx=0..w-1 is symmetric around mop.blockX.
-        int x = mop.blockX - (w - 1) / 2;
-        int y = mop.blockY - (h - 1) / 2;
-        int z = mop.blockZ - (d - 1) / 2;
+        final int fw = w, fh = h, fd = d;
+        Vec3DInt origin =
+                Vec3DInt.from(mop.blockX - (fw - 1) / 2, mop.blockY - (fh - 1) / 2, mop.blockZ - (fd - 1) / 2);
 
-        for (int dx = 0; dx < w; dx++) {
-            for (int dy = 0; dy < h; dy++) {
-                for (int dz = 0; dz < d; dz++) {
-                    if (!inShapeGeom(s, dx, dy, dz, w, h, d)) continue;
-                    if (s.shapeKeepExisting && world.getBlock(x + dx, y + dy, z + dz) != Blocks.air) continue;
-                    ItemStack item = ps.samplePalette(rand);
-                    if (item == null) continue;
-                    Block blk = Block.getBlockFromItem(item.getItem());
-                    int meta = item.getItemDamage();
-                    if (blk != null && blk != Blocks.air)
-                        ChangeProposal.write(world, x + dx, y + dy, z + dz, blk, meta);
-                }
-            }
-        }
+        Vec3DInt.forEachInclusive(Vec3DInt.ZERO, Vec3DInt.from(fw - 1, fh - 1, fd - 1), (dx, dy, dz) -> {
+            if (!inShapeGeom(s, dx, dy, dz, fw, fh, fd)) return;
+            Vec3DInt pos = origin.plus(dx, dy, dz);
+            if (s.shapeKeepExisting && WorldUtils.getBlock(world, pos) != Blocks.air) return;
+            ItemStack item = ps.samplePalette(rand);
+            if (item == null) return;
+            Block blk = Block.getBlockFromItem(item.getItem());
+            int meta = item.getItemDamage();
+            if (blk != null && blk != Blocks.air) ChangeProposal.write(world, pos, blk, meta);
+        });
     }
 
     private static boolean inShapeGeom(ShapeToolState s, int dx, int dy, int dz, int w, int h, int d) {

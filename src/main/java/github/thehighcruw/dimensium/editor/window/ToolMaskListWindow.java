@@ -14,6 +14,7 @@ import github.thehighcruw.dimensium.editor.tool.mask.ToolMaskRegistry;
 import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
 import github.thehighcruw.dimensium.editor.window.imgui.ToggleableWindow;
 import imgui.ImGui;
+import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiInputTextFlags;
 import imgui.flag.ImGuiTreeNodeFlags;
@@ -78,7 +79,7 @@ public class ToolMaskListWindow extends ToggleableWindow {
 
         // None option (also a drop target to move entries out of folders)
         boolean noneActive = registry.getActiveMask() == null;
-        if (noneActive) ImGui.pushStyleColor(imgui.flag.ImGuiCol.Text, 0.4f, 0.9f, 0.4f, 1f);
+        if (noneActive) ImGui.pushStyleColor(ImGuiCol.Text, 0.4f, 0.9f, 0.4f, 1f);
         if (ImGui.selectable(I18n.format("dimensium.mask.list.none"), noneActive)) {
             registry.setActiveMask(null);
         }
@@ -186,7 +187,7 @@ public class ToolMaskListWindow extends ToggleableWindow {
             return;
         }
 
-        if (isActive) ImGui.pushStyleColor(imgui.flag.ImGuiCol.Text, 0.4f, 0.9f, 0.4f, 1f);
+        if (isActive) ImGui.pushStyleColor(ImGuiCol.Text, 0.4f, 0.9f, 0.4f, 1f);
         if (ImGui.selectable(mask.getName(), isActive)) {
             registry.setActiveMask(isActive ? null : mask);
         }

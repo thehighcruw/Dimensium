@@ -15,6 +15,7 @@ import github.thehighcruw.dimensium.shared.BlockSender;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import github.thehighcruw.dimensium.shared.util.BlockUtils;
 import imgui.ImGui;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
@@ -221,20 +222,6 @@ public class AutoshadeWindow extends ToggleableWindow {
             cumulative[i] = running;
         }
 
-        int[][] NEIGHBORS_26;
-        {
-            List<int[]> nb = new ArrayList<>();
-            for (int dx = -1; dx <= 1; dx++)
-                for (int dy = -1; dy <= 1; dy++)
-                    for (int dz = -1; dz <= 1; dz++) {
-                        if (dx == 0 && dy == 0 && dz == 0) continue;
-                        nb.add(new int[] {dx, dy, dz});
-                    }
-            NEIGHBORS_26 = nb.toArray(new int[0][]);
-        }
-
-        int[][] FACE_DIRS = {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
-
         List<int[]> ops = new ArrayList<>();
 
         for (long key : selected) {
@@ -242,12 +229,12 @@ public class AutoshadeWindow extends ToggleableWindow {
             if (info == null || info.block() == Blocks.air) continue;
 
             // Compute surface normal from empty face-neighbors
-            int x = info.coord().x(), y = info.coord().y(), z = info.coord().z();
+            Vec3DInt coord = info.coord();
             Vec3DDouble normal = Vec3DDouble.ZERO;
-            for (int[] f : FACE_DIRS) {
-                long neighborKey = SelectionState.pack(Vec3DInt.from(x + f[0], y + f[1], z + f[2]));
+            for (Vec3DInt f : BlockUtils.NEIGHBOUR_OFFSETS) {
+                long neighborKey = SelectionState.pack(coord.plus(f));
                 if (!selected.contains(neighborKey)) {
-                    normal = normal.plus(Vec3DDouble.from(f[0], f[1], f[2]));
+                    normal = normal.plus(f.toDouble());
                 }
             }
             if (normal.length() > 0) normal = normal.normalize();
@@ -257,12 +244,12 @@ public class AutoshadeWindow extends ToggleableWindow {
 
             // Ambient occlusion: fraction of 26 neighbors that are empty in selection
             int emptyNeighbors = 0;
-            for (int[] nb : NEIGHBORS_26) {
-                if (!selected.contains(SelectionState.pack(Vec3DInt.from(x + nb[0], y + nb[1], z + nb[2])))) {
+            for (Vec3DInt nb : BlockUtils.NEIGHBOURS_26_OFFSETS) {
+                if (!selected.contains(SelectionState.pack(coord.plus(nb)))) {
                     emptyNeighbors++;
                 }
             }
-            double ao = (double) emptyNeighbors / NEIGHBORS_26.length;
+            double ao = (double) emptyNeighbors / BlockUtils.NEIGHBOURS_26_OFFSETS.length;
 
             double shade = diffuse + (1.0 - diffuse) * giStrength[0] * ao;
             shade = Math.max(0.0, Math.min(1.0, shade));
@@ -279,7 +266,9 @@ public class AutoshadeWindow extends ToggleableWindow {
             ItemStack chosenStack = palette.get(paletteIdx);
             Block chosenBlock = Block.getBlockFromItem(chosenStack.getItem());
             if (chosenBlock == null) continue;
-            ops.add(new int[] {x, y, z, Block.getIdFromBlock(chosenBlock), chosenStack.getItemDamage()});
+            ops.add(new int[] {
+                coord.x(), coord.y(), coord.z(), Block.getIdFromBlock(chosenBlock), chosenStack.getItemDamage()
+            });
         }
 
         BlockSender.sendChunked(ops, I18n.format("dimensium.op.autoshade.do"));

@@ -12,6 +12,7 @@ import github.thehighcruw.dimensium.editor.window.imgui.ToggleableWindow;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
 import imgui.ImGui;
+import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
@@ -77,7 +78,7 @@ public class BlockInfoWindow extends ToggleableWindow {
                 String unloc = block.getUnlocalizedName();
                 if (unloc != null) {
                     float dim = 0.55f;
-                    ImGui.pushStyleColor(imgui.flag.ImGuiCol.Text, dim, dim, dim, 1f);
+                    ImGui.pushStyleColor(ImGuiCol.Text, dim, dim, dim, 1f);
                     ImGui.text(unloc);
                     ImGui.popStyleColor();
                 }
@@ -102,13 +103,13 @@ public class BlockInfoWindow extends ToggleableWindow {
                 }
             } else {
                 float dim = 0.55f;
-                ImGui.pushStyleColor(imgui.flag.ImGuiCol.Text, dim, dim, dim, 1f);
+                ImGui.pushStyleColor(ImGuiCol.Text, dim, dim, dim, 1f);
                 ImGui.text(I18n.format("dimensium.block_info.air"));
                 ImGui.popStyleColor();
             }
         } else {
             float dim = 0.55f;
-            ImGui.pushStyleColor(imgui.flag.ImGuiCol.Text, dim, dim, dim, 1f);
+            ImGui.pushStyleColor(ImGuiCol.Text, dim, dim, dim, 1f);
             ImGui.text(I18n.format("dimensium.block_info.no_target"));
             ImGui.popStyleColor();
         }

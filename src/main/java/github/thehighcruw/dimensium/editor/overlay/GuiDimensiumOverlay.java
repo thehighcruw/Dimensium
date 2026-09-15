@@ -4,6 +4,7 @@
  */
 package github.thehighcruw.dimensium.editor.overlay;
 
+import github.thehighcruw.dimensium.DimensiumConfig;
 import github.thehighcruw.dimensium.DimensiumEditorMode;
 import github.thehighcruw.dimensium.editor.freecam.FreecamState;
 import github.thehighcruw.dimensium.editor.freecam.FreecamUtils;
@@ -36,9 +37,11 @@ import github.thehighcruw.dimensium.network.PacketShapePlacement;
 import github.thehighcruw.dimensium.shared.BlockSender;
 import github.thehighcruw.dimensium.shared.KeyConstants;
 import github.thehighcruw.dimensium.shared.SelectionState;
+import github.thehighcruw.dimensium.shared.math.Vec2DDouble;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
+import github.thehighcruw.dimensium.shared.util.WorldUtils;
 import github.thehighcruw.dimensium.tool.BuilderToolState;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 import java.util.ArrayList;
@@ -94,8 +97,8 @@ public final class GuiDimensiumOverlay {
         Vec3DDouble eyePos = Vec3DDouble.from(eye.posX, eye.posY + eye.getEyeHeight(), eye.posZ);
 
         // Offset start slightly forward so the ray doesn't immediately hit the block the camera is inside.
-        double near = github.thehighcruw.dimensium.DimensiumConfig.raycastNearClip;
-        double far = github.thehighcruw.dimensium.DimensiumConfig.raycastDistance;
+        double near = DimensiumConfig.raycastNearClip;
+        double far = DimensiumConfig.raycastDistance;
         Vec3 start = Vec3.createVectorHelper(
                 eyePos.x() + rd.x() * near, eyePos.y() + rd.y() * near, eyePos.z() + rd.z() * near);
         Vec3 end = Vec3.createVectorHelper(
@@ -338,8 +341,7 @@ public final class GuiDimensiumOverlay {
             int[] p = positions.get(i);
             double[] s = proj.project(p[0] + 0.5, p[1] + 0.5, p[2] + 0.5);
             if (s == null) continue;
-            double dx = s[0] - mouseX, dy = s[1] - mouseY;
-            double d2 = dx * dx + dy * dy;
+            double d2 = Vec2DDouble.from(s[0] - mouseX, s[1] - mouseY).lengthSq();
             if (d2 < bestD2) {
                 bestD2 = d2;
                 best = i;
@@ -377,15 +379,11 @@ public final class GuiDimensiumOverlay {
         for (Map.Entry<Long, int[]> e : mts.preview.proposed.entrySet()) {
             long key = e.getKey();
             int[] bm = e.getValue();
+            Vec3DInt wc = ChangeProposal.unpackKey(key);
             if (keepExisting) {
-                int wx = ChangeProposal.unpackX(key),
-                        wy = ChangeProposal.unpackY(key),
-                        wz = ChangeProposal.unpackZ(key);
-                if (Minecraft.getMinecraft().theWorld.getBlock(wx, wy, wz) != Blocks.air) continue;
+                if (WorldUtils.getBlock(Minecraft.getMinecraft().theWorld, wc) != Blocks.air) continue;
             }
-            ops.add(new int[] {
-                ChangeProposal.unpackX(key), ChangeProposal.unpackY(key), ChangeProposal.unpackZ(key), bm[0], bm[1]
-            });
+            ops.add(new int[] {wc.x(), wc.y(), wc.z(), bm[0], bm[1]});
         }
         if (!ops.isEmpty()) {
             BlockSender.sendChunked(ops, I18n.format("dimensium.action.modelling"));

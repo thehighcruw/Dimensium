@@ -9,6 +9,8 @@ import github.thehighcruw.dimensium.editor.tool.brushes.BrushStrategy;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushUtil;
 import github.thehighcruw.dimensium.editor.tool.noise.NoiseSampler;
 import github.thehighcruw.dimensium.editor.tool.state.PaletteState;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import github.thehighcruw.dimensium.shared.util.WorldUtils;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
@@ -25,7 +27,7 @@ public class NoiseBrush implements BrushStrategy {
         BrushState bs = BrushState.INSTANCE;
         PaletteState ps = PaletteState.INSTANCE;
         if (ps.palette.isEmpty()) return;
-        int x = mop.blockX, y = mop.blockY, z = mop.blockZ;
+        Vec3DInt coord = WorldUtils.mopToCoord(mop);
 
         boolean useXZ = false, useZY = false;
         if (!s.noise3D) {
@@ -43,26 +45,26 @@ public class NoiseBrush implements BrushStrategy {
         }
         final boolean projXZ = useXZ, projZY = useZY;
 
-        BrushUtil.forBrush(bs, (dx, dy, dz) -> {
-            int wx = x + dx, wy = y + dy, wz = z + dz;
-            if (world.getBlock(wx, wy, wz) == Blocks.air) return;
-            if (s.noiseSurfaceOnly && BrushUtil.hasSolidNeighbor(world, wx, wy, wz)) return;
+        BrushUtil.forBrush(bs, offset -> {
+            Vec3DInt pos = coord.plus(offset);
+            if (WorldUtils.getBlock(world, pos) == Blocks.air) return;
+            if (s.noiseSurfaceOnly && BrushUtil.hasSolidNeighbor(world, pos)) return;
 
             float noiseVal;
             if (s.noise3D) {
-                noiseVal = NoiseSampler.sample3D(s, wx, wy, wz);
+                noiseVal = NoiseSampler.sample3D(s, pos.x(), pos.y(), pos.z());
             } else if (projXZ) {
-                noiseVal = NoiseSampler.sample2D(s, wx, wz);
+                noiseVal = NoiseSampler.sample2D(s, pos.x(), pos.z());
             } else {
-                float nx = projZY ? wz : wx;
-                noiseVal = NoiseSampler.sample2D(s, nx, wy);
+                float nx = projZY ? pos.z() : pos.x();
+                noiseVal = NoiseSampler.sample2D(s, nx, pos.y());
             }
 
             ItemStack item = samplePaletteByNoise(ps, noiseVal);
             if (item == null) return;
             Block blk = Block.getBlockFromItem(item.getItem());
             int meta = item.getItemDamage();
-            if (blk != null && blk != Blocks.air) ChangeProposal.write(world, wx, wy, wz, blk, meta);
+            if (blk != null && blk != Blocks.air) ChangeProposal.write(world, pos, blk, meta);
         });
     }
 

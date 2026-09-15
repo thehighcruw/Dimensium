@@ -10,6 +10,7 @@ import github.thehighcruw.dimensium.shared.SelectionState;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
+import java.util.Map;
 import javax.imageio.ImageIO;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.OpenGlHelper;
@@ -217,7 +218,7 @@ public class ClipboardRenderer {
             tess.startDrawingQuads();
             tessStarted = true;
 
-            for (java.util.Map.Entry<Long, SelectionState.BlockData> entry : sel.clipboard.entrySet()) {
+            for (Map.Entry<Long, SelectionState.BlockData> entry : sel.clipboard.entrySet()) {
                 long key = entry.getKey();
                 int x = (int) (key >> 20) & 0xFFFFF;
                 int y = (int) (key >> 10) & 0x3FF;

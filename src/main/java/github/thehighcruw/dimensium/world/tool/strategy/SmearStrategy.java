@@ -53,7 +53,7 @@ public class SmearStrategy implements BuilderToolStrategy {
         for (int i = 1; i <= steps; i++) {
             Vec3DInt base = origin.plus(step.times(i));
             sel.clipDim.forEach((x, y, z) -> {
-                BlockData bd = sel.clipboardGet(x, y, z);
+                BlockData bd = sel.clipboardGet(Vec3DInt.from(x, y, z));
                 if (bd.block() == Blocks.air) return;
                 Vec3DInt dest = base.plus(Vec3DInt.from(x, y, z));
                 boolean inOrigSel = dest.x() >= sel.minX()
@@ -106,7 +106,7 @@ public class SmearStrategy implements BuilderToolStrategy {
             Vec3DInt base = origin.plus(step.times(i));
             sel.clipDim.forEach((x, y, z) -> {
                 if (done[0]) return;
-                BlockData bd = sel.clipboardGet(x, y, z);
+                BlockData bd = sel.clipboardGet(Vec3DInt.from(x, y, z));
                 if (bd.block() == Blocks.air) return;
                 Vec3DInt dest = base.plus(Vec3DInt.from(x, y, z));
                 boolean inOrigSel = dest.x() >= sel.minX()

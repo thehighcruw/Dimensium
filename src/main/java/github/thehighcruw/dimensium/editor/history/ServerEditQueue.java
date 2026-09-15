@@ -7,6 +7,7 @@ package github.thehighcruw.dimensium.editor.history;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import github.thehighcruw.dimensium.network.PacketHistoryEntry;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.PerfTrace;
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -194,13 +195,13 @@ public class ServerEditQueue {
         int[][] before = new int[edit.ops.size()][5];
         for (int i = 0; i < edit.ops.size(); i++) {
             int[] op = edit.ops.get(i);
-            int x = op[0], y = op[1], z = op[2];
+            Vec3DInt pos = Vec3DInt.from(op[0], op[1], op[2]);
             before[i] = new int[] {
-                x,
-                y,
-                z,
-                Block.getIdFromBlock(edit.world.getBlock(x, y, z)),
-                EditHistory.getEffectiveMeta(edit.world, x, y, z)
+                op[0],
+                op[1],
+                op[2],
+                Block.getIdFromBlock(edit.world.getBlock(op[0], op[1], op[2])),
+                EditHistory.getEffectiveMeta(edit.world, pos)
             };
         }
         PacketHistoryEntry.sendChunked(edit.player, edit.txId, edit.action, before, edit.after);
@@ -208,8 +209,7 @@ public class ServerEditQueue {
     }
 
     private static void applyOpFast(World world, int[] op, Set<Long> affectedChunks) {
-        int x = op[0], y = op[1], z = op[2];
-        affectedChunks.add(((long) (x >> 4) << 32) | ((z >> 4) & 0xFFFFFFFFL));
-        EditHistory.applyBlockFast(world, x, y, z, Block.getBlockById(op[3]), op[4]);
+        affectedChunks.add(((long) (op[0] >> 4) << 32) | ((op[2] >> 4) & 0xFFFFFFFFL));
+        EditHistory.applyBlockFast(world, Vec3DInt.from(op[0], op[1], op[2]), Block.getBlockById(op[3]), op[4]);
     }
 }

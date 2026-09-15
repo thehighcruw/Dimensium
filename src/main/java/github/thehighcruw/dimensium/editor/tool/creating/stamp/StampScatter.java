@@ -5,6 +5,7 @@
 package github.thehighcruw.dimensium.editor.tool.creating.stamp;
 
 import github.thehighcruw.dimensium.editor.blueprint.Blueprint;
+import github.thehighcruw.dimensium.shared.math.Vec2DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import java.util.ArrayList;
 import java.util.List;
@@ -79,7 +80,7 @@ public class StampScatter {
         for (StampInstance inst : placed) {
             int dx = x - inst.anchor.x();
             int dz = z - inst.anchor.z();
-            if (dx * dx + dz * dz < minDist2) return true;
+            if (Vec2DFloat.from(dx, dz).lengthSq() < minDist2) return true;
         }
         return false;
     }

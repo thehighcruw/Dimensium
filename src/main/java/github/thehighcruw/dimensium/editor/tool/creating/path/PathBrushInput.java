@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.MovingObjectPosition;
 
 @SideOnly(Side.CLIENT)
@@ -42,7 +43,7 @@ public class PathBrushInput implements BrushInput {
             if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
                 int[] off = ExtrudeHelper.sideToOutwardDir(mop.sideHit);
                 int px = mop.blockX + off[0], py = mop.blockY + off[1], pz = mop.blockZ + off[2];
-                net.minecraft.item.ItemStack blk = SelectedBlockState.INSTANCE.selectedBlock;
+                ItemStack blk = SelectedBlockState.INSTANCE.selectedBlock;
                 if (blk != null) blk = blk.copy();
                 PathToolState.PathPoint pt = new PathToolState.PathPoint(Vec3DInt.from(px, py, pz), 0, blk);
                 pts.points.add(pt);

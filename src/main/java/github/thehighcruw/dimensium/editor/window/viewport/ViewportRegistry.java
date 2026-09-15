@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import net.minecraft.client.Minecraft;
+import org.lwjgl.opengl.GL11;
 
 @SideOnly(Side.CLIENT)
 public final class ViewportRegistry {
@@ -57,14 +58,7 @@ public final class ViewportRegistry {
             newCam.setPosition(src.posX, src.posY, src.posZ);
             newCam.rotationYaw = src.rotationYaw;
             newCam.rotationPitch = src.rotationPitch;
-            newCam.prevRotationYaw = src.rotationYaw;
-            newCam.prevRotationPitch = src.rotationPitch;
-            newCam.prevPosX = src.posX;
-            newCam.prevPosY = src.posY;
-            newCam.prevPosZ = src.posZ;
-            newCam.lastTickPosX = src.posX;
-            newCam.lastTickPosY = src.posY;
-            newCam.lastTickPosZ = src.posZ;
+            FreecamState.copyPosition(newCam, src);
         }
 
         String label = "Viewport " + (viewports.size() + 1);
@@ -190,7 +184,7 @@ public final class ViewportRegistry {
     public void flushPendingDeletions() {
         if (pendingTextureDeletions.isEmpty()) return;
         for (Integer texId : pendingTextureDeletions) {
-            org.lwjgl.opengl.GL11.glDeleteTextures(texId);
+            GL11.glDeleteTextures(texId);
         }
         pendingTextureDeletions.clear();
     }

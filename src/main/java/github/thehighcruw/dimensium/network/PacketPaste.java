@@ -9,6 +9,7 @@ import github.thehighcruw.dimensium.Dimensium;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import java.io.IOException;
+import java.util.Map;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.network.NetHandlerPlayServer;
@@ -26,14 +27,14 @@ public class PacketPaste implements IPacket {
 
     public PacketPaste() {}
 
-    public PacketPaste(Vec3DInt origin, java.util.Map<Long, SelectionState.BlockData> clip, Vec3DInt dim) {
+    public PacketPaste(Vec3DInt origin, Map<Long, SelectionState.BlockData> clip, Vec3DInt dim) {
         this.origin = origin;
         this.dim = dim;
         int h = dim.y(), d = dim.z();
         int count = dim.product();
         blockIds = new int[count];
         blockMetas = new short[count];
-        for (java.util.Map.Entry<Long, SelectionState.BlockData> entry : clip.entrySet()) {
+        for (Map.Entry<Long, SelectionState.BlockData> entry : clip.entrySet()) {
             long key = entry.getKey();
             int x = (int) (key >> 20) & 0xFFFFF;
             int y = (int) (key >> 10) & 0x3FF;

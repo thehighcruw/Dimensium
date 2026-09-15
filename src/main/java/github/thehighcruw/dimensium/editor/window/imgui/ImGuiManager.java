@@ -5,9 +5,12 @@
 package github.thehighcruw.dimensium.editor.window.imgui;
 
 import com.gtnewhorizon.gtnhlib.config.ConfigurationManager;
+import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import github.thehighcruw.dimensium.Dimensium;
 import github.thehighcruw.dimensium.DimensiumConfig;
+import imgui.ImFontAtlas;
 import imgui.ImGui;
 import imgui.ImGuiIO;
 import imgui.ImGuiStyle;
@@ -15,6 +18,7 @@ import imgui.assertion.ImAssertCallback;
 import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiConfigFlags;
 import imgui.flag.ImGuiKey;
+import imgui.flag.ImGuiPopupFlags;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -77,7 +81,7 @@ public final class ImGuiManager {
                 while ((n = Objects.requireNonNull(in).read(buf)) != -1) out.write(buf, 0, n);
             }
         } catch (Exception e) {
-            github.thehighcruw.dimensium.Dimensium.logger.error("Failed to extract font to temp file", e);
+            Dimensium.logger.error("Failed to extract font to temp file", e);
             fontTempFile = null;
         }
     }
@@ -88,9 +92,9 @@ public final class ImGuiManager {
 
             @Override
             public void imAssertCallback(String expr, int line, String file) {
-                github.thehighcruw.dimensium.Dimensium.logger.error(
+                Dimensium.logger.error(
                         "ImGui assertion failed: {} ({}:{})", expr, file, line, new RuntimeException("stack trace"));
-                cpw.mods.fml.common.FMLCommonHandler.instance().exitJava(1, false);
+                FMLCommonHandler.instance().exitJava(1, false);
             }
         });
         ImGui.createContext();
@@ -111,7 +115,7 @@ public final class ImGuiManager {
                         () -> {
                             if (initialized) {
                                 ImGui.saveIniSettingsToDisk("dimensium_layout.ini");
-                                github.thehighcruw.dimensium.Dimensium.logger.error(
+                                Dimensium.logger.error(
                                         "JVM exiting while ImGui is still active — likely a native crash. Check run/jvm-crash-*.log");
                             }
                         },
@@ -120,7 +124,7 @@ public final class ImGuiManager {
 
     private void buildFontAtlas(ImGuiIO io) {
         float sizePx = FONT_SIZE_BASE_PX * uiScale;
-        imgui.ImFontAtlas atlas = io.getFonts();
+        ImFontAtlas atlas = io.getFonts();
         atlas.setFreeTypeRenderer(true);
         if (fontTempFile != null) {
             atlas.addFontFromFileTTF(fontTempFile.getAbsolutePath(), sizePx);
@@ -272,7 +276,7 @@ public final class ImGuiManager {
     }
 
     public boolean anyModalOpen() {
-        return initialized && ImGui.isPopupOpen("", imgui.flag.ImGuiPopupFlags.AnyPopup);
+        return initialized && ImGui.isPopupOpen("", ImGuiPopupFlags.AnyPopup);
     }
 
     private void applyStyle() {

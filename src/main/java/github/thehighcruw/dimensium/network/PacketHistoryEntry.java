@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import net.minecraft.client.network.NetHandlerPlayClient;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.network.PacketBuffer;
 
@@ -115,7 +116,7 @@ public class PacketHistoryEntry implements IPacket {
 
     @Override
     @SideOnly(Side.CLIENT)
-    public IPacket executeClient(net.minecraft.client.network.NetHandlerPlayClient handler) {
+    public IPacket executeClient(NetHandlerPlayClient handler) {
         pendingBefore.computeIfAbsent(txId, k -> new ArrayList<>()).addAll(beforeChunk);
         pendingAction.putIfAbsent(txId, action);
         if (includesAfter) {

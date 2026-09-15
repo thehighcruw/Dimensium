@@ -5,6 +5,7 @@
 package github.thehighcruw.dimensium.tool;
 
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import net.minecraft.util.Vec3;
 
 public class BuilderToolState {
 
@@ -61,7 +62,7 @@ public class BuilderToolState {
      * Apply one scroll tick to the offset, constrained by axisLock and the
      * player's facing direction. direction > 0 = away from player, < 0 = toward.
      */
-    public void nudgeOffset(int direction, net.minecraft.util.Vec3 facing) {
+    public void nudgeOffset(int direction, Vec3 facing) {
         double ax = Math.abs(facing.xCoord);
         double ay = Math.abs(facing.yCoord);
         double az = Math.abs(facing.zCoord);

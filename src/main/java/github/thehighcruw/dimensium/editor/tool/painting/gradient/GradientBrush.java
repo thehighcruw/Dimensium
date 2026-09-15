@@ -10,7 +10,10 @@ import github.thehighcruw.dimensium.editor.tool.brushes.BrushUtil;
 import github.thehighcruw.dimensium.editor.tool.creating.path.PathMath;
 import github.thehighcruw.dimensium.editor.tool.state.PaletteState;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import github.thehighcruw.dimensium.shared.util.WorldUtils;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
+import java.util.Random;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
@@ -27,9 +30,9 @@ public class GradientBrush implements BrushStrategy {
         if (ps.palette.isEmpty()) return;
         if (!s.gradientHasPos1 || !s.gradientHasPos2) return;
 
-        int bx = mop.blockX, by = mop.blockY, bz = mop.blockZ;
-        Vec3DDouble pos2 = Vec3DDouble.from(s.gradientPos2X, s.gradientPos2Y, s.gradientPos2Z);
-        Vec3DDouble pos1 = Vec3DDouble.from(s.gradientPos1X, s.gradientPos1Y, s.gradientPos1Z);
+        Vec3DInt coord = WorldUtils.mopToCoord(mop);
+        Vec3DDouble pos2 = s.gradientPos2.toDouble();
+        Vec3DDouble pos1 = s.gradientPos1.toDouble();
         Vec3DDouble axis = pos1.minus(pos2);
         double len2 = axis.lengthSq();
         double len = axis.length();
@@ -37,43 +40,48 @@ public class GradientBrush implements BrushStrategy {
 
         float bezP1 = 0f, bezP2 = 1f;
         if (s.gradientInterp == GradientToolState.GradientInterp.BEZIER) {
-            java.util.Random bzr = new java.util.Random(s.gradientSeed);
+            Random bzr = new Random(s.gradientSeed);
             bezP1 = bzr.nextFloat();
             bezP2 = bzr.nextFloat();
         }
         final float bp1 = bezP1, bp2 = bezP2;
         final int paletteN = ps.palette.size();
 
-        BrushUtil.forBrush(bs, (dx, dy, dz) -> {
-            int wx = bx + dx, wy = by + dy, wz = bz + dz;
-            if (world.getBlock(wx, wy, wz) == Blocks.air) return;
-            if (s.gradientMaskSurface && BrushUtil.hasSolidNeighbor(world, wx, wy, wz)) return;
+        BrushUtil.forBrush(bs, offset -> {
+            Vec3DInt pos = coord.plus(offset);
+            if (WorldUtils.getBlock(world, pos) == Blocks.air) return;
+            if (s.gradientMaskSurface && BrushUtil.hasSolidNeighbor(world, pos)) return;
 
             float t;
             if (samePos) {
                 t = 0f;
             } else if (s.gradientShape == GradientToolState.GradientShape.SPHERE) {
-                t = 1f - (float) (Vec3DDouble.from(wx, wy, wz).minus(pos1).length() / len);
+                t = 1f
+                        - (float) (Vec3DDouble.from(pos.x(), pos.y(), pos.z())
+                                        .minus(pos1)
+                                        .length()
+                                / len);
             } else {
-                t = (float) (Vec3DDouble.from(wx, wy, wz).minus(pos2).dot(axis) / len2);
+                t = (float)
+                        (Vec3DDouble.from(pos.x(), pos.y(), pos.z()).minus(pos2).dot(axis) / len2);
             }
 
             if (s.gradientClampToEdge && (t < 0f || t > 1f)) return;
 
             if (s.gradientInterp == GradientToolState.GradientInterp.LINEAR) {
-                t += (float) PathMath.voxelHash(wx, wy, wz, 0x5EEDC0DEL) * (0.5f / paletteN);
+                t += (float) PathMath.voxelHash(pos.x(), pos.y(), pos.z(), 0x5EEDC0DEL) * (0.5f / paletteN);
             } else if (s.gradientInterp == GradientToolState.GradientInterp.BEZIER) {
                 float tc = Math.max(0f, Math.min(1f, t));
                 float inv = 1f - tc;
                 t = 3f * inv * inv * tc * bp1 + 3f * inv * tc * tc * bp2 + tc * tc * tc;
-                t += (float) PathMath.voxelHash(wx, wy, wz, s.gradientSeed) * (0.5f / paletteN);
+                t += (float) PathMath.voxelHash(pos.x(), pos.y(), pos.z(), s.gradientSeed) * (0.5f / paletteN);
             }
 
             int palIdx = paletteIdx(s, ps, t);
             ItemStack item = ps.palette.get(palIdx);
             Block blk = Block.getBlockFromItem(item.getItem());
             int meta = item.getItemDamage();
-            if (blk != null && blk != Blocks.air) ChangeProposal.write(world, wx, wy, wz, blk, meta);
+            if (blk != null && blk != Blocks.air) ChangeProposal.write(world, pos, blk, meta);
         });
     }
 

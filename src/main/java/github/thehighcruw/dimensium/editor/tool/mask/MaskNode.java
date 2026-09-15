@@ -4,6 +4,7 @@
  */
 package github.thehighcruw.dimensium.editor.tool.mask;
 
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import java.util.Collections;
 import java.util.List;
 import net.minecraft.block.Block;
@@ -11,7 +12,7 @@ import net.minecraft.world.World;
 
 public abstract class MaskNode {
 
-    public abstract boolean test(World world, int x, int y, int z);
+    public abstract boolean test(World world, Vec3DInt coord);
 
     public abstract String displayName();
 

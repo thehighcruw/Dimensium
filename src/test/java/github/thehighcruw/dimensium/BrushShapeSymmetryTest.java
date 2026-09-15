@@ -8,6 +8,7 @@ import static org.junit.Assert.*;
 
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushShape;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushUtil;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import org.junit.Test;
 
 /**
@@ -25,7 +26,7 @@ import org.junit.Test;
 public class BrushShapeSymmetryTest {
 
     private static boolean s(BrushShape shape, int dx, int dy, int dz, int sx, int sy, int sz) {
-        return BrushUtil.inShape(shape, dx, dy, dz, sx, sy, sz);
+        return BrushUtil.inShape(shape, Vec3DInt.from(dx, dy, dz), Vec3DInt.from(sx, sy, sz));
     }
 
     private static void assertXSym(BrushShape shape, int sx, int sy, int sz) {

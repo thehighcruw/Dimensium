@@ -8,23 +8,40 @@ import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import javax.annotation.Nullable;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.World;
 
 public final class WorldUtils {
 
     private WorldUtils() {}
 
-    public static @Nullable Block getWorldBlock(Vec3DInt coord) {
+    public static @Nullable Block getBlock(Vec3DInt coord) {
         World world = Minecraft.getMinecraft().theWorld;
         if (world == null) return null;
 
+        return getBlock(world, coord);
+    }
+
+    public static @Nullable Block getBlock(World world, Vec3DInt coord) {
         return world.getBlock(coord.x(), coord.y(), coord.z());
     }
 
-    public static int getWorldBlockMeta(Vec3DInt coord) {
+    public static void setBlock(World world, Vec3DInt coord, Block block, int meta, int flags) {
+        world.setBlock(coord.x(), coord.y(), coord.z(), block, meta, flags);
+    }
+
+    public static int getBlockMetadata(Vec3DInt coord) {
         World world = Minecraft.getMinecraft().theWorld;
         if (world == null) return -1;
 
         return world.getBlockMetadata(coord.x(), coord.y(), coord.z());
+    }
+
+    public static int getBlockMetadata(World world, Vec3DInt coord) {
+        return world.getBlockMetadata(coord.x(), coord.y(), coord.z());
+    }
+
+    public static Vec3DInt mopToCoord(MovingObjectPosition mop) {
+        return Vec3DInt.from(mop.blockX, mop.blockY, mop.blockZ);
     }
 }

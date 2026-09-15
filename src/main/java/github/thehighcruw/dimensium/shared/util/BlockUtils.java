@@ -5,6 +5,8 @@
 package github.thehighcruw.dimensium.shared.util;
 
 import codechicken.nei.api.ItemInfo;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import gregtech.api.GregTechAPI;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -17,6 +19,29 @@ import net.minecraft.item.ItemStack;
 import net.minecraftforge.oredict.OreDictionary;
 
 public final class BlockUtils {
+
+    // MC 1.7.10 sideHit: 0=bottom, 1=top, 2=north, 3=south, 4=west, 5=east
+    public static final Vec3DInt[] NEIGHBOUR_OFFSETS = {
+        Vec3DInt.from(0, -1, 0),
+        Vec3DInt.from(0, 1, 0),
+        Vec3DInt.from(0, 0, -1),
+        Vec3DInt.from(0, 0, 1),
+        Vec3DInt.from(-1, 0, 0),
+        Vec3DInt.from(1, 0, 0),
+    };
+    public static final Vec3DInt[] ADJACENT_OFFSETS = {
+        Vec3DInt.from(1, 0, 0), Vec3DInt.from(-1, 0, 0), Vec3DInt.from(0, 0, 1), Vec3DInt.from(0, 0, -1),
+    };
+    public static final Vec3DInt[] NEIGHBOURS_26_OFFSETS = precomputeNeighbours26();
+
+    private static Vec3DInt[] precomputeNeighbours26() {
+        Vec3DInt[] offsets = new Vec3DInt[26];
+        int[] i = {0};
+        Vec3DInt.forEachInclusive(Vec3DInt.from(-1), Vec3DInt.from(1), (dx, dy, dz) -> {
+            if (dx != 0 || dy != 0 || dz != 0) offsets[i[0]++] = Vec3DInt.from(dx, dy, dz);
+        });
+        return offsets;
+    }
 
     private BlockUtils() {}
 
@@ -52,8 +77,8 @@ public final class BlockUtils {
 
     private static void addGT5Machines(List<ItemStack> out) {
         try {
-            IMetaTileEntity[] mtes = gregtech.api.GregTechAPI.METATILEENTITIES;
-            Block blockMachines = gregtech.api.GregTechAPI.sBlockMachines;
+            IMetaTileEntity[] mtes = GregTechAPI.METATILEENTITIES;
+            Block blockMachines = GregTechAPI.sBlockMachines;
             if (blockMachines == null) return;
             Item blockItem = Item.getItemFromBlock(blockMachines);
             if (blockItem == null) return;

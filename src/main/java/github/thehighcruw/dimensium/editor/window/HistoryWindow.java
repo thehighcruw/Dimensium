@@ -11,6 +11,7 @@ import github.thehighcruw.dimensium.editor.history.ClientEditHistory;
 import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
 import github.thehighcruw.dimensium.editor.window.imgui.ToggleableWindow;
 import imgui.ImGui;
+import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
@@ -70,10 +71,8 @@ public class HistoryWindow extends ToggleableWindow {
         ImGui.text(totalStr);
         ImGui.sameLine(contentW - clearW);
         String clearLabel = I18n.format("dimensium.ui.history.clear") + "##hist_clear";
-        ImGui.pushStyleColor(
-                imgui.flag.ImGuiCol.Button, C_DANGER[0] * 0.4f, C_DANGER[1] * 0.4f, C_DANGER[2] * 0.4f, 0.9f);
-        ImGui.pushStyleColor(
-                imgui.flag.ImGuiCol.ButtonHovered, C_DANGER[0] * 0.6f, C_DANGER[1] * 0.6f, C_DANGER[2] * 0.6f, 0.9f);
+        ImGui.pushStyleColor(ImGuiCol.Button, C_DANGER[0] * 0.4f, C_DANGER[1] * 0.4f, C_DANGER[2] * 0.4f, 0.9f);
+        ImGui.pushStyleColor(ImGuiCol.ButtonHovered, C_DANGER[0] * 0.6f, C_DANGER[1] * 0.6f, C_DANGER[2] * 0.6f, 0.9f);
         boolean doClear = size > 0 && ImGui.button(clearLabel, clearW, 0);
         ImGui.popStyleColor(2);
         if (doClear) {

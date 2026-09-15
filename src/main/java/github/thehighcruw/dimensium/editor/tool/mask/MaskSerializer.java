@@ -12,6 +12,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -78,9 +79,9 @@ public final class MaskSerializer {
             obj.add("c", serializeChildren(((LogicNode) node).children));
         } else if (node instanceof OffsetNode n) {
             obj.addProperty("t", "OFFSET");
-            obj.addProperty("dx", n.dx);
-            obj.addProperty("dy", n.dy);
-            obj.addProperty("dz", n.dz);
+            obj.addProperty("dx", n.offset.x());
+            obj.addProperty("dy", n.offset.y());
+            obj.addProperty("dz", n.offset.z());
             obj.add("c", serializeChildren(n.children));
         } else if (node instanceof BlockMask n) {
             obj.addProperty("t", "Block");
@@ -194,10 +195,10 @@ public final class MaskSerializer {
                 return n;
             }
             case "OFFSET": {
-                OffsetNode n = new OffsetNode(
+                OffsetNode n = new OffsetNode(Vec3DInt.from(
                         obj.has("dx") ? obj.get("dx").getAsInt() : 0,
                         obj.has("dy") ? obj.get("dy").getAsInt() : -1,
-                        obj.has("dz") ? obj.get("dz").getAsInt() : 0);
+                        obj.has("dz") ? obj.get("dz").getAsInt() : 0));
                 loadChildren(n, obj);
                 return n;
             }

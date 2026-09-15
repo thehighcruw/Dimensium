@@ -8,6 +8,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.tool.ToolRenderer;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.MovingObjectPosition;
 
@@ -19,7 +20,7 @@ public class ModellingToolRenderer implements ToolRenderer {
     private ModellingToolRenderer() {}
 
     @Override
-    public boolean isBlockAffected(Minecraft mc, int wx, int wy, int wz) {
+    public boolean isBlockAffected(Minecraft mc, Vec3DInt wc) {
         return false;
     }
 

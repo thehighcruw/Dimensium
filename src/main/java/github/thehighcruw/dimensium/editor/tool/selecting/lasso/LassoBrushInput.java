@@ -12,7 +12,9 @@ import github.thehighcruw.dimensium.editor.tool.mask.ToolMaskRegistry;
 import github.thehighcruw.dimensium.editor.tool.selecting.BooleanOp;
 import github.thehighcruw.dimensium.shared.KeyConstants;
 import github.thehighcruw.dimensium.shared.SelectionState;
+import github.thehighcruw.dimensium.shared.math.Vec2DFloat;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
+import java.util.Set;
 import net.minecraft.client.Minecraft;
 import org.lwjgl.input.Mouse;
 
@@ -34,15 +36,14 @@ public class LassoBrushInput implements BrushInput {
                 lasso.polygonPoints.add(new float[] {cx, cy});
             } else {
                 float[] last = lasso.polygonPoints.get(lasso.polygonPoints.size() - 1);
-                float dx = cx - last[0], dy = cy - last[1];
-                if (dx * dx + dy * dy >= 4.0f) {
+                if (Vec2DFloat.from(cx - last[0], cy - last[1]).lengthSq() >= 4.0f) {
                     lasso.polygonPoints.add(new float[] {cx, cy});
                 }
             }
         } else if (lasso.dragging) {
             lasso.dragging = false;
             if (lasso.polygonPoints.size() >= 3) {
-                java.util.Set<Long> blocks = LassoComputer.compute(
+                Set<Long> blocks = LassoComputer.compute(
                         mc,
                         lasso.polygonPoints,
                         lasso.lassoDepth,

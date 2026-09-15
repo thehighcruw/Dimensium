@@ -4,6 +4,9 @@
  */
 package github.thehighcruw.dimensium.editor.tool.painting.gradient;
 
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import java.util.concurrent.ThreadLocalRandom;
+
 public class GradientToolState {
 
     public static final GradientToolState INSTANCE = new GradientToolState();
@@ -35,13 +38,9 @@ public class GradientToolState {
     public GradientInterp gradientInterp = GradientInterp.LINEAR;
     public boolean gradientMaskSurface = false;
     public boolean gradientClampToEdge = false;
-    public long gradientSeed = java.util.concurrent.ThreadLocalRandom.current().nextLong();
+    public long gradientSeed = ThreadLocalRandom.current().nextLong();
     public boolean gradientHasPos1 = false;
-    public int gradientPos1X = 0;
-    public int gradientPos1Y = 0;
-    public int gradientPos1Z = 0;
+    public Vec3DInt gradientPos1 = Vec3DInt.ZERO;
     public boolean gradientHasPos2 = false;
-    public int gradientPos2X = 0;
-    public int gradientPos2Y = 0;
-    public int gradientPos2Z = 0;
+    public Vec3DInt gradientPos2 = Vec3DInt.ZERO;
 }

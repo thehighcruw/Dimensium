@@ -7,6 +7,7 @@ package github.thehighcruw.dimensium.tool;
 import github.thehighcruw.dimensium.editor.tool.ActiveDragState;
 import github.thehighcruw.dimensium.editor.tool.mask.ToolMask;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import github.thehighcruw.dimensium.shared.util.WorldUtils;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -81,14 +82,14 @@ public class ChangeProposal {
      * If a drag is active, records the change in the proposal (does NOT touch the world).
      * Otherwise, writes directly to the world (normal server-side path).
      */
-    public static void write(World world, int x, int y, int z, Block blk, int meta) {
-        if (y < 0 || y >= world.getHeight()) return;
+    public static void write(World world, Vec3DInt coord, Block blk, int meta) {
+        if (coord.y() < 0 || coord.y() >= world.getHeight()) return;
         ChangeProposal drag = ActiveDragState.INSTANCE.activeDrag;
         if (drag != null) {
-            if (drag.dragMask != null && !drag.dragMask.test(world, x, y, z)) return;
-            drag.proposed.put(packKey(x, y, z), new int[] {Block.getIdFromBlock(blk), meta});
+            if (drag.dragMask != null && !drag.dragMask.test(world, coord)) return;
+            drag.proposed.put(packKey(coord), new int[] {Block.getIdFromBlock(blk), meta});
         } else {
-            world.setBlock(x, y, z, blk, meta, 3);
+            WorldUtils.setBlock(world, coord, blk, meta, 3);
         }
     }
 

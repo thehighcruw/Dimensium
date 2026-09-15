@@ -4,14 +4,15 @@
  */
 package github.thehighcruw.dimensium.editor.tool.mask;
 
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import net.minecraft.world.World;
 
 public class AndNode extends LogicNode {
 
     @Override
-    public boolean test(World world, int x, int y, int z) {
+    public boolean test(World world, Vec3DInt coord) {
         for (MaskNode child : children) {
-            if (!child.test(world, x, y, z)) return false;
+            if (!child.test(world, coord)) return false;
         }
         return true;
     }

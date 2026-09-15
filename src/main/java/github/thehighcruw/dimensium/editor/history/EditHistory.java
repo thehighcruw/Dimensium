@@ -5,6 +5,7 @@
 package github.thehighcruw.dimensium.editor.history;
 
 import github.thehighcruw.dimensium.network.PacketHistoryEntry;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.PerfTrace;
 import java.util.List;
 import java.util.Set;
@@ -14,6 +15,7 @@ import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
@@ -31,7 +33,8 @@ public class EditHistory {
      * facing, etc.). GT5 machines, GT+Plus, and similar mods all handled
      * automatically this way.
      */
-    static void applyBlock(World world, int x, int y, int z, Block blk, int meta) {
+    static void applyBlock(World world, Vec3DInt pos, Block blk, int meta) {
+        int x = pos.x(), y = pos.y(), z = pos.z();
         if (blk == null || blk == Blocks.air) {
             world.setBlock(x, y, z, Blocks.air, 0, 3);
             return;
@@ -74,13 +77,14 @@ public class EditHistory {
      * Caller MUST call finalizeChunks() after all fast writes are done.
      * meta > 15 blocks fall back to applyBlock() — placeBlockAt() cannot be bypassed.
      */
-    static void applyBlockFast(World world, int x, int y, int z, Block blk, int meta) {
+    static void applyBlockFast(World world, Vec3DInt pos, Block blk, int meta) {
+        int x = pos.x(), y = pos.y(), z = pos.z();
         if (y < 0 || y >= world.getHeight()) return;
         if (blk == null) blk = Blocks.air;
         // Tile-entity blocks must go through world.setBlock so the TE receives a world
         // reference before any constructor logic (e.g. IC2 energy-net registration) fires.
         if (blk.hasTileEntity(meta) || (meta > 15 && world instanceof WorldServer)) {
-            applyBlock(world, x, y, z, blk, meta);
+            applyBlock(world, pos, blk, meta);
             return;
         }
         Chunk chunk = world.getChunkFromBlockCoords(x, z);
@@ -136,7 +140,8 @@ public class EditHistory {
      * category byte; the real ID lives in the TileEntity's NBT under "mID".
      * Reading it here lets undo restore the correct machine type.
      */
-    static int getEffectiveMeta(World world, int x, int y, int z) {
+    static int getEffectiveMeta(World world, Vec3DInt pos) {
+        int x = pos.x(), y = pos.y(), z = pos.z();
         int blockMeta = world.getBlockMetadata(x, y, z);
         if (blockMeta > 15) return blockMeta; // already "full" — shouldn't happen, but safe
         // Only check TileEntity NBT for blocks that have one; avoids a map lookup per block
@@ -151,7 +156,7 @@ public class EditHistory {
         if (te == null) return blockMeta;
         try {
             // GT5 / GT+Plus store the machine ID as a short in "mID" NBT tag.
-            net.minecraft.nbt.NBTTagCompound nbt = new net.minecraft.nbt.NBTTagCompound();
+            NBTTagCompound nbt = new NBTTagCompound();
             te.writeToNBT(nbt);
             if (nbt.hasKey("mID")) {
                 int machineId = nbt.getShort("mID") & 0xFFFF;
@@ -173,14 +178,18 @@ public class EditHistory {
         int[][] before = new int[ops.size()][5];
         for (int i = 0; i < ops.size(); i++) {
             int[] op = ops.get(i);
-            int x = op[0], y = op[1], z = op[2];
-            before[i] =
-                    new int[] {x, y, z, Block.getIdFromBlock(world.getBlock(x, y, z)), getEffectiveMeta(world, x, y, z)
-                    };
+            Vec3DInt pos = Vec3DInt.from(op[0], op[1], op[2]);
+            before[i] = new int[] {
+                op[0],
+                op[1],
+                op[2],
+                Block.getIdFromBlock(world.getBlock(op[0], op[1], op[2])),
+                getEffectiveMeta(world, pos)
+            };
         }
 
         for (int[] op : ops) {
-            applyBlock(world, op[0], op[1], op[2], Block.getBlockById(op[3]), op[4]);
+            applyBlock(world, Vec3DInt.from(op[0], op[1], op[2]), Block.getBlockById(op[3]), op[4]);
         }
 
         PacketHistoryEntry.sendChunked(player, txId, action, before, after);
@@ -189,8 +198,7 @@ public class EditHistory {
     /** Applies a block list to the world without recording history (undo/redo replay). */
     public static void applyBlocks(World world, List<int[]> ops) {
         for (int[] op : ops) {
-            Block blk = Block.getBlockById(op[3]);
-            applyBlock(world, op[0], op[1], op[2], blk, op[4]);
+            applyBlock(world, Vec3DInt.from(op[0], op[1], op[2]), Block.getBlockById(op[3]), op[4]);
         }
     }
 }

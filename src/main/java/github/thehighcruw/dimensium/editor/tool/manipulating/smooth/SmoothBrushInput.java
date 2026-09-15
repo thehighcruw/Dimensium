@@ -6,6 +6,7 @@ package github.thehighcruw.dimensium.editor.tool.manipulating.smooth;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import github.thehighcruw.dimensium.Dimensium;
 import github.thehighcruw.dimensium.editor.tool.BrushApplicator;
 import github.thehighcruw.dimensium.editor.tool.BrushInput;
 import github.thehighcruw.dimensium.editor.tool.mask.ToolMaskRegistry;
@@ -66,7 +67,7 @@ public class SmoothBrushInput implements BrushInput {
         long flushMs = (t2 - t1) / 1_000_000;
         long sendMs = (t3 - t2) / 1_000_000;
         if (computeMs > 5 || flushMs > 5 || sendMs > 5)
-            github.thehighcruw.dimensium.Dimensium.logger.info(
+            Dimensium.logger.info(
                     "[DIMTIMER] smooth release compute={}ms flush={}ms sendChunked={}ms positions={} ops={}",
                     computeMs,
                     flushMs,

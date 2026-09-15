@@ -10,6 +10,7 @@ import github.thehighcruw.dimensium.editor.overlay.LayoutPresetRegistry;
 import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
 import github.thehighcruw.dimensium.editor.window.imgui.ToggleableWindow;
 import imgui.ImGui;
+import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiInputTextFlags;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
@@ -40,7 +41,7 @@ public class LayoutPresetManageWindow extends ToggleableWindow {
         if (!open) return;
 
         float scale = ImGuiManager.INSTANCE.getUIScale();
-        ImGui.setNextWindowSize(360f * scale, 300f * scale, imgui.flag.ImGuiCond.Appearing);
+        ImGui.setNextWindowSize(360f * scale, 300f * scale, ImGuiCond.Appearing);
 
         ImBoolean openBool = new ImBoolean(open);
         boolean visible = ImGui.begin(

@@ -23,6 +23,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
+import net.minecraft.world.World;
 
 @SideOnly(Side.CLIENT)
 public class ReplaceSelectionWindow extends ToggleableWindow {
@@ -145,7 +146,7 @@ public class ReplaceSelectionWindow extends ToggleableWindow {
         int replaceId = Block.getIdFromBlock(replaceB);
         int replaceMeta = replaceBlock.getItemDamage();
 
-        net.minecraft.world.World world = Minecraft.getMinecraft().theWorld;
+        World world = Minecraft.getMinecraft().theWorld;
         if (world == null) return;
 
         List<int[]> ops = new ArrayList<>();

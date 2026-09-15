@@ -65,7 +65,7 @@ public class FillBrushInput implements BrushInput {
         FloodfillToolState ts = FloodfillToolState.INSTANCE;
         boolean goDown = ts.floodfillDir == FloodfillToolState.FloodfillDir.DOWN;
         Set<Long> airBlocks = SelectionState.floodFillAir(
-                mc.theWorld, airX, airY, airZ, ts.floodfillLimit, goDown, ts.floodfillCorners);
+                mc.theWorld, Vec3DInt.from(airX, airY, airZ), ts.floodfillLimit, goDown, ts.floodfillCorners);
         if (airBlocks.isEmpty()) return;
 
         ItemStack picked = SelectedBlockState.INSTANCE.selectedBlock;

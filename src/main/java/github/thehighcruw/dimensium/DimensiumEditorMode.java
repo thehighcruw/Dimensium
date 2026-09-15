@@ -11,6 +11,7 @@ import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapePlacementSta
 import github.thehighcruw.dimensium.editor.window.viewport.ViewportRegistry;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.tool.BuilderToolState;
+import net.minecraft.client.Minecraft;
 
 public class DimensiumEditorMode {
 
@@ -59,7 +60,7 @@ public class DimensiumEditorMode {
     public void fullReset() {
         active = false;
         builderToolsActive = false;
-        net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getMinecraft();
+        Minecraft mc = Minecraft.getMinecraft();
         if (mc.thePlayer != null) mc.thePlayer.setInvisible(false);
         FreecamState.INSTANCE.deactivate();
         ViewportRegistry.INSTANCE.clear();

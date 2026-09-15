@@ -81,14 +81,7 @@ public class FreecamState {
                     mc.thePlayer.posX, mc.thePlayer.posY + mc.thePlayer.getEyeHeight(), mc.thePlayer.posZ);
             cameraEntity.rotationYaw = mc.thePlayer.rotationYaw;
             cameraEntity.rotationPitch = mc.thePlayer.rotationPitch;
-            cameraEntity.prevRotationYaw = cameraEntity.rotationYaw;
-            cameraEntity.prevRotationPitch = cameraEntity.rotationPitch;
-            cameraEntity.prevPosX = cameraEntity.posX;
-            cameraEntity.prevPosY = cameraEntity.posY;
-            cameraEntity.prevPosZ = cameraEntity.posZ;
-            cameraEntity.lastTickPosX = cameraEntity.posX;
-            cameraEntity.lastTickPosY = cameraEntity.posY;
-            cameraEntity.lastTickPosZ = cameraEntity.posZ;
+            copyPosition(cameraEntity, cameraEntity);
 
             orbiting = false;
 
@@ -97,6 +90,17 @@ public class FreecamState {
         }
 
         active = true;
+    }
+
+    public static void copyPosition(FreecamEntity src, FreecamEntity dst) {
+        dst.prevRotationYaw = src.rotationYaw;
+        dst.prevRotationPitch = src.rotationPitch;
+        dst.prevPosX = src.posX;
+        dst.prevPosY = src.posY;
+        dst.prevPosZ = src.posZ;
+        dst.lastTickPosX = src.posX;
+        dst.lastTickPosY = src.posY;
+        dst.lastTickPosZ = src.posZ;
     }
 
     public void deactivate() {

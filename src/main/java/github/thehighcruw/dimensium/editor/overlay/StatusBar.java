@@ -14,6 +14,7 @@ import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import imgui.ImGui;
 import imgui.flag.ImGuiCol;
+import imgui.flag.ImGuiStyleVar;
 import imgui.flag.ImGuiWindowFlags;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
@@ -55,8 +56,8 @@ public final class StatusBar {
         ImGui.setNextWindowPos(0, sh - barH);
         ImGui.setNextWindowSize(sw, barH);
         ImGui.pushStyleColor(ImGuiCol.WindowBg, 0.13f, 0.13f, 0.13f, 1.0f);
-        ImGui.pushStyleVar(imgui.flag.ImGuiStyleVar.WindowPadding, padW, padH);
-        ImGui.pushStyleVar(imgui.flag.ImGuiStyleVar.WindowBorderSize, 0f);
+        ImGui.pushStyleVar(ImGuiStyleVar.WindowPadding, padW, padH);
+        ImGui.pushStyleVar(ImGuiStyleVar.WindowBorderSize, 0f);
         ImGui.begin("##status_bar", FLAGS);
 
         renderedHeight = ImGui.getWindowHeight();

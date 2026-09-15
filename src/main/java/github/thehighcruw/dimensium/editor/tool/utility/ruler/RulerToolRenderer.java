@@ -9,6 +9,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.tool.ToolRenderer;
 import github.thehighcruw.dimensium.editor.window.viewport.world.BrushPreviewRenderer;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.MovingObjectPosition;
@@ -18,7 +19,7 @@ import org.lwjgl.opengl.GL11;
 public class RulerToolRenderer implements ToolRenderer {
 
     @Override
-    public boolean isBlockAffected(Minecraft mc, int wx, int wy, int wz) {
+    public boolean isBlockAffected(Minecraft mc, Vec3DInt wc) {
         return false;
     }
 

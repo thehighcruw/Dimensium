@@ -168,18 +168,12 @@ public class MoveToolState
         for (Map.Entry<Long, SelectionState.BlockData> e : snapshot.entrySet()) {
             long k = e.getKey();
             Vec3DInt wv = SelectionState.unpack(k);
-            int wx = wv.x(), wy = wv.y(), wz = wv.z();
+            Vec3DFloat rv = R.mul(wv.toFloat().plus(0.5f).minus(cm));
+            Vec3DFloat nPos = cm.plus(delta).plus(rv);
 
-            float dx = wx + 0.5f - cm.x();
-            float dy = wy + 0.5f - cm.y();
-            float dz = wz + 0.5f - cm.z();
-
-            Vec3DFloat rv = R.mul(Vec3DFloat.from(dx, dy, dz));
-            float rx = rv.x(), ry = rv.y(), rz = rv.z();
-
-            int nx = (int) Math.floor(cm.x() + delta.x() + rx);
-            int ny = (int) Math.floor(cm.y() + delta.y() + ry);
-            int nz = (int) Math.floor(cm.z() + delta.z() + rz);
+            int nx = (int) Math.floor(nPos.x());
+            int ny = (int) Math.floor(nPos.y());
+            int nz = (int) Math.floor(nPos.z());
 
             SelectionState.BlockData bd = e.getValue();
             blocks.add(new int[] {nx, ny, nz, Block.getIdFromBlock(bd.block()), bd.meta()});

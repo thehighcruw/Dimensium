@@ -16,6 +16,9 @@ import github.thehighcruw.dimensium.shared.SelectionState;
 import imgui.ImGui;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
+import java.util.ArrayList;
+import java.util.List;
+import net.minecraft.block.Block;
 import net.minecraft.client.resources.I18n;
 
 @SideOnly(Side.CLIENT)
@@ -62,9 +65,9 @@ public class OperationsWindow extends ToggleableWindow {
             if (ImGui.button(I18n.format("dimensium.ui.op.fill"), w, 0)) {
                 SelectionState _sel = SelectionState.INSTANCE;
                 SelectedBlockState sbs = SelectedBlockState.INSTANCE;
-                int bid = net.minecraft.block.Block.getIdFromBlock(sbs.getPaintBlock());
+                int bid = Block.getIdFromBlock(sbs.getPaintBlock());
                 int meta = sbs.getPaintMeta();
-                java.util.List<int[]> ops = new java.util.ArrayList<>(_sel.size());
+                List<int[]> ops = new ArrayList<>(_sel.size());
                 for (long key : _sel.getSelectedBlocks()) {
                     ops.add(new int[] {
                         SelectionState.unpack(key).x(),

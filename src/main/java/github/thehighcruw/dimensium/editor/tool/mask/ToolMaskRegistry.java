@@ -41,20 +41,19 @@ public final class ToolMaskRegistry {
         Set<Long> result = new HashSet<>(keys.size());
         for (long key : keys) {
             Vec3DInt cv = SelectionState.unpack(key);
-            int x = cv.x(), y = cv.y(), z = cv.z();
-            if (activeMask.test(world, x, y, z)) result.add(key);
+            if (activeMask.test(world, cv)) result.add(key);
         }
         return result;
     }
 
     /** Filter ops by the active mask. Returns same list if no mask set. */
-    public List<int[]> filter(List<int[]> ops) {
+    public List<Vec3DInt> filter(List<Vec3DInt> ops) {
         if (activeMask == null) return ops;
         World world = Minecraft.getMinecraft().theWorld;
         if (world == null) return ops;
-        List<int[]> result = new ArrayList<>(ops.size());
-        for (int[] op : ops) {
-            if (activeMask.test(world, op[0], op[1], op[2])) result.add(op);
+        List<Vec3DInt> result = new ArrayList<>(ops.size());
+        for (Vec3DInt op : ops) {
+            if (activeMask.test(world, op)) result.add(op);
         }
         return result;
     }

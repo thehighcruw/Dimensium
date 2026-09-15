@@ -5,6 +5,7 @@
 package github.thehighcruw.dimensium.editor.tool.creating.shape;
 
 import github.thehighcruw.dimensium.shared.math.Mat3DFloat;
+import github.thehighcruw.dimensium.shared.math.Vec2DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 
 /**
@@ -40,24 +41,26 @@ public class ShapeMath {
                 return dx == 0 || dx == w - 1 || dy == 0 || dy == h - 1 || dz == 0 || dz == d - 1;
 
             case SPHERE: {
-                float ex = (dx - cx) / rx, ey = (dy - cy) / ry, ez = (dz - cz) / rz;
-                float dist = ex * ex + ey * ey + ez * ez;
-                float vR = 0.5f * (float) Math.sqrt(1f / (rx * rx) + 1f / (ry * ry) + 1f / (rz * rz));
+                Vec3DFloat n = Vec3DFloat.from((dx - cx) / rx, (dy - cy) / ry, (dz - cz) / rz);
+                float dist = n.dot(n);
+                Vec3DFloat invR = Vec3DFloat.from(1f / rx, 1f / ry, 1f / rz);
+                float vR = 0.5f * (float) Math.sqrt(invR.dot(invR));
                 boolean outer = passL2(dist, vR, threshold);
                 if (!hollow) return outer;
                 float irx = Math.max(1, rx - 1), iry = Math.max(1, ry - 1), irz = Math.max(1, rz - 1);
-                float ix = (dx - cx) / irx, iy = (dy - cy) / iry, iz = (dz - cz) / irz;
-                return outer && ix * ix + iy * iy + iz * iz > 1f;
+                Vec3DFloat inner = Vec3DFloat.from((dx - cx) / irx, (dy - cy) / iry, (dz - cz) / irz);
+                return outer && inner.dot(inner) > 1f;
             }
             case CYLINDER: {
-                float ex = (dx - cx) / rx, ez = (dz - cz) / rz;
-                float dist = ex * ex + ez * ez;
-                float vR = 0.5f * (float) Math.sqrt(1f / (rx * rx) + 1f / (rz * rz));
+                Vec2DFloat n = Vec2DFloat.from((dx - cx) / rx, (dz - cz) / rz);
+                float dist = n.dot(n);
+                Vec2DFloat invR = Vec2DFloat.from(1f / rx, 1f / rz);
+                float vR = 0.5f * (float) Math.sqrt(invR.dot(invR));
                 boolean outer = passL2(dist, vR, threshold);
                 if (!hollow) return outer;
                 float irx = Math.max(1, rx - 1), irz = Math.max(1, rz - 1);
-                float ix = (dx - cx) / irx, iz = (dz - cz) / irz;
-                return outer && (ix * ix + iz * iz > 1f || dy == 0 || dy == h - 1);
+                Vec2DFloat inner = Vec2DFloat.from((dx - cx) / irx, (dz - cz) / irz);
+                return outer && (inner.dot(inner) > 1f || dy == 0 || dy == h - 1);
             }
             case PYRAMID: {
                 float level = (float) dy / Math.max(1, h - 1);
@@ -70,14 +73,15 @@ public class ShapeMath {
                 float scale = 1f - level;
                 float arx = rx * scale, arz = rz * scale;
                 if (arx < 0.5f || arz < 0.5f) return Math.abs(dx - cx) < 0.5f && Math.abs(dz - cz) < 0.5f;
-                float ex = (dx - cx) / arx, ez = (dz - cz) / arz;
-                float dist = ex * ex + ez * ez;
-                float vR = 0.5f * (float) Math.sqrt(1f / (arx * arx) + 1f / (arz * arz));
+                Vec2DFloat n = Vec2DFloat.from((dx - cx) / arx, (dz - cz) / arz);
+                float dist = n.dot(n);
+                Vec2DFloat invR = Vec2DFloat.from(1f / arx, 1f / arz);
+                float vR = 0.5f * (float) Math.sqrt(invR.dot(invR));
                 boolean outer = passL2(dist, vR, threshold);
                 if (!hollow) return outer;
                 float irx2 = Math.max(0.5f, arx - 1), irz2 = Math.max(0.5f, arz - 1);
-                float iex = (dx - cx) / irx2, iez = (dz - cz) / irz2;
-                return outer && (iex * iex + iez * iez > 1f || dy == 0);
+                Vec2DFloat inner = Vec2DFloat.from((dx - cx) / irx2, (dz - cz) / irz2);
+                return outer && (inner.dot(inner) > 1f || dy == 0);
             }
             case TORUS: {
                 // Elliptic ring: find nearest point on the ring ellipse, then test tube radius
@@ -104,14 +108,15 @@ public class ShapeMath {
             case DISK: {
                 int midY = (h - 1) / 2;
                 if (dy != midY) return false;
-                float ex = (dx - cx) / rx, ez = (dz - cz) / rz;
-                float dist = ex * ex + ez * ez;
-                float vR = 0.5f * (float) Math.sqrt(1f / (rx * rx) + 1f / (rz * rz));
+                Vec2DFloat n = Vec2DFloat.from((dx - cx) / rx, (dz - cz) / rz);
+                float dist = n.dot(n);
+                Vec2DFloat invR = Vec2DFloat.from(1f / rx, 1f / rz);
+                float vR = 0.5f * (float) Math.sqrt(invR.dot(invR));
                 boolean outer = passL2(dist, vR, threshold);
                 if (!hollow) return outer;
                 float irx2 = Math.max(0.5f, rx - 1), irz2 = Math.max(0.5f, rz - 1);
-                float ix = (dx - cx) / irx2, iz = (dz - cz) / irz2;
-                return outer && ix * ix + iz * iz > 1f;
+                Vec2DFloat inner = Vec2DFloat.from((dx - cx) / irx2, (dz - cz) / irz2);
+                return outer && inner.dot(inner) > 1f;
             }
             case PLANE: {
                 return dy == (h - 1) / 2;
@@ -147,12 +152,12 @@ public class ShapeMath {
                 return outer && iex + iey + iez > 1f;
             }
             case TUBE: {
-                float ex = (dx - cx) / rx, ez = (dz - cz) / rz;
-                if (ex * ex + ez * ez > 1f) return false;
+                Vec2DFloat n = Vec2DFloat.from((dx - cx) / rx, (dz - cz) / rz);
+                if (n.dot(n) > 1f) return false;
                 float irx = Math.max(0.5f, rx - tubeWallThickness);
                 float irz = Math.max(0.5f, rz - tubeWallThickness);
-                float ix = (dx - cx) / irx, iz = (dz - cz) / irz;
-                return ix * ix + iz * iz >= 1f;
+                Vec2DFloat inner = Vec2DFloat.from((dx - cx) / irx, (dz - cz) / irz);
+                return inner.dot(inner) >= 1f;
             }
             case DODECAHEDRON:
                 return dodecahedronContains(dx - cx, dy - cy, dz - cz, rx, ry, rz, hollow);
@@ -303,31 +308,27 @@ public class ShapeMath {
                 return in && (dx < 1f || dx > w - 2f || dy < 1f || dy > h - 2f || dz < 1f || dz > d - 2f);
             }
             case SPHERE: {
-                float ex = (dx - ccx) / rx, ey = (dy - ccy) / ry, ez = (dz - ccz) / rz;
-                float dist = ex * ex + ey * ey + ez * ez;
-                float vR = 0.5f * (float) Math.sqrt(1f / (rx * rx) + 1f / (ry * ry) + 1f / (rz * rz));
+                Vec3DFloat n = Vec3DFloat.from((dx - ccx) / rx, (dy - ccy) / ry, (dz - ccz) / rz);
+                float dist = n.dot(n);
+                Vec3DFloat invR = Vec3DFloat.from(1f / rx, 1f / ry, 1f / rz);
+                float vR = 0.5f * (float) Math.sqrt(invR.dot(invR));
                 boolean outer = passL2(dist, vR, threshold);
                 if (!hollow) return outer;
                 float irx2 = Math.max(0.5f, rx - 1), iry2 = Math.max(0.5f, ry - 1), irz2 = Math.max(0.5f, rz - 1);
-                return outer
-                        && ((dx - ccx) / irx2) * ((dx - ccx) / irx2)
-                                        + ((dy - ccy) / iry2) * ((dy - ccy) / iry2)
-                                        + ((dz - ccz) / irz2) * ((dz - ccz) / irz2)
-                                > 1f;
+                Vec3DFloat inner = Vec3DFloat.from((dx - ccx) / irx2, (dy - ccy) / iry2, (dz - ccz) / irz2);
+                return outer && inner.dot(inner) > 1f;
             }
             case CYLINDER: {
-                float ex = (dx - ccx) / rx, ez = (dz - ccz) / rz;
-                float dist = ex * ex + ez * ez;
-                float vR = 0.5f * (float) Math.sqrt(1f / (rx * rx) + 1f / (rz * rz));
+                Vec2DFloat n = Vec2DFloat.from((dx - ccx) / rx, (dz - ccz) / rz);
+                float dist = n.dot(n);
+                Vec2DFloat invR = Vec2DFloat.from(1f / rx, 1f / rz);
+                float vR = 0.5f * (float) Math.sqrt(invR.dot(invR));
                 boolean outer = passL2(dist, vR, threshold);
                 if (!hollow) return outer && dy >= 0 && dy < h;
                 float irx2 = Math.max(0.5f, rx - 1), irz2 = Math.max(0.5f, rz - 1);
                 boolean onCap = dy < 1f || dy > h - 2f;
-                return outer
-                        && dy >= 0
-                        && dy < h
-                        && (((dx - ccx) / irx2) * ((dx - ccx) / irx2) + ((dz - ccz) / irz2) * ((dz - ccz) / irz2) > 1f
-                                || onCap);
+                Vec2DFloat inner = Vec2DFloat.from((dx - ccx) / irx2, (dz - ccz) / irz2);
+                return outer && dy >= 0 && dy < h && (inner.dot(inner) > 1f || onCap);
             }
             case PYRAMID: {
                 if (dy < 0 || dy >= h) return false;
@@ -341,16 +342,16 @@ public class ShapeMath {
                 float scale = 1f - level;
                 float arx = rx * scale, arz = rz * scale;
                 if (arx < 0.5f || arz < 0.5f) return Math.abs(dx - ccx) < 0.5f && Math.abs(dz - ccz) < 0.5f;
-                float ex = (dx - ccx) / arx, ez = (dz - ccz) / arz;
-                float dist = ex * ex + ez * ez;
-                float vR = 0.5f * (float) Math.sqrt(1f / (arx * arx) + 1f / (arz * arz));
+                Vec2DFloat n = Vec2DFloat.from((dx - ccx) / arx, (dz - ccz) / arz);
+                float dist = n.dot(n);
+                Vec2DFloat invR = Vec2DFloat.from(1f / arx, 1f / arz);
+                float vR = 0.5f * (float) Math.sqrt(invR.dot(invR));
                 boolean outer = passL2(dist, vR, threshold);
                 if (!hollow) return outer;
                 float irx2 = Math.max(0.5f, arx - 1), irz2 = Math.max(0.5f, arz - 1);
                 boolean onBase = dy < 1f;
-                return outer
-                        && (((dx - ccx) / irx2) * ((dx - ccx) / irx2) + ((dz - ccz) / irz2) * ((dz - ccz) / irz2) > 1f
-                                || onBase);
+                Vec2DFloat inner = Vec2DFloat.from((dx - ccx) / irx2, (dz - ccz) / irz2);
+                return outer && (inner.dot(inner) > 1f || onBase);
             }
             case TORUS: {
                 float lx = dx - ccx, lz = dz - ccz;
@@ -376,14 +377,15 @@ public class ShapeMath {
             }
             case DISK: {
                 if (Math.abs(dy - ccy) > 0.5f) return false;
-                float ex = (dx - ccx) / rx, ez = (dz - ccz) / rz;
-                float dist = ex * ex + ez * ez;
-                float vR = 0.5f * (float) Math.sqrt(1f / (rx * rx) + 1f / (rz * rz));
+                Vec2DFloat n = Vec2DFloat.from((dx - ccx) / rx, (dz - ccz) / rz);
+                float dist = n.dot(n);
+                Vec2DFloat invR = Vec2DFloat.from(1f / rx, 1f / rz);
+                float vR = 0.5f * (float) Math.sqrt(invR.dot(invR));
                 boolean outer = passL2(dist, vR, threshold);
                 if (!hollow) return outer;
                 float irx2 = Math.max(0.5f, rx - 1), irz2 = Math.max(0.5f, rz - 1);
-                return outer
-                        && ((dx - ccx) / irx2) * ((dx - ccx) / irx2) + ((dz - ccz) / irz2) * ((dz - ccz) / irz2) > 1f;
+                Vec2DFloat inner = Vec2DFloat.from((dx - ccx) / irx2, (dz - ccz) / irz2);
+                return outer && inner.dot(inner) > 1f;
             }
             case PLANE:
                 return Math.abs(dy - ccy) <= 0.5f;
@@ -419,12 +421,12 @@ public class ShapeMath {
                                 > 1f;
             }
             case TUBE: {
-                float ex = (dx - ccx) / rx, ez = (dz - ccz) / rz;
-                if (ex * ex + ez * ez > 1f || dy < 0 || dy >= h) return false;
+                Vec2DFloat n = Vec2DFloat.from((dx - ccx) / rx, (dz - ccz) / rz);
+                if (n.dot(n) > 1f || dy < 0 || dy >= h) return false;
                 float irx = Math.max(0.5f, rx - tubeWallThickness);
                 float irz = Math.max(0.5f, rz - tubeWallThickness);
-                float ix = (dx - ccx) / irx, iz = (dz - ccz) / irz;
-                return ix * ix + iz * iz >= 1f;
+                Vec2DFloat inner = Vec2DFloat.from((dx - ccx) / irx, (dz - ccz) / irz);
+                return inner.dot(inner) >= 1f;
             }
             case DODECAHEDRON:
                 return dodecahedronContains(dx - ccx, dy - ccy, dz - ccz, rx, ry, rz, hollow);

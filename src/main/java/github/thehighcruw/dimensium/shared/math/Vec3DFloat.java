@@ -73,6 +73,14 @@ public record Vec3DFloat(float x, float y, float z) {
         return x + y + z;
     }
 
+    public float max() {
+        return Math.max(x, Math.max(y, z));
+    }
+
+    public float min() {
+        return Math.min(x, Math.min(y, z));
+    }
+
     // --- geometry ---
 
     public float lengthSq() {

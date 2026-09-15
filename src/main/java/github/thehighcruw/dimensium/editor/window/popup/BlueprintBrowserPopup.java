@@ -13,6 +13,7 @@ import github.thehighcruw.dimensium.editor.blueprint.BlueprintThumbnailCache;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import imgui.ImGui;
 import imgui.ImVec2;
+import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiKey;
 import imgui.flag.ImGuiWindowFlags;
@@ -212,7 +213,7 @@ public class BlueprintBrowserPopup {
             boolean isActive = tag.equalsIgnoreCase(activeTag);
             String label = tag + " (" + count + ")##tc_" + tag;
             if (isActive) {
-                ImGui.pushStyleColor(imgui.flag.ImGuiCol.Button, 0.24f, 0.50f, 1.00f, 0.85f);
+                ImGui.pushStyleColor(ImGuiCol.Button, 0.24f, 0.50f, 1.00f, 0.85f);
             }
             if (ImGui.smallButton(label)) {
                 tagSearchBuf.set(isActive ? "" : tag);

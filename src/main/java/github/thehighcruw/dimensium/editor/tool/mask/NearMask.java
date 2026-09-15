@@ -4,7 +4,7 @@
  */
 package github.thehighcruw.dimensium.editor.tool.mask;
 
-import net.minecraft.block.Block;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import net.minecraft.world.World;
 
 public class NearMask extends MaskNode {
@@ -20,19 +20,13 @@ public class NearMask extends MaskNode {
     }
 
     @Override
-    public boolean test(World world, int x, int y, int z) {
-        for (int dx = -radius; dx <= radius; dx++) {
-            for (int dy = -radius; dy <= radius; dy++) {
-                for (int dz = -radius; dz <= radius; dz++) {
-                    if (dx == 0 && dy == 0 && dz == 0) continue;
-                    if (dx * dx + dy * dy + dz * dz > radius * radius) continue;
-                    Block b = world.getBlock(x + dx, y + dy, z + dz);
-                    if (Block.getIdFromBlock(b) != blockId) continue;
-                    if (meta >= 0 && world.getBlockMetadata(x + dx, y + dy, z + dz) != meta) continue;
-                    return true;
-                }
-            }
-        }
+    public boolean test(World world, Vec3DInt coord) {
+        Vec3DInt.anyInclusive(Vec3DInt.from(-radius), Vec3DInt.from(radius), (dx, dy, dz) -> {
+            if (dx == 0 && dy == 0 && dz == 0) return false;
+            Vec3DInt offset = Vec3DInt.from(dx, dy, dz);
+            if (offset.lengthSq() > (long) radius * radius) return false;
+            return MaskUtils.testAt(world, coord.plus(offset), blockId, meta);
+        });
         return false;
     }
 

@@ -6,6 +6,7 @@ package github.thehighcruw.dimensium.editor.blueprint;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import github.thehighcruw.dimensium.Dimensium;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -77,7 +78,7 @@ public class BlueprintRegistry {
                 try {
                     next.put(f, BlueprintIO.loadHeader(f));
                 } catch (Exception e) {
-                    github.thehighcruw.dimensium.Dimensium.logger.warn("Failed to load blueprint header: {}", f, e);
+                    Dimensium.logger.warn("Failed to load blueprint header: {}", f, e);
                 }
             }
             synchronized (headers) {

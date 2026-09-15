@@ -15,6 +15,7 @@ import github.thehighcruw.dimensium.shared.SelectionTransforms;
 import imgui.ImGui;
 import imgui.flag.ImGuiCond;
 import imgui.type.ImBoolean;
+import java.util.concurrent.ThreadLocalRandom;
 import net.minecraft.client.resources.I18n;
 
 @SideOnly(Side.CLIENT)
@@ -89,7 +90,7 @@ public class DistortSelectionWindow extends ToggleableWindow {
 
             ImGui.spacing();
             if (ImGui.button(I18n.format("dimensium.ui.distort.randomize_seed") + "##dsel_rnd")) {
-                seed = java.util.concurrent.ThreadLocalRandom.current().nextLong();
+                seed = ThreadLocalRandom.current().nextLong();
             }
             ImGui.sameLine();
             ImGui.textDisabled(Long.toHexString(seed).toUpperCase());

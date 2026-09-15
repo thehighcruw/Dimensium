@@ -43,6 +43,11 @@ import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.SelectionTransforms;
 import github.thehighcruw.dimensium.shared.util.UIUtils;
 import imgui.ImGui;
+import imgui.flag.ImGuiCond;
+import imgui.flag.ImGuiInputTextFlags;
+import imgui.flag.ImGuiWindowFlags;
+import imgui.type.ImString;
+import java.util.List;
 import net.minecraft.client.resources.I18n;
 
 @SideOnly(Side.CLIENT)
@@ -54,7 +59,7 @@ public final class MenuBar {
     private final float[] pendingViewScale = {1.0f};
 
     private static final String POPUP_SAVE_AS = "##preset_save_as_popup";
-    private final imgui.type.ImString saveAsBuffer = new imgui.type.ImString(128);
+    private final ImString saveAsBuffer = new ImString(128);
     private String saveAsError = null;
     private boolean openSaveAsPopup = false;
 
@@ -224,7 +229,7 @@ public final class MenuBar {
         }
     }
 
-    private void renderMaskEntries(java.util.List<MaskEntry> entries, ToolMask active) {
+    private void renderMaskEntries(List<MaskEntry> entries, ToolMask active) {
         for (MaskEntry entry : entries) {
             if (entry instanceof ToolMask mask) {
                 if (ImGui.menuItem(mask.getName(), null, active == mask)) {
@@ -435,7 +440,7 @@ public final class MenuBar {
     private void renderPresetsSubmenu() {
         LayoutPresetRegistry registry = LayoutPresetRegistry.INSTANCE;
         String active = registry.getActive();
-        java.util.List<String> presets = registry.list();
+        List<String> presets = registry.list();
 
         for (String name : presets) {
             if (ImGui.menuItem(name, null, name.equals(active))) {
@@ -461,13 +466,11 @@ public final class MenuBar {
         }
 
         float scale = ImGuiManager.INSTANCE.getUIScale();
-        ImGui.setNextWindowSize(300f * scale, 0f, imgui.flag.ImGuiCond.Always);
-        if (ImGui.beginPopupModal(
-                POPUP_SAVE_AS, imgui.flag.ImGuiWindowFlags.NoResize | imgui.flag.ImGuiWindowFlags.NoTitleBar)) {
+        ImGui.setNextWindowSize(300f * scale, 0f, ImGuiCond.Always);
+        if (ImGui.beginPopupModal(POPUP_SAVE_AS, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoTitleBar)) {
             ImGui.text(I18n.format("dimensium.layout.preset.save_as.label"));
             ImGui.setNextItemWidth(-1f);
-            boolean confirmed =
-                    ImGui.inputText("##preset_name", saveAsBuffer, imgui.flag.ImGuiInputTextFlags.EnterReturnsTrue);
+            boolean confirmed = ImGui.inputText("##preset_name", saveAsBuffer, ImGuiInputTextFlags.EnterReturnsTrue);
             String saveAsCurrentText = saveAsBuffer.get();
             if (ImGui.isItemEdited()) saveAsError = null;
             if (saveAsError != null) {

@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import net.minecraft.block.Block;
+import net.minecraft.client.network.NetHandlerPlayClient;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
 import net.minecraft.network.PacketBuffer;
@@ -122,7 +123,7 @@ public class PacketCaptureResponse implements IPacket {
 
     @Override
     @SideOnly(Side.CLIENT)
-    public IPacket executeClient(net.minecraft.client.network.NetHandlerPlayClient handler) {
+    public IPacket executeClient(NetHandlerPlayClient handler) {
         pendingBlocks.computeIfAbsent(txId, k -> new ArrayList<>()).addAll(blocks);
         pendingOrigin.putIfAbsent(txId, new int[] {originX, originY, originZ, width, height, depth});
 
@@ -135,7 +136,7 @@ public class PacketCaptureResponse implements IPacket {
         BuilderToolState bts = BuilderToolState.INSTANCE;
         if (bts.phase != Phase.CAPTURING) return null; // user cancelled
 
-        int ox = origin[0], oy = origin[1], oz = origin[2];
+        Vec3DInt originCoord = Vec3DInt.from(origin[0], origin[1], origin[2]);
         int w = origin[3], h = origin[4], d = origin[5];
 
         long _t0 = System.nanoTime();
@@ -143,7 +144,8 @@ public class PacketCaptureResponse implements IPacket {
         for (int[] b : allBlocks) {
             Block blk = Block.getBlockById(b[3]);
             if (blk == null || blk == Blocks.air) continue;
-            int lx = b[0] - ox, ly = b[1] - oy, lz = b[2] - oz;
+            Vec3DInt local = Vec3DInt.from(b[0], b[1], b[2]).minus(originCoord);
+            int lx = local.x(), ly = local.y(), lz = local.z();
             clipboard.put(SelectionState.clipboardKey(lx, ly, lz), new SelectionState.BlockData(blk, b[4]));
         }
         System.err.println(

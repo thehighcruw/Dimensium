@@ -4,6 +4,8 @@
  */
 package github.thehighcruw.dimensium.editor.tool.mask;
 
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import github.thehighcruw.dimensium.shared.util.BlockUtils;
 import net.minecraft.world.World;
 
 public class AngleMask extends MaskNode {
@@ -17,14 +19,12 @@ public class AngleMask extends MaskNode {
     }
 
     @Override
-    public boolean test(World world, int x, int y, int z) {
-        int[] dxs = {1, -1, 0, 0};
-        int[] dzs = {0, 0, 1, -1};
+    public boolean test(World world, Vec3DInt coord) {
         int maxDiff = 0;
-        for (int i = 0; i < 4; i++) {
-            int nx = x + dxs[i], nz = z + dzs[i];
-            int h0 = topSolidY(world, x, y, z);
-            int h1 = topSolidY(world, nx, y, nz);
+        int h0 = topSolidY(world, coord);
+        for (Vec3DInt offset : BlockUtils.ADJACENT_OFFSETS) {
+            Vec3DInt neighbour = coord.plus(offset);
+            int h1 = topSolidY(world, neighbour);
             int diff = Math.abs(h1 - h0);
             if (diff > maxDiff) maxDiff = diff;
         }
@@ -32,11 +32,11 @@ public class AngleMask extends MaskNode {
         return Math.abs(blockAngle - angle) <= range;
     }
 
-    private int topSolidY(World world, int x, int startY, int z) {
-        for (int y = startY + 2; y >= startY - 2; y--) {
-            if (!world.isAirBlock(x, y, z)) return y;
+    private int topSolidY(World world, Vec3DInt coord) {
+        for (int y = coord.y() + 2; y >= coord.y() - 2; y--) {
+            if (!world.isAirBlock(coord.x(), y, coord.z())) return y;
         }
-        return startY;
+        return coord.y();
     }
 
     @Override

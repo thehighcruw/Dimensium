@@ -6,6 +6,8 @@ package github.thehighcruw.dimensium.editor.tool.manipulating.elevation;
 
 import github.thehighcruw.dimensium.editor.tool.ActiveDragState;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushStrategy;
+import github.thehighcruw.dimensium.shared.math.Vec2DFloat;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 import java.util.HashMap;
 import net.minecraft.block.Block;
@@ -33,7 +35,7 @@ public class ElevationBrush implements BrushStrategy {
 
         for (int dx = -radius; dx <= radius; dx++) {
             for (int dz = -radius; dz <= radius; dz++) {
-                float r = (float) Math.sqrt(dx * dx + dz * dz) / radius;
+                float r = Vec2DFloat.from(dx, dz).length() / radius;
                 if (r > 1f) continue;
 
                 float weight = falloff(s.elevationFalloff, r);
@@ -56,13 +58,13 @@ public class ElevationBrush implements BrushStrategy {
                         case RAISE:
                             for (int i = 0; i < delta; i++) {
                                 int top = getEffectiveTopY(world, wx, wz);
-                                placeTerrainBlock(world, wx, top + 1, wz, top, false);
+                                placeTerrainBlock(world, Vec3DInt.from(wx, top + 1, wz), top, false);
                             }
                             break;
                         case LOWER:
                             for (int i = 0; i < delta; i++) {
                                 int top = getEffectiveTopY(world, wx, wz);
-                                if (top > 0) ChangeProposal.write(world, wx, top, wz, Blocks.air, 0);
+                                if (top > 0) ChangeProposal.write(world, Vec3DInt.from(wx, top, wz), Blocks.air, 0);
                             }
                             break;
                         case FLATTEN: {
@@ -71,10 +73,11 @@ public class ElevationBrush implements BrushStrategy {
                                 int top = getEffectiveTopY(world, wx, wz);
                                 int dy = flattenTargetY - top;
                                 if (dy > 0 && s.flattenDirection != ElevationToolState.FlattenDirection.DOWN)
-                                    placeTerrainBlock(world, wx, top + 1, wz, top, false);
+                                    placeTerrainBlock(world, Vec3DInt.from(wx, top + 1, wz), top, false);
                                 else if (dy < 0
                                         && s.flattenDirection != ElevationToolState.FlattenDirection.UP
-                                        && top > 0) ChangeProposal.write(world, wx, top, wz, Blocks.air, 0);
+                                        && top > 0)
+                                    ChangeProposal.write(world, Vec3DInt.from(wx, top, wz), Blocks.air, 0);
                                 else break;
                             }
                             break;
@@ -91,17 +94,17 @@ public class ElevationBrush implements BrushStrategy {
 
                 switch (s.elevationMode) {
                     case RAISE:
-                        placeTerrainBlock(world, wx, topY + 1, wz, topY, true);
+                        placeTerrainBlock(world, Vec3DInt.from(wx, topY + 1, wz), topY, true);
                         break;
                     case LOWER:
-                        if (topY > 0) ChangeProposal.write(world, wx, topY, wz, Blocks.air, 0);
+                        if (topY > 0) ChangeProposal.write(world, Vec3DInt.from(wx, topY, wz), Blocks.air, 0);
                         break;
                     case FLATTEN: {
                         int dy = flattenTargetY - topY;
                         if (dy > 0 && s.flattenDirection != ElevationToolState.FlattenDirection.DOWN)
-                            placeTerrainBlock(world, wx, topY + 1, wz, topY, true);
+                            placeTerrainBlock(world, Vec3DInt.from(wx, topY + 1, wz), topY, true);
                         else if (dy < 0 && s.flattenDirection != ElevationToolState.FlattenDirection.UP && topY > 0)
-                            ChangeProposal.write(world, wx, topY, wz, Blocks.air, 0);
+                            ChangeProposal.write(world, Vec3DInt.from(wx, topY, wz), Blocks.air, 0);
                         break;
                     }
                 }
@@ -129,26 +132,26 @@ public class ElevationBrush implements BrushStrategy {
         return weight * softFactor;
     }
 
-    private static void placeTerrainBlock(World world, int wx, int wy, int wz, int sourceY, boolean continuous) {
+    private static void placeTerrainBlock(World world, Vec3DInt pos, int sourceY, boolean continuous) {
         Block fillWith;
         int fillMeta;
         ChangeProposal drag = ActiveDragState.INSTANCE.activeDrag;
         if (continuous && drag != null) {
-            long key = ChangeProposal.packKey(wx, sourceY, wz);
+            long key = ChangeProposal.packKey(pos.x(), sourceY, pos.z());
             int[] bm = drag.proposed.get(key);
             if (bm != null && bm[0] != 0) {
                 fillWith = Block.getBlockById(bm[0]);
                 fillMeta = bm[1];
             } else {
-                fillWith = world.getBlock(wx, sourceY, wz);
-                fillMeta = world.getBlockMetadata(wx, sourceY, wz);
+                fillWith = world.getBlock(pos.x(), sourceY, pos.z());
+                fillMeta = world.getBlockMetadata(pos.x(), sourceY, pos.z());
             }
         } else {
-            fillWith = world.getBlock(wx, sourceY, wz);
-            fillMeta = world.getBlockMetadata(wx, sourceY, wz);
+            fillWith = world.getBlock(pos.x(), sourceY, pos.z());
+            fillMeta = world.getBlockMetadata(pos.x(), sourceY, pos.z());
         }
         if (fillWith == null || fillWith == Blocks.air) fillWith = Blocks.dirt;
-        ChangeProposal.write(world, wx, wy, wz, fillWith, fillMeta);
+        ChangeProposal.write(world, pos, fillWith, fillMeta);
     }
 
     private static int getEffectiveTopY(World world, int wx, int wz) {

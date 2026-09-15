@@ -7,6 +7,7 @@ package github.thehighcruw.dimensium.editor.tool.creating.sculpt;
 import github.thehighcruw.dimensium.editor.handler.ExtrudeHelper;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushState;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushStrategy;
+import github.thehighcruw.dimensium.shared.math.Vec2DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
@@ -47,7 +48,7 @@ public class SculptBrush implements BrushStrategy {
         for (int d1 = -radius; d1 <= radius; d1++) {
             for (int d2 = -radius; d2 <= radius; d2++) {
                 int idx = (d1 + radius) * dim + (d2 + radius);
-                float dist = (float) Math.sqrt(d1 * d1 + d2 * d2) / radius;
+                float dist = Vec2DFloat.from(d1, d2).length() / radius;
                 if (dist > 1f) {
                     disp[idx] = -1;
                     continue;
@@ -103,7 +104,7 @@ public class SculptBrush implements BrushStrategy {
                     if (t.equals(prev)) continue;
                     prev = t;
                     if (world.getBlock(t.x(), t.y(), t.z()) != Blocks.air) break;
-                    ChangeProposal.write(world, t.x(), t.y(), t.z(), surfBlock, surfMeta);
+                    ChangeProposal.write(world, t, surfBlock, surfMeta);
                 }
             } else {
                 Vec3DInt prev = surf;
@@ -113,7 +114,7 @@ public class SculptBrush implements BrushStrategy {
                     if (t.equals(prev)) continue;
                     prev = t;
                     if (world.getBlock(t.x(), t.y(), t.z()) == Blocks.air) break;
-                    ChangeProposal.write(world, t.x(), t.y(), t.z(), Blocks.air, 0);
+                    ChangeProposal.write(world, t, Blocks.air, 0);
                 }
             }
         }

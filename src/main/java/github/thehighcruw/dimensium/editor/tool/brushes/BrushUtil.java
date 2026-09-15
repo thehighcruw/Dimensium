@@ -5,6 +5,12 @@
 package github.thehighcruw.dimensium.editor.tool.brushes;
 
 import github.thehighcruw.dimensium.DimensiumConfig;
+import github.thehighcruw.dimensium.shared.math.Vec2DFloat;
+import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import github.thehighcruw.dimensium.shared.util.BlockUtils;
+import github.thehighcruw.dimensium.shared.util.WorldUtils;
+import java.util.function.Consumer;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.world.World;
@@ -13,126 +19,125 @@ public final class BrushUtil {
 
     private BrushUtil() {}
 
-    public static final int[][] FACE_DIRS = {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
-
-    // MC 1.7.10 sideHit: 0=bottom, 1=top, 2=north, 3=south, 4=west, 5=east
-    private static final int[][] SIDE_NORMALS = {{0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1}, {-1, 0, 0}, {1, 0, 0}};
-
-    public static int[] faceNormal(int sideHit) {
-        return sideHit >= 0 && sideHit < 6 ? SIDE_NORMALS[sideHit] : SIDE_NORMALS[1];
+    public static Vec3DInt faceNormal(int sideHit) {
+        return sideHit >= 0 && sideHit < 6 ? BlockUtils.NEIGHBOUR_OFFSETS[sideHit] : BlockUtils.NEIGHBOUR_OFFSETS[1];
     }
 
     @FunctionalInterface
     public interface VoxelAction {
 
-        void run(int dx, int dy, int dz);
+        void run(Vec3DInt pos);
     }
 
-    public static boolean hasSolidNeighbor(World world, int wx, int wy, int wz) {
-        for (int[] n : FACE_DIRS) {
-            if (world.getBlock(wx + n[0], wy + n[1], wz + n[2]) == Blocks.air) return false;
+    public static boolean hasSolidNeighbor(World world, Vec3DInt coord) {
+        for (Vec3DInt offset : BlockUtils.NEIGHBOUR_OFFSETS) {
+            if (WorldUtils.getBlock(world, coord.plus(offset)) == Blocks.air) return false;
         }
         return true;
     }
 
     public static void forBrush(BrushState s, VoxelAction action) {
         int r = s.brushRadius, h = s.brushShape.hasHeight ? s.brushHeight : r;
-        for (int dx = -r; dx <= r; dx++)
-            for (int dy = -h; dy <= h; dy++)
-                for (int dz = -r; dz <= r; dz++) {
-                    if (!inShape(s.brushShape, dx, dy, dz, r, h, r)) continue;
-                    if (s.hollow && isInterior(s.brushShape, dx, dy, dz, r, h, r)) continue;
-                    action.run(dx, dy, dz);
-                }
+        forBrush(s, Vec3DInt.from(r, h, r), action);
     }
 
-    public static void forBrush(BrushState s, int sx, int sy, int sz, VoxelAction action) {
-        for (int dx = -sx; dx <= sx; dx++)
-            for (int dy = -sy; dy <= sy; dy++)
-                for (int dz = -sz; dz <= sz; dz++) {
-                    if (!inShape(s.brushShape, dx, dy, dz, sx, sy, sz)) continue;
-                    if (s.hollow && isInterior(s.brushShape, dx, dy, dz, sx, sy, sz)) continue;
-                    action.run(dx, dy, dz);
-                }
+    public static void forBrush(BrushState s, Vec3DInt brushSize, VoxelAction action) {
+        Vec3DInt.forEachInclusive(brushSize.negate(), brushSize, (dx, dy, dz) -> {
+            Vec3DInt offset = Vec3DInt.from(dx, dy, dz);
+            if (!inShape(s.brushShape, offset, brushSize)) return;
+            if (s.hollow && isInterior(s.brushShape, offset, brushSize)) return;
+            action.run(offset);
+        });
     }
 
     // Epsilon absorbs float rounding at exact-boundary points (e.g. dx=2,dy=2,dz=1,r=3
     // gives 4/9+4/9+1/9 = 1.0 mathematically but ~1.0000002f in float).
     private static final float GEOM_EPS = 1e-6f;
 
-    public static boolean inShape(BrushShape shape, int dx, int dy, int dz, int sx, int sy, int sz) {
+    public static void forEachInShape(BrushShape shape, Vec3DInt brushSize, Consumer<Vec3DInt> action) {
+        Vec3DInt.forEachInclusive(brushSize.times(-1), brushSize, (dx, dy, dz) -> {
+            Vec3DInt offset = Vec3DInt.from(dx, dy, dz);
+            if (inShape(shape, offset, brushSize)) action.accept(offset);
+        });
+    }
+
+    public static boolean inShape(BrushShape shape, Vec3DInt offset, Vec3DInt brushSize) {
         float thr = DimensiumConfig.shapeThreshold;
+        int dx = offset.x(), dy = offset.y(), dz = offset.z();
+        int sx = brushSize.x(), sy = brushSize.y(), sz = brushSize.z();
         switch (shape) {
-            case SPHERE:
-            case ELLIPSOID: {
-                float ex = (float) dx / sx, ey = (float) dy / sy, ez = (float) dz / sz;
-                float dist = ex * ex + ey * ey + ez * ez;
-                float vR = 0.5f
-                        * (float) Math.sqrt(1f / ((float) sx * sx) + 1f / ((float) sy * sy) + 1f / ((float) sz * sz));
-                return (float) Math.sqrt(dist) <= 1f - vR * (1f - thr) + GEOM_EPS;
+            case SPHERE, ELLIPSOID -> {
+                Vec3DFloat normalized = offset.toFloat().divide(brushSize.toFloat());
+                Vec3DFloat invSize = Vec3DFloat.ONE.divide(brushSize.toFloat());
+                float distance = normalized.dot(normalized);
+                float vR = 0.5f * (float) Math.sqrt(invSize.dot(invSize));
+                return (float) Math.sqrt(distance) <= 1f - vR * (1f - thr) + GEOM_EPS;
             }
-            case CUBE:
-            case CUBOID:
-                return true;
-            case CYLINDER: {
-                float dist = (float) dx * dx / (sx * sx) + (float) dz * dz / (sx * sx);
-                float vR = 0.5f * (float) Math.sqrt(2f / ((float) sx * sx));
-                return (float) Math.sqrt(dist) <= 1f - vR * (1f - thr) + GEOM_EPS;
+            case CUBE, CUBOID -> {
+                return offset.inBounds(brushSize.negate(), brushSize);
             }
-            case CAPSULE: {
+            case CYLINDER -> {
+                Vec2DFloat xz = Vec2DFloat.from(dx, dz).divide(sx);
+                float vR = 0.5f * Vec2DFloat.from(1f / sx, 1f / sx).length();
+                return xz.length() <= 1f - vR * (1f - thr) + GEOM_EPS;
+            }
+            case CAPSULE -> {
                 int capH = Math.max(0, sy - sx);
                 float vR = 0.5f / sx;
                 float cutoff = 1f - vR * (1f - thr) + GEOM_EPS;
                 float r = sx * cutoff;
-                float xz2 = dx * dx + dz * dz;
+                float xz2 = Vec2DFloat.from(dx, dz).lengthSq();
                 if (Math.abs(dy) <= capH) return xz2 <= r * r;
-                float oy = Math.abs(dy) - capH;
-                return xz2 + oy * oy <= r * r;
+                float capOy = Math.abs(dy) - capH;
+                return xz2 + capOy * capOy <= r * r;
             }
-            case CONE: {
+            case CONE -> {
                 float level = (float) (dy + sy) / (2f * sy);
                 float r = sx * (1f - level);
                 if (r <= 0) return dx == 0 && dz == 0;
-                float dist = (float) dx * dx / (r * r) + (float) dz * dz / (r * r);
-                float vR = 0.5f * (float) Math.sqrt(2f / (r * r));
-                return (float) Math.sqrt(dist) <= 1f - vR * (1f - thr) + GEOM_EPS;
+                Vec2DFloat xz = Vec2DFloat.from(dx, dz).divide(r);
+                float vR = 0.5f * Vec2DFloat.from(1f / r, 1f / r).length();
+                return xz.length() <= 1f - vR * (1f - thr) + GEOM_EPS;
             }
-            case OCTAHEDRON: {
+            case OCTAHEDRON -> {
                 float norm = (float) Math.abs(dx) / sx + (float) Math.abs(dy) / sy + (float) Math.abs(dz) / sz;
                 float vR = 0.5f * (1f / sx + 1f / sy + 1f / sz);
                 return norm <= 1f - vR * (1f - thr) + GEOM_EPS;
             }
-            default:
+            default -> {
                 return true;
+            }
         }
     }
 
-    public static boolean isInterior(BrushShape shape, int dx, int dy, int dz, int sx, int sy, int sz) {
+    public static boolean isInterior(BrushShape shape, Vec3DInt offset, Vec3DInt brushSize) {
+        int dx = offset.x(), dy = offset.y(), dz = offset.z();
+        int sx = brushSize.x(), sy = brushSize.y(), sz = brushSize.z();
         int isx = Math.max(1, sx - 1), isy = Math.max(1, sy - 1), isz = Math.max(1, sz - 1);
         switch (shape) {
             case SPHERE:
             case ELLIPSOID: {
-                float ex = (float) dx / isx, ey = (float) dy / isy, ez = (float) dz / isz;
-                return ex * ex + ey * ey + ez * ez < 1f;
+                Vec3DFloat n = offset.toFloat().divide(Vec3DFloat.from(isx, isy, isz));
+                return n.dot(n) < 1f;
             }
             case CUBE:
             case CUBOID:
                 return Math.abs(dx) < sx && Math.abs(dy) < sy && Math.abs(dz) < sz;
             case CYLINDER:
-                return (float) dx * dx / (isx * isx) + (float) dz * dz / (isx * isx) < 1f && Math.abs(dy) < sy;
+                return Vec2DFloat.from(dx, dz).divide(isx).lengthSq() < 1f && Math.abs(dy) < sy;
             case CAPSULE: {
                 int capH = Math.max(0, isy - isx);
                 float r2 = isx * isx;
-                float xz2 = dx * dx + dz * dz;
+                float xz2 = Vec2DFloat.from(dx, dz).lengthSq();
                 if (Math.abs(dy) <= capH) return xz2 < r2;
-                float oy = Math.abs(dy) - capH;
-                return xz2 + oy * oy < r2;
+                float capOy = Math.abs(dy) - capH;
+                return xz2 + capOy * capOy < r2;
             }
             case CONE: {
                 float level = (float) (dy + isy) / (2f * isy);
                 float r = isx * (1f - level);
                 if (r <= 0) return false;
-                return (float) dx * dx / (r * r) + (float) dz * dz / (r * r) < 1f;
+                return Vec2DFloat.from(dx, dz).divide(r).lengthSq() < 1f;
             }
             case OCTAHEDRON:
                 return (float) Math.abs(dx) / isx + (float) Math.abs(dy) / isy + (float) Math.abs(dz) / isz < 1f;
@@ -141,23 +146,22 @@ public final class BrushUtil {
         }
     }
 
-    public static int[] snapshotBlockIds(World world, int ox, int oy, int oz, int sx, int sy, int sz, int margin) {
-        int dimX = 2 * (sx + margin) + 1;
-        int dimY = 2 * (sy + margin) + 1;
-        int dimZ = 2 * (sz + margin) + 1;
-        int snStX = dimY * dimZ;
-        int[] snap = new int[dimX * dimY * dimZ];
+    public static int[] snapshotBlockIds(World world, Vec3DInt origin, Vec3DInt brushSize, int margin) {
+        int sx = brushSize.x(), sy = brushSize.y(), sz = brushSize.z();
+        Vec3DInt dims = brushSize.plus(margin).times(2).plus(1);
+        int snStX = dims.y() * dims.z();
+        int[] snap = new int[dims.product()];
         int worldMinY = 0, worldMaxY = world.getHeight() - 1;
         for (int dx = -(sx + margin); dx <= sx + margin; dx++) {
             int ix = dx + sx + margin;
             for (int dy = -(sy + margin); dy <= sy + margin; dy++) {
-                int wy = oy + dy;
-                int idx0 = ix * snStX + (dy + sy + margin) * dimZ;
+                int wy = origin.y() + dy;
+                int idx0 = ix * snStX + (dy + sy + margin) * dims.z();
                 for (int dz = -(sz + margin); dz <= sz + margin; dz++) {
                     int idx = idx0 + (dz + sz + margin);
                     if (wy < worldMinY) snap[idx] = -1;
                     else if (wy > worldMaxY) snap[idx] = 0;
-                    else snap[idx] = Block.getIdFromBlock(world.getBlock(ox + dx, wy, oz + dz));
+                    else snap[idx] = Block.getIdFromBlock(world.getBlock(origin.x() + dx, wy, origin.z() + dz));
                 }
             }
         }

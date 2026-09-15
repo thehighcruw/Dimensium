@@ -85,10 +85,10 @@ public final class StampBrushInput implements BrushInput {
 
     private void collectBrushPositions(int cx, int cy, int cz) {
         BrushState bs = BrushState.INSTANCE;
-        BrushUtil.forBrush(bs, (dx, dy, dz) -> {
-            if (dy != 0) return;
-            long key = ChangeProposal.packKey(cx + dx, 0, cz + dz);
-            if (strokeSet.add(key)) strokePositions.add(new int[] {cx + dx, cy, cz + dz});
+        BrushUtil.forBrush(bs, offset -> {
+            if (offset.y() != 0) return;
+            long key = ChangeProposal.packKey(cx + offset.x(), 0, cz + offset.z());
+            if (strokeSet.add(key)) strokePositions.add(new int[] {cx + offset.x(), cy, cz + offset.z()});
         });
     }
 

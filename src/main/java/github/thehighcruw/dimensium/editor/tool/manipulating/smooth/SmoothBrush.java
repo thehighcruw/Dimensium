@@ -8,6 +8,7 @@ import github.thehighcruw.dimensium.editor.tool.brushes.BrushState;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushStrategy;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushUtil;
 import github.thehighcruw.dimensium.editor.tool.brushes.GaussianKernel;
+import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 import java.util.Arrays;
@@ -22,17 +23,15 @@ public class SmoothBrush implements BrushStrategy {
     public void apply(World world, MovingObjectPosition mop) {
         BrushState bs = BrushState.INSTANCE;
         SmoothToolState s = SmoothToolState.INSTANCE;
-        int ox = mop.blockX, oy = mop.blockY, oz = mop.blockZ;
+        Vec3DInt origin = Vec3DInt.from(mop.blockX, mop.blockY, mop.blockZ);
         int sx = Math.min(bs.brushRadius, 12);
         int sy = Math.min(bs.brushShape.hasHeight ? bs.brushHeight : bs.brushRadius, 12);
 
         GaussianKernel kernel = GaussianKernel.build(s.smoothStrength * 0.5f + 0.5f);
         int margin = kernel.kR;
-        int dimX = 2 * (sx + margin) + 1;
-        int dimY = 2 * (sy + margin) + 1;
-        int dimZ = 2 * (sx + margin) + 1;
-        int snStX = dimY * dimZ;
-        int N = dimX * dimY * dimZ;
+        Vec3DInt dims = Vec3DInt.from(sx, sy, sx).plus(margin).times(2).plus(1);
+        int snStX = dims.y() * dims.z();
+        int N = dims.product();
 
         int[] snapId = new int[N];
         int[] snapMeta = new int[N];
@@ -41,8 +40,8 @@ public class SmoothBrush implements BrushStrategy {
             int ix = dx + sx + margin;
             for (int dy = -(sy + margin); dy <= sy + margin; dy++) {
                 int iy = dy + sy + margin;
-                int wy = oy + dy;
-                int idx0 = ix * snStX + iy * dimZ;
+                int wy = origin.y() + dy;
+                int idx0 = ix * snStX + iy * dims.z();
                 for (int dz = -(sx + margin); dz <= sx + margin; dz++) {
                     int idx = idx0 + (dz + sx + margin);
                     if (wy < worldMinY) {
@@ -52,23 +51,24 @@ public class SmoothBrush implements BrushStrategy {
                         snapId[idx] = 0;
                         snapMeta[idx] = 0;
                     } else {
-                        Block b = world.getBlock(ox + dx, wy, oz + dz);
+                        Block b = world.getBlock(origin.x() + dx, wy, origin.z() + dz);
                         snapId[idx] = Block.getIdFromBlock(b);
-                        snapMeta[idx] = world.getBlockMetadata(ox + dx, wy, oz + dz);
+                        snapMeta[idx] = world.getBlockMetadata(origin.x() + dx, wy, origin.z() + dz);
                     }
                 }
             }
         }
 
-        int maxPos = (2 * sx + 1) * (2 * sy + 1) * (2 * sx + 1);
+        int maxPos = Vec3DInt.from(sx, sy, sx).times(2).plus(1).product();
         Vec3DInt[] positions = new Vec3DInt[maxPos];
         int[] pCentre = new int[maxPos];
         int posCount = 0, originalSolid = 0;
         for (int dx = -sx; dx <= sx; dx++)
             for (int dy = -sy; dy <= sy; dy++)
                 for (int dz = -sx; dz <= sx; dz++) {
-                    if (!BrushUtil.inShape(bs.brushShape, dx, dy, dz, sx, sy, sx)) continue;
-                    int ci = (dx + sx + margin) * snStX + (dy + sy + margin) * dimZ + (dz + sx + margin);
+                    if (!BrushUtil.inShape(bs.brushShape, Vec3DInt.from(dx, dy, dz), Vec3DInt.from(sx, sy, sx)))
+                        continue;
+                    int ci = (dx + sx + margin) * snStX + (dy + sy + margin) * dims.z() + (dz + sx + margin);
                     if (snapId[ci] != 0) originalSolid++;
                     positions[posCount] = Vec3DInt.from(dx, dy, dz);
                     pCentre[posCount] = ci;
@@ -97,10 +97,13 @@ public class SmoothBrush implements BrushStrategy {
             int ci = pCentre[i];
             int ix = dx + sx + margin, iy = dy + sy + margin, iz = dz + sx + margin;
 
-            float d = kernel.solidWeight(snapId, Vec3DInt.from(ix, iy, iz), snStX, dimZ) / kernel.totalWeight;
+            float d = kernel.solidWeight(snapId, Vec3DInt.from(ix, iy, iz), snStX, dims.z()) / kernel.totalWeight;
 
             if (s.smoothFixEdges) {
-                float r = Math.max(Math.abs(dx) * invSx, Math.max(Math.abs(dy) * invSy, Math.abs(dz) * invSz));
+                float r = delta.toFloat()
+                        .abs()
+                        .times(Vec3DFloat.from(invSx, invSy, invSz))
+                        .max();
                 if (r > 0.75f) {
                     float ef = (r - 0.75f) * 4f;
                     float origSol = snapId[ci] != 0 ? 1f : 0f;
@@ -115,15 +118,15 @@ public class SmoothBrush implements BrushStrategy {
             int btCount = 0;
             for (int kx = -1; kx <= 1; kx++) {
                 int nx = ix + kx;
-                if (nx < 0 || nx >= dimX) continue;
+                if (nx < 0 || nx >= dims.x()) continue;
                 int nxB = nx * snStX;
                 for (int ky = -1; ky <= 1; ky++) {
                     int ny = iy + ky;
-                    if (ny < 0 || ny >= dimY) continue;
-                    int nyB = nxB + ny * dimZ;
+                    if (ny < 0 || ny >= dims.y()) continue;
+                    int nyB = nxB + ny * dims.z();
                     for (int kz = -1; kz <= 1; kz++) {
                         int nz = iz + kz;
-                        if (nz < 0 || nz >= dimZ) continue;
+                        if (nz < 0 || nz >= dims.z()) continue;
                         int bid = snapId[nyB + nz];
                         if (bid <= 0) continue;
                         boolean found = false;
@@ -177,7 +180,7 @@ public class SmoothBrush implements BrushStrategy {
             } else makeSolid = false;
 
             int ci = pCentre[i];
-            Vec3DInt wp = Vec3DInt.from(ox, oy, oz).plus(positions[i]);
+            Vec3DInt wp = origin.plus(positions[i]);
             if (makeSolid && bestId[i] != 0 && solidAssigned < targetSolid) {
                 if (bestId[i] == snapId[ci]) {
                     solidAssigned++;
@@ -185,12 +188,12 @@ public class SmoothBrush implements BrushStrategy {
                 }
                 Block blk = Block.getBlockById(bestId[i]);
                 if (blk != null) {
-                    ChangeProposal.write(world, wp.x(), wp.y(), wp.z(), blk, bestMeta[i]);
+                    ChangeProposal.write(world, wp, blk, bestMeta[i]);
                     solidAssigned++;
                 }
             } else {
                 if (snapId[ci] == 0) continue;
-                ChangeProposal.write(world, wp.x(), wp.y(), wp.z(), Blocks.air, 0);
+                ChangeProposal.write(world, wp, Blocks.air, 0);
             }
         }
     }

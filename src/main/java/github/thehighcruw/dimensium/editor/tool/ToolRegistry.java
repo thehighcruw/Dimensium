@@ -57,6 +57,7 @@ import github.thehighcruw.dimensium.editor.tool.utility.ruler.RulerSection;
 import github.thehighcruw.dimensium.editor.tool.utility.ruler.RulerToolRenderer;
 import github.thehighcruw.dimensium.editor.window.viewport.world.BrushPreviewRenderer;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.function.Function;
@@ -108,10 +109,10 @@ public final class ToolRegistry {
                 new ToolRenderer() {
 
                     @Override
-                    public boolean isBlockAffected(Minecraft mc, int wx, int wy, int wz) {
+                    public boolean isBlockAffected(Minecraft mc, Vec3DInt wc) {
                         if (!FreehandToolState.INSTANCE.freehandReplaceSolid
-                                && mc.theWorld.getBlock(wx, wy, wz) != Blocks.air) return false;
-                        if (FreehandToolState.INSTANCE.freehandMaskSurface) return hasAirNeighbor(mc, wx, wy, wz);
+                                && mc.theWorld.getBlock(wc.x(), wc.y(), wc.z()) != Blocks.air) return false;
+                        if (FreehandToolState.INSTANCE.freehandMaskSurface) return hasAirNeighbor(mc, wc);
                         return true;
                     }
 
@@ -140,9 +141,9 @@ public final class ToolRegistry {
                 new ToolRenderer() {
 
                     @Override
-                    public boolean isBlockAffected(Minecraft mc, int wx, int wy, int wz) {
-                        if (mc.theWorld.getBlock(wx, wy, wz) == Blocks.air) return false;
-                        if (PainterToolState.INSTANCE.painterMaskSurface) return hasAirNeighbor(mc, wx, wy, wz);
+                    public boolean isBlockAffected(Minecraft mc, Vec3DInt wc) {
+                        if (mc.theWorld.getBlock(wc.x(), wc.y(), wc.z()) == Blocks.air) return false;
+                        if (PainterToolState.INSTANCE.painterMaskSurface) return hasAirNeighbor(mc, wc);
                         return true;
                     }
 
@@ -220,15 +221,15 @@ public final class ToolRegistry {
 
     private static void register(
             Tool tool,
-            java.util.function.Function<ToolStates, ToolSection> sectionFactory,
+            Function<ToolStates, ToolSection> sectionFactory,
             BrushInput brushInput,
             ToolRenderer toolRenderer) {
         REGISTRY.put(tool, new Desc(sectionFactory, brushInput, toolRenderer));
     }
 
-    private static boolean hasAirNeighbor(Minecraft mc, int wx, int wy, int wz) {
+    private static boolean hasAirNeighbor(Minecraft mc, Vec3DInt wc) {
         for (int[] n : FACE_DIRS) {
-            if (mc.theWorld.getBlock(wx + n[0], wy + n[1], wz + n[2]) == Blocks.air) return true;
+            if (mc.theWorld.getBlock(wc.x() + n[0], wc.y() + n[1], wc.z() + n[2]) == Blocks.air) return true;
         }
         return false;
     }

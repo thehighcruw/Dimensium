@@ -15,6 +15,7 @@ import github.thehighcruw.dimensium.shared.util.PerfTrace;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
 import github.thehighcruw.dimensium.tool.BuilderTool;
 import github.thehighcruw.dimensium.tool.BuilderToolState;
+import java.util.HashSet;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
@@ -163,7 +164,7 @@ class HologramRenderer {
             for (int x = 0; x < w; x++) {
                 for (int y = 0; y < h; y++) {
                     for (int z = 0; z < d; z++) {
-                        BlockData bd = sel.clipboardGet(x, y, z);
+                        BlockData bd = sel.clipboardGet(Vec3DInt.from(x, y, z));
                         if (bd.block() == Blocks.air || bd.block().getRenderType() != 0) continue;
                         for (int face = 0; face < 6; face++) {
                             if (isFacingAir(sel, face, x, y, z, w, h, d)) {
@@ -186,7 +187,7 @@ class HologramRenderer {
             for (int x = 0; x < w; x++) {
                 for (int y = 0; y < h; y++) {
                     for (int z = 0; z < d; z++) {
-                        BlockData bd = sel.clipboardGet(x, y, z);
+                        BlockData bd = sel.clipboardGet(Vec3DInt.from(x, y, z));
                         if (bd.block() == Blocks.air || bd.block().getRenderType() == 0) continue;
                         int blockId = Block.getIdFromBlock(bd.block());
                         int rgb = BlockColorCache.INSTANCE.blockColor(blockId, bd.meta());
@@ -223,7 +224,7 @@ class HologramRenderer {
             for (int x = 0; x < w; x++) {
                 for (int y = 0; y < h; y++) {
                     for (int z = 0; z < d; z++) {
-                        BlockData bd = sel.clipboardGet(x, y, z);
+                        BlockData bd = sel.clipboardGet(Vec3DInt.from(x, y, z));
                         if (bd.block() == Blocks.air) continue;
                         for (int face = 0; face < 6; face++) {
                             int nx = x + GhostRenderer.NX[face];
@@ -235,7 +236,9 @@ class HologramRenderer {
                                     && ny < h
                                     && nz >= 0
                                     && nz < d
-                                    && sel.clipboardGet(nx, ny, nz).block() != Blocks.air;
+                                    && sel.clipboardGet(Vec3DInt.from(nx, ny, nz))
+                                                    .block()
+                                            != Blocks.air;
                             if (!neighborOccupied) {
                                 GhostRenderer.addSingleFace(t, Vec3DInt.from(x, y, z), face, 0.02f);
                                 if (++batched % 2048 == 0) {
@@ -281,7 +284,7 @@ class HologramRenderer {
                 || ny >= h
                 || nz < 0
                 || nz >= d
-                || sel.clipboardGet(nx, ny, nz).block() == Blocks.air;
+                || sel.clipboardGet(Vec3DInt.from(nx, ny, nz)).block() == Blocks.air;
     }
 
     private void ensureClipWireframeCache(SelectionState sel) {
@@ -294,11 +297,12 @@ class HologramRenderer {
         if (sel.clipboard == null) return new float[0];
         int w = sel.clipDim.x(), h = sel.clipDim.y(), d = sel.clipDim.z();
 
-        java.util.HashSet<Long> set = new java.util.HashSet<>(w * h * d);
+        HashSet<Long> set = new HashSet<>(w * h * d);
         for (int x = 0; x < w; x++)
             for (int y = 0; y < h; y++)
                 for (int z = 0; z < d; z++)
-                    if (sel.clipboardGet(x, y, z).block() != Blocks.air) set.add(SelectionRenderer.lPack(x, y, z));
+                    if (sel.clipboardGet(Vec3DInt.from(x, y, z)).block() != Blocks.air)
+                        set.add(SelectionRenderer.lPack(x, y, z));
 
         return GhostRenderer.creaseWireframeFromSet(set);
     }

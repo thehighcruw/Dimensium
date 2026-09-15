@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.IntSupplier;
 import net.minecraft.client.resources.I18n;
+import net.minecraft.client.settings.KeyBinding;
 import org.lwjgl.input.Keyboard;
 
 @SideOnly(Side.CLIENT)
@@ -622,7 +623,7 @@ public class SettingsModal {
         ImGui.spacing();
 
         for (Tool tool : Tool.values()) {
-            net.minecraft.client.settings.KeyBinding kb = Dimensium.toolKeybinds.get(tool);
+            KeyBinding kb = Dimensium.toolKeybinds.get(tool);
             int mods = Dimensium.toolKeybindMods.getOrDefault(tool, 0);
             ImGui.text(I18n.format(tool.label));
             ImGui.sameLine(labelW);

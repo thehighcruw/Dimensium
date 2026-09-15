@@ -20,6 +20,7 @@ import java.util.LinkedList;
 import java.util.List;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 
 /** Persisted MRU list of picked blocks. */
@@ -87,7 +88,7 @@ public class RecentBlockHistory {
                 String blockName = line.substring(0, lastColon);
                 int meta = Integer.parseInt(line.substring(lastColon + 1));
                 Block b = (Block) Block.blockRegistry.getObject(blockName);
-                if (b == null || b == net.minecraft.init.Blocks.air) continue;
+                if (b == null || b == Blocks.air) continue;
                 history.addLast(new ItemStack(b, 1, meta));
             }
         } catch (IOException | NumberFormatException ignored) {

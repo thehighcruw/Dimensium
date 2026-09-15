@@ -17,11 +17,13 @@ import github.thehighcruw.dimensium.shared.KeyConstants;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
+import github.thehighcruw.dimensium.shared.util.WorldUtils;
 import java.util.HashSet;
 import java.util.Set;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.world.World;
 import org.lwjgl.input.Mouse;
 
 @SideOnly(Side.CLIENT)
@@ -70,12 +72,12 @@ public class FreehandSelectBrushInput implements BrushInput {
         BrushState bs = BrushState.INSTANCE;
         boolean includeAir = FreehandToolState.INSTANCE.includeAir;
         int cx = mop.blockX, cy = mop.blockY, cz = mop.blockZ;
-        net.minecraft.world.World world = Minecraft.getMinecraft().theWorld;
+        World world = Minecraft.getMinecraft().theWorld;
         Set<Long> blocks = new HashSet<>();
-        BrushUtil.forBrush(bs, (dx, dy, dz) -> {
-            int wx = cx + dx, wy = cy + dy, wz = cz + dz;
-            if (includeAir || world.getBlock(wx, wy, wz) != Blocks.air) {
-                blocks.add(SelectionState.pack(Vec3DInt.from(wx, wy, wz)));
+        BrushUtil.forBrush(bs, offset -> {
+            Vec3DInt wc = Vec3DInt.from(cx, cy, cz).plus(offset);
+            if (includeAir || WorldUtils.getBlock(world, wc) != Blocks.air) {
+                blocks.add(SelectionState.pack(wc));
             }
         });
         SelectionState.INSTANCE.applyOp(ToolMaskRegistry.INSTANCE.filterSelection(blocks), BooleanOp.ADD);

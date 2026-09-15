@@ -25,6 +25,7 @@ import java.util.Map;
 import javax.annotation.Nonnull;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.init.Blocks;
 import net.minecraft.util.MovingObjectPosition;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
@@ -37,9 +38,7 @@ public class BrushPreviewRenderer {
     private static final int BRUSH_VOXEL_MAX = 100_000;
 
     private BrushShape cachedBrushShape = null;
-    private int cachedBrushSize = -1;
-    private int cachedBrushSizeY = -1;
-    private int cachedBrushSizeZ = -1;
+    private Vec3DInt cachedBrushSize = Vec3DInt.from(-1);
     private float cachedThreshold = -1f;
     private float[] cachedBrushWire = null;
     private HashSet<Long> cachedBrushSet = null;
@@ -55,6 +54,7 @@ public class BrushPreviewRenderer {
         int sx = bs.brushRadius;
         int sy = bs.brushShape.hasHeight ? bs.brushHeight : bs.brushRadius;
         BrushShape shape = bs.brushShape;
+        Vec3DInt brushSize = Vec3DInt.from(sx, sy, sx);
 
         if (renderer.renderHover(mop, camPos)) return;
 
@@ -65,12 +65,12 @@ public class BrushPreviewRenderer {
                 // Accumulate solid blocks from all drag positions visited so far + current cursor.
                 // Uses absolute world-coord packing (20 bits/axis, offset 524288).
                 HashSet<Long> absSet = new HashSet<>();
-                collectSolidAbsolute(mc, shape, bx, by, bz, sx, sy, sx, absSet);
+                collectSolidAbsolute(mc, shape, bx, by, bz, brushSize, absSet);
                 for (long pk : TickHandler.INSTANCE.getSmoothDragPositions()) {
                     int cx2 = (int) ((pk >> 42) & 0x1FFFFF) - 1048576;
                     int cy2 = (int) ((pk >> 21) & 0x1FFFFF) - 1048576;
                     int cz2 = (int) (pk & 0x1FFFFF) - 1048576;
-                    collectSolidAbsolute(mc, shape, cx2, cy2, cz2, sx, sy, sx, absSet);
+                    collectSolidAbsolute(mc, shape, cx2, cy2, cz2, brushSize, absSet);
                 }
                 float[] wire = creaseWireframeAbsolute(absSet);
                 if (wire != null && wire.length > 0) {
@@ -88,8 +88,8 @@ public class BrushPreviewRenderer {
                 for (int dx = -sx; dx <= sx; dx++)
                     for (int dy = -sy; dy <= sy; dy++)
                         for (int dz = -sx; dz <= sx; dz++) {
-                            if (!inBrushShape(shape, dx, dy, dz, sx, sy, sx)) continue;
-                            if (renderer.isBlockAffected(mc, bx + dx, by + dy, bz + dz))
+                            if (!BrushUtil.inShape(shape, Vec3DInt.from(dx, dy, dz), brushSize)) continue;
+                            if (renderer.isBlockAffected(mc, Vec3DInt.from(bx + dx, by + dy, bz + dz)))
                                 affectedSet.add(SelectionRenderer.lPack(dx + sx, dy + sy, dz + sx));
                         }
 
@@ -137,7 +137,7 @@ public class BrushPreviewRenderer {
             }
         } else {
             // Static brush-shape preview: transparent white faces + white crease edges
-            float[] wire = getBrushWireframe(shape, sx, sy, sx);
+            float[] wire = getBrushWireframe(shape, brushSize);
             GL11.glPushMatrix();
             Vec3DDouble shapeTrans = Vec3DDouble.from(bx - sx - rx, by - sy - ry, bz - sx - rz);
             GL11.glTranslated(shapeTrans.x(), shapeTrans.y(), shapeTrans.z());
@@ -198,30 +198,24 @@ public class BrushPreviewRenderer {
         }
     }
 
-    private float[] getBrushWireframe(BrushShape shape, int sx, int sy, int sz) {
+    private float[] getBrushWireframe(BrushShape shape, Vec3DInt brushSize) {
         float thr = DimensiumConfig.shapeThreshold;
-        if (shape == cachedBrushShape
-                && sx == cachedBrushSize
-                && sy == cachedBrushSizeY
-                && sz == cachedBrushSizeZ
-                && thr == cachedThreshold) return cachedBrushWire;
+        if (shape == cachedBrushShape && brushSize.equals(cachedBrushSize) && thr == cachedThreshold)
+            return cachedBrushWire;
         cachedBrushShape = shape;
-        cachedBrushSize = sx;
-        cachedBrushSizeY = sy;
-        cachedBrushSizeZ = sz;
+        cachedBrushSize = brushSize;
         cachedThreshold = thr;
-        cachedBrushSet = buildBrushSet(shape, sx, sy, sz);
+        cachedBrushSet = buildBrushSet(shape, brushSize);
         cachedBrushWire = cachedBrushSet != null ? creaseWireframeFromSet(cachedBrushSet) : null;
         return cachedBrushWire;
     }
 
-    private static HashSet<Long> buildBrushSet(BrushShape shape, int sx, int sy, int sz) {
+    private static HashSet<Long> buildBrushSet(BrushShape shape, Vec3DInt brushSize) {
         HashSet<Long> set = new HashSet<>();
-        for (int dx = -sx; dx <= sx; dx++)
-            for (int dy = -sy; dy <= sy; dy++)
-                for (int dz = -sz; dz <= sz; dz++)
-                    if (inBrushShape(shape, dx, dy, dz, sx, sy, sz))
-                        set.add(SelectionRenderer.lPack(dx + sx, dy + sy, dz + sz));
+        Vec3DInt.forEachInclusive(brushSize.negate(), brushSize, (dx, dy, dz) -> {
+            if (BrushUtil.inShape(shape, Vec3DInt.from(dx, dy, dz), brushSize))
+                set.add(SelectionRenderer.lPack(dx + brushSize.x(), dy + brushSize.y(), dz + brushSize.z()));
+        });
         return set.size() > BRUSH_VOXEL_MAX ? null : set;
     }
 
@@ -244,14 +238,12 @@ public class BrushPreviewRenderer {
     }
 
     private static void collectSolidAbsolute(
-            Minecraft mc, BrushShape shape, int cx, int cy, int cz, int sx, int sy, int sz, HashSet<Long> out) {
-        for (int dx = -sx; dx <= sx; dx++)
-            for (int dy = -sy; dy <= sy; dy++)
-                for (int dz = -sz; dz <= sz; dz++) {
-                    if (!inBrushShape(shape, dx, dy, dz, sx, sy, sz)) continue;
-                    if (mc.theWorld.getBlock(cx + dx, cy + dy, cz + dz) != net.minecraft.init.Blocks.air)
-                        out.add(wPack(cx + dx, cy + dy, cz + dz));
-                }
+            Minecraft mc, BrushShape shape, int cx, int cy, int cz, Vec3DInt brushSize, HashSet<Long> out) {
+        Vec3DInt.forEachInclusive(brushSize.negate(), brushSize, (dx, dy, dz) -> {
+            if (!BrushUtil.inShape(shape, Vec3DInt.from(dx, dy, dz), brushSize)) return;
+            if (mc.theWorld.getBlock(cx + dx, cy + dy, cz + dz) != Blocks.air)
+                out.add(wPack(cx + dx, cy + dy, cz + dz));
+        });
     }
 
     private static float[] creaseWireframeAbsolute(HashSet<Long> set) {
@@ -300,9 +292,5 @@ public class BrushPreviewRenderer {
             }
         }
         return edgeMask;
-    }
-
-    static boolean inBrushShape(BrushShape shape, int dx, int dy, int dz, int sx, int sy, int sz) {
-        return BrushUtil.inShape(shape, dx, dy, dz, sx, sy, sz);
     }
 }

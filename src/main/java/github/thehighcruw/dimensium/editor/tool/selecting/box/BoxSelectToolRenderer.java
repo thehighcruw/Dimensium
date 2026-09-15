@@ -11,6 +11,7 @@ import github.thehighcruw.dimensium.editor.window.viewport.world.SelectionRender
 import github.thehighcruw.dimensium.editor.window.viewport.world.TranslationGizmo;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.MovingObjectPosition;
@@ -23,7 +24,7 @@ public class BoxSelectToolRenderer implements ToolRenderer {
     private BoxSelectToolRenderer() {}
 
     @Override
-    public boolean isBlockAffected(Minecraft mc, int wx, int wy, int wz) {
+    public boolean isBlockAffected(Minecraft mc, Vec3DInt wc) {
         return false;
     }
 

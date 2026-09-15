@@ -40,6 +40,7 @@ import github.thehighcruw.dimensium.editor.window.viewport.ViewportPanel;
 import github.thehighcruw.dimensium.shared.BlockColorCache;
 import github.thehighcruw.dimensium.shared.KeyConstants;
 import github.thehighcruw.dimensium.shared.SelectionState;
+import github.thehighcruw.dimensium.shared.math.Vec2DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.PerfTrace;
@@ -60,11 +61,13 @@ import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.TextureMap;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import org.lwjgl.BufferUtils;
+import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
 @SideOnly(Side.CLIENT)
@@ -123,7 +126,7 @@ public class SelectionRenderer {
         if (player == null) return;
 
         float pt = event.partialTicks;
-        net.minecraft.entity.Entity cam = mc.renderViewEntity != null ? mc.renderViewEntity : player;
+        Entity cam = mc.renderViewEntity != null ? mc.renderViewEntity : player;
         Vec3DDouble camPos = Vec3DDouble.from(
                 cam.lastTickPosX + (cam.posX - cam.lastTickPosX) * pt,
                 cam.lastTickPosY + (cam.posY - cam.lastTickPosY) * pt,
@@ -171,10 +174,7 @@ public class SelectionRenderer {
             if (gs.gradientHasPos1) {
                 MovingObjectPosition gmop = RenderUtils.raycastAtCursor();
                 if (gmop != null && gmop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-                    Vec3DDouble p1 = Vec3DDouble.from(
-                            gs.gradientPos1X + 0.5 - camPos.x(),
-                            gs.gradientPos1Y + 0.5 - camPos.y(),
-                            gs.gradientPos1Z + 0.5 - camPos.z());
+                    Vec3DDouble p1 = gs.gradientPos1.toDouble().plus(0.5).minus(camPos);
                     Vec3DDouble p2 = Vec3DDouble.from(
                             gmop.blockX + 0.5 - camPos.x(),
                             gmop.blockY + 0.5 - camPos.y(),
@@ -185,10 +185,7 @@ public class SelectionRenderer {
                     gTess.startDrawingQuads();
                     WorldLines.addSegment(gTess, p1, p2, WorldLines.W_SEL);
                     gTess.draw();
-                    Vec3DDouble gradTrans = Vec3DDouble.from(
-                            gs.gradientPos1X - camPos.x(),
-                            gs.gradientPos1Y - camPos.y(),
-                            gs.gradientPos1Z - camPos.z());
+                    Vec3DDouble gradTrans = gs.gradientPos1.toDouble().minus(camPos);
                     GL11.glPushMatrix();
                     GL11.glTranslated(gradTrans.x(), gradTrans.y(), gradTrans.z());
                     GL11.glColor4f(0.6f, 0.3f, 1.0f, 1.0f);
@@ -727,9 +724,7 @@ public class SelectionRenderer {
         MagicSelectToolState ts = MagicSelectToolState.INSTANCE;
         Set<Long> flooded = SelectionState.floodFill(
                 mc.theWorld,
-                mop.blockX,
-                mop.blockY,
-                mop.blockZ,
+                Vec3DInt.from(mop.blockX, mop.blockY, mop.blockZ),
                 ts.magicSelectLimit,
                 ts.magicSelectRange,
                 ts.magicSelectSurface,
@@ -939,7 +934,7 @@ public class SelectionRenderer {
         int cx = mop.blockX, cz = mop.blockZ;
         int radius = Math.max(1, s.elevationRadius);
 
-        boolean held = org.lwjgl.input.Mouse.isButtonDown(KeyConstants.RMB);
+        boolean held = Mouse.isButtonDown(KeyConstants.RMB);
         float pulse = held ? 0.10f * (float) Math.sin(System.currentTimeMillis() / 180.0) : 0f;
 
         Tessellator t = Tessellator.instance;
@@ -948,7 +943,7 @@ public class SelectionRenderer {
         t.startDrawingQuads();
         for (int dx = -radius; dx <= radius; dx++) {
             for (int dz = -radius; dz <= radius; dz++) {
-                float r = (float) Math.sqrt(dx * dx + dz * dz) / radius;
+                float r = Vec2DFloat.from(dx, dz).length() / radius;
                 if (r > 1f) continue;
 
                 float weight = ElevationBrush.falloff(s.elevationFalloff, r);
@@ -984,13 +979,13 @@ public class SelectionRenderer {
         t.startDrawingQuads();
         for (int dx = -radius; dx <= radius; dx++) {
             for (int dz = -radius; dz <= radius; dz++) {
-                float r = (float) Math.sqrt(dx * dx + dz * dz) / radius;
+                float r = Vec2DFloat.from(dx, dz).length() / radius;
                 if (r > 1f) continue;
 
                 int wx = cx + dx, wz = cz + dz;
                 double topY = elevPreviewTopY(mc, wx, wz) + 1.002;
 
-                if ((float) Math.sqrt((dx + 1) * (dx + 1) + dz * dz) / radius > 1f) {
+                if (Vec2DFloat.from(dx + 1, dz).length() > radius) {
                     WorldLines.addSegment(
                             t,
                             wx + 1 - camPos.x(),
@@ -1001,7 +996,7 @@ public class SelectionRenderer {
                             wz + 1 - camPos.z(),
                             WorldLines.W_THIN);
                 }
-                if ((float) Math.sqrt((dx - 1) * (dx - 1) + dz * dz) / radius > 1f) {
+                if (Vec2DFloat.from(dx - 1, dz).length() > radius) {
                     WorldLines.addSegment(
                             t,
                             wx - camPos.x(),
@@ -1012,7 +1007,7 @@ public class SelectionRenderer {
                             wz + 1 - camPos.z(),
                             WorldLines.W_THIN);
                 }
-                if ((float) Math.sqrt(dx * dx + (dz + 1) * (dz + 1)) / radius > 1f) {
+                if (Vec2DFloat.from(dx, dz + 1).length() > radius) {
                     WorldLines.addSegment(
                             t,
                             wx - camPos.x(),
@@ -1023,7 +1018,7 @@ public class SelectionRenderer {
                             wz + 1 - camPos.z(),
                             WorldLines.W_THIN);
                 }
-                if ((float) Math.sqrt(dx * dx + (dz - 1) * (dz - 1)) / radius > 1f) {
+                if (Vec2DFloat.from(dx, dz - 1).length() > radius) {
                     WorldLines.addSegment(
                             t,
                             wx - camPos.x(),

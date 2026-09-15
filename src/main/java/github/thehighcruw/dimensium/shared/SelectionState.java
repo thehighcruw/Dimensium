@@ -9,13 +9,12 @@ import github.thehighcruw.dimensium.DimensiumConfig;
 import github.thehighcruw.dimensium.editor.tool.selecting.BooleanOp;
 import github.thehighcruw.dimensium.editor.tool.selecting.magic.MagicSelectToolState;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import github.thehighcruw.dimensium.shared.util.BlockUtils;
 import github.thehighcruw.dimensium.shared.util.WorldUtils;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
@@ -75,8 +74,8 @@ public class SelectionState {
         return !selectedBlocks.isEmpty();
     }
 
-    public boolean contains(int x, int y, int z) {
-        return selectedBlocks.contains(pack(Vec3DInt.from(x, y, z)));
+    public boolean contains(Vec3DInt c) {
+        return selectedBlocks.contains(pack(c));
     }
 
     public Set<Long> getSelectedBlocks() {
@@ -190,50 +189,45 @@ public class SelectionState {
 
     public static Set<Long> floodFill(
             World world,
-            int sx,
-            int sy,
-            int sz,
+            Vec3DInt start,
             int limit,
             int range,
             boolean surfaceOnly,
             boolean corners,
             MagicSelectToolState.MagicCompareType compareType,
             MagicSelectToolState.MagicDirection direction) {
-        Block targetBlock = world.getBlock(sx, sy, sz);
-        int targetMeta = world.getBlockMetadata(sx, sy, sz);
+        Block targetBlock = WorldUtils.getBlock(world, start);
+        int targetMeta = WorldUtils.getBlockMetadata(world, start);
         if (targetBlock == Blocks.air) return new HashSet<>();
 
-        int[][] dirs6 = {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
-        int[][] dirs26 = buildDirs26();
-        int[][] allDirs = corners ? dirs26 : dirs6;
+        Vec3DInt[] allDirs = corners ? BlockUtils.NEIGHBOURS_26_OFFSETS : BlockUtils.NEIGHBOUR_OFFSETS;
 
         Set<Long> visited = new HashSet<>();
         Queue<Vec3DInt> queue = new LinkedList<>();
         Set<Long> result = new HashSet<>();
 
-        Vec3DInt start = Vec3DInt.from(sx, sy, sz);
         visited.add(pack(start));
         queue.add(start);
 
         while (!queue.isEmpty() && result.size() < limit) {
             Vec3DInt cur = queue.poll();
 
-            if (surfaceOnly && !isExposedToAir(world, cur.x(), cur.y(), cur.z(), dirs6)) continue;
+            if (surfaceOnly && !isExposedToAir(world, cur)) continue;
 
             result.add(pack(cur));
 
             for (int r = 1; r <= range; r++) {
-                for (int[] d : allDirs) {
+                for (Vec3DInt d : allDirs) {
                     // direction filter
-                    if (direction == MagicSelectToolState.MagicDirection.UP_ONLY && d[1] < 0) continue;
-                    if (direction == MagicSelectToolState.MagicDirection.DOWN_ONLY && d[1] > 0) continue;
+                    if (direction == MagicSelectToolState.MagicDirection.UP_ONLY && d.y() < 0) continue;
+                    if (direction == MagicSelectToolState.MagicDirection.DOWN_ONLY && d.y() > 0) continue;
 
-                    Vec3DInt nb = Vec3DInt.from(cur.x() + d[0] * r, cur.y() + d[1] * r, cur.z() + d[2] * r);
+                    Vec3DInt nb = cur.plus(d.times(r));
                     if (nb.y() < 0 || nb.y() > 255) continue;
                     long nk = pack(nb);
                     if (visited.contains(nk)) continue;
                     visited.add(nk);
-                    if (matches(world, nb.x(), nb.y(), nb.z(), targetBlock, targetMeta, compareType)) {
+                    if (matches(world, nb, targetBlock, targetMeta, compareType)) {
                         queue.add(nb);
                     }
                 }
@@ -244,69 +238,55 @@ public class SelectionState {
 
     private static boolean matches(
             World world,
-            int x,
-            int y,
-            int z,
+            Vec3DInt c,
             Block targetBlock,
             int targetMeta,
             MagicSelectToolState.MagicCompareType compareType) {
-        Block b = world.getBlock(x, y, z);
+        Block b = WorldUtils.getBlock(world, c);
         return switch (compareType) {
-            case BLOCK_STATE -> b == targetBlock && world.getBlockMetadata(x, y, z) == targetMeta;
+            case BLOCK_STATE -> b == targetBlock && WorldUtils.getBlockMetadata(world, c) == targetMeta;
             case BLOCK -> b == targetBlock;
             case SOLID -> b.isOpaqueCube();
             case ANY -> b != Blocks.air;
         };
     }
 
-    private static boolean isExposedToAir(World world, int x, int y, int z, int[][] dirs6) {
-        for (int[] d : dirs6) {
-            int nx = x + d[0], ny = y + d[1], nz = z + d[2];
-            if (ny < 0 || ny > 255) continue;
-            if (world.getBlock(nx, ny, nz) == Blocks.air) return true;
+    private static boolean isExposedToAir(World world, Vec3DInt c) {
+        for (Vec3DInt d : BlockUtils.NEIGHBOUR_OFFSETS) {
+            Vec3DInt n = c.plus(d);
+            if (n.y() < 0 || n.y() > 255) continue;
+            if (WorldUtils.getBlock(world, n) == Blocks.air) return true;
         }
         return false;
-    }
-
-    private static int[][] buildDirs26() {
-        List<int[]> list = new ArrayList<>();
-        for (int dx = -1; dx <= 1; dx++)
-            for (int dy = -1; dy <= 1; dy++)
-                for (int dz = -1; dz <= 1; dz++) if (dx != 0 || dy != 0 || dz != 0) list.add(new int[] {dx, dy, dz});
-        return list.toArray(new int[0][]);
     }
 
     /**
      * Flood-fill air blocks starting from an air block, optionally directional.
      */
-    public static Set<Long> floodFillAir(
-            World world, int sx, int sy, int sz, int limit, boolean goDown, boolean corners) {
-        if (world.getBlock(sx, sy, sz) != Blocks.air) return new HashSet<>();
+    public static Set<Long> floodFillAir(World world, Vec3DInt start, int limit, boolean goDown, boolean corners) {
+        if (WorldUtils.getBlock(world, start) != Blocks.air) return new HashSet<>();
 
-        int[][] dirs6 = {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
-        int[][] dirs26 = buildDirs26();
-        int[][] dirs = corners ? dirs26 : dirs6;
+        Vec3DInt[] dirs = corners ? BlockUtils.NEIGHBOURS_26_OFFSETS : BlockUtils.NEIGHBOUR_OFFSETS;
 
         Set<Long> visited = new HashSet<>();
         Queue<Vec3DInt> queue = new LinkedList<>();
         Set<Long> result = new HashSet<>();
 
-        Vec3DInt start2 = Vec3DInt.from(sx, sy, sz);
-        visited.add(pack(start2));
-        queue.add(start2);
+        visited.add(pack(start));
+        queue.add(start);
 
         while (!queue.isEmpty() && result.size() < limit) {
             Vec3DInt cur = queue.poll();
             result.add(pack(cur));
-            for (int[] d : dirs) {
-                Vec3DInt nb = Vec3DInt.from(cur.x() + d[0], cur.y() + d[1], cur.z() + d[2]);
+            for (Vec3DInt d : dirs) {
+                Vec3DInt nb = cur.plus(d);
                 if (nb.y() < 0 || nb.y() > 255) continue;
                 if (goDown && nb.y() > cur.y()) continue;
                 if (!goDown && nb.y() < cur.y()) continue;
                 long nk = pack(nb);
                 if (visited.contains(nk)) continue;
                 visited.add(nk);
-                if (world.getBlock(nb.x(), nb.y(), nb.z()) == Blocks.air) {
+                if (WorldUtils.getBlock(world, nb) == Blocks.air) {
                     queue.add(nb);
                 }
             }
@@ -339,9 +319,9 @@ public class SelectionState {
     /**
      * Returns the block at clipboard-local (x,y,z), or AIR if absent or out of bounds.
      */
-    public BlockData clipboardGet(int x, int y, int z) {
+    public BlockData clipboardGet(Vec3DInt c) {
         if (clipboard == null) return BlockData.AIR;
-        BlockData bd = clipboard.get(clipboardKey(x, y, z));
+        BlockData bd = clipboard.get(clipboardKey(c.x(), c.y(), c.z()));
         return bd != null ? bd : BlockData.AIR;
     }
 
@@ -356,12 +336,13 @@ public class SelectionState {
         clipDim = Vec3DInt.from(w, h, d);
         Map<Long, BlockData> map = new HashMap<>();
         clipboardVersion++;
-        int ox = minX(), oy = minY(), oz = minZ();
+        Vec3DInt clipOrigin = Vec3DInt.from(minX(), minY(), minZ());
         clipDim.forEach((x, y, z) -> {
-            if (contains(ox + x, oy + y, oz + z)) {
-                Block block = world.getBlock(ox + x, oy + y, oz + z);
+            Vec3DInt wc = clipOrigin.plus(x, y, z);
+            if (contains(wc)) {
+                Block block = WorldUtils.getBlock(world, wc);
                 if (block != Blocks.air) {
-                    int meta = world.getBlockMetadata(ox + x, oy + y, oz + z);
+                    int meta = WorldUtils.getBlockMetadata(world, wc);
                     map.put(clipboardKey(x, y, z), new BlockData(block, meta));
                 }
             }
@@ -414,13 +395,13 @@ public class SelectionState {
     public static @Nullable BlockInfo unpackBlock(long key) {
         Vec3DInt coord = SelectionState.unpack(key);
 
-        Block block = WorldUtils.getWorldBlock(coord);
+        Block block = WorldUtils.getBlock(coord);
         if (block == null || block == Blocks.air) return null;
 
         Item item = Item.getItemFromBlock(block);
         if (item == null) return new BlockInfo(coord, block, null, -1);
 
-        int meta = WorldUtils.getWorldBlockMeta(coord);
+        int meta = WorldUtils.getBlockMetadata(coord);
         return new BlockInfo(coord, block, item, meta);
     }
 

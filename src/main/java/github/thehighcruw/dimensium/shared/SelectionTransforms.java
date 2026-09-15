@@ -8,6 +8,7 @@ import github.thehighcruw.dimensium.editor.tool.brushes.GaussianKernel;
 import github.thehighcruw.dimensium.editor.tool.creating.modelling.ModellingMath;
 import github.thehighcruw.dimensium.editor.tool.creating.modelling.ModellingToolState.ModelPoint;
 import github.thehighcruw.dimensium.editor.tool.noise.NoiseSampler;
+import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -162,12 +163,8 @@ public final class SelectionTransforms {
         // Voxelize hull surface
         int[] dummy = {1, 0};
         Map<Long, int[]> surfaceMap = new HashMap<>();
-        double[][] P = new double[pts.size()][3];
-        for (int i = 0; i < pts.size(); i++) {
-            P[i][0] = pts.get(i).pos().x();
-            P[i][1] = pts.get(i).pos().y();
-            P[i][2] = pts.get(i).pos().z();
-        }
+        Vec3DDouble[] P = new Vec3DDouble[pts.size()];
+        for (int i = 0; i < pts.size(); i++) P[i] = pts.get(i).pos().toDouble();
         for (int[] f : faces) {
             ModellingMath.voxelizeTriangleDPublic(surfaceMap, P[f[0]], P[f[1]], P[f[2]], dummy);
         }

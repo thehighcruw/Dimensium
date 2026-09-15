@@ -60,10 +60,13 @@ import github.thehighcruw.dimensium.tool.BuilderTool;
 import github.thehighcruw.dimensium.tool.BuilderToolState;
 import github.thehighcruw.dimensium.tool.BuilderToolState.Phase;
 import imgui.ImGui;
+import imgui.flag.ImGuiCol;
+import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiDockNodeFlags;
 import imgui.flag.ImGuiStyleVar;
 import imgui.flag.ImGuiWindowFlags;
 import java.io.File;
+import java.util.Deque;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.Tessellator;
@@ -506,9 +509,9 @@ public class OverlayRenderer {
     private static void renderDockSpace(int sw, int sh) {
         float menuH = MenuBar.INSTANCE.height();
         float statusH = StatusBar.INSTANCE.height();
-        ImGui.setNextWindowPos(0, menuH, imgui.flag.ImGuiCond.Always);
-        ImGui.setNextWindowSize(sw, sh - menuH - statusH + 1, imgui.flag.ImGuiCond.Always);
-        ImGui.pushStyleColor(imgui.flag.ImGuiCol.WindowBg, 0.13f, 0.13f, 0.13f, 1f);
+        ImGui.setNextWindowPos(0, menuH, ImGuiCond.Always);
+        ImGui.setNextWindowSize(sw, sh - menuH - statusH + 1, ImGuiCond.Always);
+        ImGui.pushStyleColor(ImGuiCol.WindowBg, 0.13f, 0.13f, 0.13f, 1f);
         int dsFlags = ImGuiWindowFlags.NoTitleBar
                 | ImGuiWindowFlags.NoResize
                 | ImGuiWindowFlags.NoMove
@@ -543,7 +546,7 @@ public class OverlayRenderer {
         ViewState vs = ViewState.INSTANCE;
         if (!vs.showKeyPresses) return;
 
-        java.util.Deque<ViewState.KeyPressEntry> log = vs.keyLog();
+        Deque<ViewState.KeyPressEntry> log = vs.keyLog();
         if (log.isEmpty()) return;
 
         long now = System.currentTimeMillis();
@@ -575,7 +578,7 @@ public class OverlayRenderer {
         for (ViewState.KeyPressEntry entry : log) {
             float age = (now - entry.timeMs) / (float) ViewState.FADE_MS;
             float alpha = 1.0f - age * age;
-            ImGui.pushStyleColor(imgui.flag.ImGuiCol.Text, 1.0f, 1.0f, 1.0f, alpha);
+            ImGui.pushStyleColor(ImGuiCol.Text, 1.0f, 1.0f, 1.0f, alpha);
             ImGui.text(entry.label);
             ImGui.popStyleColor();
         }

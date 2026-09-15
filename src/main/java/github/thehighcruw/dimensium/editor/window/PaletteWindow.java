@@ -17,8 +17,10 @@ import github.thehighcruw.dimensium.editor.window.imgui.ToggleableWindow;
 import github.thehighcruw.dimensium.editor.window.panel.PanelSection;
 import imgui.ImGui;
 import imgui.flag.ImGuiCond;
+import imgui.flag.ImGuiDragDropFlags;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import net.minecraft.block.Block;
 import net.minecraft.client.resources.I18n;
@@ -191,7 +193,7 @@ public class PaletteWindow extends ToggleableWindow {
                 setActive(stack);
             }
 
-            if (ImGui.beginDragDropSource(imgui.flag.ImGuiDragDropFlags.None)) {
+            if (ImGui.beginDragDropSource(ImGuiDragDropFlags.None)) {
                 byte[] payload = blockToPayload(stack);
                 ImGui.setDragDropPayload(DRAG_TYPE, payload, payload.length);
                 DeferredItemRender.placeDummy(stack, cellSize);
@@ -237,11 +239,11 @@ public class PaletteWindow extends ToggleableWindow {
         Block b = Block.getBlockFromItem(stack.getItem());
         String name = Block.blockRegistry.getNameForObject(b);
         String s = name + ":" + stack.getItemDamage();
-        return s.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        return s.getBytes(StandardCharsets.UTF_8);
     }
 
     private static ItemStack blockFromPayload(byte[] data) {
-        String s = new String(data, java.nio.charset.StandardCharsets.UTF_8);
+        String s = new String(data, StandardCharsets.UTF_8);
         int last = s.lastIndexOf(':');
         if (last < 1) return null;
         String blockName = s.substring(0, last);

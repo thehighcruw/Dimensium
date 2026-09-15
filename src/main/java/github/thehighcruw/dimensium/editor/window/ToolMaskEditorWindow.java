@@ -30,16 +30,20 @@ import github.thehighcruw.dimensium.editor.tool.mask.YMask;
 import github.thehighcruw.dimensium.editor.window.imgui.DeferredItemRender;
 import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
 import github.thehighcruw.dimensium.editor.window.imgui.ToggleableWindow;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import imgui.ImDrawList;
 import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiCond;
+import imgui.flag.ImGuiInputTextFlags;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
 import imgui.type.ImInt;
 import imgui.type.ImString;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Locale;
 import net.minecraft.block.Block;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.init.Blocks;
@@ -120,10 +124,9 @@ public class ToolMaskEditorWindow extends ToggleableWindow {
             ImGui.setNextItemWidth(-1f);
             ImGui.inputTextWithHint(
                     "##mask_search", I18n.format("dimensium.mask.editor.search_hint"), maskSearchFilter);
-            String filter = maskSearchFilter.get().toLowerCase(java.util.Locale.ROOT);
+            String filter = maskSearchFilter.get().toLowerCase(Locale.ROOT);
             for (ToolMask m : all) {
-                if (!filter.isEmpty()
-                        && !m.getName().toLowerCase(java.util.Locale.ROOT).contains(filter)) continue;
+                if (!filter.isEmpty() && !m.getName().toLowerCase(Locale.ROOT).contains(filter)) continue;
                 boolean sel = (m == editingMask);
                 if (ImGui.selectable(m.getName(), sel)) {
                     editingMask = m;
@@ -159,7 +162,7 @@ public class ToolMaskEditorWindow extends ToggleableWindow {
         String str = editingMask.toMaskString();
         ImGui.pushStyleColor(ImGuiCol.FrameBg, 0.15f, 0.15f, 0.15f, 1f);
         ImGui.setNextItemWidth(-1f);
-        ImGui.inputText("##mask_str", new ImString(str, str.length() + 1), imgui.flag.ImGuiInputTextFlags.ReadOnly);
+        ImGui.inputText("##mask_str", new ImString(str, str.length() + 1), ImGuiInputTextFlags.ReadOnly);
         ImGui.popStyleColor();
     }
 
@@ -218,20 +221,20 @@ public class ToolMaskEditorWindow extends ToggleableWindow {
     private void renderPaletteItem(String type) {
         ImGui.selectable(type);
         if (ImGui.beginDragDropSource()) {
-            ImGui.setDragDropPayload("MASK_PALETTE", type.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            ImGui.setDragDropPayload("MASK_PALETTE", type.getBytes(StandardCharsets.UTF_8));
             ImGui.text(type);
             ImGui.endDragDropSource();
         }
     }
 
     private MaskNode createNodeForType(byte[] payload) {
-        String type = new String(payload, java.nio.charset.StandardCharsets.UTF_8);
+        String type = new String(payload, StandardCharsets.UTF_8);
         int airId = Block.getIdFromBlock(Blocks.air);
         return switch (type) {
             case "OR" -> new OrNode();
             case "AND" -> new AndNode();
             case "NOT" -> new NotNode();
-            case "OFFSET" -> new OffsetNode(0, -1, 0);
+            case "OFFSET" -> new OffsetNode(Vec3DInt.from(0, -1, 0));
             case "Block" -> new BlockMask(1, -1);
             case "Above" -> new AboveMask(airId, -1);
             case "Below" -> new BelowMask(airId, -1);
@@ -527,7 +530,7 @@ public class ToolMaskEditorWindow extends ToggleableWindow {
             if (ImGui.menuItem("OR")) parent.children.add(new OrNode());
             if (ImGui.menuItem("AND")) parent.children.add(new AndNode());
             if (ImGui.menuItem("NOT")) parent.children.add(new NotNode());
-            if (ImGui.menuItem("OFFSET")) parent.children.add(new OffsetNode(0, -1, 0));
+            if (ImGui.menuItem("OFFSET")) parent.children.add(new OffsetNode(Vec3DInt.from(0, -1, 0)));
             ImGui.endMenu();
         }
         if (ImGui.beginMenu(I18n.format("dimensium.mask.editor.add_mask"))) {
@@ -648,13 +651,15 @@ public class ToolMaskEditorWindow extends ToggleableWindow {
     }
 
     private void renderOffsetEditor(OffsetNode m, float w) {
-        ImInt dx = new ImInt(m.dx), dy = new ImInt(m.dy), dz = new ImInt(m.dz);
+        ImInt dx = new ImInt(m.offset.x()), dy = new ImInt(m.offset.y()), dz = new ImInt(m.offset.z());
         ImGui.setNextItemWidth(w);
-        if (ImGui.inputInt("dX##off", dx)) m.dx = dx.get();
+        boolean changed = false;
+        if (ImGui.inputInt("dX##off", dx)) changed = true;
         ImGui.setNextItemWidth(w);
-        if (ImGui.inputInt("dY##off", dy)) m.dy = dy.get();
+        if (ImGui.inputInt("dY##off", dy)) changed = true;
         ImGui.setNextItemWidth(w);
-        if (ImGui.inputInt("dZ##off", dz)) m.dz = dz.get();
+        if (ImGui.inputInt("dZ##off", dz)) changed = true;
+        if (changed) m.offset = Vec3DInt.from(dx.get(), dy.get(), dz.get());
     }
 
     private void renderNodeToolbar(float scale) {

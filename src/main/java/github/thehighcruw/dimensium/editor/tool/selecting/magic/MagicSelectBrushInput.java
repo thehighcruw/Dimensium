@@ -11,6 +11,7 @@ import github.thehighcruw.dimensium.editor.tool.mask.ToolMaskRegistry;
 import github.thehighcruw.dimensium.editor.tool.selecting.box.BoxSelectToolState;
 import github.thehighcruw.dimensium.shared.KeyConstants;
 import github.thehighcruw.dimensium.shared.SelectionState;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import java.util.Set;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.MovingObjectPosition;
@@ -26,9 +27,7 @@ public class MagicSelectBrushInput implements BrushInput {
         MagicSelectToolState ts = MagicSelectToolState.INSTANCE;
         Set<Long> flooded = SelectionState.floodFill(
                 mc.theWorld,
-                mop.blockX,
-                mop.blockY,
-                mop.blockZ,
+                Vec3DInt.from(mop.blockX, mop.blockY, mop.blockZ),
                 ts.magicSelectLimit,
                 ts.magicSelectRange,
                 ts.magicSelectSurface,

@@ -212,7 +212,7 @@ public class ScalingGizmo {
         Mat3DFloat R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
 
         Axis best = Axis.NONE;
-        double bestDist = HIT_PX;
+        double bestDistSq = HIT_PX * HIT_PX;
 
         for (int a = 0; a < 3; a++) {
             Vec3DFloat dirRot = R.mul(Vec3DFloat.from(AXIS_DIR[a][0], AXIS_DIR[a][1], AXIS_DIR[a][2]));
@@ -221,10 +221,9 @@ public class ScalingGizmo {
             double wcz = gz + dirRot.z() * BOX_CENTER * scale;
             double[] sc = proj.project(wcx, wcy, wcz);
             if (sc == null) continue;
-            double dx = sc[0] - mouseX, dy = sc[1] - mouseY;
-            double dist = Math.sqrt(dx * dx + dy * dy);
-            if (dist < bestDist) {
-                bestDist = dist;
+            double distSq = Vec2DDouble.from(sc[0] - mouseX, sc[1] - mouseY).lengthSq();
+            if (distSq < bestDistSq) {
+                bestDistSq = distSq;
                 best = a == 0 ? Axis.X : a == 1 ? Axis.Y : Axis.Z;
             }
         }

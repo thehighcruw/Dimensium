@@ -13,6 +13,7 @@ import github.thehighcruw.dimensium.editor.window.imgui.ItemGrid;
 import github.thehighcruw.dimensium.shared.util.BlockUtils;
 import imgui.ImGui;
 import imgui.ImVec2;
+import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiKey;
 import imgui.flag.ImGuiWindowFlags;
@@ -172,7 +173,7 @@ public class BlockPickerPopup {
         // Air button — always first, no ItemStack required
         float btnSz = _cell * 2f + DeferredItemRender.ITEM_PAD * 2f;
         boolean airSelected = initialIsAir;
-        if (airSelected) ImGui.pushStyleColor(imgui.flag.ImGuiCol.Button, 0.2f, 0.5f, 0.2f, 1f);
+        if (airSelected) ImGui.pushStyleColor(ImGuiCol.Button, 0.2f, 0.5f, 0.2f, 1f);
         if (ImGui.button(I18n.format("dimensium.ui.block_picker.air") + "##air_btn", btnSz, btnSz)) {
             if (callback != null) callback.accept(null); // null = air
             ImGui.closeCurrentPopup();

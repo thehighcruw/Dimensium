@@ -5,6 +5,7 @@
 package github.thehighcruw.dimensium.editor.window.viewport.world;
 
 import github.thehighcruw.dimensium.shared.SelectionState;
+import java.util.Map;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.tileentity.TileEntity;
@@ -14,10 +15,10 @@ import net.minecraftforge.common.util.ForgeDirection;
 
 public class ClipboardBlockAccess implements IBlockAccess {
 
-    private final java.util.Map<Long, SelectionState.BlockData> data;
+    private final Map<Long, SelectionState.BlockData> data;
     private final int W, H, D;
 
-    public ClipboardBlockAccess(java.util.Map<Long, SelectionState.BlockData> data, int w, int h, int d) {
+    public ClipboardBlockAccess(Map<Long, SelectionState.BlockData> data, int w, int h, int d) {
         this.data = data;
         this.W = w;
         this.H = h;

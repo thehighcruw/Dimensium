@@ -10,6 +10,7 @@ import github.thehighcruw.dimensium.editor.overlay.OverlayRenderer;
 import github.thehighcruw.dimensium.editor.window.viewport.world.BrushPreviewRenderer;
 import github.thehighcruw.dimensium.editor.window.viewport.world.SelectionRenderer;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.MovingObjectPosition;
@@ -27,7 +28,7 @@ public interface ToolRenderer {
     ToolRenderer NONE = new ToolRenderer() {
 
         @Override
-        public boolean isBlockAffected(Minecraft mc, int wx, int wy, int wz) {
+        public boolean isBlockAffected(Minecraft mc, Vec3DInt wc) {
             return false;
         }
 
@@ -41,8 +42,8 @@ public interface ToolRenderer {
     ToolRenderer DEFAULT_BRUSH = new ToolRenderer() {
 
         @Override
-        public boolean isBlockAffected(Minecraft mc, int wx, int wy, int wz) {
-            return mc.theWorld.getBlock(wx, wy, wz) != Blocks.air;
+        public boolean isBlockAffected(Minecraft mc, Vec3DInt wc) {
+            return mc.theWorld.getBlock(wc.x(), wc.y(), wc.z()) != Blocks.air;
         }
 
         @Override
@@ -52,7 +53,7 @@ public interface ToolRenderer {
     };
 
     /** Which world-space voxels should glow in the active-paint preview. */
-    boolean isBlockAffected(Minecraft mc, int wx, int wy, int wz);
+    boolean isBlockAffected(Minecraft mc, Vec3DInt wc);
 
     /**
      * Optional extra in-world render (ruler lines, elevation circle, etc.).

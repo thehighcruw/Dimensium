@@ -8,6 +8,7 @@ import com.github.bsideup.jabel.Desugar;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
@@ -91,7 +92,7 @@ public class BlueprintThumbnailCache {
         if (!sidecar.exists()) return null;
         try {
             byte[] bytes = Files.readAllBytes(sidecar.toPath());
-            BufferedImage img = ImageIO.read(new java.io.ByteArrayInputStream(bytes));
+            BufferedImage img = ImageIO.read(new ByteArrayInputStream(bytes));
             if (img == null) return null;
             int w = img.getWidth(), h = img.getHeight();
             int[] pixels = img.getRGB(0, 0, w, h, null, 0, w);

@@ -14,6 +14,7 @@ import github.thehighcruw.dimensium.tool.ChangeProposal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
 
 public class PathToolState implements WithAxisTranslationGizmo, WithPlaneTranslationGizmo {
@@ -105,8 +106,7 @@ public class PathToolState implements WithAxisTranslationGizmo, WithPlaneTransla
             if (ref == null && b != null) return true;
             if (ref != null && b == null) return true;
             if (ref != null) {
-                if (net.minecraft.block.Block.getBlockFromItem(ref.getItem())
-                        != net.minecraft.block.Block.getBlockFromItem(b.getItem())) return true;
+                if (Block.getBlockFromItem(ref.getItem()) != Block.getBlockFromItem(b.getItem())) return true;
                 if (ref.getItemDamage() != b.getItemDamage()) return true;
             }
         }
@@ -170,14 +170,12 @@ public class PathToolState implements WithAxisTranslationGizmo, WithPlaneTransla
                     .append(pt.radius)
                     .append(',');
             if (pt.block != null) {
-                sb.append(net.minecraft.block.Block.getIdFromBlock(
-                                net.minecraft.block.Block.getBlockFromItem(pt.block.getItem())))
+                sb.append(Block.getIdFromBlock(Block.getBlockFromItem(pt.block.getItem())))
                         .append(',')
                         .append(pt.block.getItemDamage())
                         .append(';');
             } else if (activeBlock != null) {
-                sb.append(net.minecraft.block.Block.getIdFromBlock(
-                                net.minecraft.block.Block.getBlockFromItem(activeBlock.getItem())))
+                sb.append(Block.getIdFromBlock(Block.getBlockFromItem(activeBlock.getItem())))
                         .append(',')
                         .append(activeBlock.getItemDamage())
                         .append(';');

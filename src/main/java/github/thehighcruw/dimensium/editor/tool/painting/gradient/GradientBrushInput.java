@@ -8,6 +8,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.tool.BrushInput;
 import github.thehighcruw.dimensium.shared.KeyConstants;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.MovingObjectPosition;
 
@@ -29,17 +30,13 @@ public class GradientBrushInput implements BrushInput {
         if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return;
         GradientToolState gs = GradientToolState.INSTANCE;
         gs.gradientHasPos1 = true;
-        gs.gradientPos1X = mop.blockX;
-        gs.gradientPos1Y = mop.blockY;
-        gs.gradientPos1Z = mop.blockZ;
+        gs.gradientPos1 = Vec3DInt.from(mop.blockX, mop.blockY, mop.blockZ);
     }
 
     @Override
     public void onBrushDragStart(Minecraft mc, MovingObjectPosition mop) {
         GradientToolState gs = GradientToolState.INSTANCE;
-        gs.gradientPos2X = mop.blockX;
-        gs.gradientPos2Y = mop.blockY;
-        gs.gradientPos2Z = mop.blockZ;
+        gs.gradientPos2 = Vec3DInt.from(mop.blockX, mop.blockY, mop.blockZ);
         gs.gradientHasPos2 = true;
     }
 

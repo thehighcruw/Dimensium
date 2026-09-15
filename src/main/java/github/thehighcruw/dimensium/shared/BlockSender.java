@@ -6,12 +6,17 @@ package github.thehighcruw.dimensium.shared;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import github.thehighcruw.dimensium.Dimensium;
 import github.thehighcruw.dimensium.editor.tool.mask.ToolMaskRegistry;
 import github.thehighcruw.dimensium.network.PacketBlockList;
 import github.thehighcruw.dimensium.network.PacketHandler;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import github.thehighcruw.dimensium.tool.ChangeProposal;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
@@ -40,7 +45,9 @@ public class BlockSender {
     });
     private static final ConcurrentLinkedQueue<PacketBlockList> SEND_QUEUE = new ConcurrentLinkedQueue<>();
 
-    /** Called from TickHandler.onClientTick — drains staged packets on the game thread. */
+    /**
+     * Called from TickHandler.onClientTick — drains staged packets on the game thread.
+     */
     public static void flushSendQueue() {
         PacketBlockList packet;
         while ((packet = SEND_QUEUE.poll()) != null) {
@@ -50,13 +57,24 @@ public class BlockSender {
 
     public static void sendChunked(final List<int[]> ops, final String action) {
         long t0 = System.nanoTime();
-        List<int[]> filtered = ToolMaskRegistry.INSTANCE.filter(ops);
+        List<Vec3DInt> coords = new ArrayList<>(ops.size());
+        for (int[] op : ops) coords.add(Vec3DInt.from(op[0], op[1], op[2]));
+        List<Vec3DInt> filteredCoords = ToolMaskRegistry.INSTANCE.filter(coords);
         long filterMs = (System.nanoTime() - t0) / 1_000_000;
         if (filterMs > 5)
-            github.thehighcruw.dimensium.Dimensium.logger.info(
-                    "[DIMTIMER] BlockSender filter={}ms in={} out={}", filterMs, ops.size(), filtered.size());
-        if (filtered.isEmpty()) return;
-        sendChunkedFiltered(filtered, action);
+            Dimensium.logger.info(
+                    "[DIMTIMER] BlockSender filter={}ms in={} out={}", filterMs, ops.size(), filteredCoords.size());
+        if (filteredCoords.isEmpty()) return;
+        // Rebuild filtered ops list preserving block data
+        if (filteredCoords.size() == ops.size()) {
+            sendChunkedFiltered(ops, action);
+        } else {
+            Set<Long> keep = new HashSet<>(filteredCoords.size());
+            for (Vec3DInt c : filteredCoords) keep.add(ChangeProposal.packKey(c));
+            List<int[]> filtered = new ArrayList<>(filteredCoords.size());
+            for (int[] op : ops) if (keep.contains(ChangeProposal.packKey(op[0], op[1], op[2]))) filtered.add(op);
+            sendChunkedFiltered(filtered, action);
+        }
     }
 
     private static void sendChunkedFiltered(final List<int[]> ops, final String action) {
@@ -81,7 +99,9 @@ public class BlockSender {
         });
     }
 
-    /** Sends blocks to server for undo/redo replay — no history entry is created. */
+    /**
+     * Sends blocks to server for undo/redo replay — no history entry is created.
+     */
     public static void sendChunkedSkipHistory(final List<int[]> ops) {
         if (ops.isEmpty()) return;
         final int txId = TRANSACTION_ID_GEN.incrementAndGet();

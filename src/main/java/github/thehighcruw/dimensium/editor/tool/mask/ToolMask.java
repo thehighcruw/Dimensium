@@ -4,6 +4,7 @@
  */
 package github.thehighcruw.dimensium.editor.tool.mask;
 
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import net.minecraft.world.World;
 
 public class ToolMask implements MaskEntry {
@@ -34,8 +35,8 @@ public class ToolMask implements MaskEntry {
         this.root = root;
     }
 
-    public boolean test(World world, int x, int y, int z) {
-        return root == null || root.test(world, x, y, z);
+    public boolean test(World world, Vec3DInt coord) {
+        return root == null || root.test(world, coord);
     }
 
     public String toMaskString() {

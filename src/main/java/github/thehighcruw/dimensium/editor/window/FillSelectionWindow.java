@@ -13,6 +13,7 @@ import github.thehighcruw.dimensium.editor.window.imgui.ToggleableWindow;
 import github.thehighcruw.dimensium.shared.BlockSender;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import github.thehighcruw.dimensium.shared.util.BlockUtils;
 import imgui.ImGui;
 import imgui.flag.ImGuiCond;
 import imgui.type.ImBoolean;
@@ -36,8 +37,6 @@ public class FillSelectionWindow extends ToggleableWindow {
     private static final int MODE_FILL_WALLS = 2;
     private static final int MODE_FILL_TOP = 3;
     private static final int MODE_FILL_BOTTOM = 4;
-
-    private static final int[][] FACE_DIRS = {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
 
     private ItemStack selectedBlock = null;
     private final ImInt fillMode = new ImInt(MODE_FILL_ALL);
@@ -145,9 +144,8 @@ public class FillSelectionWindow extends ToggleableWindow {
 
         for (long key : selected) {
             Vec3DInt cv = SelectionState.unpack(key);
-            int x = cv.x(), y = cv.y(), z = cv.z();
-            if (matchesFillMode(selected, x, y, z, fillMode.get())) {
-                ops.add(new int[] {x, y, z, blockId, blockMeta});
+            if (matchesFillMode(selected, cv, fillMode.get())) {
+                ops.add(new int[] {cv.x(), cv.y(), cv.z(), blockId, blockMeta});
             }
         }
 
@@ -155,22 +153,21 @@ public class FillSelectionWindow extends ToggleableWindow {
         BlockSender.sendChunked(ops, I18n.format("dimensium.action.op.fill", I18n.format(modeName)));
     }
 
-    private boolean matchesFillMode(Set<Long> selected, int x, int y, int z, int mode) {
+    private boolean matchesFillMode(Set<Long> selected, Vec3DInt cv, int mode) {
         return switch (mode) {
             case MODE_FILL_OUTLINE -> {
-                for (int[] f : FACE_DIRS) {
-                    if (!selected.contains(SelectionState.pack(Vec3DInt.from(x + f[0], y + f[1], z + f[2]))))
-                        yield true;
+                for (Vec3DInt d : BlockUtils.NEIGHBOUR_OFFSETS) {
+                    if (!selected.contains(SelectionState.pack(cv.plus(d)))) yield true;
                 }
                 yield false;
             }
             case MODE_FILL_WALLS ->
-                !selected.contains(SelectionState.pack(Vec3DInt.from(x + 1, y, z)))
-                        || !selected.contains(SelectionState.pack(Vec3DInt.from(x - 1, y, z)))
-                        || !selected.contains(SelectionState.pack(Vec3DInt.from(x, y, z + 1)))
-                        || !selected.contains(SelectionState.pack(Vec3DInt.from(x, y, z - 1)));
-            case MODE_FILL_TOP -> !selected.contains(SelectionState.pack(Vec3DInt.from(x, y + 1, z)));
-            case MODE_FILL_BOTTOM -> !selected.contains(SelectionState.pack(Vec3DInt.from(x, y - 1, z)));
+                !selected.contains(SelectionState.pack(cv.plus(1, 0, 0)))
+                        || !selected.contains(SelectionState.pack(cv.plus(-1, 0, 0)))
+                        || !selected.contains(SelectionState.pack(cv.plus(0, 0, 1)))
+                        || !selected.contains(SelectionState.pack(cv.plus(0, 0, -1)));
+            case MODE_FILL_TOP -> !selected.contains(SelectionState.pack(cv.plus(0, 1, 0)));
+            case MODE_FILL_BOTTOM -> !selected.contains(SelectionState.pack(cv.plus(0, -1, 0)));
             default -> true;
         };
     }

@@ -8,6 +8,7 @@ import github.thehighcruw.dimensium.editor.tool.brushes.BrushState;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushStrategy;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushUtil;
 import github.thehighcruw.dimensium.editor.tool.selecting.SelectedBlockState;
+import github.thehighcruw.dimensium.shared.util.WorldUtils;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
@@ -22,13 +23,17 @@ public class FreehandBrush implements BrushStrategy {
         BrushState bs = BrushState.INSTANCE;
         Block paint = SelectedBlockState.INSTANCE.getPaintBlock();
         int meta = SelectedBlockState.INSTANCE.getPaintMeta();
-        int x = mop.blockX, y = mop.blockY, z = mop.blockZ;
-        BrushUtil.forBrush(bs, (dx, dy, dz) -> {
-            int wx = x + dx, wy = y + dy, wz = z + dz;
-            Block existing = world.getBlock(wx, wy, wz);
+
+        var coord = WorldUtils.mopToCoord(mop);
+
+        BrushUtil.forBrush(bs, offset -> {
+            var pos = coord.plus(offset);
+
+            Block existing = WorldUtils.getBlock(world, pos);
             if (!s.freehandReplaceSolid && existing != Blocks.air) return;
-            if (s.freehandMaskSurface && BrushUtil.hasSolidNeighbor(world, wx, wy, wz)) return;
-            ChangeProposal.write(world, wx, wy, wz, paint, meta);
+            if (s.freehandMaskSurface && BrushUtil.hasSolidNeighbor(world, pos)) return;
+
+            ChangeProposal.write(world, pos, paint, meta);
         });
     }
 }

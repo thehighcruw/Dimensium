@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import javax.annotation.Nonnull;
+import net.minecraft.block.Block;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.client.gui.inventory.GuiContainer;
@@ -423,10 +424,9 @@ public class GuiColourPicker extends GuiContainer {
             if (inBox(mouseX, mouseY, svX + 20, belowY, CELL, CELL)) {
                 ItemStack held = mc.thePlayer.inventory.getItemStack();
                 if (held != null) {
-                    net.minecraft.block.Block b = net.minecraft.block.Block.getBlockFromItem(held.getItem());
+                    Block b = Block.getBlockFromItem(held.getItem());
                     if (b != null) {
-                        int rgb = BlockColorCache.INSTANCE.blockColor(
-                                net.minecraft.block.Block.getIdFromBlock(b), held.getItemDamage());
+                        int rgb = BlockColorCache.INSTANCE.blockColor(Block.getIdFromBlock(b), held.getItemDamage());
                         if (rgb >= 0) applyRgb(rgb);
                     }
                 }
