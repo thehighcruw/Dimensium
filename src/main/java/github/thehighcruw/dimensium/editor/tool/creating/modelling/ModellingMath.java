@@ -658,11 +658,11 @@ public class ModellingMath {
     // ── Utilities ─────────────────────────────────────────────────────────────
 
     private static void addPoint(Map<Long, int[]> out, ModelPoint p, int[] bm) {
-        out.put(ChangeProposal.packKey(p.pos().x(), p.pos().y(), p.pos().z()), bm);
+        out.put(ChangeProposal.packKey(p.pos()), bm);
     }
 
     private static void addPoint(Map<Long, int[]> out, Vec3DInt p, int[] bm) {
-        out.put(ChangeProposal.packKey(p.x(), p.y(), p.z()), bm);
+        out.put(ChangeProposal.packKey(p), bm);
     }
 
     private static void addPoint(Map<Long, int[]> out, int x, int y, int z, int[] bm) {

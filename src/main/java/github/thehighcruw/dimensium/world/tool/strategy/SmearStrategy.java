@@ -108,8 +108,7 @@ public class SmearStrategy implements BuilderToolStrategy {
                 Vec3DInt dest = base.plus(Vec3DInt.from(x, y, z));
                 if (!inOriginalSelection(dest, sel)) {
                     p.proposed.put(
-                            ChangeProposal.packKey(dest.x(), dest.y(), dest.z()),
-                            new int[] {Block.getIdFromBlock(bd.block()), bd.meta()});
+                            ChangeProposal.packKey(dest), new int[] {Block.getIdFromBlock(bd.block()), bd.meta()});
                 }
                 if (p.proposed.size() > DimensiumConfig.smearBlockCap) done[0] = true;
             });

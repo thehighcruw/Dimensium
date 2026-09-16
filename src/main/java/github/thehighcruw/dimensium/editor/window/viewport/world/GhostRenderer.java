@@ -53,7 +53,7 @@ public class GhostRenderer {
     float[] computeLocalWireframe(List<Vec3DInt> blocks) {
         // Build block lookup set using local coord packing (coords assumed < ±4096)
         Set<Long> set = new HashSet<>(blocks.size() * 2);
-        for (Vec3DInt p : blocks) set.add(lPack(p.x(), p.y(), p.z()));
+        for (Vec3DInt p : blocks) set.add(lPack(p));
 
         // For each exterior face, register its 4 edges with the face's plane-group bit.
         // An edge is a "crease" (should be drawn) iff it borders faces from 2+ plane groups.
@@ -366,6 +366,10 @@ public class GhostRenderer {
         return ((long) (x + 4096) << 26) | ((long) (y + 4096) << 13) | (z + 4096);
     }
 
+    private long lPack(Vec3DInt p) {
+        return lPack(p.x(), p.y(), p.z());
+    }
+
     private long lEdgeKey(int axis, int x, int y, int z) {
         return ((long) axis << 39) | ((long) (x + 4096) << 26) | ((long) (y + 4096) << 13) | (z + 4096);
     }
@@ -387,7 +391,7 @@ public class GhostRenderer {
                     ChangeProposal.unpackY(e.getKey()),
                     ChangeProposal.unpackZ(e.getKey()));
             for (int face = 0; face < 6; face++) {
-                long nk = ChangeProposal.packKey(b.x() + NX[face], b.y() + NY[face], b.z() + NZ[face]);
+                long nk = ChangeProposal.packKey(b.plus(NX[face], NY[face], NZ[face]));
                 if (!proposed.containsKey(nk)) {
                     addSingleFace(t, b, face);
                     if (++batched % BATCH_SIZE == 0) {

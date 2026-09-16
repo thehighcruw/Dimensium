@@ -307,6 +307,10 @@ public class SelectionState {
         return ((long) x << 20) | ((long) y << 10) | z;
     }
 
+    public static long clipboardKey(Vec3DInt v) {
+        return clipboardKey(v.x(), v.y(), v.z());
+    }
+
     public static Vec3DInt decodeClipboardKey(long key) {
         return Vec3DInt.from((int) (key >> 20) & 0xFFFFF, (int) (key >> 10) & 0x3FF, (int) key & 0x3FF);
     }
@@ -316,7 +320,7 @@ public class SelectionState {
      */
     public BlockData clipboardGet(Vec3DInt c) {
         if (clipboard == null) return BlockData.AIR;
-        BlockData bd = clipboard.get(clipboardKey(c.x(), c.y(), c.z()));
+        BlockData bd = clipboard.get(clipboardKey(c));
         return bd != null ? bd : BlockData.AIR;
     }
 

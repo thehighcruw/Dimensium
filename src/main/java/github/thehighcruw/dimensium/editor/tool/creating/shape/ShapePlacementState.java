@@ -187,7 +187,7 @@ public class ShapePlacementState
         ChangeProposal p = ChangeProposal.forPreview();
         for (Vec3DInt offset : ghostBlocks) {
             Vec3DInt pos = anchor.plus(offset);
-            long key = ChangeProposal.packKey(pos.x(), pos.y(), pos.z());
+            long key = ChangeProposal.packKey(pos);
             p.proposed.put(key, new int[] {blockId, meta});
         }
         preview = p;

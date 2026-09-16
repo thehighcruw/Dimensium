@@ -85,13 +85,13 @@ public class BrushPreviewRenderer {
             } else {
                 // Non-smooth tools: pulsating fill + crease using relative coords.
                 HashSet<Long> affectedSet = new HashSet<>();
-                for (int dx = -sx; dx <= sx; dx++)
-                    for (int dy = -sy; dy <= sy; dy++)
-                        for (int dz = -sx; dz <= sx; dz++) {
-                            if (!BrushUtil.inShape(shape, Vec3DInt.from(dx, dy, dz), brushSize)) continue;
-                            if (renderer.isBlockAffected(mc, Vec3DInt.from(bx + dx, by + dy, bz + dz)))
-                                affectedSet.add(SelectionRenderer.lPack(dx + sx, dy + sy, dz + sx));
-                        }
+                Vec3DInt brushOrigin = Vec3DInt.from(bx, by, bz);
+                Vec3DInt.forEachInclusive(brushSize.negate(), brushSize, (dx, dy, dz) -> {
+                    Vec3DInt offset = Vec3DInt.from(dx, dy, dz);
+                    if (!BrushUtil.inShape(shape, offset, brushSize)) return;
+                    if (renderer.isBlockAffected(mc, brushOrigin.plus(offset)))
+                        affectedSet.add(SelectionRenderer.lPack(dx + sx, dy + sy, dz + sx));
+                });
 
                 if (!affectedSet.isEmpty()) {
                     float pulse = 0.22f + 0.13f * (float) Math.sin(System.currentTimeMillis() / 180.0);

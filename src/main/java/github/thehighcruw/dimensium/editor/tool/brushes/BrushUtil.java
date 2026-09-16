@@ -72,8 +72,6 @@ public final class BrushUtil {
 
     public static boolean inShape(BrushShape shape, Vec3DInt offset, Vec3DInt brushSize) {
         float thr = DimensiumConfig.shapeThreshold;
-        int dx = offset.x(), dy = offset.y(), dz = offset.z();
-        int sx = brushSize.x(), sy = brushSize.y(), sz = brushSize.z();
         switch (shape) {
             case SPHERE, ELLIPSOID -> {
                 Vec3DFloat normalized = offset.toFloat().divide(brushSize.toFloat());
@@ -86,31 +84,34 @@ public final class BrushUtil {
                 return offset.inBounds(brushSize.negate(), brushSize);
             }
             case CYLINDER -> {
-                Vec2DFloat xz = Vec2DFloat.from(dx, dz).divide(sx);
+                int sx = brushSize.x();
+                Vec2DFloat xz = Vec2DFloat.from(offset.x(), offset.z()).divide(sx);
                 float vR = 0.5f * Vec2DFloat.from(1f / sx, 1f / sx).length();
                 return xz.length() <= 1f - vR * (1f - thr) + GEOM_EPS;
             }
             case CAPSULE -> {
+                int sx = brushSize.x(), sy = brushSize.y();
                 int capH = Math.max(0, sy - sx);
                 float vR = 0.5f / sx;
                 float cutoff = 1f - vR * (1f - thr) + GEOM_EPS;
                 float r = sx * cutoff;
-                float xz2 = Vec2DFloat.from(dx, dz).lengthSq();
-                if (Math.abs(dy) <= capH) return xz2 <= r * r;
-                float capOy = Math.abs(dy) - capH;
+                float xz2 = Vec2DFloat.from(offset.x(), offset.z()).lengthSq();
+                if (Math.abs(offset.y()) <= capH) return xz2 <= r * r;
+                float capOy = Math.abs(offset.y()) - capH;
                 return xz2 + capOy * capOy <= r * r;
             }
             case CONE -> {
-                float level = (float) (dy + sy) / (2f * sy);
+                int sx = brushSize.x(), sy = brushSize.y();
+                float level = (float) (offset.y() + sy) / (2f * sy);
                 float r = sx * (1f - level);
-                if (r <= 0) return dx == 0 && dz == 0;
-                Vec2DFloat xz = Vec2DFloat.from(dx, dz).divide(r);
+                if (r <= 0) return offset.x() == 0 && offset.z() == 0;
+                Vec2DFloat xz = Vec2DFloat.from(offset.x(), offset.z()).divide(r);
                 float vR = 0.5f * Vec2DFloat.from(1f / r, 1f / r).length();
                 return xz.length() <= 1f - vR * (1f - thr) + GEOM_EPS;
             }
             case OCTAHEDRON -> {
-                float norm = (float) Math.abs(dx) / sx + (float) Math.abs(dy) / sy + (float) Math.abs(dz) / sz;
-                float vR = 0.5f * (1f / sx + 1f / sy + 1f / sz);
+                float norm = offset.toFloat().abs().divide(brushSize.toFloat()).sum();
+                float vR = 0.5f * Vec3DFloat.ONE.divide(brushSize.toFloat()).sum();
                 return norm <= 1f - vR * (1f - thr) + GEOM_EPS;
             }
             default -> {
@@ -120,36 +121,39 @@ public final class BrushUtil {
     }
 
     public static boolean isInterior(BrushShape shape, Vec3DInt offset, Vec3DInt brushSize) {
-        int dx = offset.x(), dy = offset.y(), dz = offset.z();
-        int sx = brushSize.x(), sy = brushSize.y(), sz = brushSize.z();
-        int isx = Math.max(1, sx - 1), isy = Math.max(1, sy - 1), isz = Math.max(1, sz - 1);
+        Vec3DInt inner = brushSize.minus(1).max(Vec3DInt.ONE);
         switch (shape) {
             case SPHERE:
             case ELLIPSOID: {
-                Vec3DFloat n = offset.toFloat().divide(Vec3DFloat.from(isx, isy, isz));
+                Vec3DFloat n = offset.toFloat().divide(inner.toFloat());
                 return n.dot(n) < 1f;
             }
             case CUBE:
             case CUBOID:
-                return Math.abs(dx) < sx && Math.abs(dy) < sy && Math.abs(dz) < sz;
-            case CYLINDER:
-                return Vec2DFloat.from(dx, dz).divide(isx).lengthSq() < 1f && Math.abs(dy) < sy;
+                return offset.abs().inBounds(Vec3DInt.ZERO, inner);
+            case CYLINDER: {
+                int isx = inner.x();
+                return Vec2DFloat.from(offset.x(), offset.z()).divide(isx).lengthSq() < 1f
+                        && Math.abs(offset.y()) < brushSize.y();
+            }
             case CAPSULE: {
+                int isx = inner.x(), isy = inner.y();
                 int capH = Math.max(0, isy - isx);
                 float r2 = isx * isx;
-                float xz2 = Vec2DFloat.from(dx, dz).lengthSq();
-                if (Math.abs(dy) <= capH) return xz2 < r2;
-                float capOy = Math.abs(dy) - capH;
+                float xz2 = Vec2DFloat.from(offset.x(), offset.z()).lengthSq();
+                if (Math.abs(offset.y()) <= capH) return xz2 < r2;
+                float capOy = Math.abs(offset.y()) - capH;
                 return xz2 + capOy * capOy < r2;
             }
             case CONE: {
-                float level = (float) (dy + isy) / (2f * isy);
+                int isx = inner.x(), isy = inner.y();
+                float level = (float) (offset.y() + isy) / (2f * isy);
                 float r = isx * (1f - level);
                 if (r <= 0) return false;
-                return Vec2DFloat.from(dx, dz).divide(r).lengthSq() < 1f;
+                return Vec2DFloat.from(offset.x(), offset.z()).divide(r).lengthSq() < 1f;
             }
             case OCTAHEDRON:
-                return (float) Math.abs(dx) / isx + (float) Math.abs(dy) / isy + (float) Math.abs(dz) / isz < 1f;
+                return offset.toFloat().abs().divide(inner.toFloat()).sum() < 1f;
             default:
                 return false;
         }
