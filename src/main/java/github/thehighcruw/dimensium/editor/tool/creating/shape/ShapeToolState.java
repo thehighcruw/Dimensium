@@ -4,6 +4,8 @@
  */
 package github.thehighcruw.dimensium.editor.tool.creating.shape;
 
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+
 public class ShapeToolState {
 
     public static final ShapeToolState INSTANCE = new ShapeToolState();
@@ -67,4 +69,23 @@ public class ShapeToolState {
     public float shapeSpiralSpacing = 1.0f;
     public float shapeSpiralTurns = 3.0f;
     public final float shapeSupersphereExp = 2.0f;
+
+    public Vec3DInt effectiveDimensions(int w, int h, int d) {
+        if (shapeType == ShapeType.TORUS) {
+            int outerX = torusRingRadius + torusTubeRadius;
+            int outerZ = torusRingRadiusZ + torusTubeRadius;
+            w = outerX * 2 + 1;
+            h = torusTubeRadius * 2 + 1;
+            d = outerZ * 2 + 1;
+        } else if (shapeType == ShapeType.ARCHIMEDEAN_SPIRAL) {
+            int r = (int) Math.ceil(shapeSpiralSpacing * shapeSpiralTurns);
+            w = r * 2 + 1;
+            h = 1;
+            d = r * 2 + 1;
+        } else if (!shapeSeparateAxes
+                && (shapeType == ShapeType.CYLINDER || shapeType == ShapeType.CONE || shapeType == ShapeType.TUBE)) {
+            d = w;
+        }
+        return Vec3DInt.from(w, h, d);
+    }
 }

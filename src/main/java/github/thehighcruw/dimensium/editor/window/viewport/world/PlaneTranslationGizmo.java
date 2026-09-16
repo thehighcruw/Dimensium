@@ -245,10 +245,8 @@ public class PlaneTranslationGizmo {
             screenAxisB = Vec2DDouble.from(0, 1);
             pixelsPerUnitB = 50;
         } else {
-            Vec2DDouble da = Vec2DDouble.from(tsA[0] - os[0], tsA[1] - os[1]);
-            double lenA = da.length();
-            pixelsPerUnitA = Math.max(1.0, lenA);
-            screenAxisA = lenA > 0.001 ? da.divide(lenA) : Vec2DDouble.from(1, 0);
+            screenAxisA = Vec2DDouble.screenDir(os, tsA);
+            pixelsPerUnitA = Vec2DDouble.screenScale(os, tsA);
             Vec2DDouble db = Vec2DDouble.from(tsB[0] - os[0], tsB[1] - os[1]);
             double lenB = db.length();
             pixelsPerUnitB = Math.max(1.0, lenB);

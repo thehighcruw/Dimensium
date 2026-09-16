@@ -22,6 +22,18 @@ public final class NoiseSampler {
         return simplex3(x, y, z, seed);
     }
 
+    /**
+     * Three decorrelated simplex noise values for domain warping.
+     * Returns [wx, wy, wz] each in [-1,1]. Callers multiply by their per-axis distance.
+     */
+    public static float[] warpVec3(float x, float y, float z, long seed) {
+        return new float[] {
+            simplex3(x, y, z, seed),
+            simplex3(x + 31.7f, y + 17.3f, z + 53.1f, seed),
+            simplex3(x + 67.9f, y + 83.5f, z + 11.3f, seed)
+        };
+    }
+
     /** Returns noise in [0,1] for 2D coordinates using NoiseToolState settings. */
     public static float sample2D(NoiseToolState s, float x, float y) {
         return sample2D(s.noiseParams, x, y);
@@ -311,19 +323,27 @@ public final class NoiseSampler {
 
     // ── Worley (F1/F2/F3 with weights) ───────────────────────────────────────
 
+    private static float cellDist2(int cx, int cy, float x, float y, long seed, float jitter) {
+        long h = hash(cx, cy, seed);
+        float px = cx + jitter * ((h & 0xFFFF) / 65535f - 0.5f) * 2f;
+        float py = cy + jitter * (((h >> 16) & 0xFFFF) / 65535f - 0.5f) * 2f;
+        return (float) Math.sqrt(dist2(x - px, y - py));
+    }
+
     private static float worley2(float x, float y, long seed, float jitter, float w1, float w2, float w3) {
         int ix = fastFloor(x), iy = fastFloor(y);
         float[] f = {Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE};
-        // Search 2-cell radius to reliably find F2/F3
         for (int dy = -2; dy <= 2; dy++)
-            for (int dx = -2; dx <= 2; dx++) {
-                int cx = ix + dx, cy = iy + dy;
-                long h = hash(cx, cy, seed);
-                float px = cx + jitter * ((h & 0xFFFF) / 65535f - 0.5f) * 2f;
-                float py = cy + jitter * (((h >> 16) & 0xFFFF) / 65535f - 0.5f) * 2f;
-                updateWorleyF3(f, (float) Math.sqrt(dist2(x - px, y - py)));
-            }
+            for (int dx = -2; dx <= 2; dx++) updateWorleyF3(f, cellDist2(ix + dx, iy + dy, x, y, seed, jitter));
         return saturate((w1 * f[0] + w2 * f[1] + w3 * f[2]) * 0.5f);
+    }
+
+    private static float cellDist3(int cx, int cy, int cz, float x, float y, float z, long seed, float jitter) {
+        long h = hash3(cx, cy, cz, seed);
+        float px = cx + jitter * ((h & 0xFFFF) / 65535f - 0.5f) * 2f;
+        float py = cy + jitter * (((h >> 16) & 0xFFFF) / 65535f - 0.5f) * 2f;
+        float pz = cz + jitter * (((h >> 32) & 0xFFFF) / 65535f - 0.5f) * 2f;
+        return (float) Math.sqrt(dist2(x - px, y - py) + dist2(z - pz, 0));
     }
 
     private static float worley3(float x, float y, float z, long seed, float jitter, float w1, float w2, float w3) {
@@ -331,14 +351,8 @@ public final class NoiseSampler {
         float[] f = {Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE};
         for (int dz = -2; dz <= 2; dz++)
             for (int dy = -2; dy <= 2; dy++)
-                for (int dx = -2; dx <= 2; dx++) {
-                    int cx = ix + dx, cy = iy + dy, cz = iz + dz;
-                    long h = hash3(cx, cy, cz, seed);
-                    float px = cx + jitter * ((h & 0xFFFF) / 65535f - 0.5f) * 2f;
-                    float py = cy + jitter * (((h >> 16) & 0xFFFF) / 65535f - 0.5f) * 2f;
-                    float pz = cz + jitter * (((h >> 32) & 0xFFFF) / 65535f - 0.5f) * 2f;
-                    updateWorleyF3(f, (float) Math.sqrt(dist2(x - px, y - py) + dist2(z - pz, 0)));
-                }
+                for (int dx = -2; dx <= 2; dx++)
+                    updateWorleyF3(f, cellDist3(ix + dx, iy + dy, iz + dz, x, y, z, seed, jitter));
         return saturate((w1 * f[0] + w2 * f[1] + w3 * f[2]) * 0.5f);
     }
 
@@ -362,13 +376,7 @@ public final class NoiseSampler {
         int ix = fastFloor(x), iy = fastFloor(y);
         float[] f = {Float.MAX_VALUE, Float.MAX_VALUE};
         for (int dy = -2; dy <= 2; dy++)
-            for (int dx = -2; dx <= 2; dx++) {
-                int cx = ix + dx, cy = iy + dy;
-                long h = hash(cx, cy, seed);
-                float px = cx + jitter * ((h & 0xFFFF) / 65535f - 0.5f) * 2f;
-                float py = cy + jitter * (((h >> 16) & 0xFFFF) / 65535f - 0.5f) * 2f;
-                updateF2(f, (float) Math.sqrt(dist2(x - px, y - py)));
-            }
+            for (int dx = -2; dx <= 2; dx++) updateF2(f, cellDist2(ix + dx, iy + dy, x, y, seed, jitter));
         return saturate((f[1] - f[0]) * 2f);
     }
 
@@ -377,14 +385,8 @@ public final class NoiseSampler {
         float[] f = {Float.MAX_VALUE, Float.MAX_VALUE};
         for (int dz = -2; dz <= 2; dz++)
             for (int dy = -2; dy <= 2; dy++)
-                for (int dx = -2; dx <= 2; dx++) {
-                    int cx = ix + dx, cy = iy + dy, cz = iz + dz;
-                    long h = hash3(cx, cy, cz, seed);
-                    float px = cx + jitter * ((h & 0xFFFF) / 65535f - 0.5f) * 2f;
-                    float py = cy + jitter * (((h >> 16) & 0xFFFF) / 65535f - 0.5f) * 2f;
-                    float pz = cz + jitter * (((h >> 32) & 0xFFFF) / 65535f - 0.5f) * 2f;
-                    updateF2(f, (float) Math.sqrt(dist2(x - px, y - py) + dist2(z - pz, 0)));
-                }
+                for (int dx = -2; dx <= 2; dx++)
+                    updateF2(f, cellDist3(ix + dx, iy + dy, iz + dz, x, y, z, seed, jitter));
         return saturate((f[1] - f[0]) * 2f);
     }
 

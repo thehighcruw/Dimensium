@@ -249,42 +249,39 @@ public class ShapeMath {
         return false;
     }
 
+    private static float dodecahedronMax(Vec3DFloat p, float phi, float invMag) {
+        float fa = (p.y() + phi * p.z()) * invMag;
+        float fb = (p.x() + phi * p.y()) * invMag;
+        float fc = (phi * p.x() + p.z()) * invMag;
+        return Math.max(fa, Math.max(fb, fc));
+    }
+
     private static boolean dodecahedronContains(Vec3DFloat localPos, Vec3DFloat radius, boolean hollow) {
         float phi = 1.6180339887f;
         float invMag = 1f / (float) Math.sqrt(1f + phi * phi);
         float thresh = phi * phi / ((float) Math.sqrt(3f) * (float) Math.sqrt(1f + phi * phi));
-        Vec3DFloat p = localPos.divide(radius).abs();
-        float fa = (p.y() + phi * p.z()) * invMag;
-        float fb = (p.x() + phi * p.y()) * invMag;
-        float fc = (phi * p.x() + p.z()) * invMag;
-        boolean in = Math.max(fa, Math.max(fb, fc)) <= thresh;
+        boolean in = dodecahedronMax(localPos.divide(radius).abs(), phi, invMag) <= thresh;
         if (!hollow) return in;
         Vec3DFloat innerR = radius.minus(Vec3DFloat.ONE).max(Vec3DFloat.from(0.5f));
-        Vec3DFloat ip = localPos.divide(innerR).abs();
-        float ifa = (ip.y() + phi * ip.z()) * invMag;
-        float ifb = (ip.x() + phi * ip.y()) * invMag;
-        float ifc = (phi * ip.x() + ip.z()) * invMag;
-        return in && Math.max(ifa, Math.max(ifb, ifc)) > thresh;
+        return in && dodecahedronMax(localPos.divide(innerR).abs(), phi, invMag) > thresh;
+    }
+
+    private static float icosaMax(Vec3DFloat p, float phi, float inv3) {
+        float c1 = p.sum() * inv3;
+        float c2 = (phi * p.y() + p.z() / phi) * inv3;
+        float c3 = (p.x() / phi + phi * p.z()) * inv3;
+        float c4 = (phi * p.x() + p.y() / phi) * inv3;
+        return Math.max(c1, Math.max(c2, Math.max(c3, c4)));
     }
 
     private static boolean icosahedronContains(Vec3DFloat localPos, Vec3DFloat radius, boolean hollow) {
         float phi = 1.6180339887f;
         float inv3 = 1f / (float) Math.sqrt(3f);
         float thresh = phi * phi / ((float) Math.sqrt(3f) * (float) Math.sqrt(1f + phi * phi));
-        Vec3DFloat p = localPos.divide(radius).abs();
-        float c1 = p.sum() * inv3;
-        float c2 = (phi * p.y() + p.z() / phi) * inv3;
-        float c3 = (p.x() / phi + phi * p.z()) * inv3;
-        float c4 = (phi * p.x() + p.y() / phi) * inv3;
-        boolean in = Math.max(c1, Math.max(c2, Math.max(c3, c4))) <= thresh;
+        boolean in = icosaMax(localPos.divide(radius).abs(), phi, inv3) <= thresh;
         if (!hollow) return in;
         Vec3DFloat innerR = radius.minus(Vec3DFloat.ONE).max(Vec3DFloat.from(0.5f));
-        Vec3DFloat ip = localPos.divide(innerR).abs();
-        float ic1 = ip.sum() * inv3;
-        float ic2 = (phi * ip.y() + ip.z() / phi) * inv3;
-        float ic3 = (ip.x() / phi + phi * ip.z()) * inv3;
-        float ic4 = (phi * ip.x() + ip.y() / phi) * inv3;
-        return in && Math.max(ic1, Math.max(ic2, Math.max(ic3, ic4))) > thresh;
+        return in && icosaMax(localPos.divide(innerR).abs(), phi, inv3) > thresh;
     }
 
     /**

@@ -143,26 +143,11 @@ public class ShapePlacementState
         if (key.equals(shapeKey) && ghostBlocks != null) return;
         shapeKey = key;
 
-        int w = Math.max(1, Math.round(s.shapeWidth * scale.x()));
-        int h = Math.max(1, Math.round(s.shapeHeight * scale.y()));
-        int d = Math.max(1, Math.round(s.shapeDepth * scale.z()));
-        if (s.shapeType == ShapeToolState.ShapeType.TORUS) {
-            int outerX = s.torusRingRadius + s.torusTubeRadius;
-            int outerZ = s.torusRingRadiusZ + s.torusTubeRadius;
-            w = outerX * 2 + 1;
-            h = s.torusTubeRadius * 2 + 1;
-            d = outerZ * 2 + 1;
-        } else if (s.shapeType == ShapeToolState.ShapeType.ARCHIMEDEAN_SPIRAL) {
-            int r = (int) Math.ceil(s.shapeSpiralSpacing * s.shapeSpiralTurns);
-            w = r * 2 + 1;
-            h = 1;
-            d = r * 2 + 1;
-        } else if (!s.shapeSeparateAxes
-                && (s.shapeType == ShapeToolState.ShapeType.CYLINDER
-                        || s.shapeType == ShapeToolState.ShapeType.CONE
-                        || s.shapeType == ShapeToolState.ShapeType.TUBE)) {
-            d = w;
-        }
+        int rawW = Math.max(1, Math.round(s.shapeWidth * scale.x()));
+        int rawH = Math.max(1, Math.round(s.shapeHeight * scale.y()));
+        int rawD = Math.max(1, Math.round(s.shapeDepth * scale.z()));
+        Vec3DInt dims = s.effectiveDimensions(rawW, rawH, rawD);
+        int w = dims.x(), h = dims.y(), d = dims.z();
         baseW = w;
         baseH = h;
         baseD = d;

@@ -385,7 +385,7 @@ public class ModellingMath {
         return w;
     }
 
-    private static Vec3DDouble catmullRomInterp(
+    public static Vec3DDouble catmullRomInterp(
             Vec3DDouble p0, Vec3DDouble p1, Vec3DDouble p2, Vec3DDouble p3, double t) {
         double t2 = t * t, t3 = t2 * t;
         return p1.times(2)

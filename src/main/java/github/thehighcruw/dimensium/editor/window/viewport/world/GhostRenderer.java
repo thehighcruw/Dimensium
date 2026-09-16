@@ -212,15 +212,16 @@ public class GhostRenderer {
 
         double u1 = icon.getMinU(), u2 = icon.getMaxU();
         double v1 = icon.getMinV(), v2 = icon.getMaxV();
-        // Per-vertex color tint — tessellator encodes it in the vertex buffer.
-        t.setColorRGBA_F(tr, tg, tb, 1.0f);
-        t.addVertexWithUV(a.x(), a.y(), a.z(), u1, v1);
-        t.setColorRGBA_F(tr, tg, tb, 1.0f);
-        t.addVertexWithUV(b.x(), b.y(), b.z(), u2, v1);
-        t.setColorRGBA_F(tr, tg, tb, 1.0f);
-        t.addVertexWithUV(c.x(), c.y(), c.z(), u2, v2);
-        t.setColorRGBA_F(tr, tg, tb, 1.0f);
-        t.addVertexWithUV(d.x(), d.y(), d.z(), u1, v2);
+        addColoredVertex(t, tr, tg, tb, a.x(), a.y(), a.z(), u1, v1);
+        addColoredVertex(t, tr, tg, tb, b.x(), b.y(), b.z(), u2, v1);
+        addColoredVertex(t, tr, tg, tb, c.x(), c.y(), c.z(), u2, v2);
+        addColoredVertex(t, tr, tg, tb, d.x(), d.y(), d.z(), u1, v2);
+    }
+
+    private static void addColoredVertex(
+            Tessellator t, float r, float g, float b, double x, double y, double z, double u, double v) {
+        t.setColorRGBA_F(r, g, b, 1.0f);
+        t.addVertexWithUV(x, y, z, u, v);
     }
 
     static float[] creaseWireframeFromSet(HashSet<Long> set) {

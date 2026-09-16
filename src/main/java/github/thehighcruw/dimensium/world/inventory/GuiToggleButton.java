@@ -40,21 +40,9 @@ public class GuiToggleButton extends GuiButton {
 
         int fill = active ? C_ACTIVE : (hovered ? 0xFFD4D4D4 : C_PANEL);
 
-        if (active) {
-            // Depressed: shadow top-left, highlight bottom-right
-            drawRect(xPosition, yPosition, xPosition + width, yPosition + height, fill);
-            drawRect(xPosition, yPosition, xPosition + width, yPosition + 1, C_PANEL_SH);
-            drawRect(xPosition, yPosition, xPosition + 1, yPosition + height, C_PANEL_SH);
-            drawRect(xPosition, yPosition + height - 1, xPosition + width, yPosition + height, C_PANEL_HI);
-            drawRect(xPosition + width - 1, yPosition, xPosition + width, yPosition + height, C_PANEL_HI);
-        } else {
-            // Raised: highlight top-left, shadow bottom-right
-            drawRect(xPosition, yPosition, xPosition + width, yPosition + height, fill);
-            drawRect(xPosition, yPosition, xPosition + width, yPosition + 1, C_PANEL_HI);
-            drawRect(xPosition, yPosition, xPosition + 1, yPosition + height, C_PANEL_HI);
-            drawRect(xPosition, yPosition + height - 1, xPosition + width, yPosition + height, C_PANEL_SH);
-            drawRect(xPosition + width - 1, yPosition, xPosition + width, yPosition + height, C_PANEL_SH);
-        }
+        int topLeft = active ? C_PANEL_SH : C_PANEL_HI;
+        int bottomRight = active ? C_PANEL_HI : C_PANEL_SH;
+        AbstractFsotGuiContainer.drawBeveledRect(xPosition, yPosition, width, height, fill, topLeft, bottomRight);
 
         int textColor = active ? 0xFF204020 : 0xFF404040;
         mc.fontRenderer.drawString(

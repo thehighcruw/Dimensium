@@ -7,19 +7,17 @@ package github.thehighcruw.dimensium.world.inventory.colorPicker;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.shared.BlockColorCache;
+import github.thehighcruw.dimensium.world.inventory.AbstractFsotGuiContainer;
 import github.thehighcruw.dimensium.world.inventory.CreativeGuiUtils;
 import github.thehighcruw.dimensium.world.inventory.GuiToggleButton;
 import java.awt.Color;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import javax.annotation.Nonnull;
 import net.minecraft.block.Block;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiTextField;
-import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
@@ -28,7 +26,7 @@ import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
 @SideOnly(Side.CLIENT)
-public class GuiColourPicker extends GuiContainer {
+public class GuiColourPicker extends AbstractFsotGuiContainer {
 
     // ── Dimensions ────────────────────────────────────────────────────────────
     private static final int PANEL_W = ColourPickerContainer.PANEL_W;
@@ -58,9 +56,6 @@ public class GuiColourPicker extends GuiContainer {
     private static final int C_PANEL = 0xFFC6C6C6; // panel fill
     private static final int C_PANEL_HI = 0xFFFFFFFF; // border highlight (top-left)
     private static final int C_PANEL_SH = 0xFF555555; // border shadow (bottom-right)
-    private static final int C_SLOT = 0xFF8B8B8B; // slot fill
-    private static final int C_SLOT_HI = 0xFFFFFFFF; // slot border highlight (bottom-right)
-    private static final int C_SLOT_SH = 0xFF373737; // slot border shadow (top-left)
     private static final int C_TEXT = 0xFF404040; // dark text
     private static final int C_LABEL = 0xFF707070; // secondary text
 
@@ -226,22 +221,8 @@ public class GuiColourPicker extends GuiContainer {
         drawFsotTooltip(mouseX, mouseY);
     }
 
-    private void drawFsotTooltip(int mouseX, int mouseY) {
-        for (GuiButton btn : buttonList) {
-            if (mouseX >= btn.xPosition
-                    && mouseX < btn.xPosition + btn.width
-                    && mouseY >= btn.yPosition
-                    && mouseY < btn.yPosition + btn.height) {
-                String key = fsotTooltipKey(btn.id);
-                if (key != null) {
-                    drawHoveringText(Collections.singletonList(I18n.format(key)), mouseX, mouseY, fontRendererObj);
-                }
-                return;
-            }
-        }
-    }
-
-    private String fsotTooltipKey(int id) {
+    @Override
+    protected String fsotTooltipKey(int id) {
         return switch (id) {
             case BTN_F -> "dimensium.colour_picker.filter.full_cube";
             case BTN_S -> "dimensium.colour_picker.filter.solid";
@@ -270,22 +251,8 @@ public class GuiColourPicker extends GuiContainer {
                 C_PANEL_SH);
     }
 
-    /** Classic MC inset area (shadow top-left, highlight bottom-right). */
     private void drawMcInset(int x, int y, int w, int h) {
-        drawRect(x, y, x + w, y + h, C_PANEL);
-        drawRect(x, y, x + w, y + 1, C_PANEL_SH);
-        drawRect(x, y, x + 1, y + h, C_PANEL_SH);
-        drawRect(x, y + h - 1, x + w, y + h, C_PANEL_HI);
-        drawRect(x + w - 1, y, x + w, y + h, C_PANEL_HI);
-    }
-
-    /** Standard MC inventory slot (18×18 inset square). */
-    private void drawMcSlot(int x, int y) {
-        drawRect(x, y, x + 18, y + 18, C_SLOT);
-        drawRect(x, y, x + 18, y + 1, C_SLOT_SH);
-        drawRect(x, y, x + 1, y + 18, C_SLOT_SH);
-        drawRect(x, y + 17, x + 18, y + 18, C_SLOT_HI);
-        drawRect(x + 17, y, x + 18, y + 18, C_SLOT_HI);
+        AbstractFsotGuiContainer.drawBeveledRect(x, y, w, h, C_PANEL, C_PANEL_SH, C_PANEL_HI);
     }
 
     @Override

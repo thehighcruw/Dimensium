@@ -51,4 +51,20 @@ public record Vec2DDouble(double x, double y) {
         double len = length();
         return len == 0 ? ZERO : divide(len);
     }
+
+    /**
+     * Computes a normalized screen-space direction from two projected points.
+     * Returns (1,0) when the points are degenerate (behind camera or too close).
+     */
+    public static Vec2DDouble screenDir(double[] from, double[] to) {
+        double dx = to[0] - from[0], dy = to[1] - from[1];
+        double len = Math.sqrt(dx * dx + dy * dy);
+        return len > 0.001 ? Vec2DDouble.from(dx / len, dy / len) : Vec2DDouble.from(1, 0);
+    }
+
+    /** Returns Math.max(1.0, distance) between two projected points — usable as pixels-per-unit scale. */
+    public static double screenScale(double[] from, double[] to) {
+        double dx = to[0] - from[0], dy = to[1] - from[1];
+        return Math.max(1.0, Math.sqrt(dx * dx + dy * dy));
+    }
 }

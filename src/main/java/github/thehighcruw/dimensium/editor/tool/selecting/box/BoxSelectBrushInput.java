@@ -36,27 +36,13 @@ public class BoxSelectBrushInput implements BrushInput {
                 EntityLivingBase eye = mc.renderViewEntity;
                 if (eye != null) {
                     Vec3DDouble g1 = sel.pendingPos.toDouble().plus(0.5);
-                    if (SelectionRenderer.boxPos1Gizmo.hoveredAxis != TranslationGizmo.Axis.NONE) {
-                        SelectionRenderer.boxPos1Gizmo.startDrag(
-                                mouseX, mouseY, g1.x(), g1.y(), g1.z(), g1.x(), g1.y(), g1.z(), 0, 0, 0);
+                    if (tryStartPointGizmos(
+                            mouseX, mouseY, g1, SelectionRenderer.boxPos1Gizmo, SelectionRenderer.boxPos1PlaneGizmo))
                         return;
-                    }
-                    if (SelectionRenderer.boxPos1PlaneGizmo.hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
-                        SelectionRenderer.boxPos1PlaneGizmo.startDrag(
-                                mouseX, mouseY, g1.x(), g1.y(), g1.z(), g1.x(), g1.y(), g1.z(), 0, 0, 0);
-                        return;
-                    }
                     Vec3DDouble g2 = sel.pendingPos2.toDouble().plus(0.5);
-                    if (SelectionRenderer.boxPos2Gizmo.hoveredAxis != TranslationGizmo.Axis.NONE) {
-                        SelectionRenderer.boxPos2Gizmo.startDrag(
-                                mouseX, mouseY, g2.x(), g2.y(), g2.z(), g2.x(), g2.y(), g2.z(), 0, 0, 0);
+                    if (tryStartPointGizmos(
+                            mouseX, mouseY, g2, SelectionRenderer.boxPos2Gizmo, SelectionRenderer.boxPos2PlaneGizmo))
                         return;
-                    }
-                    if (SelectionRenderer.boxPos2PlaneGizmo.hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
-                        SelectionRenderer.boxPos2PlaneGizmo.startDrag(
-                                mouseX, mouseY, g2.x(), g2.y(), g2.z(), g2.x(), g2.y(), g2.z(), 0, 0, 0);
-                        return;
-                    }
                     Vec3DDouble c = sel.pendingPos
                             .toDouble()
                             .plus(sel.pendingPos2.toDouble())
@@ -122,6 +108,19 @@ public class BoxSelectBrushInput implements BrushInput {
                 applyCenter(bxSel, anchor, snap);
             }
         }
+    }
+
+    private static boolean tryStartPointGizmos(
+            int mouseX, int mouseY, Vec3DDouble g, TranslationGizmo axisGizmo, PlaneTranslationGizmo planeGizmo) {
+        if (axisGizmo.hoveredAxis != TranslationGizmo.Axis.NONE) {
+            axisGizmo.startDrag(mouseX, mouseY, g.x(), g.y(), g.z(), g.x(), g.y(), g.z(), 0, 0, 0);
+            return true;
+        }
+        if (planeGizmo.hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
+            planeGizmo.startDrag(mouseX, mouseY, g.x(), g.y(), g.z(), g.x(), g.y(), g.z(), 0, 0, 0);
+            return true;
+        }
+        return false;
     }
 
     private static void applyCenter(SelectionState bxSel, Vec3DDouble anchor, boolean snap) {

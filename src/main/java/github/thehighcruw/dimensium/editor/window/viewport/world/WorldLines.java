@@ -121,22 +121,24 @@ public class WorldLines {
         GL11.glDisable(GL11.GL_CULL_FACE);
         Tessellator t = Tessellator.instance;
         t.startDrawingQuads();
-        // Bottom ring
-        addSegment(t, x1, y1, z1, x2, y1, z1, WorldLines.W_SEL);
-        addSegment(t, x2, y1, z1, x2, y1, z2, WorldLines.W_SEL);
-        addSegment(t, x2, y1, z2, x1, y1, z2, WorldLines.W_SEL);
-        addSegment(t, x1, y1, z2, x1, y1, z1, WorldLines.W_SEL);
-        // Top ring
-        addSegment(t, x1, y2, z1, x2, y2, z1, WorldLines.W_SEL);
-        addSegment(t, x2, y2, z1, x2, y2, z2, WorldLines.W_SEL);
-        addSegment(t, x2, y2, z2, x1, y2, z2, WorldLines.W_SEL);
-        addSegment(t, x1, y2, z2, x1, y2, z1, WorldLines.W_SEL);
-        // Vertical edges
+        addHorizontalRing(t, x1, y1, z1, x2, z2);
+        addHorizontalRing(t, x1, y2, z1, x2, z2);
+        addVerticalEdges(t, x1, y1, z1, x2, y2, z2);
+        t.draw();
+    }
+
+    private static void addHorizontalRing(Tessellator t, float x1, float y, float z1, float x2, float z2) {
+        addSegment(t, x1, y, z1, x2, y, z1, WorldLines.W_SEL);
+        addSegment(t, x2, y, z1, x2, y, z2, WorldLines.W_SEL);
+        addSegment(t, x2, y, z2, x1, y, z2, WorldLines.W_SEL);
+        addSegment(t, x1, y, z2, x1, y, z1, WorldLines.W_SEL);
+    }
+
+    private static void addVerticalEdges(Tessellator t, float x1, float y1, float z1, float x2, float y2, float z2) {
         addSegment(t, x1, y1, z1, x1, y2, z1, WorldLines.W_SEL);
         addSegment(t, x2, y1, z1, x2, y2, z1, WorldLines.W_SEL);
         addSegment(t, x2, y1, z2, x2, y2, z2, WorldLines.W_SEL);
         addSegment(t, x1, y1, z2, x1, y2, z2, WorldLines.W_SEL);
-        t.draw();
     }
 
     /**

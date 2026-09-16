@@ -39,6 +39,14 @@ public class ShapeMathTest {
                 1f);
     }
 
+    /** Returns [dx, dy, dz, w, h] for a point on the torus ring equator. */
+    private static int[] torusRingEquatorCoords() {
+        int R = TORUS_R, r = TORUS_TUBE, outer = R + r;
+        int w = outer * 2 + 1, h = r * 2 + 1;
+        float cx = (w - 1) / 2f, cy = (h - 1) / 2f;
+        return new int[] {Math.round(cx + R), Math.round(cy), Math.round(cx), w, h};
+    }
+
     private static int count(ShapeType type, int w, int h, int d, boolean hollow) {
         int n = 0;
         for (int dx = 0; dx < w; dx++)
@@ -204,20 +212,14 @@ public class ShapeMathTest {
 
     @Test
     public void torusRingEquatorInsideSolid() {
-        int R = TORUS_R, r = TORUS_TUBE, outer = R + r;
-        int w = outer * 2 + 1, h = r * 2 + 1;
-        float cx = (w - 1) / 2f, cy = (h - 1) / 2f;
-        int dx = Math.round(cx + R), dy = Math.round(cy), dz = Math.round(cx);
-        assertTrue(shape(ShapeType.TORUS, dx, dy, dz, w, h, w, false));
+        int[] c = torusRingEquatorCoords();
+        assertTrue(shape(ShapeType.TORUS, c[0], c[1], c[2], c[3], c[4], c[3], false));
     }
 
     @Test
     public void torusRingEquatorOutsideHollow() {
-        int R = TORUS_R, r = TORUS_TUBE, outer = R + r;
-        int w = outer * 2 + 1, h = r * 2 + 1;
-        float cx = (w - 1) / 2f, cy = (h - 1) / 2f;
-        int dx = Math.round(cx + R), dy = Math.round(cy), dz = Math.round(cx);
-        assertFalse(shape(ShapeType.TORUS, dx, dy, dz, w, h, w, true));
+        int[] c = torusRingEquatorCoords();
+        assertFalse(shape(ShapeType.TORUS, c[0], c[1], c[2], c[3], c[4], c[3], true));
     }
 
     @Test
@@ -517,23 +519,16 @@ public class ShapeMathTest {
         float[][] cases = {{30, 45, 60}, {-15, 70, 0}, {45, 0, -30}};
         for (float[] c : cases) {
             Mat3DFloat R = ShapeMath.buildRotationMatrix(c[0], c[1], c[2]);
-            Vec3DFloat back = R.toEulerDeg();
-            Mat3DFloat R2 = ShapeMath.buildRotationMatrix(back.x(), back.y(), back.z());
-            assertEquals("r00 for (" + c[0] + "," + c[1] + "," + c[2] + ")", R.r00(), R2.r00(), 1e-4f);
-            assertEquals("r01", R.r01(), R2.r01(), 1e-4f);
-            assertEquals("r02", R.r02(), R2.r02(), 1e-4f);
-            assertEquals("r10", R.r10(), R2.r10(), 1e-4f);
-            assertEquals("r11", R.r11(), R2.r11(), 1e-4f);
-            assertEquals("r12", R.r12(), R2.r12(), 1e-4f);
-            assertEquals("r20", R.r20(), R2.r20(), 1e-4f);
-            assertEquals("r21", R.r21(), R2.r21(), 1e-4f);
-            assertEquals("r22", R.r22(), R2.r22(), 1e-4f);
+            assertMatrixRoundTrip(R);
         }
     }
 
     @Test
     public void rotationMatrixGimbalLockY90() {
-        Mat3DFloat R = ShapeMath.buildRotationMatrix(0, 90, 0);
+        assertMatrixRoundTrip(ShapeMath.buildRotationMatrix(0, 90, 0));
+    }
+
+    private static void assertMatrixRoundTrip(Mat3DFloat R) {
         Vec3DFloat back = R.toEulerDeg();
         Mat3DFloat R2 = ShapeMath.buildRotationMatrix(back.x(), back.y(), back.z());
         assertEquals("r00", R.r00(), R2.r00(), 1e-4f);

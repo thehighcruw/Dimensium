@@ -42,9 +42,8 @@ public class DistortBrush implements BrushStrategy {
                     Vec3DInt worldPos = origin.plus(dx, dy, dz);
 
                     float nx = worldPos.x() * invScale, ny = worldPos.y() * invScale, nz = worldPos.z() * invScale;
-                    float wx0 = NoiseSampler.rawSimplex3(nx, ny, nz, seed);
-                    float wy0 = NoiseSampler.rawSimplex3(nx + 31.7f, ny + 17.3f, nz + 53.1f, seed);
-                    float wz0 = NoiseSampler.rawSimplex3(nx + 67.9f, ny + 83.5f, nz + 11.3f, seed);
+                    float[] w0 = NoiseSampler.warpVec3(nx, ny, nz, seed);
+                    float wx0 = w0[0], wy0 = w0[1], wz0 = w0[2];
 
                     float edgeFade = 1f;
                     if (s.distortSmoothEdges) {

@@ -4,6 +4,7 @@
  */
 package github.thehighcruw.dimensium.editor.tool.creating.path;
 
+import github.thehighcruw.dimensium.editor.tool.creating.modelling.ModellingMath;
 import github.thehighcruw.dimensium.editor.tool.creating.rock.PathToolState;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 import github.thehighcruw.dimensium.shared.util.BlockUtils;
@@ -159,64 +160,49 @@ public class PathMath {
             return result;
         }
 
-        int err1, err2;
-        int x = x0, y = y0, z = z0;
-        int step = 0;
-        result.add(SplinePoint.of(x, y, z, 0.0));
+        int[] c = {x0, y0, z0};
+        int[] sg = {sx, sy, sz};
+        int[] stepRef = {0};
+        result.add(SplinePoint.of(c[0], c[1], c[2], 0.0));
 
         if (dx >= dy && dx >= dz) {
-            err1 = 2 * dy - dx;
-            err2 = 2 * dz - dx;
-            for (int i = 0; i < dx; i++) {
-                x += sx;
-                if (err1 > 0) {
-                    y += sy;
-                    err1 -= 2 * dx;
-                }
-                if (err2 > 0) {
-                    z += sz;
-                    err2 -= 2 * dx;
-                }
-                err1 += 2 * dy;
-                err2 += 2 * dz;
-                result.add(SplinePoint.of(x, y, z, (double) ++step / totalSteps));
-            }
+            bresenhamRun(c, sg, 0, 1, 2, dx, dy, dz, totalSteps, stepRef, result);
         } else if (dy >= dx && dy >= dz) {
-            err1 = 2 * dx - dy;
-            err2 = 2 * dz - dy;
-            for (int i = 0; i < dy; i++) {
-                y += sy;
-                if (err1 > 0) {
-                    x += sx;
-                    err1 -= 2 * dy;
-                }
-                if (err2 > 0) {
-                    z += sz;
-                    err2 -= 2 * dy;
-                }
-                err1 += 2 * dx;
-                err2 += 2 * dz;
-                result.add(SplinePoint.of(x, y, z, (double) ++step / totalSteps));
-            }
+            bresenhamRun(c, sg, 1, 0, 2, dy, dx, dz, totalSteps, stepRef, result);
         } else {
-            err1 = 2 * dx - dz;
-            err2 = 2 * dy - dz;
-            for (int i = 0; i < dz; i++) {
-                z += sz;
-                if (err1 > 0) {
-                    x += sx;
-                    err1 -= 2 * dz;
-                }
-                if (err2 > 0) {
-                    y += sy;
-                    err2 -= 2 * dz;
-                }
-                err1 += 2 * dx;
-                err2 += 2 * dy;
-                result.add(SplinePoint.of(x, y, z, (double) ++step / totalSteps));
-            }
+            bresenhamRun(c, sg, 2, 0, 1, dz, dx, dy, totalSteps, stepRef, result);
         }
         return result;
+    }
+
+    private static void bresenhamRun(
+            int[] c,
+            int[] sg,
+            int pIdx,
+            int s1Idx,
+            int s2Idx,
+            int dp,
+            int ds1,
+            int ds2,
+            int totalSteps,
+            int[] stepRef,
+            List<SplinePoint> result) {
+        int err1 = 2 * ds1 - dp;
+        int err2 = 2 * ds2 - dp;
+        for (int i = 0; i < dp; i++) {
+            c[pIdx] += sg[pIdx];
+            if (err1 > 0) {
+                c[s1Idx] += sg[s1Idx];
+                err1 -= 2 * dp;
+            }
+            if (err2 > 0) {
+                c[s2Idx] += sg[s2Idx];
+                err2 -= 2 * dp;
+            }
+            err1 += 2 * ds1;
+            err2 += 2 * ds2;
+            result.add(SplinePoint.of(c[0], c[1], c[2], (double) ++stepRef[0] / totalSteps));
+        }
     }
 
     static List<SplinePoint> ddaSegment(PathToolState.PathPoint a, PathToolState.PathPoint b) {
@@ -286,20 +272,7 @@ public class PathMath {
             int samples = Math.max(2, (int) (segLen * 2 + 1));
             for (int i = 0; i <= samples; i++) {
                 double t = (double) i / samples;
-                double t2 = t * t, t3 = t2 * t;
-                Vec3DDouble b = v1.times(2)
-                        .plus(v2.minus(v0).times(t))
-                        .plus(v0.times(2)
-                                .minus(v1.times(5))
-                                .plus(v2.times(4))
-                                .minus(v3)
-                                .times(t2))
-                        .plus(v0.negate()
-                                .plus(v1.times(3))
-                                .minus(v2.times(3))
-                                .plus(v3)
-                                .times(t3))
-                        .times(0.5);
+                Vec3DDouble b = ModellingMath.catmullRomInterp(v0, v1, v2, v3, t);
                 if (i > 0 || seg == 0) result.add(SplinePoint.of(b.x(), b.y(), b.z(), 0));
             }
         }

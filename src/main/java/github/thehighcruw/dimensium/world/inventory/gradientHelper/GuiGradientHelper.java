@@ -8,24 +8,22 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.shared.BlockColorCache;
 import github.thehighcruw.dimensium.shared.KeyConstants;
+import github.thehighcruw.dimensium.world.inventory.AbstractFsotGuiContainer;
 import github.thehighcruw.dimensium.world.inventory.CreativeGuiUtils;
 import github.thehighcruw.dimensium.world.inventory.GuiToggleButton;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityClientPlayerMP;
 import net.minecraft.client.gui.GuiButton;
-import net.minecraft.client.gui.inventory.GuiContainer;
-import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.client.C10PacketCreativeInventoryAction;
 
 @SideOnly(Side.CLIENT)
-public class GuiGradientHelper extends GuiContainer {
+public class GuiGradientHelper extends AbstractFsotGuiContainer {
 
     private static final int PANEL_W = GradientHelperContainer.PANEL_W;
     private static final int PANEL_H = GradientHelperContainer.PANEL_H;
@@ -40,9 +38,6 @@ public class GuiGradientHelper extends GuiContainer {
     private static final int C_PANEL = 0xFFC6C6C6;
     private static final int C_PANEL_HI = 0xFFFFFFFF;
     private static final int C_PANEL_SH = 0xFF555555;
-    private static final int C_SLOT = 0xFF8B8B8B;
-    private static final int C_SLOT_HI = 0xFFFFFFFF;
-    private static final int C_SLOT_SH = 0xFF373737;
     private static final int C_TEXT = 0xFF404040;
     private static final int C_LABEL = 0xFF707070;
 
@@ -138,22 +133,8 @@ public class GuiGradientHelper extends GuiContainer {
         drawFsotTooltip(mouseX, mouseY);
     }
 
-    private void drawFsotTooltip(int mouseX, int mouseY) {
-        for (GuiButton btn : buttonList) {
-            if (mouseX >= btn.xPosition
-                    && mouseX < btn.xPosition + btn.width
-                    && mouseY >= btn.yPosition
-                    && mouseY < btn.yPosition + btn.height) {
-                String key = fsotTooltipKey(btn.id);
-                if (key != null) {
-                    drawHoveringText(Collections.singletonList(I18n.format(key)), mouseX, mouseY, fontRendererObj);
-                }
-                return;
-            }
-        }
-    }
-
-    private String fsotTooltipKey(int id) {
+    @Override
+    protected String fsotTooltipKey(int id) {
         return switch (id) {
             case BTN_F -> "dimensium.colour_picker.filter.full_cube";
             case BTN_S -> "dimensium.colour_picker.filter.solid";
@@ -373,15 +354,6 @@ public class GuiGradientHelper extends GuiContainer {
                 x + GuiGradientHelper.PANEL_W,
                 y + GuiGradientHelper.PANEL_H,
                 C_PANEL_SH);
-    }
-
-    // 18×18 inset — item renders at (x+1, y+1) inside this area
-    private void drawMcSlot(int x, int y) {
-        drawRect(x, y, x + 18, y + 18, C_SLOT);
-        drawRect(x, y, x + 18, y + 1, C_SLOT_SH);
-        drawRect(x, y, x + 1, y + 18, C_SLOT_SH);
-        drawRect(x, y + 17, x + 18, y + 18, C_SLOT_HI);
-        drawRect(x + 17, y, x + 18, y + 18, C_SLOT_HI);
     }
 
     // Output slots: server's outputInv is always empty (server doesn't compute the gradient),

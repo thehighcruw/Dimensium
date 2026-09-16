@@ -26,24 +26,8 @@ public class ShapeBrush implements BrushStrategy {
         ShapeToolState s = ShapeToolState.INSTANCE;
         PaletteState ps = PaletteState.INSTANCE;
         if (ps.palette.isEmpty()) return;
-        int w = s.shapeWidth, h = s.shapeHeight, d = s.shapeDepth;
-
-        if (s.shapeType == ShapeToolState.ShapeType.TORUS) {
-            int outer = s.torusRingRadius + s.torusTubeRadius;
-            w = outer * 2 + 1;
-            h = s.torusTubeRadius * 2 + 1;
-            d = outer * 2 + 1;
-        } else if (s.shapeType == ShapeToolState.ShapeType.ARCHIMEDEAN_SPIRAL) {
-            int r = (int) Math.ceil(s.shapeSpiralSpacing * s.shapeSpiralTurns);
-            w = r * 2 + 1;
-            h = 1;
-            d = r * 2 + 1;
-        } else if (!s.shapeSeparateAxes
-                && (s.shapeType == ShapeToolState.ShapeType.CYLINDER
-                        || s.shapeType == ShapeToolState.ShapeType.CONE
-                        || s.shapeType == ShapeToolState.ShapeType.TUBE)) {
-            d = w;
-        }
+        Vec3DInt dims = s.effectiveDimensions(s.shapeWidth, s.shapeHeight, s.shapeDepth);
+        int w = dims.x(), h = dims.y(), d = dims.z();
 
         // Center on hit block: offset so dx=0..w-1 is symmetric around mop.blockX.
         final int fw = w, fh = h, fd = d;

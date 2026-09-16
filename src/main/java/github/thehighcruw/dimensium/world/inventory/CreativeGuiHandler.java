@@ -58,15 +58,49 @@ public class CreativeGuiHandler {
         }
     }
 
+    private static final int C_PANEL = 0xFFC6C6C6;
+    private static final int C_PANEL_HI = 0xFFFFFFFF;
+    private static final int C_PANEL_SH = 0xFF555555;
+
+    @SideOnly(Side.CLIENT)
+    private static void drawItemButton(
+            GuiButton btn, Minecraft mc, int mouseX, int mouseY, ItemStack icon, RenderItem renderer) {
+        if (!btn.visible) return;
+        boolean hovered = mouseX >= btn.xPosition
+                && mouseY >= btn.yPosition
+                && mouseX < btn.xPosition + btn.width
+                && mouseY < btn.yPosition + btn.height;
+        int fill = hovered ? 0xFFD4D4D4 : C_PANEL;
+        GuiButton.drawRect(btn.xPosition, btn.yPosition, btn.xPosition + btn.width, btn.yPosition + btn.height, fill);
+        GuiButton.drawRect(btn.xPosition, btn.yPosition, btn.xPosition + btn.width, btn.yPosition + 1, C_PANEL_HI);
+        GuiButton.drawRect(btn.xPosition, btn.yPosition, btn.xPosition + 1, btn.yPosition + btn.height, C_PANEL_HI);
+        GuiButton.drawRect(
+                btn.xPosition,
+                btn.yPosition + btn.height - 1,
+                btn.xPosition + btn.width,
+                btn.yPosition + btn.height,
+                C_PANEL_SH);
+        GuiButton.drawRect(
+                btn.xPosition + btn.width - 1,
+                btn.yPosition,
+                btn.xPosition + btn.width,
+                btn.yPosition + btn.height,
+                C_PANEL_SH);
+        RenderHelper.enableGUIStandardItemLighting();
+        GL11.glEnable(GL12.GL_RESCALE_NORMAL);
+        renderer.zLevel = 100f;
+        renderer.renderItemAndEffectIntoGUI(
+                mc.fontRenderer, mc.getTextureManager(), icon, btn.xPosition + 2, btn.yPosition + 2);
+        renderer.zLevel = 0f;
+        GL11.glDisable(GL12.GL_RESCALE_NORMAL);
+        RenderHelper.disableStandardItemLighting();
+    }
+
     @SideOnly(Side.CLIENT)
     private static class ColourPickerButton extends GuiButton {
 
         private static final ItemStack ICON = new ItemStack(Items.dye, 1, 11);
         private final RenderItem renderer = new RenderItem();
-
-        private static final int C_PANEL = 0xFFC6C6C6;
-        private static final int C_PANEL_HI = 0xFFFFFFFF;
-        private static final int C_PANEL_SH = 0xFF555555;
 
         ColourPickerButton(int x, int y) {
             super(BUTTON_ID, x, y, BTN_SIZE, BTN_SIZE, "");
@@ -74,26 +108,7 @@ public class CreativeGuiHandler {
 
         @Override
         public void drawButton(Minecraft mc, int mouseX, int mouseY) {
-            if (!visible) return;
-            boolean hovered = mouseX >= xPosition
-                    && mouseY >= yPosition
-                    && mouseX < xPosition + width
-                    && mouseY < yPosition + height;
-            int fill = hovered ? 0xFFD4D4D4 : C_PANEL;
-            drawRect(xPosition, yPosition, xPosition + width, yPosition + height, fill);
-            drawRect(xPosition, yPosition, xPosition + width, yPosition + 1, C_PANEL_HI);
-            drawRect(xPosition, yPosition, xPosition + 1, yPosition + height, C_PANEL_HI);
-            drawRect(xPosition, yPosition + height - 1, xPosition + width, yPosition + height, C_PANEL_SH);
-            drawRect(xPosition + width - 1, yPosition, xPosition + width, yPosition + height, C_PANEL_SH);
-
-            RenderHelper.enableGUIStandardItemLighting();
-            GL11.glEnable(GL12.GL_RESCALE_NORMAL);
-            renderer.zLevel = 100f;
-            renderer.renderItemAndEffectIntoGUI(
-                    mc.fontRenderer, mc.getTextureManager(), ICON, xPosition + 2, yPosition + 2);
-            renderer.zLevel = 0f;
-            GL11.glDisable(GL12.GL_RESCALE_NORMAL);
-            RenderHelper.disableStandardItemLighting();
+            drawItemButton(this, mc, mouseX, mouseY, ICON, renderer);
         }
     }
 
@@ -103,36 +118,13 @@ public class CreativeGuiHandler {
         private static final ItemStack ICON = new ItemStack(Items.blaze_powder, 1, 0);
         private final RenderItem renderer = new RenderItem();
 
-        private static final int C_PANEL = 0xFFC6C6C6;
-        private static final int C_PANEL_HI = 0xFFFFFFFF;
-        private static final int C_PANEL_SH = 0xFF555555;
-
         GradientButton(int x, int y) {
             super(BUTTON_ID_GRADIENT, x, y, BTN_SIZE, BTN_SIZE, "");
         }
 
         @Override
         public void drawButton(Minecraft mc, int mouseX, int mouseY) {
-            if (!visible) return;
-            boolean hovered = mouseX >= xPosition
-                    && mouseY >= yPosition
-                    && mouseX < xPosition + width
-                    && mouseY < yPosition + height;
-            int fill = hovered ? 0xFFD4D4D4 : C_PANEL;
-            drawRect(xPosition, yPosition, xPosition + width, yPosition + height, fill);
-            drawRect(xPosition, yPosition, xPosition + width, yPosition + 1, C_PANEL_HI);
-            drawRect(xPosition, yPosition, xPosition + 1, yPosition + height, C_PANEL_HI);
-            drawRect(xPosition, yPosition + height - 1, xPosition + width, yPosition + height, C_PANEL_SH);
-            drawRect(xPosition + width - 1, yPosition, xPosition + width, yPosition + height, C_PANEL_SH);
-
-            RenderHelper.enableGUIStandardItemLighting();
-            GL11.glEnable(GL12.GL_RESCALE_NORMAL);
-            renderer.zLevel = 100f;
-            renderer.renderItemAndEffectIntoGUI(
-                    mc.fontRenderer, mc.getTextureManager(), ICON, xPosition + 2, yPosition + 2);
-            renderer.zLevel = 0f;
-            GL11.glDisable(GL12.GL_RESCALE_NORMAL);
-            RenderHelper.disableStandardItemLighting();
+            drawItemButton(this, mc, mouseX, mouseY, ICON, renderer);
         }
     }
 }

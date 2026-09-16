@@ -58,8 +58,28 @@ public class ChangeProposal {
         return new ChangeProposal(null);
     }
 
+    /** Build a preview proposal from [x,y,z,blockId,meta] rows. */
+    public static ChangeProposal fromBlockList(List<int[]> blocks) {
+        ChangeProposal p = forPreview();
+        for (int[] b : blocks) {
+            p.proposed.put(packKey(b[0], b[1], b[2]), new int[] {b[3], b[4]});
+        }
+        return p;
+    }
+
     public static void cancel() {
         ActiveDragState.INSTANCE.activeDrag = null;
+    }
+
+    /** Returns all entries in this proposal as [x, y, z, blockId, meta] rows. */
+    public List<int[]> toOps() {
+        List<int[]> ops = new ArrayList<>(proposed.size());
+        for (Map.Entry<Long, int[]> e : proposed.entrySet()) {
+            long key = e.getKey();
+            int[] bm = e.getValue();
+            ops.add(new int[] {unpackX(key), unpackY(key), unpackZ(key), bm[0], bm[1]});
+        }
+        return ops;
     }
 
     /** Clears activeDrag and returns all accumulated ops as [x, y, z, blockId, meta] rows. */
@@ -67,13 +87,7 @@ public class ChangeProposal {
         ChangeProposal drag = ActiveDragState.INSTANCE.activeDrag;
         ActiveDragState.INSTANCE.activeDrag = null;
         if (drag == null) return new ArrayList<>();
-        List<int[]> ops = new ArrayList<>(drag.proposed.size());
-        for (Map.Entry<Long, int[]> e : drag.proposed.entrySet()) {
-            long key = e.getKey();
-            int[] bm = e.getValue();
-            ops.add(new int[] {unpackX(key), unpackY(key), unpackZ(key), bm[0], bm[1]});
-        }
-        return ops;
+        return drag.toOps();
     }
 
     // ── Write interception ────────────────────────────────────────────────────

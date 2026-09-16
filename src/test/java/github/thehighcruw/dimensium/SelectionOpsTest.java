@@ -35,6 +35,10 @@ public class SelectionOpsTest {
         sel.applyOp(set, BooleanOp.REPLACE);
     }
 
+    private void add5x5x5Cube() {
+        sel.applyOp(SelectionTestData.solidCube5x5x5(), BooleanOp.REPLACE);
+    }
+
     // ── selectionToAirOps ────────────────────────────────────────────────────
 
     @Test
@@ -102,25 +106,14 @@ public class SelectionOpsTest {
     @Test
     public void hollowOps5x5x5CubeCorrectInteriorCount() {
         // 5×5×5 = 125 total, interior 3×3×3 = 27 blocks
-        Set<Long> blocks = new HashSet<>();
-        for (int x = 0; x < 5; x++)
-            for (int y = 64; y < 69; y++)
-                for (int z = 0; z < 5; z++) blocks.add(SelectionState.pack(Vec3DInt.from(x, y, z)));
-        sel.applyOp(blocks, BooleanOp.REPLACE);
-
+        add5x5x5Cube();
         List<int[]> ops = SelectionOps.hollowOps(sel);
         assertEquals("interior of 5x5x5 cube is 3x3x3 = 27 blocks", 27, ops.size());
     }
 
     @Test
     public void hollowOpsOnlyAirsInterior() {
-        // All hollow ops must have blockId=0 meta=0
-        Set<Long> blocks = new HashSet<>();
-        for (int x = 0; x < 5; x++)
-            for (int y = 64; y < 69; y++)
-                for (int z = 0; z < 5; z++) blocks.add(SelectionState.pack(Vec3DInt.from(x, y, z)));
-        sel.applyOp(blocks, BooleanOp.REPLACE);
-
+        add5x5x5Cube();
         for (int[] op : SelectionOps.hollowOps(sel)) {
             assertEquals("hollow op must set block to air", 0, op[3]);
             assertEquals("hollow op meta must be 0", 0, op[4]);
@@ -129,15 +122,11 @@ public class SelectionOpsTest {
 
     @Test
     public void hollowOpsInteriorBlocksMustBeInsideSelection() {
-        Set<Long> blocks = new HashSet<>();
-        for (int x = 0; x < 5; x++)
-            for (int y = 64; y < 69; y++)
-                for (int z = 0; z < 5; z++) blocks.add(SelectionState.pack(Vec3DInt.from(x, y, z)));
-        sel.applyOp(blocks, BooleanOp.REPLACE);
-
+        add5x5x5Cube();
+        Set<Long> cubeBlocks = sel.getSelectedBlocks();
         for (int[] op : SelectionOps.hollowOps(sel)) {
             long key = SelectionState.pack(Vec3DInt.from(op[0], op[1], op[2]));
-            assertTrue("hollow op position must be in selection", blocks.contains(key));
+            assertTrue("hollow op position must be in selection", cubeBlocks.contains(key));
         }
     }
 }

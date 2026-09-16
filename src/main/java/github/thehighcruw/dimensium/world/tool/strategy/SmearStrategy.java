@@ -26,6 +26,15 @@ public class SmearStrategy implements BuilderToolStrategy {
     @Desugar
     private record StepResult(Vec3DInt step, int steps) {}
 
+    private static boolean inOriginalSelection(Vec3DInt dest, SelectionState sel) {
+        return dest.x() >= sel.minX()
+                && dest.x() <= sel.maxX()
+                && dest.y() >= sel.minY()
+                && dest.y() <= sel.maxY()
+                && dest.z() >= sel.minZ()
+                && dest.z() <= sel.maxZ();
+    }
+
     private static StepResult computeSteps(Vec3DInt offset) {
         Vec3DInt abs = offset.abs();
         if (abs.x() >= abs.y() && abs.x() >= abs.z())
@@ -59,13 +68,8 @@ public class SmearStrategy implements BuilderToolStrategy {
                 BlockData bd = sel.clipboardGet(Vec3DInt.from(x, y, z));
                 if (bd.block() == Blocks.air) return;
                 Vec3DInt dest = base.plus(Vec3DInt.from(x, y, z));
-                boolean inOrigSel = dest.x() >= sel.minX()
-                        && dest.x() <= sel.maxX()
-                        && dest.y() >= sel.minY()
-                        && dest.y() <= sel.maxY()
-                        && dest.z() >= sel.minZ()
-                        && dest.z() <= sel.maxZ();
-                if (!inOrigSel && world.getBlock(dest.x(), dest.y(), dest.z()) != Blocks.air) return;
+                if (!inOriginalSelection(dest, sel) && world.getBlock(dest.x(), dest.y(), dest.z()) != Blocks.air)
+                    return;
                 ops.add(new int[] {dest.x(), dest.y(), dest.z(), Block.getIdFromBlock(bd.block()), bd.meta()});
             });
             if (ops.size() > DimensiumConfig.smearBlockCap) break;
@@ -102,13 +106,7 @@ public class SmearStrategy implements BuilderToolStrategy {
                 BlockData bd = sel.clipboardGet(Vec3DInt.from(x, y, z));
                 if (bd.block() == Blocks.air) return;
                 Vec3DInt dest = base.plus(Vec3DInt.from(x, y, z));
-                boolean inOrigSel = dest.x() >= sel.minX()
-                        && dest.x() <= sel.maxX()
-                        && dest.y() >= sel.minY()
-                        && dest.y() <= sel.maxY()
-                        && dest.z() >= sel.minZ()
-                        && dest.z() <= sel.maxZ();
-                if (!inOrigSel) {
+                if (!inOriginalSelection(dest, sel)) {
                     p.proposed.put(
                             ChangeProposal.packKey(dest.x(), dest.y(), dest.z()),
                             new int[] {Block.getIdFromBlock(bd.block()), bd.meta()});

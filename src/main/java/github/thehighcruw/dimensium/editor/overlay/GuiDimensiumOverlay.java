@@ -353,17 +353,9 @@ public final class GuiDimensiumOverlay {
     public static void applyPath() {
         ChangeProposal p = PathToolState.INSTANCE.preview;
         if (p != null && !p.proposed.isEmpty()) {
-            List<int[]> ops = new ArrayList<>(p.proposed.size());
-            for (Map.Entry<Long, int[]> e : p.proposed.entrySet()) {
-                long key = e.getKey();
-                int[] bm = e.getValue();
-                ops.add(new int[] {
-                    ChangeProposal.unpackX(key), ChangeProposal.unpackY(key), ChangeProposal.unpackZ(key), bm[0], bm[1]
-                });
-            }
             String pathAction =
                     I18n.format("dimensium.action.path", I18n.format(PathToolState.INSTANCE.curveType.label));
-            BlockSender.sendChunked(ops, pathAction);
+            BlockSender.sendChunked(p.toOps(), pathAction);
         }
         PathToolState.INSTANCE.clear();
     }

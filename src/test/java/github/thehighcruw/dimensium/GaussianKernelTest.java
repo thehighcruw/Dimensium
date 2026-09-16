@@ -15,6 +15,17 @@ public class GaussianKernelTest {
 
     private static final float EPSILON = 1e-4f;
 
+    /** Builds a fully-solid snap volume and samples solidWeight at its centre. */
+    private static float solidWeightAtCentre(GaussianKernel k) {
+        int margin = k.kR;
+        int dim = 2 * margin + 3;
+        int stX = dim * dim;
+        int[] snap = new int[dim * dim * dim];
+        Arrays.fill(snap, 1);
+        int cx = dim / 2, cy = dim / 2, cz = dim / 2;
+        return k.solidWeight(snap, Vec3DInt.from(cx, cy, cz), stX, dim);
+    }
+
     // ── build invariants ──────────────────────────────────────────────────────
 
     @Test
@@ -80,17 +91,7 @@ public class GaussianKernelTest {
     @Test
     public void solidWeightFullyFilledEqualsTotal() {
         GaussianKernel k = GaussianKernel.build(1.0f);
-        int margin = k.kR;
-        // Volume must be at least (2*margin+1)^3 to avoid out-of-bounds
-        int dim = 2 * margin + 3; // one extra layer on each side
-        int stX = dim * dim;
-        int[] snap = new int[dim * dim * dim];
-        // Fill entirely with solid
-        Arrays.fill(snap, 1);
-
-        // Sample at the centre of the volume
-        int cx = dim / 2, cy = dim / 2, cz = dim / 2;
-        float sw = k.solidWeight(snap, Vec3DInt.from(cx, cy, cz), stX, dim);
+        float sw = solidWeightAtCentre(k);
         assertEquals("all-solid neighbourhood → solidWeight equals totalWeight", k.totalWeight, sw, EPSILON);
     }
 
@@ -126,14 +127,7 @@ public class GaussianKernelTest {
     @Test
     public void solidWeightNeverExceedsTotal() {
         GaussianKernel k = GaussianKernel.build(1.0f);
-        int margin = k.kR;
-        int dim = 2 * margin + 3;
-        int stX = dim * dim;
-        int[] snap = new int[dim * dim * dim];
-        Arrays.fill(snap, 1);
-
-        int cx = dim / 2, cy = dim / 2, cz = dim / 2;
-        float sw = k.solidWeight(snap, Vec3DInt.from(cx, cy, cz), stX, dim);
+        float sw = solidWeightAtCentre(k);
         assertTrue("solidWeight must not exceed totalWeight", sw <= k.totalWeight + EPSILON);
     }
 }

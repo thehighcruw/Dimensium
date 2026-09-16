@@ -16,9 +16,7 @@ import org.junit.Test;
 public class SelectionTransformsTest {
 
     private static Set<Long> pack(int[][] coords) {
-        Set<Long> s = new HashSet<>();
-        for (int[] c : coords) s.add(SelectionState.pack(Vec3DInt.from(c[0], c[1], c[2])));
-        return s;
+        return SelectionTestData.pack(coords);
     }
 
     private static boolean has(Set<Long> set, int x, int y, int z) {
@@ -141,12 +139,7 @@ public class SelectionTransformsTest {
 
     @Test
     public void smoothSolidCubeAtLowThresholdRetainsMostBlocks() {
-        // 5×5×5 solid cube — smoothed at low threshold should keep most interior blocks
-        Set<Long> blocks = new HashSet<>();
-        for (int x = 0; x < 5; x++)
-            for (int y = 64; y < 69; y++)
-                for (int z = 0; z < 5; z++) blocks.add(SelectionState.pack(Vec3DInt.from(x, y, z)));
-
+        Set<Long> blocks = SelectionTestData.solidCube5x5x5();
         Set<Long> result = SelectionTransforms.smooth(blocks, 1, 0.1f);
         assertFalse("smooth of solid cube should not be empty", result.isEmpty());
     }

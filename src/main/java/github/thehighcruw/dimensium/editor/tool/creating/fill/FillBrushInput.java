@@ -16,9 +16,6 @@ import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.tool.BuilderToolState;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
@@ -87,14 +84,6 @@ public class FillBrushInput implements BrushInput {
     private static void sendFillPackets() {
         ChangeProposal p = BuilderToolState.INSTANCE.fillPreview;
         if (p == null) return;
-        List<int[]> positions = new ArrayList<>(p.proposed.size());
-        for (Map.Entry<Long, int[]> e : p.proposed.entrySet()) {
-            long key = e.getKey();
-            int[] bm = e.getValue();
-            positions.add(new int[] {
-                ChangeProposal.unpackX(key), ChangeProposal.unpackY(key), ChangeProposal.unpackZ(key), bm[0], bm[1]
-            });
-        }
-        BlockSender.sendChunked(positions, I18n.format("dimensium.action.fill"));
+        BlockSender.sendChunked(p.toOps(), I18n.format("dimensium.action.fill"));
     }
 }

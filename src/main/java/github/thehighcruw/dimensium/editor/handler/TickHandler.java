@@ -459,28 +459,10 @@ public class TickHandler {
                             fwd.z() + ndcX * fs.projTanHX * rgt.z() + ndcY * fs.projTanHY * up.z())
                     .normalize();
 
-            Vec3 start = Vec3.createVectorHelper(cam.posX, cam.posY, cam.posZ);
-            Vec3 end =
-                    Vec3.createVectorHelper(cam.posX + rd.x() * 512, cam.posY + rd.y() * 512, cam.posZ + rd.z() * 512);
-            MovingObjectPosition hit = mc.theWorld.rayTraceBlocks(start, end, false);
-            if (hit != null && hit.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-                fs.pivot = Vec3DDouble.from(hit.blockX + 0.5, hit.blockY + 0.5, hit.blockZ + 0.5);
-            } else {
-                fs.pivot = Vec3DDouble.from(cam.posX + rd.x() * 20, cam.posY + rd.y() * 20, cam.posZ + rd.z() * 20);
-            }
+            setPivotFromRay(fs, cam, mc, rd);
         } else {
             Vec3DDouble rd = FreecamUtils.cameraBasis(cam.rotationYaw, cam.rotationPitch)[0];
-
-            Vec3 start = Vec3.createVectorHelper(cam.posX, cam.posY, cam.posZ);
-            Vec3 end =
-                    Vec3.createVectorHelper(cam.posX + rd.x() * 512, cam.posY + rd.y() * 512, cam.posZ + rd.z() * 512);
-            MovingObjectPosition hit = mc.theWorld.rayTraceBlocks(start, end, false);
-
-            if (hit != null && hit.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-                fs.pivot = Vec3DDouble.from(hit.blockX + 0.5, hit.blockY + 0.5, hit.blockZ + 0.5);
-            } else {
-                fs.pivot = Vec3DDouble.from(cam.posX + rd.x() * 20, cam.posY + rd.y() * 20, cam.posZ + rd.z() * 20);
-            }
+            setPivotFromRay(fs, cam, mc, rd);
         }
 
         Vec3DDouble orbitOffset = Vec3DDouble.from(cam.posX, cam.posY, cam.posZ).minus(fs.pivot);
@@ -526,6 +508,17 @@ public class TickHandler {
         cam.lastTickPosZ = cam.posZ;
         cam.prevRotationYaw = cam.rotationYaw;
         cam.prevRotationPitch = cam.rotationPitch;
+    }
+
+    private static void setPivotFromRay(FreecamState fs, FreecamEntity cam, Minecraft mc, Vec3DDouble rd) {
+        Vec3 start = Vec3.createVectorHelper(cam.posX, cam.posY, cam.posZ);
+        Vec3 end = Vec3.createVectorHelper(cam.posX + rd.x() * 512, cam.posY + rd.y() * 512, cam.posZ + rd.z() * 512);
+        MovingObjectPosition hit = mc.theWorld.rayTraceBlocks(start, end, false);
+        if (hit != null && hit.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+            fs.pivot = Vec3DDouble.from(hit.blockX + 0.5, hit.blockY + 0.5, hit.blockZ + 0.5);
+        } else {
+            fs.pivot = Vec3DDouble.from(cam.posX + rd.x() * 20, cam.posY + rd.y() * 20, cam.posZ + rd.z() * 20);
+        }
     }
 
     // ── World disconnect cleanup ──────────────────────────────────────────────

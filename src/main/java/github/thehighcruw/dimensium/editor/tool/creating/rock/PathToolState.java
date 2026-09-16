@@ -141,11 +141,7 @@ public class PathToolState implements WithAxisTranslationGizmo, WithPlaneTransla
             preview = null;
             return;
         }
-        ChangeProposal p = ChangeProposal.forPreview();
-        for (int[] b : blocks) {
-            p.proposed.put(ChangeProposal.packKey(b[0], b[1], b[2]), new int[] {b[3], b[4]});
-        }
-        preview = p;
+        preview = ChangeProposal.fromBlockList(blocks);
     }
 
     private String buildKey(ItemStack activeBlock) {

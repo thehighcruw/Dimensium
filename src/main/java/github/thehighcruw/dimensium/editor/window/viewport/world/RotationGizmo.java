@@ -138,8 +138,8 @@ public class RotationGizmo {
         double bestDist = HIT_PX;
 
         for (int a = 0; a < 3; a++) {
-            Vec3DFloat rp1 = R.mul(Vec3DFloat.from(ARC_P1[a][0], ARC_P1[a][1], ARC_P1[a][2]));
-            Vec3DFloat rp2 = R.mul(Vec3DFloat.from(ARC_P2[a][0], ARC_P2[a][1], ARC_P2[a][2]));
+            Vec3DFloat rp1 = arcBasisP1(R, a);
+            Vec3DFloat rp2 = arcBasisP2(R, a);
             double[] prev = null;
             double minD = Double.MAX_VALUE;
 
@@ -183,8 +183,8 @@ public class RotationGizmo {
 
         Mat3DFloat R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
         int a = dragAxis == Axis.X ? 0 : dragAxis == Axis.Y ? 1 : 2;
-        Vec3DFloat rp1 = R.mul(Vec3DFloat.from(ARC_P1[a][0], ARC_P1[a][1], ARC_P1[a][2]));
-        Vec3DFloat rp2 = R.mul(Vec3DFloat.from(ARC_P2[a][0], ARC_P2[a][1], ARC_P2[a][2]));
+        Vec3DFloat rp1 = arcBasisP1(R, a);
+        Vec3DFloat rp2 = arcBasisP2(R, a);
 
         double[] cScr = proj.project(gx, gy, gz);
         if (cScr == null) {
@@ -254,6 +254,14 @@ public class RotationGizmo {
                 (gx - camPos.x()) / scale,
                 (gy - camPos.y()) / scale,
                 (gz - camPos.z()) / scale);
+    }
+
+    private static Vec3DFloat arcBasisP1(Mat3DFloat R, int a) {
+        return R.mul(Vec3DFloat.from(ARC_P1[a][0], ARC_P1[a][1], ARC_P1[a][2]));
+    }
+
+    private static Vec3DFloat arcBasisP2(Mat3DFloat R, int a) {
+        return R.mul(Vec3DFloat.from(ARC_P2[a][0], ARC_P2[a][1], ARC_P2[a][2]));
     }
 
     static double segDist(double ax, double ay, double bx, double by, double px, double py) {

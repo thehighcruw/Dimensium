@@ -79,9 +79,8 @@ public final class SelectionTransforms {
         for (long key : blocks) {
             Vec3DInt coord = SelectionState.unpack(key);
             float nx = coord.x() * invScale, ny = coord.y() * invScale, nz = coord.z() * invScale;
-            float wx = NoiseSampler.rawSimplex3(nx, ny, nz, seed);
-            float wy = NoiseSampler.rawSimplex3(nx + 31.7f, ny + 17.3f, nz + 53.1f, seed);
-            float wz = NoiseSampler.rawSimplex3(nx + 67.9f, ny + 83.5f, nz + 11.3f, seed);
+            float[] w = NoiseSampler.warpVec3(nx, ny, nz, seed);
+            float wx = w[0], wy = w[1], wz = w[2];
             int rx = Math.round(coord.x() + wx * distX);
             int ry = Math.round(coord.y() + wy * distY);
             int rz = Math.round(coord.z() + wz * distZ);

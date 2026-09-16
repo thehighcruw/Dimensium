@@ -237,10 +237,8 @@ public class TranslationGizmo {
             screenDir = Vec2DDouble.from(1, 0);
             pixelsPerBlock = 50;
         } else {
-            Vec2DDouble dd = Vec2DDouble.from(ts[0] - os[0], ts[1] - os[1]);
-            double len = dd.length();
-            pixelsPerBlock = Math.max(1.0, len);
-            screenDir = len > 0.001 ? dd.divide(len) : Vec2DDouble.from(1, 0);
+            screenDir = Vec2DDouble.screenDir(os, ts);
+            pixelsPerBlock = Vec2DDouble.screenScale(os, ts);
         }
 
         // Ray-based drag: find initial parameter along axis
