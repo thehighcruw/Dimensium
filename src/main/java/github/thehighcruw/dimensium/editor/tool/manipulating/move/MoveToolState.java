@@ -18,6 +18,7 @@ import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.math.Mat3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import github.thehighcruw.dimensium.shared.util.WorldUtils;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -112,9 +113,8 @@ public class MoveToolState
      * Re-activate after a confirm with known block data (no world read needed).
      * Avoids the server-packet timing gap.
      */
-    public void activateFromSnapshot(
-            SelectionState sel, Map<Long, SelectionState.BlockData> snap, float newCmX, float newCmY, float newCmZ) {
-        cm = Vec3DFloat.from(newCmX, newCmY, newCmZ);
+    public void activateFromSnapshot(SelectionState sel, Map<Long, SelectionState.BlockData> snap, Vec3DFloat newCm) {
+        cm = newCm;
         snapshot = snap;
         currentSnapshotVersion++;
         reset();
@@ -171,12 +171,9 @@ public class MoveToolState
             Vec3DFloat rv = R.mul(wv.toFloat().plus(0.5f).minus(cm));
             Vec3DFloat nPos = cm.plus(delta).plus(rv);
 
-            int nx = (int) Math.floor(nPos.x());
-            int ny = (int) Math.floor(nPos.y());
-            int nz = (int) Math.floor(nPos.z());
-
+            Vec3DInt nCoord = Vec3DInt.floor(nPos);
             SelectionState.BlockData bd = e.getValue();
-            blocks.add(new int[] {nx, ny, nz, Block.getIdFromBlock(bd.block()), bd.meta()});
+            blocks.add(new int[] {nCoord.x(), nCoord.y(), nCoord.z(), Block.getIdFromBlock(bd.block()), bd.meta()});
         }
         ghostBlocks = blocks;
 
@@ -207,10 +204,9 @@ public class MoveToolState
         currentSnapshotVersion++;
         for (long key : sel.getSelectedBlocks()) {
             Vec3DInt bv = SelectionState.unpack(key);
-            int bx = bv.x(), by = bv.y(), bz = bv.z();
-            Block blk = world.getBlock(bx, by, bz);
+            Block blk = WorldUtils.getBlock(world, bv);
             if (blk != null && blk != Blocks.air) {
-                int meta = world.getBlockMetadata(bx, by, bz);
+                int meta = WorldUtils.getBlockMetadata(world, bv);
                 snapshot.put(key, new SelectionState.BlockData(blk, meta));
             }
         }

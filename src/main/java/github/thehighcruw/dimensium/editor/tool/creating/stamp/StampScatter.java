@@ -32,12 +32,12 @@ public class StampScatter {
     /**
      * Scatters blueprint instances across the given stroke positions.
      *
-     * @param stroke List of {x, y, z} surface block positions visited during the brush drag.
+     * @param stroke List of surface block positions visited during the brush drag.
      * @param state  Current stamp tool configuration.
      * @param rng    Random source.
      * @return List of instances to place.
      */
-    public static List<StampInstance> scatter(List<int[]> stroke, StampToolState state, Random rng) {
+    public static List<StampInstance> scatter(List<Vec3DInt> stroke, StampToolState state, Random rng) {
         List<StampInstance> result = new ArrayList<>();
         if (state.blueprints.isEmpty() || stroke.isEmpty()) return result;
 
@@ -45,7 +45,7 @@ public class StampScatter {
         for (StampEntry e : state.blueprints) weightSum += Math.max(0f, e.chance);
         if (weightSum <= 0f) return result;
 
-        for (int[] pos : stroke) {
+        for (Vec3DInt pos : stroke) {
             if (rng.nextFloat() > state.baseChance) continue;
 
             int entryIdx = pickWeighted(state.blueprints, weightSum, rng);
@@ -54,13 +54,13 @@ public class StampScatter {
 
             float minDist = state.minSpacingPct
                     * Math.max(bp.clipDim().x(), bp.clipDim().z());
-            if (minDist > 0f && isTooClose(result, pos[0], pos[2], minDist)) continue;
+            if (minDist > 0f && isTooClose(result, pos.x(), pos.z(), minDist)) continue;
 
             float yaw = state.randomYaw ? rng.nextFloat() * 360f : 0f;
             boolean flipX = state.randomXFlip && rng.nextBoolean();
             boolean flipZ = state.randomZFlip && rng.nextBoolean();
             // anchorY: top surface of the hit block → place blueprint base one block above
-            result.add(new StampInstance(entryIdx, pos[0], pos[1] + 1 + entry.offsetY, pos[2], yaw, flipX, flipZ));
+            result.add(new StampInstance(entryIdx, pos.x(), pos.y() + 1 + entry.offsetY, pos.z(), yaw, flipX, flipZ));
         }
         return result;
     }

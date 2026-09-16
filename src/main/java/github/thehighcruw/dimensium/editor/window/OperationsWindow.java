@@ -13,6 +13,7 @@ import github.thehighcruw.dimensium.editor.tool.selecting.SelectedBlockState;
 import github.thehighcruw.dimensium.editor.window.imgui.ToggleableWindow;
 import github.thehighcruw.dimensium.shared.BlockSender;
 import github.thehighcruw.dimensium.shared.SelectionState;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import imgui.ImGui;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
@@ -69,13 +70,8 @@ public class OperationsWindow extends ToggleableWindow {
                 int meta = sbs.getPaintMeta();
                 List<int[]> ops = new ArrayList<>(_sel.size());
                 for (long key : _sel.getSelectedBlocks()) {
-                    ops.add(new int[] {
-                        SelectionState.unpack(key).x(),
-                        SelectionState.unpack(key).y(),
-                        SelectionState.unpack(key).z(),
-                        bid,
-                        meta
-                    });
+                    Vec3DInt cv = SelectionState.unpack(key);
+                    ops.add(new int[] {cv.x(), cv.y(), cv.z(), bid, meta});
                 }
                 BlockSender.sendChunked(ops, I18n.format("dimensium.action.fill"));
             }

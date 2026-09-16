@@ -329,8 +329,8 @@ public class KeyHandler {
 
         if (tool == Tool.SHAPE && ShapePlacementState.INSTANCE.active) {
             ShapePlacementState sps = ShapePlacementState.INSTANCE;
-            sps.anchor = sps.anchor.plus(Vec3DInt.from(delta[0], delta[1], delta[2]));
-            sps.anchorF = Vec3DFloat.from(sps.anchor.x(), sps.anchor.y(), sps.anchor.z());
+            sps.anchor = sps.anchor.plus(delta[0], delta[1], delta[2]);
+            sps.anchorF = sps.anchor.toFloat();
             sps.invalidateGhost();
             sps.rebuildIfNeeded();
             return true;
@@ -338,8 +338,8 @@ public class KeyHandler {
 
         if (ClipboardPlacementState.INSTANCE.active) {
             ClipboardPlacementState cps = ClipboardPlacementState.INSTANCE;
-            cps.anchor = cps.anchor.plus(Vec3DInt.from(delta[0], delta[1], delta[2]));
-            cps.anchorF = Vec3DFloat.from(cps.anchor.x(), cps.anchor.y(), cps.anchor.z());
+            cps.anchor = cps.anchor.plus(delta[0], delta[1], delta[2]);
+            cps.anchorF = cps.anchor.toFloat();
             cps.rebuildPreview();
             return true;
         }

@@ -46,8 +46,9 @@ public final class GaussianKernel {
         float[] solidW = {0f};
         Vec3DInt bound = Vec3DInt.from(kR, kR, kR);
         Vec3DInt.forEachInclusive(bound.negate(), bound, (kx, ky, kz) -> {
-            int snapIdx = (index.x() + kx) * snStX + (index.y() + ky) * snStY + index.z() + kz;
-            if (snapId[snapIdx] != 0) solidW[0] += data[(kx + kR) * strideX + (ky + kR) * strideY + (kz + kR)];
+            int snapIdx = index.plus(kx, ky, kz).toIndex(snStX, snStY);
+            if (snapId[snapIdx] != 0)
+                solidW[0] += data[Vec3DInt.from(kx + kR, ky + kR, kz + kR).toIndex(strideX, strideY)];
         });
         return solidW[0];
     }

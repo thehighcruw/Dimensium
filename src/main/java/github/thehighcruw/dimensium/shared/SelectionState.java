@@ -130,6 +130,16 @@ public class SelectionState {
         return cachedMax.z();
     }
 
+    public Vec3DInt min() {
+        rebuildBounds();
+        return cachedMin;
+    }
+
+    public Vec3DInt max() {
+        rebuildBounds();
+        return cachedMax;
+    }
+
     public int width() {
         return hasSelection() ? maxX() - minX() + 1 : 0;
     }
@@ -292,6 +302,10 @@ public class SelectionState {
             }
         }
         return result;
+    }
+
+    public static Set<Long> aabbBlocks(Vec3DInt p1, Vec3DInt p2) {
+        return aabbBlocks(p1.x(), p1.y(), p1.z(), p2.x(), p2.y(), p2.z());
     }
 
     public static Set<Long> aabbBlocks(int x1, int y1, int z1, int x2, int y2, int z2) {

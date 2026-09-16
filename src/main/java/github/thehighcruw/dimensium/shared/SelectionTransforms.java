@@ -9,7 +9,10 @@ import github.thehighcruw.dimensium.editor.tool.creating.modelling.ModellingMath
 import github.thehighcruw.dimensium.editor.tool.creating.modelling.ModellingToolState.ModelPoint;
 import github.thehighcruw.dimensium.editor.tool.noise.NoiseSampler;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import github.thehighcruw.dimensium.shared.util.BlockUtils;
+import github.thehighcruw.dimensium.shared.util.WorldUtils;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,9 +27,6 @@ public final class SelectionTransforms {
     private SelectionTransforms() {}
 
     private static final int MAX_SMOOTH_DIM = 256;
-    private static final int[] FACE_DX = {1, -1, 0, 0, 0, 0};
-    private static final int[] FACE_DY = {0, 0, 1, -1, 0, 0};
-    private static final int[] FACE_DZ = {0, 0, 0, 0, 1, -1};
 
     public static Set<Long> expand(Set<Long> blocks, int offset) {
         if (offset <= 0) return new HashSet<>(blocks);
@@ -36,11 +36,10 @@ public final class SelectionTransforms {
             Set<Long> next = new HashSet<>();
             for (long key : frontier) {
                 Vec3DInt coord = SelectionState.unpack(key);
-                for (int d = 0; d < 6; d++) {
-                    int ny = coord.y() + FACE_DY[d];
-                    if (ny < 0 || ny > 255) continue;
-
-                    long nk = SelectionState.pack(Vec3DInt.from(coord.x() + FACE_DX[d], ny, coord.z() + FACE_DZ[d]));
+                for (Vec3DInt d : BlockUtils.NEIGHBOUR_OFFSETS) {
+                    Vec3DInt neighbor = coord.plus(d);
+                    if (neighbor.y() < 0 || neighbor.y() > 255) continue;
+                    long nk = SelectionState.pack(neighbor);
                     if (result.add(nk)) next.add(nk);
                 }
             }
@@ -56,12 +55,9 @@ public final class SelectionTransforms {
             Set<Long> toRemove = new HashSet<>();
             for (long key : result) {
                 Vec3DInt coord = SelectionState.unpack(key);
-                for (int d = 0; d < 6; d++) {
-                    int ny = coord.y() + FACE_DY[d];
-                    if (ny < 0
-                            || ny > 255
-                            || !result.contains(SelectionState.pack(
-                                    Vec3DInt.from(coord.x() + FACE_DX[d], ny, coord.z() + FACE_DZ[d])))) {
+                for (Vec3DInt d : BlockUtils.NEIGHBOUR_OFFSETS) {
+                    Vec3DInt neighbor = coord.plus(d);
+                    if (neighbor.y() < 0 || neighbor.y() > 255 || !result.contains(SelectionState.pack(neighbor))) {
                         toRemove.add(key);
                         break;
                     }
@@ -78,14 +74,12 @@ public final class SelectionTransforms {
         float invScale = scale > 0 ? 1f / scale : 1f;
         for (long key : blocks) {
             Vec3DInt coord = SelectionState.unpack(key);
-            float nx = coord.x() * invScale, ny = coord.y() * invScale, nz = coord.z() * invScale;
-            float[] w = NoiseSampler.warpVec3(nx, ny, nz, seed);
-            float wx = w[0], wy = w[1], wz = w[2];
-            int rx = Math.round(coord.x() + wx * distX);
-            int ry = Math.round(coord.y() + wy * distY);
-            int rz = Math.round(coord.z() + wz * distZ);
-            if (ry < 0 || ry > 255) continue;
-            result.add(SelectionState.pack(Vec3DInt.from(rx, ry, rz)));
+            Vec3DFloat noisePos = coord.toFloat().times(invScale);
+            float[] w = NoiseSampler.warpVec3(noisePos.x(), noisePos.y(), noisePos.z(), seed);
+            Vec3DFloat warp = Vec3DFloat.from(w[0] * distX, w[1] * distY, w[2] * distZ);
+            Vec3DInt rCoord = Vec3DInt.round(coord.toFloat().plus(warp));
+            if (rCoord.y() < 0 || rCoord.y() > 255) continue;
+            result.add(SelectionState.pack(rCoord));
         }
         return result;
     }
@@ -138,9 +132,9 @@ public final class SelectionTransforms {
         Set<Long> result = new HashSet<>();
         for (long key : blocks) {
             Vec3DInt coord = SelectionState.unpack(key);
-            Block b = world.getBlock(coord.x(), coord.y(), coord.z());
+            Block b = WorldUtils.getBlock(world, coord);
             boolean matches = exactMeta
-                    ? (b == targetBlock && world.getBlockMetadata(coord.x(), coord.y(), coord.z()) == targetMeta)
+                    ? (b == targetBlock && WorldUtils.getBlockMetadata(world, coord) == targetMeta)
                     : (b == targetBlock);
             if (matches == keepMatching) result.add(key);
         }
@@ -172,17 +166,14 @@ public final class SelectionTransforms {
         Map<Long, int[]> xzYRange = new HashMap<>();
         for (long key : surfaceMap.keySet()) {
             Vec3DInt c = SelectionState.unpack(key);
-            int x = c.x();
-            int y = c.y();
-            int z = c.z();
-            long xzKey = ((long) x << 32) | (z & 0xFFFFFFFFL);
+            long xzKey = ((long) c.x() << 32) | (c.z() & 0xFFFFFFFFL);
             int[] range = xzYRange.get(xzKey);
             if (range == null) {
-                range = new int[] {y, y};
+                range = new int[] {c.y(), c.y()};
                 xzYRange.put(xzKey, range);
             } else {
-                if (y < range[0]) range[0] = y;
-                if (y > range[1]) range[1] = y;
+                if (c.y() < range[0]) range[0] = c.y();
+                if (c.y() > range[1]) range[1] = c.y();
             }
         }
 

@@ -20,10 +20,10 @@ public class PacketCaptureRequest implements IPacket {
 
     public PacketCaptureRequest() {}
 
-    public PacketCaptureRequest(int txId, int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
+    public PacketCaptureRequest(int txId, Vec3DInt min, Vec3DInt max) {
         this.txId = txId;
-        this.min = Vec3DInt.from(minX, minY, minZ);
-        this.max = Vec3DInt.from(maxX, maxY, maxZ);
+        this.min = min;
+        this.max = max;
     }
 
     @Override
@@ -45,7 +45,7 @@ public class PacketCaptureRequest implements IPacket {
         if (!PacketUtils.requireCreative(handler, "PacketCaptureRequest")) return null;
         if (!PacketUtils.checkVolume(
                 handler, "PacketCaptureRequest", min.x(), min.y(), min.z(), max.x(), max.y(), max.z())) return null;
-        ServerCaptureQueue.enqueue(handler.playerEntity, txId, min.x(), min.y(), min.z(), max.x(), max.y(), max.z());
+        ServerCaptureQueue.enqueue(handler.playerEntity, txId, min, max);
         return null;
     }
 }

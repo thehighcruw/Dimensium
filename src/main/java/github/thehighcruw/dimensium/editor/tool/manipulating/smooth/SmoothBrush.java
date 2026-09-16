@@ -10,6 +10,7 @@ import github.thehighcruw.dimensium.editor.tool.brushes.BrushUtil;
 import github.thehighcruw.dimensium.editor.tool.brushes.GaussianKernel;
 import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import github.thehighcruw.dimensium.shared.util.WorldUtils;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 import java.util.Arrays;
 import net.minecraft.block.Block;
@@ -36,44 +37,37 @@ public class SmoothBrush implements BrushStrategy {
         int[] snapId = new int[N];
         int[] snapMeta = new int[N];
         int worldMinY = 0, worldMaxY = world.getHeight() - 1;
-        for (int dx = -(sx + margin); dx <= sx + margin; dx++) {
-            int ix = dx + sx + margin;
-            for (int dy = -(sy + margin); dy <= sy + margin; dy++) {
-                int iy = dy + sy + margin;
-                int wy = origin.y() + dy;
-                int idx0 = ix * snStX + iy * dims.z();
-                for (int dz = -(sx + margin); dz <= sx + margin; dz++) {
-                    int idx = idx0 + (dz + sx + margin);
-                    if (wy < worldMinY) {
-                        snapId[idx] = -1;
-                        snapMeta[idx] = 0;
-                    } else if (wy > worldMaxY) {
-                        snapId[idx] = 0;
-                        snapMeta[idx] = 0;
-                    } else {
-                        Block b = world.getBlock(origin.x() + dx, wy, origin.z() + dz);
-                        snapId[idx] = Block.getIdFromBlock(b);
-                        snapMeta[idx] = world.getBlockMetadata(origin.x() + dx, wy, origin.z() + dz);
-                    }
-                }
+        Vec3DInt snapHalf = Vec3DInt.from(sx + margin, sy + margin, sx + margin);
+        Vec3DInt.forEachInclusive(snapHalf.negate(), snapHalf, (dx, dy, dz) -> {
+            int idx = Vec3DInt.from(dx, dy, dz).plus(snapHalf).toIndex(snStX, dims.z());
+            Vec3DInt wc = origin.plus(dx, dy, dz);
+            if (wc.y() < worldMinY) {
+                snapId[idx] = -1;
+                snapMeta[idx] = 0;
+            } else if (wc.y() > worldMaxY) {
+                snapId[idx] = 0;
+                snapMeta[idx] = 0;
+            } else {
+                snapId[idx] = Block.getIdFromBlock(WorldUtils.getBlock(world, wc));
+                snapMeta[idx] = WorldUtils.getBlockMetadata(world, wc);
             }
-        }
+        });
 
-        int maxPos = Vec3DInt.from(sx, sy, sx).times(2).plus(1).product();
+        Vec3DInt brushBounds = Vec3DInt.from(sx, sy, sx);
+        int maxPos = brushBounds.times(2).plus(1).product();
         Vec3DInt[] positions = new Vec3DInt[maxPos];
         int[] pCentre = new int[maxPos];
-        int posCount = 0, originalSolid = 0;
-        for (int dx = -sx; dx <= sx; dx++)
-            for (int dy = -sy; dy <= sy; dy++)
-                for (int dz = -sx; dz <= sx; dz++) {
-                    if (!BrushUtil.inShape(bs.brushShape, Vec3DInt.from(dx, dy, dz), Vec3DInt.from(sx, sy, sx)))
-                        continue;
-                    int ci = (dx + sx + margin) * snStX + (dy + sy + margin) * dims.z() + (dz + sx + margin);
-                    if (snapId[ci] != 0) originalSolid++;
-                    positions[posCount] = Vec3DInt.from(dx, dy, dz);
-                    pCentre[posCount] = ci;
-                    posCount++;
-                }
+        int[] pc = {0}, os = {0};
+        Vec3DInt.forEachInclusive(brushBounds.negate(), brushBounds, (dx, dy, dz) -> {
+            Vec3DInt offset = Vec3DInt.from(dx, dy, dz);
+            if (!BrushUtil.inShape(bs.brushShape, offset, brushBounds)) return;
+            int ci = offset.plus(sx + margin, sy + margin, sx + margin).toIndex(snStX, dims.z());
+            if (snapId[ci] != 0) os[0]++;
+            positions[pc[0]] = offset;
+            pCentre[pc[0]] = ci;
+            pc[0]++;
+        });
+        int posCount = pc[0], originalSolid = os[0];
 
         if (posCount == 0) return;
 
@@ -87,23 +81,18 @@ public class SmoothBrush implements BrushStrategy {
 
         boolean melt = s.smoothModifier == SmoothToolState.SmoothModifier.MELT;
         boolean grow = s.smoothModifier == SmoothToolState.SmoothModifier.GROW;
-        float invSx = sx > 0 ? 1f / sx : 0f;
-        float invSy = sy > 0 ? 1f / sy : 0f;
-        float invSz = sx > 0 ? 1f / sx : 0f;
+        Vec3DFloat invBrushSize = Vec3DFloat.from(sx > 0 ? 1f / sx : 0f, sy > 0 ? 1f / sy : 0f, sx > 0 ? 1f / sx : 0f);
+        Vec3DInt dimsMax = dims.minus(1);
 
         for (int i = 0; i < posCount; i++) {
             Vec3DInt delta = positions[i];
-            int dx = delta.x(), dy = delta.y(), dz = delta.z();
             int ci = pCentre[i];
-            int ix = dx + sx + margin, iy = dy + sy + margin, iz = dz + sx + margin;
+            Vec3DInt snap = delta.plus(snapHalf);
 
-            float d = kernel.solidWeight(snapId, Vec3DInt.from(ix, iy, iz), snStX, dims.z()) / kernel.totalWeight;
+            float d = kernel.solidWeight(snapId, snap, snStX, dims.z()) / kernel.totalWeight;
 
             if (s.smoothFixEdges) {
-                float r = delta.toFloat()
-                        .abs()
-                        .times(Vec3DFloat.from(invSx, invSy, invSz))
-                        .max();
+                float r = delta.toFloat().abs().times(invBrushSize).max();
                 if (r > 0.75f) {
                     float ef = (r - 0.75f) * 4f;
                     float origSol = snapId[ci] != 0 ? 1f : 0f;
@@ -115,37 +104,29 @@ public class SmoothBrush implements BrushStrategy {
             else if (grow) d += 0.3f * d * (1f - d) * 4f;
             density[i] = d;
 
-            int btCount = 0;
-            for (int kx = -1; kx <= 1; kx++) {
-                int nx = ix + kx;
-                if (nx < 0 || nx >= dims.x()) continue;
-                int nxB = nx * snStX;
-                for (int ky = -1; ky <= 1; ky++) {
-                    int ny = iy + ky;
-                    if (ny < 0 || ny >= dims.y()) continue;
-                    int nyB = nxB + ny * dims.z();
-                    for (int kz = -1; kz <= 1; kz++) {
-                        int nz = iz + kz;
-                        if (nz < 0 || nz >= dims.z()) continue;
-                        int bid = snapId[nyB + nz];
-                        if (bid <= 0) continue;
-                        boolean found = false;
-                        for (int t = 0; t < btCount; t++) {
-                            if (btId[t] == bid) {
-                                btCnt[t]++;
-                                found = true;
-                                break;
-                            }
-                        }
-                        if (!found && btCount < BT_CAP) {
-                            btId[btCount] = bid;
-                            btCnt[btCount] = 1;
-                            btMeta[btCount] = snapMeta[nyB + nz];
-                            btCount++;
-                        }
+            int[] btC = {0};
+            Vec3DInt.forEachInclusive(Vec3DInt.from(-1, -1, -1), Vec3DInt.ONE, (kx, ky, kz) -> {
+                Vec3DInt nb = snap.plus(kx, ky, kz);
+                if (!nb.inBounds(Vec3DInt.ZERO, dimsMax)) return;
+                int idx = nb.toIndex(snStX, dims.z());
+                int bid = snapId[idx];
+                if (bid <= 0) return;
+                boolean found = false;
+                for (int t = 0; t < btC[0]; t++) {
+                    if (btId[t] == bid) {
+                        btCnt[t]++;
+                        found = true;
+                        break;
                     }
                 }
-            }
+                if (!found && btC[0] < BT_CAP) {
+                    btId[btC[0]] = bid;
+                    btCnt[btC[0]] = 1;
+                    btMeta[btC[0]] = snapMeta[idx];
+                    btC[0]++;
+                }
+            });
+            int btCount = btC[0];
             int bId = 0, bC = -1, bM = 0;
             for (int t = 0; t < btCount; t++) {
                 if (btCnt[t] > bC) {

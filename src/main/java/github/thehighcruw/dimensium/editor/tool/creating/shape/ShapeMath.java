@@ -36,9 +36,12 @@ public class ShapeMath {
         switch (type) {
             case CUBOID: {
                 if (!hollow) return true;
-                int dx = offset.x(), dy = offset.y(), dz = offset.z();
-                int w = dims.x(), h = dims.y(), d = dims.z();
-                return dx == 0 || dx == w - 1 || dy == 0 || dy == h - 1 || dz == 0 || dz == d - 1;
+                return offset.x() == 0
+                        || offset.x() == dims.x() - 1
+                        || offset.y() == 0
+                        || offset.y() == dims.y() - 1
+                        || offset.z() == 0
+                        || offset.z() == dims.z() - 1;
             }
             case SPHERE: {
                 Vec3DFloat n = offset.toFloat().minus(center).divide(radius);
@@ -93,12 +96,13 @@ public class ShapeMath {
             case TORUS: {
                 // Elliptic ring: find nearest point on the ring ellipse, then test tube radius
                 Vec3DFloat local = offset.toFloat().minus(center);
-                float lx = local.x(), lz = local.z();
-                float angle = (float)
-                        Math.atan2(torusRingR > 0 ? lz / torusRingRZ : lz, torusRingRZ > 0 ? lx / torusRingR : lx);
+                float angle = (float) Math.atan2(
+                        torusRingR > 0 ? local.z() / torusRingRZ : local.z(),
+                        torusRingRZ > 0 ? local.x() / torusRingR : local.x());
                 float nearX = torusRingR * (float) Math.cos(angle);
                 float nearZ = torusRingRZ * (float) Math.sin(angle);
-                float tubeDist2 = (lx - nearX) * (lx - nearX) + local.y() * local.y() + (lz - nearZ) * (lz - nearZ);
+                Vec3DFloat tube = Vec3DFloat.from(local.x() - nearX, local.y(), local.z() - nearZ);
+                float tubeDist2 = tube.dot(tube);
                 float tubeR2 = (float) torusTubeR * torusTubeR;
                 if (!hollow) return tubeDist2 <= tubeR2;
                 float ir = Math.max(0.5f, torusTubeR - 1f);
@@ -314,9 +318,9 @@ public class ShapeMath {
         // In the float variant: center == radius == dims / 2
         Vec3DFloat center = dims.toFloat().times(0.5f);
         Vec3DFloat radius = center;
-        int w = dims.x(), h = dims.y(), d = dims.z();
         switch (type) {
             case CUBOID: {
+                int w = dims.x(), h = dims.y(), d = dims.z();
                 boolean in = offset.x() >= 0
                         && offset.x() < w
                         && offset.y() >= 0
@@ -344,6 +348,7 @@ public class ShapeMath {
                 return outer && inner.dot(inner) > 1f;
             }
             case CYLINDER: {
+                int h = dims.y();
                 float dy = offset.y();
                 Vec2DFloat n =
                         Vec2DFloat.from((offset.x() - center.x()) / radius.x(), (offset.z() - center.z()) / radius.z());
@@ -358,6 +363,7 @@ public class ShapeMath {
                 return outer && dy >= 0 && dy < h && (inner.dot(inner) > 1f || onCap);
             }
             case PYRAMID: {
+                int h = dims.y();
                 float dy = offset.y();
                 if (dy < 0 || dy >= h) return false;
                 float level = dy / Math.max(1f, h - 1f);
@@ -365,6 +371,7 @@ public class ShapeMath {
                 return Math.abs(offset.x() - center.x()) <= hw && Math.abs(offset.z() - center.z()) <= hd;
             }
             case CONE: {
+                int h = dims.y();
                 float dy = offset.y();
                 if (dy < 0 || dy >= h) return false;
                 float level = dy / Math.max(1f, h - 1f);
@@ -384,12 +391,13 @@ public class ShapeMath {
             }
             case TORUS: {
                 Vec3DFloat local = offset.minus(center);
-                float lx = local.x(), lz = local.z();
-                float angle = (float)
-                        Math.atan2(torusRingR > 0 ? lz / torusRingRZ : lz, torusRingRZ > 0 ? lx / torusRingR : lx);
+                float angle = (float) Math.atan2(
+                        torusRingR > 0 ? local.z() / torusRingRZ : local.z(),
+                        torusRingRZ > 0 ? local.x() / torusRingR : local.x());
                 float nearX = torusRingR * (float) Math.cos(angle);
                 float nearZ = torusRingRZ * (float) Math.sin(angle);
-                float tubeDist2 = (lx - nearX) * (lx - nearX) + local.y() * local.y() + (lz - nearZ) * (lz - nearZ);
+                Vec3DFloat tube = Vec3DFloat.from(local.x() - nearX, local.y(), local.z() - nearZ);
+                float tubeDist2 = tube.dot(tube);
                 float tubeR2 = (float) torusTubeR * torusTubeR;
                 if (!hollow) return tubeDist2 <= tubeR2;
                 float ir = Math.max(0.5f, torusTubeR - 1f);
@@ -455,6 +463,7 @@ public class ShapeMath {
                                 > 1f;
             }
             case TUBE: {
+                int h = dims.y();
                 float dy = offset.y();
                 Vec2DFloat n =
                         Vec2DFloat.from((offset.x() - center.x()) / radius.x(), (offset.z() - center.z()) / radius.z());

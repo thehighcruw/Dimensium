@@ -13,7 +13,9 @@ import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapePlacementSta
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeToolState;
 import github.thehighcruw.dimensium.editor.tool.selecting.SelectedBlockState;
 import github.thehighcruw.dimensium.shared.math.Mat3DFloat;
+import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import github.thehighcruw.dimensium.shared.util.WorldUtils;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,11 +30,11 @@ import net.minecraft.world.World;
 
 public class PacketShapePlacement implements IPacket {
 
-    private int anchorX, anchorY, anchorZ;
-    /** Pre-rotation base dimensions (shape-type adjusted, before rotX/Y/Z). */
-    private int w, h, d;
+    private Vec3DInt anchor;
+    /** Pre-rotation base dimensions (shape-type adjusted, before rotation). */
+    private Vec3DInt dims;
 
-    private float rotX, rotY, rotZ;
+    private Vec3DFloat rot;
     private int shapeTypeOrd;
     private boolean hollow, keepExisting;
     private float exponent;
@@ -49,15 +51,9 @@ public class PacketShapePlacement implements IPacket {
     public PacketShapePlacement() {}
 
     public PacketShapePlacement(ShapePlacementState ps, ShapeToolState s, SelectedBlockState sbs) {
-        anchorX = (int) Math.floor(ps.anchorF.x());
-        anchorY = (int) Math.floor(ps.anchorF.y());
-        anchorZ = (int) Math.floor(ps.anchorF.z());
-        w = ps.baseW;
-        h = ps.baseH;
-        d = ps.baseD;
-        rotX = ps.rot.x();
-        rotY = ps.rot.y();
-        rotZ = ps.rot.z();
+        anchor = Vec3DInt.floor(ps.anchorF);
+        dims = Vec3DInt.from(ps.baseW, ps.baseH, ps.baseD);
+        rot = ps.rot;
         shapeTypeOrd = s.shapeType.ordinal();
         hollow = s.shapeHollow;
         keepExisting = s.shapeKeepExisting;
@@ -85,15 +81,15 @@ public class PacketShapePlacement implements IPacket {
 
     @Override
     public void encode(PacketBuffer buf) throws IOException {
-        buf.writeInt(anchorX);
-        buf.writeInt(anchorY);
-        buf.writeInt(anchorZ);
-        buf.writeInt(w);
-        buf.writeInt(h);
-        buf.writeInt(d);
-        buf.writeFloat(rotX);
-        buf.writeFloat(rotY);
-        buf.writeFloat(rotZ);
+        buf.writeInt(anchor.x());
+        buf.writeInt(anchor.y());
+        buf.writeInt(anchor.z());
+        buf.writeInt(dims.x());
+        buf.writeInt(dims.y());
+        buf.writeInt(dims.z());
+        buf.writeFloat(rot.x());
+        buf.writeFloat(rot.y());
+        buf.writeFloat(rot.z());
         buf.writeByte(shapeTypeOrd);
         buf.writeBoolean(hollow);
         buf.writeBoolean(keepExisting);
@@ -116,15 +112,9 @@ public class PacketShapePlacement implements IPacket {
 
     @Override
     public void decode(PacketBuffer buf) throws IOException {
-        anchorX = buf.readInt();
-        anchorY = buf.readInt();
-        anchorZ = buf.readInt();
-        w = buf.readInt();
-        h = buf.readInt();
-        d = buf.readInt();
-        rotX = buf.readFloat();
-        rotY = buf.readFloat();
-        rotZ = buf.readFloat();
+        anchor = Vec3DInt.from(buf.readInt(), buf.readInt(), buf.readInt());
+        dims = Vec3DInt.from(buf.readInt(), buf.readInt(), buf.readInt());
+        rot = Vec3DFloat.from(buf.readFloat(), buf.readFloat(), buf.readFloat());
         shapeTypeOrd = buf.readByte() & 0xFF;
         hollow = buf.readBoolean();
         keepExisting = buf.readBoolean();
@@ -166,10 +156,9 @@ public class PacketShapePlacement implements IPacket {
 
         ShapeToolState.ShapeType type = ShapeToolState.ShapeType.values()[shapeTypeOrd];
 
-        Mat3DFloat R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
+        Mat3DFloat R = ShapeMath.buildRotationMatrix(rot.x(), rot.y(), rot.z());
 
-        Vec3DInt shapeDims = Vec3DInt.from(w, h, d);
-        Vec3DInt[] bounds = ShapeMath.computeRotatedBounds(R, shapeDims);
+        Vec3DInt[] bounds = ShapeMath.computeRotatedBounds(R, dims);
         Vec3DInt boundsMin = bounds[0], boundsMax = bounds[1];
 
         long bboxVolume = (long) (boundsMax.x() - boundsMin.x() + 1)
@@ -185,10 +174,9 @@ public class PacketShapePlacement implements IPacket {
 
         Random rand = new Random();
         List<int[]> ops = new ArrayList<>();
-        Vec3DInt anchor = Vec3DInt.from(anchorX, anchorY, anchorZ);
         ShapeMath.iterateRotatedShape(
                 type,
-                shapeDims,
+                dims,
                 hollow,
                 exponent,
                 torusRingR,
@@ -205,9 +193,8 @@ public class PacketShapePlacement implements IPacket {
                 boundsMax,
                 offset -> {
                     Vec3DInt pos = anchor.plus(offset);
-                    int bx = pos.x(), by = pos.y(), bz = pos.z();
-                    if (by < 0 || by >= world.getHeight()) return true;
-                    if (keepExisting && world.getBlock(bx, by, bz) != Blocks.air) return true;
+                    if (pos.y() < 0 || pos.y() >= world.getHeight()) return true;
+                    if (keepExisting && WorldUtils.getBlock(world, pos) != Blocks.air) return true;
                     int roll = rand.nextInt(totalWeight), cum = 0, chosen = 0;
                     for (int i = 0; i < weights.length; i++) {
                         cum += weights[i];
@@ -218,7 +205,7 @@ public class PacketShapePlacement implements IPacket {
                     }
                     Block blk = Block.getBlockById(blockIds[chosen]);
                     if (blk != null && blk != Blocks.air)
-                        ops.add(new int[] {bx, by, bz, blockIds[chosen], metas[chosen]});
+                        ops.add(new int[] {pos.x(), pos.y(), pos.z(), blockIds[chosen], metas[chosen]});
                     return true;
                 });
 

@@ -106,7 +106,7 @@ public class ClipboardPlacementState implements WithAxisTranslationGizmo, WithPl
         ChangeProposal p = ChangeProposal.forPreview();
         if (rot.equals(Vec3DFloat.ZERO)) {
             for (int[] o : offsets) {
-                long key = ChangeProposal.packKey(anchor.x() + o[0], anchor.y() + o[1], anchor.z() + o[2]);
+                long key = ChangeProposal.packKey(anchor.plus(o[0], o[1], o[2]));
                 p.proposed.put(key, new int[] {o[3], o[4]});
             }
         } else {
@@ -115,7 +115,7 @@ public class ClipboardPlacementState implements WithAxisTranslationGizmo, WithPl
             for (int[] o : offsets) {
                 Vec3DFloat local = Vec3DFloat.from(o[0], o[1], o[2]).plus(0.5f).minus(center);
                 Vec3DInt world = anchor.plus(R.mul(local).plus(center).floor());
-                long key = ChangeProposal.packKey(world.x(), world.y(), world.z());
+                long key = ChangeProposal.packKey(world);
                 p.proposed.put(key, new int[] {o[3], o[4]});
             }
         }
@@ -129,7 +129,8 @@ public class ClipboardPlacementState implements WithAxisTranslationGizmo, WithPl
         }
         List<int[]> ops = new ArrayList<>(offsets.size());
         for (int[] o : offsets) {
-            ops.add(new int[] {anchor.x() + o[0], anchor.y() + o[1], anchor.z() + o[2], o[3], o[4]});
+            Vec3DInt world = anchor.plus(o[0], o[1], o[2]);
+            ops.add(new int[] {world.x(), world.y(), world.z(), o[3], o[4]});
         }
         return ops;
     }

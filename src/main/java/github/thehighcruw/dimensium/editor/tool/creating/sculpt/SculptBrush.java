@@ -10,6 +10,7 @@ import github.thehighcruw.dimensium.editor.tool.brushes.BrushStrategy;
 import github.thehighcruw.dimensium.shared.math.Vec2DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import github.thehighcruw.dimensium.shared.util.WorldUtils;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
@@ -22,16 +23,15 @@ public class SculptBrush implements BrushStrategy {
     public void apply(World world, MovingObjectPosition mop) {
         BrushState bs = BrushState.INSTANCE;
         SculptToolState s = SculptToolState.INSTANCE;
-        int cx = mop.blockX, centerY = mop.blockY, cz = mop.blockZ;
+        Vec3DInt center = Vec3DInt.from(mop.blockX, mop.blockY, mop.blockZ);
 
         Vec3DFloat normal;
         if (s.sculptMaskY) {
             normal = Vec3DFloat.from(0f, 1f, 0f);
         } else {
-            normal = computeSobelNormal(world, cx, centerY, cz, Math.max(1, bs.brushRadius));
+            normal = computeSobelNormal(world, center, Math.max(1, bs.brushRadius));
             if (normal == null) {
-                int[] rawN = ExtrudeHelper.sideToOutwardDir(mop.sideHit);
-                normal = Vec3DFloat.from(rawN[0], rawN[1], rawN[2]);
+                normal = ExtrudeHelper.sideToOutwardDir(mop.sideHit).toFloat();
             }
         }
         Vec3DFloat pa1 = normal.cross(Vec3DFloat.from(0f, 1f, 0f));
@@ -43,7 +43,6 @@ public class SculptBrush implements BrushStrategy {
         int dim = 2 * radius + 1;
         int[] disp = new int[dim * dim];
         Vec3DInt[] basePos = new Vec3DInt[dim * dim];
-        Vec3DInt center = Vec3DInt.from(cx, centerY, cz);
 
         for (int d1 = -radius; d1 <= radius; d1++) {
             for (int d2 = -radius; d2 <= radius; d2++) {
@@ -94,8 +93,8 @@ public class SculptBrush implements BrushStrategy {
             if (surf == null) continue;
 
             if (!s.sculptInvert) {
-                Block surfBlock = world.getBlock(surf.x(), surf.y(), surf.z());
-                int surfMeta = world.getBlockMetadata(surf.x(), surf.y(), surf.z());
+                Block surfBlock = WorldUtils.getBlock(world, surf);
+                int surfMeta = WorldUtils.getBlockMetadata(world, surf);
                 if (surfBlock == null || surfBlock == Blocks.air) surfBlock = Blocks.dirt;
                 Vec3DInt prev = surf;
                 for (int d = 1; d <= depth; d++) {
@@ -103,7 +102,7 @@ public class SculptBrush implements BrushStrategy {
                     if (t.y() < 0 || t.y() > 255) break;
                     if (t.equals(prev)) continue;
                     prev = t;
-                    if (world.getBlock(t.x(), t.y(), t.z()) != Blocks.air) break;
+                    if (WorldUtils.getBlock(world, t) != Blocks.air) break;
                     ChangeProposal.write(world, t, surfBlock, surfMeta);
                 }
             } else {
@@ -113,7 +112,7 @@ public class SculptBrush implements BrushStrategy {
                     if (t.y() < 0 || t.y() > 255) break;
                     if (t.equals(prev)) continue;
                     prev = t;
-                    if (world.getBlock(t.x(), t.y(), t.z()) == Blocks.air) break;
+                    if (WorldUtils.getBlock(world, t) == Blocks.air) break;
                     ChangeProposal.write(world, t, Blocks.air, 0);
                 }
             }
@@ -125,16 +124,16 @@ public class SculptBrush implements BrushStrategy {
      * face-average normal when the gradient is too flat to be informative.
      * Returns null if no surface found at all.
      */
-    private static Vec3DFloat computeSobelNormal(World world, int cx, int cy, int cz, int radius) {
+    private static Vec3DFloat computeSobelNormal(World world, Vec3DInt center, int radius) {
         int search = radius + 8;
         float[] h = new float[9];
         boolean anyFound = false;
         for (int dz = -1; dz <= 1; dz++) {
             for (int dx = -1; dx <= 1; dx++) {
                 int idx = (dz + 1) * 3 + (dx + 1);
-                int top = findTopY(world, cx + dx, cz + dz, cy, search);
+                int top = findTopY(world, center.x() + dx, center.z() + dz, center.y(), search);
                 if (top == Integer.MIN_VALUE) {
-                    h[idx] = cy;
+                    h[idx] = center.y();
                 } else {
                     h[idx] = top;
                     anyFound = true;
@@ -171,7 +170,7 @@ public class SculptBrush implements BrushStrategy {
             if (t.y() < 0 || t.y() > 255) continue;
             if (t.equals(last)) continue;
             last = t;
-            if (world.getBlock(t.x(), t.y(), t.z()) != Blocks.air) return t;
+            if (WorldUtils.getBlock(world, t) != Blocks.air) return t;
         }
         return null;
     }

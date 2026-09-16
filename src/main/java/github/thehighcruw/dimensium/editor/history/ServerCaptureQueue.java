@@ -61,10 +61,8 @@ public class ServerCaptureQueue {
         }
     }
 
-    public static void enqueue(
-            EntityPlayerMP player, int txId, int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
-        queue.add(new CaptureJob(
-                player, txId, player.worldObj, Vec3DInt.from(minX, minY, minZ), Vec3DInt.from(maxX, maxY, maxZ)));
+    public static void enqueue(EntityPlayerMP player, int txId, Vec3DInt min, Vec3DInt max) {
+        queue.add(new CaptureJob(player, txId, player.worldObj, min, max));
     }
 
     @SubscribeEvent

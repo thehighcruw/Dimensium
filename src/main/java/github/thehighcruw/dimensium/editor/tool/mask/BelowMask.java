@@ -5,6 +5,7 @@
 package github.thehighcruw.dimensium.editor.tool.mask;
 
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import github.thehighcruw.dimensium.shared.util.WorldUtils;
 import net.minecraft.block.Block;
 import net.minecraft.world.World;
 
@@ -20,9 +21,10 @@ public class BelowMask extends MaskNode {
 
     @Override
     public boolean test(World world, Vec3DInt coord) {
-        Block b = world.getBlock(coord.x(), coord.y() - 1, coord.z());
+        Vec3DInt below = coord.plus(0, -1, 0);
+        Block b = WorldUtils.getBlock(world, below);
         if (Block.getIdFromBlock(b) != blockId) return false;
-        return meta < 0 || world.getBlockMetadata(coord.x(), coord.y() - 1, coord.z()) == meta;
+        return meta < 0 || WorldUtils.getBlockMetadata(world, below) == meta;
     }
 
     @Override

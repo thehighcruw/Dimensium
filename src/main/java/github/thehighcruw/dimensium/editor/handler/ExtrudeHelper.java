@@ -10,6 +10,7 @@ import github.thehighcruw.dimensium.editor.tool.manipulating.extrude.ExtrudeTool
 import github.thehighcruw.dimensium.shared.BlockSender;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
+import github.thehighcruw.dimensium.shared.util.WorldUtils;
 import github.thehighcruw.dimensium.tool.BuilderToolState;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 import java.util.ArrayList;
@@ -30,19 +31,19 @@ public class ExtrudeHelper {
 
     public static final ExtrudeHelper INSTANCE = new ExtrudeHelper();
 
-    public static void applyExtrudeAt(World world, int tx, int ty, int tz, int sideHit) {
-        int[] dir = sideToOutwardDir(sideHit);
+    public static void applyExtrudeAt(World world, Vec3DInt target, int sideHit) {
+        Vec3DInt dir = sideToOutwardDir(sideHit);
 
-        Block targetBlock = world.getBlock(tx, ty, tz);
-        int targetMeta = world.getBlockMetadata(tx, ty, tz);
+        Block targetBlock = WorldUtils.getBlock(world, target);
+        int targetMeta = WorldUtils.getBlockMetadata(world, target);
         if (targetBlock == Blocks.air) return;
 
         ExtrudeToolState s = ExtrudeToolState.INSTANCE;
         boolean expand = s.extrudeMode == ExtrudeToolState.ExtrudeMode.EXPAND;
         int count = Math.max(1, s.extrudeCount);
 
-        List<int[]> connected =
-                floodFillFace(world, tx, ty, tz, dir, targetBlock, targetMeta, s.extrudeLimit, s.extrudeCorners);
+        List<Vec3DInt> connected =
+                floodFillFace(world, target, dir, targetBlock, targetMeta, s.extrudeLimit, s.extrudeCorners);
 
         List<int[]> ops =
                 buildExtrudeOps(world, expand, count, s.extrudeDisplace, connected, dir, targetBlock, targetMeta);
@@ -55,42 +56,33 @@ public class ExtrudeHelper {
                             + ")");
     }
 
-    public static List<int[]> floodFillFace(
-            World world,
-            int sx,
-            int sy,
-            int sz,
-            int[] outDir,
-            Block matchBlock,
-            int matchMeta,
-            int limit,
-            boolean corners) {
-        int[][] perp = perpAxes(outDir);
+    public static List<Vec3DInt> floodFillFace(
+            World world, Vec3DInt start, Vec3DInt outDir, Block matchBlock, int matchMeta, int limit, boolean corners) {
+        Vec3DInt[] perp = perpAxes(outDir);
 
         Set<Long> visited = new HashSet<>();
-        Queue<int[]> queue = new LinkedList<>();
-        List<int[]> result = new ArrayList<>();
+        Queue<Vec3DInt> queue = new LinkedList<>();
+        List<Vec3DInt> result = new ArrayList<>();
 
-        queue.add(new int[] {sx, sy, sz});
-        visited.add(extrudeKey(sx, sy, sz));
+        queue.add(start);
+        visited.add(extrudeKey(start));
 
         while (!queue.isEmpty() && result.size() < limit) {
-            int[] cur = queue.poll();
+            Vec3DInt cur = queue.poll();
             result.add(cur);
 
-            int[][] steps = corners ? diagonalSteps(perp) : orthogonalSteps(perp);
+            Vec3DInt[] steps = corners ? diagonalSteps(perp) : orthogonalSteps(perp);
 
-            for (int[] step : steps) {
-                int nx = cur[0] + step[0];
-                int ny = cur[1] + step[1];
-                int nz = cur[2] + step[2];
-                long k = extrudeKey(nx, ny, nz);
+            for (Vec3DInt step : steps) {
+                Vec3DInt next = cur.plus(step);
+                long k = extrudeKey(next);
                 if (visited.contains(k)) continue;
                 visited.add(k);
-                if (world.getBlock(nx, ny, nz) == matchBlock
-                        && world.getBlockMetadata(nx, ny, nz) == matchMeta
-                        && world.getBlock(nx + outDir[0], ny + outDir[1], nz + outDir[2]) == Blocks.air) {
-                    queue.add(new int[] {nx, ny, nz});
+                Vec3DInt nextFace = next.plus(outDir);
+                if (WorldUtils.getBlock(world, next) == matchBlock
+                        && WorldUtils.getBlockMetadata(world, next) == matchMeta
+                        && WorldUtils.getBlock(world, nextFace) == Blocks.air) {
+                    queue.add(next);
                 }
             }
         }
@@ -98,26 +90,21 @@ public class ExtrudeHelper {
         return result;
     }
 
-    private static int[][] orthogonalSteps(int[][] perp) {
-        return new int[][] {
-            {perp[0][0], perp[0][1], perp[0][2]},
-            {-perp[0][0], -perp[0][1], -perp[0][2]},
-            {perp[1][0], perp[1][1], perp[1][2]},
-            {-perp[1][0], -perp[1][1], -perp[1][2]}
-        };
+    private static Vec3DInt[] orthogonalSteps(Vec3DInt[] perp) {
+        return new Vec3DInt[] {perp[0], perp[0].negate(), perp[1], perp[1].negate()};
     }
 
-    private static int[][] diagonalSteps(int[][] perp) {
-        int[][] ortho = orthogonalSteps(perp);
-        return new int[][] {
+    private static Vec3DInt[] diagonalSteps(Vec3DInt[] perp) {
+        Vec3DInt[] ortho = orthogonalSteps(perp);
+        return new Vec3DInt[] {
             ortho[0],
             ortho[1],
             ortho[2],
             ortho[3],
-            {perp[0][0] + perp[1][0], perp[0][1] + perp[1][1], perp[0][2] + perp[1][2]},
-            {perp[0][0] - perp[1][0], perp[0][1] - perp[1][1], perp[0][2] - perp[1][2]},
-            {-perp[0][0] + perp[1][0], -perp[0][1] + perp[1][1], -perp[0][2] + perp[1][2]},
-            {-perp[0][0] - perp[1][0], -perp[0][1] - perp[1][1], -perp[0][2] - perp[1][2]}
+            perp[0].plus(perp[1]),
+            perp[0].minus(perp[1]),
+            perp[0].negate().plus(perp[1]),
+            perp[0].negate().minus(perp[1])
         };
     }
 
@@ -127,66 +114,59 @@ public class ExtrudeHelper {
             boolean expand,
             int count,
             boolean displace,
-            List<int[]> connected,
-            int[] dir,
+            List<Vec3DInt> connected,
+            Vec3DInt dir,
             Block targetBlock,
             int targetMeta) {
         List<int[]> ops = new ArrayList<>();
         int targetId = Block.getIdFromBlock(targetBlock);
         if (expand) {
             for (int layer = 1; layer <= count; layer++) {
-                for (int[] pos : connected) {
-                    int nx = pos[0] + dir[0] * layer;
-                    int ny = pos[1] + dir[1] * layer;
-                    int nz = pos[2] + dir[2] * layer;
-                    if (world.getBlock(nx, ny, nz) == Blocks.air) ops.add(new int[] {nx, ny, nz, targetId, targetMeta});
+                for (Vec3DInt pos : connected) {
+                    Vec3DInt n = pos.plus(dir.times(layer));
+                    if (WorldUtils.getBlock(world, n) == Blocks.air)
+                        ops.add(new int[] {n.x(), n.y(), n.z(), targetId, targetMeta});
                 }
             }
         } else {
             for (int layer = 0; layer < count; layer++) {
-                for (int[] pos : connected) {
-                    int rx = pos[0] - dir[0] * layer;
-                    int ry = pos[1] - dir[1] * layer;
-                    int rz = pos[2] - dir[2] * layer;
-                    if (world.getBlock(rx, ry, rz) != Blocks.air) ops.add(new int[] {rx, ry, rz, 0, 0});
+                for (Vec3DInt pos : connected) {
+                    Vec3DInt r = pos.minus(dir.times(layer));
+                    if (WorldUtils.getBlock(world, r) != Blocks.air) ops.add(new int[] {r.x(), r.y(), r.z(), 0, 0});
                 }
             }
             if (displace) {
-                for (int[] pos : connected) {
-                    int lx = pos[0] - dir[0] * (count - 1);
-                    int ly = pos[1] - dir[1] * (count - 1);
-                    int lz = pos[2] - dir[2] * (count - 1);
-                    int bx = pos[0] - dir[0] * count;
-                    int by = pos[1] - dir[1] * count;
-                    int bz = pos[2] - dir[2] * count;
-                    if (world.getBlock(lx, ly, lz) != Blocks.air && world.getBlock(bx, by, bz) == Blocks.air)
-                        ops.add(new int[] {bx, by, bz, targetId, targetMeta});
+                for (Vec3DInt pos : connected) {
+                    Vec3DInt l = pos.minus(dir.times(count - 1));
+                    Vec3DInt b = pos.minus(dir.times(count));
+                    if (WorldUtils.getBlock(world, l) != Blocks.air && WorldUtils.getBlock(world, b) == Blocks.air)
+                        ops.add(new int[] {b.x(), b.y(), b.z(), targetId, targetMeta});
                 }
             }
         }
         return ops;
     }
 
-    public static int[] sideToOutwardDir(int side) {
+    public static Vec3DInt sideToOutwardDir(int side) {
         return switch (side) {
-            case 0 -> new int[] {0, -1, 0};
-            case 1 -> new int[] {0, 1, 0};
-            case 2 -> new int[] {0, 0, -1};
-            case 3 -> new int[] {0, 0, 1};
-            case 4 -> new int[] {-1, 0, 0};
-            case 5 -> new int[] {1, 0, 0};
+            case 0 -> Vec3DInt.from(0, -1, 0);
+            case 1 -> Vec3DInt.from(0, 1, 0);
+            case 2 -> Vec3DInt.from(0, 0, -1);
+            case 3 -> Vec3DInt.from(0, 0, 1);
+            case 4 -> Vec3DInt.from(-1, 0, 0);
+            case 5 -> Vec3DInt.from(1, 0, 0);
             default -> throw new RuntimeException("Unknown side: " + side);
         };
     }
 
-    public static int[][] perpAxes(int[] dir) {
-        if (dir[1] != 0) return new int[][] {{1, 0, 0}, {0, 0, 1}};
-        if (dir[2] != 0) return new int[][] {{1, 0, 0}, {0, 1, 0}};
-        return new int[][] {{0, 1, 0}, {0, 0, 1}};
+    public static Vec3DInt[] perpAxes(Vec3DInt dir) {
+        if (dir.y() != 0) return new Vec3DInt[] {Vec3DInt.from(1, 0, 0), Vec3DInt.from(0, 0, 1)};
+        if (dir.z() != 0) return new Vec3DInt[] {Vec3DInt.from(1, 0, 0), Vec3DInt.from(0, 1, 0)};
+        return new Vec3DInt[] {Vec3DInt.from(0, 1, 0), Vec3DInt.from(0, 0, 1)};
     }
 
-    public static long extrudeKey(int x, int y, int z) {
-        return ChangeProposal.packKey(x, y, z);
+    public static long extrudeKey(Vec3DInt v) {
+        return ChangeProposal.packKey(v);
     }
 
     private Vec3DInt lastExtrudePos = null;
@@ -212,29 +192,21 @@ public class ExtrudeHelper {
         lastExtrudePos = mopPos;
         lastExtrudeSide = mop.sideHit;
 
-        int tx = mop.blockX, ty = mop.blockY, tz = mop.blockZ;
-        int[] dir = sideToOutwardDir(mop.sideHit);
-        Block targetBlock = mc.theWorld.getBlock(tx, ty, tz);
+        Vec3DInt target = mopPos;
+        Vec3DInt dir = sideToOutwardDir(mop.sideHit);
+        Block targetBlock = WorldUtils.getBlock(mc.theWorld, target);
         if (targetBlock == Blocks.air) {
             bts.extrudePreview = null;
             return;
         }
-        int targetMeta = mc.theWorld.getBlockMetadata(tx, ty, tz);
+        int targetMeta = WorldUtils.getBlockMetadata(mc.theWorld, target);
 
         ExtrudeToolState s = ExtrudeToolState.INSTANCE;
         int count = Math.max(1, s.extrudeCount);
         boolean expand = s.extrudeMode == ExtrudeToolState.ExtrudeMode.EXPAND;
 
-        List<int[]> connected = floodFillFace(
-                mc.theWorld,
-                tx,
-                ty,
-                tz,
-                dir,
-                targetBlock,
-                targetMeta,
-                Math.min(s.extrudeLimit, 4096),
-                s.extrudeCorners);
+        List<Vec3DInt> connected = floodFillFace(
+                mc.theWorld, target, dir, targetBlock, targetMeta, Math.min(s.extrudeLimit, 4096), s.extrudeCorners);
 
         ChangeProposal p = ChangeProposal.forPreview();
         for (int[] op : buildExtrudeOps(

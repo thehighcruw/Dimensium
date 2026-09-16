@@ -160,24 +160,18 @@ public final class BrushUtil {
     }
 
     public static int[] snapshotBlockIds(World world, Vec3DInt origin, Vec3DInt brushSize, int margin) {
-        int sx = brushSize.x(), sy = brushSize.y(), sz = brushSize.z();
-        Vec3DInt dims = brushSize.plus(margin).times(2).plus(1);
+        Vec3DInt snapHalf = brushSize.plus(margin);
+        Vec3DInt dims = snapHalf.times(2).plus(1);
         int snStX = dims.y() * dims.z();
         int[] snap = new int[dims.product()];
         int worldMinY = 0, worldMaxY = world.getHeight() - 1;
-        for (int dx = -(sx + margin); dx <= sx + margin; dx++) {
-            int ix = dx + sx + margin;
-            for (int dy = -(sy + margin); dy <= sy + margin; dy++) {
-                int wy = origin.y() + dy;
-                int idx0 = ix * snStX + (dy + sy + margin) * dims.z();
-                for (int dz = -(sz + margin); dz <= sz + margin; dz++) {
-                    int idx = idx0 + (dz + sz + margin);
-                    if (wy < worldMinY) snap[idx] = -1;
-                    else if (wy > worldMaxY) snap[idx] = 0;
-                    else snap[idx] = Block.getIdFromBlock(world.getBlock(origin.x() + dx, wy, origin.z() + dz));
-                }
-            }
-        }
+        Vec3DInt.forEachInclusive(snapHalf.negate(), snapHalf, (dx, dy, dz) -> {
+            int idx = Vec3DInt.from(dx, dy, dz).plus(snapHalf).toIndex(snStX, dims.z());
+            Vec3DInt worldPos = origin.plus(dx, dy, dz);
+            if (worldPos.y() < worldMinY) snap[idx] = -1;
+            else if (worldPos.y() > worldMaxY) snap[idx] = 0;
+            else snap[idx] = Block.getIdFromBlock(WorldUtils.getBlock(world, worldPos));
+        });
         return snap;
     }
 }

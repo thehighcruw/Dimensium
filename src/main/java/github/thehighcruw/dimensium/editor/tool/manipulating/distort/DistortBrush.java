@@ -10,6 +10,7 @@ import github.thehighcruw.dimensium.editor.tool.brushes.BrushUtil;
 import github.thehighcruw.dimensium.editor.tool.noise.NoiseSampler;
 import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import github.thehighcruw.dimensium.shared.util.WorldUtils;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
@@ -31,48 +32,38 @@ public class DistortBrush implements BrushStrategy {
         int maxPos = Vec3DInt.from(sx, sy, sx).times(2).plus(1).product();
         Vec3DInt[] offsets = new Vec3DInt[maxPos];
         int[] srcId = new int[maxPos], srcMeta = new int[maxPos];
-        int posCount = 0;
 
         Vec3DInt brushSize = Vec3DInt.from(sx, sy, sx);
         Vec3DFloat invBrushSize = Vec3DFloat.from(sx > 0 ? 1f / sx : 0f, sy > 0 ? 1f / sy : 0f, sx > 0 ? 1f / sx : 0f);
-        for (int dx = -sx; dx <= sx; dx++) {
-            for (int dy = -sy; dy <= sy; dy++) {
-                for (int dz = -sx; dz <= sx; dz++) {
-                    if (!BrushUtil.inShape(bs.brushShape, Vec3DInt.from(dx, dy, dz), brushSize)) continue;
-                    Vec3DInt worldPos = origin.plus(dx, dy, dz);
+        int[] pc = {0};
+        Vec3DInt.forEachInclusive(brushSize.negate(), brushSize, (dx, dy, dz) -> {
+            Vec3DInt offset = Vec3DInt.from(dx, dy, dz);
+            if (!BrushUtil.inShape(bs.brushShape, offset, brushSize)) return;
+            Vec3DInt worldPos = origin.plus(offset);
 
-                    float nx = worldPos.x() * invScale, ny = worldPos.y() * invScale, nz = worldPos.z() * invScale;
-                    float[] w0 = NoiseSampler.warpVec3(nx, ny, nz, seed);
-                    float wx0 = w0[0], wy0 = w0[1], wz0 = w0[2];
+            Vec3DFloat noisePos = worldPos.toFloat().times(invScale);
+            float[] w0 = NoiseSampler.warpVec3(noisePos.x(), noisePos.y(), noisePos.z(), seed);
+            float wx0 = w0[0], wy0 = w0[1], wz0 = w0[2];
 
-                    float edgeFade = 1f;
-                    if (s.distortSmoothEdges) {
-                        float r = Vec3DInt.from(dx, dy, dz)
-                                .toFloat()
-                                .abs()
-                                .times(invBrushSize)
-                                .max();
-                        if (r > 0.75f) {
-                            float ef = (r - 0.75f) * 4f;
-                            edgeFade = 1f - ef * ef * (3f - 2f * ef);
-                        }
-                    }
-
-                    offsets[posCount] = Vec3DInt.from(dx, dy, dz);
-                    float warpX = wx0 * s.distortDistanceX * edgeFade;
-                    float warpY = wy0 * s.distortDistanceY * edgeFade;
-                    float warpZ = wz0 * s.distortDistanceZ * edgeFade;
-
-                    int srcX = Math.round(worldPos.x() + warpX);
-                    int srcY = Math.round(worldPos.y() + warpY);
-                    int srcZ = Math.round(worldPos.z() + warpZ);
-                    Block b = world.getBlock(srcX, srcY, srcZ);
-                    srcId[posCount] = Block.getIdFromBlock(b);
-                    srcMeta[posCount] = world.getBlockMetadata(srcX, srcY, srcZ);
-                    posCount++;
+            float edgeFade = 1f;
+            if (s.distortSmoothEdges) {
+                float r = offset.toFloat().abs().times(invBrushSize).max();
+                if (r > 0.75f) {
+                    float ef = (r - 0.75f) * 4f;
+                    edgeFade = 1f - ef * ef * (3f - 2f * ef);
                 }
             }
-        }
+
+            offsets[pc[0]] = offset;
+            Vec3DFloat warp = Vec3DFloat.from(
+                            wx0 * s.distortDistanceX, wy0 * s.distortDistanceY, wz0 * s.distortDistanceZ)
+                    .times(edgeFade);
+            Vec3DInt srcPos = Vec3DInt.round(worldPos.toFloat().plus(warp));
+            srcId[pc[0]] = Block.getIdFromBlock(WorldUtils.getBlock(world, srcPos));
+            srcMeta[pc[0]] = WorldUtils.getBlockMetadata(world, srcPos);
+            pc[0]++;
+        });
+        int posCount = pc[0];
 
         for (int i = 0; i < posCount; i++) {
             int bid = srcId[i];
@@ -80,7 +71,7 @@ public class DistortBrush implements BrushStrategy {
             Block blk = Block.getBlockById(bid);
             if (blk == null) continue;
             Vec3DInt wp = origin.plus(offsets[i]);
-            if (world.getBlock(wp.x(), wp.y(), wp.z()) == Blocks.air) continue;
+            if (WorldUtils.getBlock(world, wp) == Blocks.air) continue;
             ChangeProposal.write(world, wp, blk, srcMeta[i]);
         }
     }

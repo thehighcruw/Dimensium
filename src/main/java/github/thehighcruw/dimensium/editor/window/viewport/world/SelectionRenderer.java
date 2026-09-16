@@ -45,6 +45,7 @@ import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.PerfTrace;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
+import github.thehighcruw.dimensium.shared.util.WorldUtils;
 import github.thehighcruw.dimensium.tool.BuilderTool;
 import github.thehighcruw.dimensium.tool.BuilderToolState;
 import github.thehighcruw.dimensium.tool.BuilderToolState.Phase;
@@ -99,9 +100,7 @@ public class SelectionRenderer {
     private int[] cachedSelWire = null;
 
     // Magic select preview dedup — rebuild only when cursor moves to a new block.
-    private int lastMagicX = Integer.MIN_VALUE;
-    private int lastMagicY = Integer.MIN_VALUE;
-    private int lastMagicZ = Integer.MIN_VALUE;
+    private Vec3DInt lastMagicPos = null;
 
     @SubscribeEvent
     public void onRenderWorldLast(RenderWorldLastEvent event) {
@@ -211,7 +210,7 @@ public class SelectionRenderer {
             if (tool == Tool.MAGIC_SELECT && _cursorOnViewport) updateMagicSelectPreview(mc);
             else {
                 bts0.magicPreview = null;
-                lastMagicX = Integer.MIN_VALUE;
+                lastMagicPos = null;
             }
 
             // Rebuild shape proposal before rendering so ShapePlacementState.preview is current.
@@ -250,15 +249,7 @@ public class SelectionRenderer {
         // Tool-change commit: if the user left SELECT while a box was confirmed, apply it now.
         if (sel.boxConfirmed && DimensiumEditorMode.INSTANCE.selectedTool != Tool.SELECT) {
             BoxSelectToolState bts = BoxSelectToolState.INSTANCE;
-            sel.applyOp(
-                    SelectionState.aabbBlocks(
-                            sel.pendingPos.x(),
-                            sel.pendingPos.y(),
-                            sel.pendingPos.z(),
-                            sel.pendingPos2.x(),
-                            sel.pendingPos2.y(),
-                            sel.pendingPos2.z()),
-                    bts.booleanOp);
+            sel.applyOp(SelectionState.aabbBlocks(sel.pendingPos, sel.pendingPos2), bts.booleanOp);
             sel.boxConfirmed = false;
             boxPos1ViewPlaneGizmo.reset();
             boxPos2ViewPlaneGizmo.reset();
@@ -291,19 +282,17 @@ public class SelectionRenderer {
                 int batched = 0;
                 for (long key : selBlocks) {
                     Vec3DInt bv = SelectionState.unpack(key);
-                    Block b = mc.theWorld.getBlock(bv.x(), bv.y(), bv.z());
+                    Block b = WorldUtils.getBlock(mc.theWorld, bv);
                     if (b == null || b == Blocks.air || b.getRenderType() != 0) continue;
-                    int meta = mc.theWorld.getBlockMetadata(bv.x(), bv.y(), bv.z());
+                    int meta = WorldUtils.getBlockMetadata(mc.theWorld, bv);
                     int tint = 0xFFFFFF;
                     try {
                         tint = b.colorMultiplier(mc.theWorld, bv.x(), bv.y(), bv.z());
                     } catch (Exception ignored) {
                     }
                     for (int face = 0; face < 6; face++) {
-                        long nk = SelectionState.pack(Vec3DInt.from(
-                                bv.x() + GhostRenderer.NX[face],
-                                bv.y() + GhostRenderer.NY[face],
-                                bv.z() + GhostRenderer.NZ[face]));
+                        long nk = SelectionState.pack(
+                                bv.plus(GhostRenderer.NX[face], GhostRenderer.NY[face], GhostRenderer.NZ[face]));
                         if (!selBlocks.contains(nk)) {
                             GhostRenderer.addTexturedFace(t, bv, b, meta, face, tint);
                             if (++batched % 2048 == 0) {
@@ -322,13 +311,11 @@ public class SelectionRenderer {
                 batched = 0;
                 for (long key : selBlocks) {
                     Vec3DInt bv = SelectionState.unpack(key);
-                    Block b = mc.theWorld.getBlock(bv.x(), bv.y(), bv.z());
+                    Block b = WorldUtils.getBlock(mc.theWorld, bv);
                     if (b != null && b != Blocks.air && b.getRenderType() != 0) {
                         for (int face = 0; face < 6; face++) {
-                            long nk = SelectionState.pack(Vec3DInt.from(
-                                    bv.x() + GhostRenderer.NX[face],
-                                    bv.y() + GhostRenderer.NY[face],
-                                    bv.z() + GhostRenderer.NZ[face]));
+                            long nk = SelectionState.pack(
+                                    bv.plus(GhostRenderer.NX[face], GhostRenderer.NY[face], GhostRenderer.NZ[face]));
                             if (!selBlocks.contains(nk)) {
                                 GhostRenderer.addSingleFace(t, bv, face);
                                 if (++batched % 2048 == 0) {
@@ -352,13 +339,11 @@ public class SelectionRenderer {
                 batched = 0;
                 for (long key : selBlocks) {
                     Vec3DInt bv = SelectionState.unpack(key);
-                    Block b = mc.theWorld.getBlock(bv.x(), bv.y(), bv.z());
+                    Block b = WorldUtils.getBlock(mc.theWorld, bv);
                     if (b == null || b == Blocks.air) continue;
                     for (int face = 0; face < 6; face++) {
-                        long nk = SelectionState.pack(Vec3DInt.from(
-                                bv.x() + GhostRenderer.NX[face],
-                                bv.y() + GhostRenderer.NY[face],
-                                bv.z() + GhostRenderer.NZ[face]));
+                        long nk = SelectionState.pack(
+                                bv.plus(GhostRenderer.NX[face], GhostRenderer.NY[face], GhostRenderer.NZ[face]));
                         if (!selBlocks.contains(nk)) {
                             GhostRenderer.addSingleFace(t, bv, face, 0.02f);
                             if (++batched % 2048 == 0) {
@@ -431,36 +416,29 @@ public class SelectionRenderer {
                 bxMop = RenderUtils.raycastAtCursor();
             }
             if (bxMop != null && bxMop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-                int mnX = Math.min(sel.pendingPos.x(), bxMop.blockX);
-                int mnY = Math.min(sel.pendingPos.y(), bxMop.blockY);
-                int mnZ = Math.min(sel.pendingPos.z(), bxMop.blockZ);
-                int mxX = Math.max(sel.pendingPos.x(), bxMop.blockX) + 1;
-                int mxY = Math.max(sel.pendingPos.y(), bxMop.blockY) + 1;
-                int mxZ = Math.max(sel.pendingPos.z(), bxMop.blockZ) + 1;
-                Vec3DDouble dragTrans = Vec3DDouble.from(mnX - camPos.x(), mnY - camPos.y(), mnZ - camPos.z());
+                Vec3DInt mopPos = Vec3DInt.from(bxMop.blockX, bxMop.blockY, bxMop.blockZ);
+                Vec3DInt mn = sel.pendingPos.min(mopPos);
+                Vec3DInt mx = sel.pendingPos.max(mopPos).plus(1);
+                Vec3DDouble dragTrans = mn.toDouble().minus(camPos);
                 GL11.glPushMatrix();
                 GL11.glTranslated(dragTrans.x(), dragTrans.y(), dragTrans.z());
                 WorldLines.setEyeForTranslation(dragTrans);
                 GL11.glColor4f(0.2f, 1.0f, 0.8f, 0.55f);
-                drawBox(0, 0, 0, mxX - mnX, mxY - mnY, mxZ - mnZ);
+                drawBox(0, 0, 0, mx.x() - mn.x(), mx.y() - mn.y(), mx.z() - mn.z());
                 GL11.glPopMatrix();
             }
         }
 
         // ── Box confirmed: frozen AABB + pos1/pos2 gizmos ────────────────────
         if (sel.boxConfirmed && DimensiumEditorMode.INSTANCE.selectedTool == Tool.SELECT) {
-            int mnX = Math.min(sel.pendingPos.x(), sel.pendingPos2.x());
-            int mnY = Math.min(sel.pendingPos.y(), sel.pendingPos2.y());
-            int mnZ = Math.min(sel.pendingPos.z(), sel.pendingPos2.z());
-            int mxX = Math.max(sel.pendingPos.x(), sel.pendingPos2.x()) + 1;
-            int mxY = Math.max(sel.pendingPos.y(), sel.pendingPos2.y()) + 1;
-            int mxZ = Math.max(sel.pendingPos.z(), sel.pendingPos2.z()) + 1;
-            Vec3DDouble boxTrans = Vec3DDouble.from(mnX - camPos.x(), mnY - camPos.y(), mnZ - camPos.z());
+            Vec3DInt mn = sel.pendingPos.min(sel.pendingPos2);
+            Vec3DInt mx = sel.pendingPos.max(sel.pendingPos2).plus(1);
+            Vec3DDouble boxTrans = mn.toDouble().minus(camPos);
             GL11.glPushMatrix();
             GL11.glTranslated(boxTrans.x(), boxTrans.y(), boxTrans.z());
             WorldLines.setEyeForTranslation(boxTrans);
             GL11.glColor4f(0.2f, 1.0f, 0.8f, 0.9f);
-            drawBox(0, 0, 0, mxX - mnX, mxY - mnY, mxZ - mnZ);
+            drawBox(0, 0, 0, mx.x() - mn.x(), mx.y() - mn.y(), mx.z() - mn.z());
             GL11.glPopMatrix();
             boxPos1Gizmo.axisFlip[0] = sel.pendingPos.x() <= sel.pendingPos2.x() ? -1f : 1f;
             boxPos1Gizmo.axisFlip[1] = sel.pendingPos.y() <= sel.pendingPos2.y() ? -1f : 1f;
@@ -480,12 +458,14 @@ public class SelectionRenderer {
                     sel.pendingPos2.x() + 0.5, sel.pendingPos2.y() + 0.5, sel.pendingPos2.z() + 0.5, camPos, 0, 0, 0);
             boxPos2Gizmo.render(
                     sel.pendingPos2.x() + 0.5, sel.pendingPos2.y() + 0.5, sel.pendingPos2.z() + 0.5, camPos, 0, 0, 0);
-            double cxWorld = (sel.pendingPos.x() + sel.pendingPos2.x()) / 2.0 + 0.5;
-            double cyWorld = (sel.pendingPos.y() + sel.pendingPos2.y()) / 2.0 + 0.5;
-            double czWorld = (sel.pendingPos.z() + sel.pendingPos2.z()) / 2.0 + 0.5;
-            boxCenterViewPlaneGizmo.render(cxWorld, cyWorld, czWorld, camPos);
-            boxCenterPlaneGizmo.render(cxWorld, cyWorld, czWorld, camPos, 0, 0, 0);
-            boxCenterGizmo.render(cxWorld, cyWorld, czWorld, camPos, 0, 0, 0);
+            Vec3DDouble cWorld = sel.pendingPos
+                    .toDouble()
+                    .plus(sel.pendingPos2.toDouble())
+                    .times(0.5)
+                    .plus(0.5);
+            boxCenterViewPlaneGizmo.render(cWorld.x(), cWorld.y(), cWorld.z(), camPos);
+            boxCenterPlaneGizmo.render(cWorld.x(), cWorld.y(), cWorld.z(), camPos, 0, 0, 0);
+            boxCenterGizmo.render(cWorld.x(), cWorld.y(), cWorld.z(), camPos, 0, 0, 0);
         }
 
         PerfTrace.pop();
@@ -588,9 +568,8 @@ public class SelectionRenderer {
             for (int r = 0; r < mts.rows.size(); r++) {
                 List<ModellingToolState.ModelPoint> row = mts.rows.get(r);
                 // Lines within row
-                List<int[]> rowXyz = new ArrayList<>(row.size());
-                for (ModellingToolState.ModelPoint p : row)
-                    rowXyz.add(new int[] {p.pos().x(), p.pos().y(), p.pos().z()});
+                List<Vec3DInt> rowXyz = new ArrayList<>(row.size());
+                for (ModellingToolState.ModelPoint p : row) rowXyz.add(p.pos());
                 renderLineStrip(rowXyz, camPos);
                 // Point boxes
                 for (int c = 0; c < row.size(); c++) {
@@ -694,13 +673,13 @@ public class SelectionRenderer {
         GL11.glPopMatrix();
     }
 
-    private static void renderLineStrip(List<int[]> xyzList, Vec3DDouble camPos) {
+    private static void renderLineStrip(List<Vec3DInt> xyzList, Vec3DDouble camPos) {
         if (xyzList.size() < 2) return;
         GL11.glLineWidth((float) 1.5);
         GL11.glBegin(GL11.GL_LINE_STRIP);
         GL11.glColor4f((float) 0.55, (float) 0.7, (float) 0.9, (float) 0.6);
-        for (int[] p : xyzList)
-            GL11.glVertex3d(p[0] + 0.5 - camPos.x(), p[1] + 0.5 - camPos.y(), p[2] + 0.5 - camPos.z());
+        for (Vec3DInt p : xyzList)
+            GL11.glVertex3d(p.x() + 0.5 - camPos.x(), p.y() + 0.5 - camPos.y(), p.z() + 0.5 - camPos.z());
         GL11.glEnd();
     }
 
@@ -712,14 +691,13 @@ public class SelectionRenderer {
         BuilderToolState bts = BuilderToolState.INSTANCE;
         if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) {
             bts.magicPreview = null;
-            lastMagicX = Integer.MIN_VALUE;
+            lastMagicPos = null;
             return;
         }
 
-        if (mop.blockX == lastMagicX && mop.blockY == lastMagicY && mop.blockZ == lastMagicZ) return;
-        lastMagicX = mop.blockX;
-        lastMagicY = mop.blockY;
-        lastMagicZ = mop.blockZ;
+        Vec3DInt curMopPos = Vec3DInt.from(mop.blockX, mop.blockY, mop.blockZ);
+        if (curMopPos.equals(lastMagicPos)) return;
+        lastMagicPos = curMopPos;
 
         MagicSelectToolState ts = MagicSelectToolState.INSTANCE;
         Set<Long> flooded = ts.floodFillFrom(mc.theWorld, mop);
@@ -727,10 +705,9 @@ public class SelectionRenderer {
         ChangeProposal p = ChangeProposal.forPreview();
         for (long key : flooded) {
             Vec3DInt bv = SelectionState.unpack(key);
-            int bx = bv.x(), by = bv.y(), bz = bv.z();
-            Block blk = mc.theWorld.getBlock(bx, by, bz);
-            int meta = mc.theWorld.getBlockMetadata(bx, by, bz);
-            p.proposed.put(ChangeProposal.packKey(bx, by, bz), new int[] {Block.getIdFromBlock(blk), meta});
+            Block blk = WorldUtils.getBlock(mc.theWorld, bv);
+            int meta = WorldUtils.getBlockMetadata(mc.theWorld, bv);
+            p.proposed.put(ChangeProposal.packKey(bv), new int[] {Block.getIdFromBlock(blk), meta});
         }
         bts.magicPreview = p;
     }
@@ -804,14 +781,12 @@ public class SelectionRenderer {
         HashMap<Long, Integer> edgeMask = new HashMap<>(blockSet.size() * 4);
         for (long packed : blockSet) {
             Vec3DInt bv = SelectionState.unpack(packed);
-            int bx = bv.x(), by = bv.y(), bz = bv.z();
             for (int face = 0; face < 6; face++) {
-                if (blockSet.contains(SelectionState.pack(Vec3DInt.from(
-                        bx + GhostRenderer.NX[face], by + GhostRenderer.NY[face], bz + GhostRenderer.NZ[face]))))
-                    continue;
+                if (blockSet.contains(SelectionState.pack(
+                        bv.plus(GhostRenderer.NX[face], GhostRenderer.NY[face], GhostRenderer.NZ[face])))) continue;
                 int axisBit = GhostRenderer.FACE_AXIS_BIT[face];
                 for (int[] e : GhostRenderer.FACE_EDGES[face]) {
-                    long ek = ((long) e[0] << 60) | SelectionState.pack(Vec3DInt.from(bx + e[1], by + e[2], bz + e[3]));
+                    long ek = ((long) e[0] << 60) | SelectionState.pack(bv.plus(e[1], e[2], e[3]));
                     edgeMask.compute(ek, (k, prev) -> prev == null ? axisBit : prev | axisBit);
                 }
             }
@@ -895,23 +870,15 @@ public class SelectionRenderer {
         if (drag.proposed.size() == drag.wireCacheSize) return;
         drag.wireCacheSize = drag.proposed.size();
 
-        int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, minZ = Integer.MAX_VALUE;
+        Vec3DInt min = Vec3DInt.from(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
         for (long key : drag.proposed.keySet()) {
-            int x = ChangeProposal.unpackX(key);
-            int y = ChangeProposal.unpackY(key);
-            int z = ChangeProposal.unpackZ(key);
-            if (x < minX) minX = x;
-            if (y < minY) minY = y;
-            if (z < minZ) minZ = z;
+            min = min.min(ChangeProposal.unpackKey(key));
         }
-        drag.wireOrigin = Vec3DInt.from(minX, minY, minZ);
+        drag.wireOrigin = min;
 
         List<Vec3DInt> local = new ArrayList<>(drag.proposed.size());
         for (long key : drag.proposed.keySet()) {
-            local.add(Vec3DInt.from(
-                    ChangeProposal.unpackX(key) - minX,
-                    ChangeProposal.unpackY(key) - minY,
-                    ChangeProposal.unpackZ(key) - minZ));
+            local.add(ChangeProposal.unpackKey(key).minus(min));
         }
         drag.cachedWire = GhostRenderer.INSTANCE.computeLocalWireframe(local);
     }
@@ -1081,8 +1048,7 @@ public class SelectionRenderer {
             int[] bm = e.getValue();
             Block blk = Block.getBlockById(bm[0]);
             if (blk == null || blk == Blocks.air || blk.getRenderType() != 0) continue;
-            Vec3DInt bv = Vec3DInt.from(
-                    ChangeProposal.unpackX(key), ChangeProposal.unpackY(key), ChangeProposal.unpackZ(key));
+            Vec3DInt bv = ChangeProposal.unpackKey(key);
             int tint = 0xFFFFFF;
             try {
                 tint = blk.colorMultiplier(mc.theWorld, bv.x(), bv.y(), bv.z());

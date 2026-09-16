@@ -40,13 +40,8 @@ public class ModellingMath {
         List<int[]> result = new ArrayList<>(out.size());
         for (Map.Entry<Long, int[]> e : out.entrySet()) {
             long key = e.getKey();
-            result.add(new int[] {
-                ChangeProposal.unpackX(key),
-                ChangeProposal.unpackY(key),
-                ChangeProposal.unpackZ(key),
-                e.getValue()[0],
-                e.getValue()[1]
-            });
+            Vec3DInt pos = ChangeProposal.unpackKey(key);
+            result.add(new int[] {pos.x(), pos.y(), pos.z(), e.getValue()[0], e.getValue()[1]});
         }
         return result;
     }

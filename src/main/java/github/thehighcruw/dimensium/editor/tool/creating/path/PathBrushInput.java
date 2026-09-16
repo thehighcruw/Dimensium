@@ -41,11 +41,11 @@ public class PathBrushInput implements BrushInput {
 
         if (button == KeyConstants.RMB && !InputHandler.isCtrlDown()) {
             if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-                int[] off = ExtrudeHelper.sideToOutwardDir(mop.sideHit);
-                int px = mop.blockX + off[0], py = mop.blockY + off[1], pz = mop.blockZ + off[2];
+                Vec3DInt p = Vec3DInt.from(mop.blockX, mop.blockY, mop.blockZ)
+                        .plus(ExtrudeHelper.sideToOutwardDir(mop.sideHit));
                 ItemStack blk = SelectedBlockState.INSTANCE.selectedBlock;
                 if (blk != null) blk = blk.copy();
-                PathToolState.PathPoint pt = new PathToolState.PathPoint(Vec3DInt.from(px, py, pz), 0, blk);
+                PathToolState.PathPoint pt = new PathToolState.PathPoint(p, 0, blk);
                 pts.points.add(pt);
                 pts.selectedIndex = pts.points.size() - 1;
                 pts.getAxisTranslationGizmo().reset();
@@ -69,18 +69,18 @@ public class PathBrushInput implements BrushInput {
             if (bestIdx >= 0) {
                 pts.selectedIndex = bestIdx;
                 pts.getAxisTranslationGizmo().reset();
-            } else if (pts.selectedPoint() != null && eye != null) {
-                Vec3DDouble gp = Vec3DDouble.from(
-                        pts.selectedPoint().pos.x() + 0.5,
-                        pts.selectedPoint().pos.y() + 0.5,
-                        pts.selectedPoint().pos.z() + 0.5);
-                if (pts.getAxisTranslationGizmo().hoveredAxis != TranslationGizmo.Axis.NONE) {
-                    pts.getAxisTranslationGizmo()
-                            .startDrag(mouseX, mouseY, gp.x(), gp.y(), gp.z(), gp.x(), gp.y(), gp.z(), 0, 0, 0);
-                } else if (pts.getPlaneTranslationGizmo().hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
-                    pts.getPlaneTranslationGizmo()
-                            .startDrag(mouseX, mouseY, gp.x(), gp.y(), gp.z(), gp.x(), gp.y(), gp.z(), 0, 0, 0);
-                }
+            } else if (pts.getAxisTranslationGizmo().hoveredAxis != TranslationGizmo.Axis.NONE
+                    && pts.selectedPoint() != null
+                    && eye != null) {
+                Vec3DDouble gp = pts.selectedPoint().pos.toDouble().plus(0.5);
+                pts.getAxisTranslationGizmo()
+                        .startDrag(mouseX, mouseY, gp.x(), gp.y(), gp.z(), gp.x(), gp.y(), gp.z(), 0, 0, 0);
+            } else if (pts.getPlaneTranslationGizmo().hoveredPlane != PlaneTranslationGizmo.Plane.NONE
+                    && pts.selectedPoint() != null
+                    && eye != null) {
+                Vec3DDouble gp = pts.selectedPoint().pos.toDouble().plus(0.5);
+                pts.getPlaneTranslationGizmo()
+                        .startDrag(mouseX, mouseY, gp.x(), gp.y(), gp.z(), gp.x(), gp.y(), gp.z(), 0, 0, 0);
             }
         }
     }

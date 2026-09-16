@@ -386,10 +386,7 @@ public class GhostRenderer {
         t.startDrawingQuads();
         for (Map.Entry<Long, int[]> e : proposed.entrySet()) {
             if (filter != null && !filter.accept(e.getValue())) continue;
-            Vec3DInt b = Vec3DInt.from(
-                    ChangeProposal.unpackX(e.getKey()),
-                    ChangeProposal.unpackY(e.getKey()),
-                    ChangeProposal.unpackZ(e.getKey()));
+            Vec3DInt b = ChangeProposal.unpackKey(e.getKey());
             for (int face = 0; face < 6; face++) {
                 long nk = ChangeProposal.packKey(b.plus(NX[face], NY[face], NZ[face]));
                 if (!proposed.containsKey(nk)) {

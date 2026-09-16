@@ -14,6 +14,7 @@ import github.thehighcruw.dimensium.shared.BlockSender;
 import github.thehighcruw.dimensium.shared.KeyConstants;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import github.thehighcruw.dimensium.shared.util.WorldUtils;
 import github.thehighcruw.dimensium.tool.BuilderToolState;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 import java.util.Set;
@@ -52,17 +53,15 @@ public class FillBrushInput implements BrushInput {
 
         if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return;
 
-        int[] faceOffsets = ExtrudeHelper.sideToOutwardDir(mop.sideHit);
-        int airX = mop.blockX + faceOffsets[0];
-        int airY = mop.blockY + faceOffsets[1];
-        int airZ = mop.blockZ + faceOffsets[2];
-        if (airY < 0 || airY > 255) return;
-        if (mc.theWorld.getBlock(airX, airY, airZ) != Blocks.air) return;
+        Vec3DInt airPos =
+                Vec3DInt.from(mop.blockX, mop.blockY, mop.blockZ).plus(ExtrudeHelper.sideToOutwardDir(mop.sideHit));
+        if (airPos.y() < 0 || airPos.y() > 255) return;
+        if (WorldUtils.getBlock(mc.theWorld, airPos) != Blocks.air) return;
 
         FloodfillToolState ts = FloodfillToolState.INSTANCE;
         boolean goDown = ts.floodfillDir == FloodfillToolState.FloodfillDir.DOWN;
-        Set<Long> airBlocks = SelectionState.floodFillAir(
-                mc.theWorld, Vec3DInt.from(airX, airY, airZ), ts.floodfillLimit, goDown, ts.floodfillCorners);
+        Set<Long> airBlocks =
+                SelectionState.floodFillAir(mc.theWorld, airPos, ts.floodfillLimit, goDown, ts.floodfillCorners);
         if (airBlocks.isEmpty()) return;
 
         ItemStack picked = SelectedBlockState.INSTANCE.selectedBlock;
@@ -75,8 +74,7 @@ public class FillBrushInput implements BrushInput {
         ChangeProposal p = ChangeProposal.forPreview();
         for (long key : airBlocks) {
             Vec3DInt bv = SelectionState.unpack(key);
-            int bx = bv.x(), by = bv.y(), bz = bv.z();
-            p.proposed.put(ChangeProposal.packKey(bx, by, bz), new int[] {paintId, paintMeta});
+            p.proposed.put(ChangeProposal.packKey(bv), new int[] {paintId, paintMeta});
         }
         BuilderToolState.INSTANCE.fillPreview = p;
     }

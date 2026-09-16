@@ -428,9 +428,7 @@ public final class MenuBar {
         ImGui.separator();
 
         if (ImGui.menuItem(I18n.format("dimensium.select.bounding_box"), null, false, hasSel)) {
-            sel.applyOp(
-                    SelectionState.aabbBlocks(sel.minX(), sel.minY(), sel.minZ(), sel.maxX(), sel.maxY(), sel.maxZ()),
-                    BooleanOp.REPLACE);
+            sel.applyOp(SelectionState.aabbBlocks(sel.min(), sel.max()), BooleanOp.REPLACE);
         }
         if (ImGui.menuItem(I18n.format("dimensium.select.convex_hull"), null, false, hasSel)) {
             sel.applyOp(SelectionTransforms.convexHull(sel.getSelectedBlocks()), BooleanOp.REPLACE);

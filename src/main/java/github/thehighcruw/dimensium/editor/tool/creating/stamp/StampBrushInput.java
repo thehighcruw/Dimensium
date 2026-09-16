@@ -35,7 +35,7 @@ public final class StampBrushInput implements BrushInput {
     public ChangeProposal dragPreview = null;
 
     private final Set<Long> strokeSet = new HashSet<>();
-    private final List<int[]> strokePositions = new ArrayList<>();
+    private final List<Vec3DInt> strokePositions = new ArrayList<>();
     /** Seed fixed at drag-start so preview stays stable as the stroke grows. */
     private long dragSeed;
 
@@ -54,13 +54,13 @@ public final class StampBrushInput implements BrushInput {
         dragSeed = rng.nextLong();
         strokeSet.clear();
         strokePositions.clear();
-        collectBrushPositions(mop.blockX, mop.blockY, mop.blockZ);
+        collectBrushPositions(Vec3DInt.from(mop.blockX, mop.blockY, mop.blockZ));
         rebuildPreview(mc);
     }
 
     @Override
     public boolean onBrushHeld(Minecraft mc, MovingObjectPosition mop) {
-        collectBrushPositions(mop.blockX, mop.blockY, mop.blockZ);
+        collectBrushPositions(Vec3DInt.from(mop.blockX, mop.blockY, mop.blockZ));
         rebuildPreview(mc);
         return true;
     }
@@ -83,12 +83,13 @@ public final class StampBrushInput implements BrushInput {
         if (!ops.isEmpty()) BlockSender.sendChunked(ops, "Stamp");
     }
 
-    private void collectBrushPositions(int cx, int cy, int cz) {
+    private void collectBrushPositions(Vec3DInt center) {
         BrushState bs = BrushState.INSTANCE;
         BrushUtil.forBrush(bs, offset -> {
             if (offset.y() != 0) return;
-            long key = ChangeProposal.packKey(cx + offset.x(), 0, cz + offset.z());
-            if (strokeSet.add(key)) strokePositions.add(new int[] {cx + offset.x(), cy, cz + offset.z()});
+            Vec3DInt pos = center.plus(offset.x(), 0, offset.z());
+            long key = ChangeProposal.packKey(pos.x(), 0, pos.z());
+            if (strokeSet.add(key)) strokePositions.add(pos);
         });
     }
 
@@ -130,25 +131,20 @@ public final class StampBrushInput implements BrushInput {
                 if (inst.flipX) lx = (dim.x() - 1) - lx;
                 if (inst.flipZ) lz = (dim.z() - 1) - lz;
 
-                int wx, wy, wz;
+                Vec3DInt worldPos;
                 if (rotated) {
                     Vec3DFloat local = Vec3DFloat.from(lx, ly, lz).plus(0.5f).minus(center);
-                    Vec3DFloat rv = R.mul(local).plus(center);
-                    wx = inst.anchor.x() + (int) Math.floor(rv.x());
-                    wy = inst.anchor.y() + (int) Math.floor(rv.y());
-                    wz = inst.anchor.z() + (int) Math.floor(rv.z());
+                    worldPos = inst.anchor.plus(Vec3DInt.floor(R.mul(local).plus(center)));
                 } else {
-                    wx = inst.anchor.x() + lx;
-                    wy = inst.anchor.y() + ly;
-                    wz = inst.anchor.z() + lz;
+                    worldPos = inst.anchor.plus(lx, ly, lz);
                 }
 
                 if (state.keepExisting) {
-                    Block existing = mc.theWorld.getBlock(wx, wy, wz);
+                    Block existing = mc.theWorld.getBlock(worldPos.x(), worldPos.y(), worldPos.z());
                     if (existing != null && existing != Blocks.air) continue;
                 }
 
-                ops.add(new int[] {wx, wy, wz, o[3], o[4]});
+                ops.add(new int[] {worldPos.x(), worldPos.y(), worldPos.z(), o[3], o[4]});
             }
         }
         return ops;

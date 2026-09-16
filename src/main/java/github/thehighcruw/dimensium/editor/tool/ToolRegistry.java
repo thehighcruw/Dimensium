@@ -58,6 +58,7 @@ import github.thehighcruw.dimensium.editor.tool.utility.ruler.RulerToolRenderer;
 import github.thehighcruw.dimensium.editor.window.viewport.world.BrushPreviewRenderer;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import github.thehighcruw.dimensium.shared.util.BlockUtils;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.function.Function;
@@ -72,8 +73,6 @@ import net.minecraft.init.Blocks;
 public final class ToolRegistry {
 
     private static final Map<Tool, ToolDescriptor> REGISTRY = new EnumMap<>(Tool.class);
-
-    private static final int[][] FACE_DIRS = {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
 
     static {
         register(Tool.POINTER, null, null, ToolRenderer.NONE);
@@ -228,8 +227,9 @@ public final class ToolRegistry {
     }
 
     private static boolean hasAirNeighbor(Minecraft mc, Vec3DInt wc) {
-        for (int[] n : FACE_DIRS) {
-            if (mc.theWorld.getBlock(wc.x() + n[0], wc.y() + n[1], wc.z() + n[2]) == Blocks.air) return true;
+        for (Vec3DInt d : BlockUtils.NEIGHBOUR_OFFSETS) {
+            Vec3DInt nb = wc.plus(d);
+            if (mc.theWorld.getBlock(nb.x(), nb.y(), nb.z()) == Blocks.air) return true;
         }
         return false;
     }

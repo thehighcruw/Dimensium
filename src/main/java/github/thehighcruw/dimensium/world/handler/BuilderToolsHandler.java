@@ -87,13 +87,7 @@ public class BuilderToolsHandler {
             PerfTrace.begin("builder SELECTING release");
             PerfTrace.push("applyOp selSize=" + sel.size());
             sel.applyOp(
-                    SelectionState.aabbBlocks(
-                            sel.pendingPos.x(),
-                            sel.pendingPos.y(),
-                            sel.pendingPos.z(),
-                            mop.blockX,
-                            mop.blockY,
-                            mop.blockZ),
+                    SelectionState.aabbBlocks(sel.pendingPos, Vec3DInt.from(mop.blockX, mop.blockY, mop.blockZ)),
                     BooleanOp.REPLACE);
             PerfTrace.pop();
             sel.pendingPos1 = false;
@@ -113,7 +107,9 @@ public class BuilderToolsHandler {
             PerfTrace.push("sendCaptureRequest");
             int captureId = CAPTURE_ID_GEN.incrementAndGet();
             PacketHandler.CHANNEL.sendToServer(new PacketCaptureRequest(
-                    captureId, sel.minX(), sel.minY(), sel.minZ(), sel.maxX(), sel.maxY(), sel.maxZ()));
+                    captureId,
+                    Vec3DInt.from(sel.minX(), sel.minY(), sel.minZ()),
+                    Vec3DInt.from(sel.maxX(), sel.maxY(), sel.maxZ())));
             bts.phase = Phase.CAPTURING;
             PerfTrace.pop();
             PerfTrace.end(0);
@@ -134,6 +130,6 @@ public class BuilderToolsHandler {
         Minecraft mc = Minecraft.getMinecraft();
         MovingObjectPosition mop = FreecamUtils.rayTrace(mc, FreecamUtils.REACH);
         if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return;
-        ExtrudeHelper.applyExtrudeAt(world, mop.blockX, mop.blockY, mop.blockZ, mop.sideHit);
+        ExtrudeHelper.applyExtrudeAt(world, Vec3DInt.from(mop.blockX, mop.blockY, mop.blockZ), mop.sideHit);
     }
 }

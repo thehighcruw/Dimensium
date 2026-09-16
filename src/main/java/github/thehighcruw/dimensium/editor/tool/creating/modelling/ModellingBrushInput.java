@@ -38,17 +38,14 @@ public class ModellingBrushInput implements BrushInput {
 
         if (button == KeyConstants.RMB) {
             if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return;
-            int px = mop.blockX, py = mop.blockY, pz = mop.blockZ;
+            Vec3DInt p = Vec3DInt.from(mop.blockX, mop.blockY, mop.blockZ);
             if (mts.offsetTargetPoint) {
-                int[] off = ExtrudeHelper.sideToOutwardDir(mop.sideHit);
-                px += off[0];
-                py += off[1];
-                pz += off[2];
+                p = p.plus(ExtrudeHelper.sideToOutwardDir(mop.sideHit));
             }
             if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) && mts.mode.usesRows()) {
                 mts.addRow();
             }
-            mts.addPoint(Vec3DInt.from(px, py, pz));
+            mts.addPoint(p);
             mts.selectedRow = mts.currentRowIndex;
             mts.selectedPoint = mts.rows.get(mts.currentRowIndex).size() - 1;
             mts.getAxisTranslationGizmo().reset();
@@ -89,18 +86,18 @@ public class ModellingBrushInput implements BrushInput {
                         }
                     }
                 }
-            } else if (mts.selectedPointObj() != null && eye != null) {
-                Vec3DDouble gp = Vec3DDouble.from(
-                        mts.selectedPointObj().pos().x() + 0.5,
-                        mts.selectedPointObj().pos().y() + 0.5,
-                        mts.selectedPointObj().pos().z() + 0.5);
-                if (mts.getAxisTranslationGizmo().hoveredAxis != TranslationGizmo.Axis.NONE) {
-                    mts.getAxisTranslationGizmo()
-                            .startDrag(mouseX, mouseY, gp.x(), gp.y(), gp.z(), gp.x(), gp.y(), gp.z(), 0, 0, 0);
-                } else if (mts.getPlaneTranslationGizmo().hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
-                    mts.getPlaneTranslationGizmo()
-                            .startDrag(mouseX, mouseY, gp.x(), gp.y(), gp.z(), gp.x(), gp.y(), gp.z(), 0, 0, 0);
-                }
+            } else if (mts.getAxisTranslationGizmo().hoveredAxis != TranslationGizmo.Axis.NONE
+                    && mts.selectedPointObj() != null
+                    && eye != null) {
+                Vec3DDouble gp = mts.selectedPointObj().pos().toDouble().plus(0.5);
+                mts.getAxisTranslationGizmo()
+                        .startDrag(mouseX, mouseY, gp.x(), gp.y(), gp.z(), gp.x(), gp.y(), gp.z(), 0, 0, 0);
+            } else if (mts.getPlaneTranslationGizmo().hoveredPlane != PlaneTranslationGizmo.Plane.NONE
+                    && mts.selectedPointObj() != null
+                    && eye != null) {
+                Vec3DDouble gp = mts.selectedPointObj().pos().toDouble().plus(0.5);
+                mts.getPlaneTranslationGizmo()
+                        .startDrag(mouseX, mouseY, gp.x(), gp.y(), gp.z(), gp.x(), gp.y(), gp.z(), 0, 0, 0);
             }
         }
     }

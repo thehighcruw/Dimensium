@@ -39,6 +39,7 @@ import github.thehighcruw.dimensium.shared.KeyConstants;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.math.Vec2DDouble;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
 import github.thehighcruw.dimensium.shared.util.WorldUtils;
@@ -289,16 +290,14 @@ public final class GuiDimensiumOverlay {
             ncy += b[1] + 0.5f;
             ncz += b[2] + 0.5f;
         }
-        ncx /= ms.ghostBlocks.size();
-        ncy /= ms.ghostBlocks.size();
-        ncz /= ms.ghostBlocks.size();
+        int ghostCount = ms.ghostBlocks.size();
 
         // Update selection to new positions
         Set<Long> newSel = new HashSet<>(newSnap.keySet());
         sel.applyOp(newSel, BooleanOp.REPLACE);
 
         // Re-activate with known block data — selection renderVersion just changed via applyOp
-        ms.activateFromSnapshot(sel, newSnap, ncx, ncy, ncz);
+        ms.activateFromSnapshot(sel, newSnap, Vec3DFloat.from(ncx / ghostCount, ncy / ghostCount, ncz / ghostCount));
         MoveToolState.INSTANCE.preview = null;
     }
 
@@ -408,15 +407,7 @@ public final class GuiDimensiumOverlay {
 
     /** Commits the pending box selection (boxConfirmed state) and clears gizmo state. */
     public static void commitBoxSelection(SelectionState sel, BoxSelectToolState ts) {
-        sel.applyOp(
-                SelectionState.aabbBlocks(
-                        sel.pendingPos.x(),
-                        sel.pendingPos.y(),
-                        sel.pendingPos.z(),
-                        sel.pendingPos2.x(),
-                        sel.pendingPos2.y(),
-                        sel.pendingPos2.z()),
-                ts.booleanOp);
+        sel.applyOp(SelectionState.aabbBlocks(sel.pendingPos, sel.pendingPos2), ts.booleanOp);
         sel.boxConfirmed = false;
         SelectionRenderer.boxPos1Gizmo.reset();
         SelectionRenderer.boxPos2Gizmo.reset();

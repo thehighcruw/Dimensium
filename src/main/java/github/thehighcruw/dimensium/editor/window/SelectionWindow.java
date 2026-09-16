@@ -100,10 +100,7 @@ public class SelectionWindow extends ToggleableWindow {
             ImGui.separator();
 
             if (ImGui.button(I18n.format("dimensium.select.bounding_box"), w, 0)) {
-                sel.applyOp(
-                        SelectionState.aabbBlocks(
-                                sel.minX(), sel.minY(), sel.minZ(), sel.maxX(), sel.maxY(), sel.maxZ()),
-                        BooleanOp.REPLACE);
+                sel.applyOp(SelectionState.aabbBlocks(sel.min(), sel.max()), BooleanOp.REPLACE);
             }
             if (ImGui.button(I18n.format("dimensium.select.convex_hull"), w, 0)) {
                 sel.applyOp(SelectionTransforms.convexHull(sel.getSelectedBlocks()), BooleanOp.REPLACE);
