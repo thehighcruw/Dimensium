@@ -72,12 +72,7 @@ public class FillSelectionWindow extends ToggleableWindow {
 
             float windowW = ImGui.getWindowWidth();
             float btnW = 70f * scale;
-            float footerH = ImGui.getStyle().getItemSpacingY()
-                    + 1f
-                    + ImGui.getStyle().getItemSpacingY()
-                    + ImGui.getFrameHeight()
-                    + ImGui.getStyle().getWindowPaddingY();
-            float childH = Math.max(0f, ImGui.getContentRegionAvailY() - footerH);
+            float childH = Math.max(0f, ImGui.getContentRegionAvailY() - footerButtonHeight());
             ImGui.beginChild("##fill_body", 0f, childH);
 
             if (!hasSel) {

@@ -6,6 +6,7 @@ package github.thehighcruw.dimensium.editor.window.imgui;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import imgui.ImGui;
 
 /**
  * ImGuiWindow subclass that owns the open/closed toggle state.
@@ -28,5 +29,14 @@ public abstract class ToggleableWindow extends ImGuiWindow {
     @Override
     public boolean isOpen() {
         return open;
+    }
+
+    /** Height consumed by a single-button footer row: separator + button + padding. */
+    protected static float footerButtonHeight() {
+        return ImGui.getStyle().getItemSpacingY()
+                + 1f
+                + ImGui.getStyle().getItemSpacingY()
+                + ImGui.getFrameHeight()
+                + ImGui.getStyle().getWindowPaddingY();
     }
 }

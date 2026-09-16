@@ -188,9 +188,7 @@ public class EditHistory {
             };
         }
 
-        for (int[] op : ops) {
-            applyBlock(world, Vec3DInt.from(op[0], op[1], op[2]), Block.getBlockById(op[3]), op[4]);
-        }
+        applyBlocks(world, ops);
 
         PacketHistoryEntry.sendChunked(player, txId, action, before, after);
     }

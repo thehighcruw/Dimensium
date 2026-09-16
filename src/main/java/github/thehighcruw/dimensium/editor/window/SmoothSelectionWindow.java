@@ -57,12 +57,7 @@ public class SmoothSelectionWindow extends ToggleableWindow {
 
             float windowW = ImGui.getWindowWidth();
             float btnW = 70f * uiScale;
-            float footerH = ImGui.getStyle().getItemSpacingY()
-                    + 1f
-                    + ImGui.getStyle().getItemSpacingY()
-                    + ImGui.getFrameHeight()
-                    + ImGui.getStyle().getWindowPaddingY();
-            float childH = Math.max(0f, ImGui.getContentRegionAvailY() - footerH);
+            float childH = Math.max(0f, ImGui.getContentRegionAvailY() - footerButtonHeight());
             ImGui.beginChild("##smooth_body", 0f, childH);
 
             if (!hasSel) {

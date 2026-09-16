@@ -53,45 +53,38 @@ public class ModellingMath {
 
     // ── Shape modes ───────────────────────────────────────────────────────────
 
-    private static void computeConvexHull(Map<Long, int[]> out, List<ModelPoint> pts, int[] bm) {
+    private static boolean handleDegeneratePoints(Map<Long, int[]> out, List<ModelPoint> pts, int[] bm) {
         int n = pts.size();
-        if (n == 0) return;
+        if (n == 0) return true;
         if (n == 1) {
             addPoint(out, pts.get(0), bm);
-            return;
+            return true;
         }
         if (n == 2) {
             bresenhamLine(out, pts.get(0), pts.get(1), bm);
-            return;
+            return true;
         }
         if (n == 3) {
             voxelizeTriangle(out, pts.get(0), pts.get(1), pts.get(2), bm);
-            return;
+            return true;
         }
+        return false;
+    }
+
+    private static void computeConvexHull(Map<Long, int[]> out, List<ModelPoint> pts, int[] bm) {
+        if (handleDegeneratePoints(out, pts, bm)) return;
         List<int[]> faces = convexHull3D(pts);
         if (faces.isEmpty()) {
             // Degenerate: fall back to all points connected as fan
-            for (int i = 1; i + 1 < n; i++) voxelizeTriangle(out, pts.get(0), pts.get(i), pts.get(i + 1), bm);
+            for (int i = 1; i + 1 < pts.size(); i++) voxelizeTriangle(out, pts.get(0), pts.get(i), pts.get(i + 1), bm);
         } else {
             for (int[] f : faces) voxelizeTriangle(out, pts.get(f[0]), pts.get(f[1]), pts.get(f[2]), bm);
         }
     }
 
     private static void computeSmartSurface(Map<Long, int[]> out, List<ModelPoint> pts, int[] bm) {
+        if (handleDegeneratePoints(out, pts, bm)) return;
         int n = pts.size();
-        if (n == 0) return;
-        if (n == 1) {
-            addPoint(out, pts.get(0), bm);
-            return;
-        }
-        if (n == 2) {
-            bresenhamLine(out, pts.get(0), pts.get(1), bm);
-            return;
-        }
-        if (n == 3) {
-            voxelizeTriangle(out, pts.get(0), pts.get(1), pts.get(2), bm);
-            return;
-        }
 
         Vec3DDouble centroid = Vec3DDouble.ZERO;
         for (ModelPoint p : pts) centroid = centroid.plus(p.pos().toDouble());
@@ -290,7 +283,14 @@ public class ModellingMath {
         }
     }
 
-    private static void computeLoftedCatmullRom(Map<Long, int[]> out, List<List<ModelPoint>> rows, int[] bm) {
+    @FunctionalInterface
+    private interface LoftedSampler {
+
+        Vec3DDouble sample(Vec3DDouble[][] grid, int R, int C, int ui, int uSteps, int vi, int vSteps);
+    }
+
+    private static void computeLoftedSurface(
+            Map<Long, int[]> out, List<List<ModelPoint>> rows, int[] bm, LoftedSampler sampler) {
         if (rows.size() < 2) {
             computeLoftedFlat(out, rows, bm);
             return;
@@ -308,13 +308,9 @@ public class ModellingMath {
         int vSteps = Math.max(4, (maxCols - 1) * 8);
 
         Vec3DDouble[][] cache = new Vec3DDouble[uSteps + 1][vSteps + 1];
-        for (int ui = 0; ui <= uSteps; ui++) {
-            double u = (double) ui / uSteps * (R - 1);
-            for (int vi = 0; vi <= vSteps; vi++) {
-                double v = (double) vi / vSteps * (maxCols - 1);
-                cache[ui][vi] = sampleGridCatmullRom(grid, R, maxCols, u, v);
-            }
-        }
+        for (int ui = 0; ui <= uSteps; ui++)
+            for (int vi = 0; vi <= vSteps; vi++)
+                cache[ui][vi] = sampler.sample(grid, R, maxCols, ui, uSteps, vi, vSteps);
 
         for (int ui = 0; ui < uSteps; ui++) {
             for (int vi = 0; vi < vSteps; vi++) {
@@ -324,38 +320,22 @@ public class ModellingMath {
         }
     }
 
+    private static void computeLoftedCatmullRom(Map<Long, int[]> out, List<List<ModelPoint>> rows, int[] bm) {
+        computeLoftedSurface(
+                out,
+                rows,
+                bm,
+                (grid, R, C, ui, uSteps, vi, vSteps) -> sampleGridCatmullRom(
+                        grid, R, C, (double) ui / uSteps * (R - 1), (double) vi / vSteps * (C - 1)));
+    }
+
     private static void computeLoftedBezier(Map<Long, int[]> out, List<List<ModelPoint>> rows, int[] bm) {
-        if (rows.size() < 2) {
-            computeLoftedFlat(out, rows, bm);
-            return;
-        }
-
-        int maxCols = 0;
-        for (List<ModelPoint> row : rows) maxCols = Math.max(maxCols, row.size());
-        if (maxCols < 1) return;
-
-        int R = rows.size();
-        Vec3DDouble[][] grid = new Vec3DDouble[R][maxCols];
-        for (int r = 0; r < R; r++) resampleRow(rows.get(r), maxCols, grid[r]);
-
-        int uSteps = Math.max(4, (R - 1) * 8);
-        int vSteps = Math.max(4, (maxCols - 1) * 8);
-
-        Vec3DDouble[][] cache = new Vec3DDouble[uSteps + 1][vSteps + 1];
-        for (int ui = 0; ui <= uSteps; ui++) {
-            double u = (double) ui / uSteps;
-            for (int vi = 0; vi <= vSteps; vi++) {
-                double v = (double) vi / vSteps;
-                cache[ui][vi] = sampleGridBezier(grid, R, maxCols, u, v);
-            }
-        }
-
-        for (int ui = 0; ui < uSteps; ui++) {
-            for (int vi = 0; vi < vSteps; vi++) {
-                voxelizeTriangleD(out, cache[ui][vi], cache[ui][vi + 1], cache[ui + 1][vi], bm);
-                voxelizeTriangleD(out, cache[ui][vi + 1], cache[ui + 1][vi + 1], cache[ui + 1][vi], bm);
-            }
-        }
+        computeLoftedSurface(
+                out,
+                rows,
+                bm,
+                (grid, R, C, ui, uSteps, vi, vSteps) ->
+                        sampleGridBezier(grid, R, C, (double) ui / uSteps, (double) vi / vSteps));
     }
 
     // ── Surface sampling ──────────────────────────────────────────────────────

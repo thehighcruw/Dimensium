@@ -4,6 +4,7 @@
  */
 package github.thehighcruw.dimensium.world.tool.strategy;
 
+import com.github.bsideup.jabel.Desugar;
 import github.thehighcruw.dimensium.DimensiumConfig;
 import github.thehighcruw.dimensium.editor.freecam.FreecamUtils;
 import github.thehighcruw.dimensium.shared.BlockSender;
@@ -22,6 +23,18 @@ import net.minecraft.world.World;
 
 public class SmearStrategy implements BuilderToolStrategy {
 
+    @Desugar
+    private record StepResult(Vec3DInt step, int steps) {}
+
+    private static StepResult computeSteps(Vec3DInt offset) {
+        Vec3DInt abs = offset.abs();
+        if (abs.x() >= abs.y() && abs.x() >= abs.z())
+            return new StepResult(Vec3DInt.from(offset.x() > 0 ? 1 : -1, 0, 0), abs.x());
+        if (abs.y() >= abs.x() && abs.y() >= abs.z())
+            return new StepResult(Vec3DInt.from(0, offset.y() > 0 ? 1 : -1, 0), abs.y());
+        return new StepResult(Vec3DInt.from(0, 0, offset.z() > 0 ? 1 : -1), abs.z());
+    }
+
     @Override
     public boolean needsCapture() {
         return true;
@@ -34,19 +47,9 @@ public class SmearStrategy implements BuilderToolStrategy {
         Vec3DInt offset = bts.offset;
         if (offset.equals(Vec3DInt.ZERO)) return;
 
-        Vec3DInt abs = offset.abs();
-        Vec3DInt step;
-        int steps;
-        if (abs.x() >= abs.y() && abs.x() >= abs.z()) {
-            steps = abs.x();
-            step = Vec3DInt.from(offset.x() > 0 ? 1 : -1, 0, 0);
-        } else if (abs.y() >= abs.x() && abs.y() >= abs.z()) {
-            steps = abs.y();
-            step = Vec3DInt.from(0, offset.y() > 0 ? 1 : -1, 0);
-        } else {
-            steps = abs.z();
-            step = Vec3DInt.from(0, 0, offset.z() > 0 ? 1 : -1);
-        }
+        StepResult sr = computeSteps(offset);
+        Vec3DInt step = sr.step();
+        int steps = sr.steps();
 
         World world = Minecraft.getMinecraft().theWorld;
         List<int[]> ops = new ArrayList<>();
@@ -86,19 +89,9 @@ public class SmearStrategy implements BuilderToolStrategy {
             return;
         }
 
-        Vec3DInt abs = offset.abs();
-        Vec3DInt step;
-        int steps;
-        if (abs.x() >= abs.y() && abs.x() >= abs.z()) {
-            steps = abs.x();
-            step = Vec3DInt.from(offset.x() > 0 ? 1 : -1, 0, 0);
-        } else if (abs.y() >= abs.x() && abs.y() >= abs.z()) {
-            steps = abs.y();
-            step = Vec3DInt.from(0, offset.y() > 0 ? 1 : -1, 0);
-        } else {
-            steps = abs.z();
-            step = Vec3DInt.from(0, 0, offset.z() > 0 ? 1 : -1);
-        }
+        StepResult sr = computeSteps(offset);
+        Vec3DInt step = sr.step();
+        int steps = sr.steps();
 
         ChangeProposal p = ChangeProposal.forPreview();
         boolean[] done = {false};
