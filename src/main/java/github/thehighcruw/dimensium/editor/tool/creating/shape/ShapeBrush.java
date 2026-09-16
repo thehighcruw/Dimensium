@@ -50,8 +50,9 @@ public class ShapeBrush implements BrushStrategy {
         Vec3DInt origin =
                 Vec3DInt.from(mop.blockX - (fw - 1) / 2, mop.blockY - (fh - 1) / 2, mop.blockZ - (fd - 1) / 2);
 
-        Vec3DInt.forEachInclusive(Vec3DInt.ZERO, Vec3DInt.from(fw - 1, fh - 1, fd - 1), (dx, dy, dz) -> {
-            if (!inShapeGeom(s, dx, dy, dz, fw, fh, fd)) return;
+        Vec3DInt shapeDims = Vec3DInt.from(fw, fh, fd);
+        Vec3DInt.forEachInclusive(Vec3DInt.ZERO, shapeDims.minus(1), (dx, dy, dz) -> {
+            if (!inShapeGeom(s, Vec3DInt.from(dx, dy, dz), shapeDims)) return;
             Vec3DInt pos = origin.plus(dx, dy, dz);
             if (s.shapeKeepExisting && WorldUtils.getBlock(world, pos) != Blocks.air) return;
             ItemStack item = ps.samplePalette(rand);
@@ -62,15 +63,11 @@ public class ShapeBrush implements BrushStrategy {
         });
     }
 
-    private static boolean inShapeGeom(ShapeToolState s, int dx, int dy, int dz, int w, int h, int d) {
+    private static boolean inShapeGeom(ShapeToolState s, Vec3DInt offset, Vec3DInt dims) {
         return ShapeMath.inShapeGeom(
                 s.shapeType,
-                dx,
-                dy,
-                dz,
-                w,
-                h,
-                d,
+                offset,
+                dims,
                 s.shapeHollow,
                 s.shapeExponent,
                 s.torusRingRadius,

@@ -8,6 +8,7 @@ import static org.junit.Assert.*;
 
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeMath;
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeToolState.ShapeType;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import org.junit.Test;
 
 /**
@@ -47,7 +48,19 @@ public class ShapeSymmetryTest {
             int ringRZ,
             int tubeR) {
         return ShapeMath.inShapeGeom(
-                type, dx, dy, dz, w, h, d, hollow, EXP, ringR, ringRZ, tubeR, WALL, EXP, SIDES, SPIRAL_SP, SPIRAL_T,
+                type,
+                Vec3DInt.from(dx, dy, dz),
+                Vec3DInt.from(w, h, d),
+                hollow,
+                EXP,
+                ringR,
+                ringRZ,
+                tubeR,
+                WALL,
+                EXP,
+                SIDES,
+                SPIRAL_SP,
+                SPIRAL_T,
                 1f);
     }
 

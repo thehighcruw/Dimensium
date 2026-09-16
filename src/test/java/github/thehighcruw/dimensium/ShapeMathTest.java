@@ -10,6 +10,7 @@ import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeMath;
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeToolState.ShapeType;
 import github.thehighcruw.dimensium.shared.math.Mat3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import org.junit.Test;
 
 public class ShapeMathTest {
@@ -23,12 +24,8 @@ public class ShapeMathTest {
     private static boolean shape(ShapeType type, int dx, int dy, int dz, int w, int h, int d, boolean hollow) {
         return ShapeMath.inShapeGeom(
                 type,
-                dx,
-                dy,
-                dz,
-                w,
-                h,
-                d,
+                Vec3DInt.from(dx, dy, dz),
+                Vec3DInt.from(w, h, d),
                 hollow,
                 EXP,
                 TORUS_R,

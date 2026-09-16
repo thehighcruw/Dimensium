@@ -13,6 +13,7 @@ import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapePlacementSta
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeToolState;
 import github.thehighcruw.dimensium.editor.tool.selecting.SelectedBlockState;
 import github.thehighcruw.dimensium.shared.math.Mat3DFloat;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -167,11 +168,13 @@ public class PacketShapePlacement implements IPacket {
 
         Mat3DFloat R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
 
-        int[] bounds = ShapeMath.computeRotatedBounds(R, w, h, d);
-        int ix0 = bounds[0], iy0 = bounds[1], iz0 = bounds[2];
-        int ix1 = bounds[3], iy1 = bounds[4], iz1 = bounds[5];
+        Vec3DInt shapeDims = Vec3DInt.from(w, h, d);
+        Vec3DInt[] bounds = ShapeMath.computeRotatedBounds(R, shapeDims);
+        Vec3DInt boundsMin = bounds[0], boundsMax = bounds[1];
 
-        long bboxVolume = (long) (ix1 - ix0 + 1) * (iy1 - iy0 + 1) * (iz1 - iz0 + 1);
+        long bboxVolume = (long) (boundsMax.x() - boundsMin.x() + 1)
+                * (boundsMax.y() - boundsMin.y() + 1)
+                * (boundsMax.z() - boundsMin.z() + 1);
         if (bboxVolume > 1_000_000L) {
             Dimensium.logger.warn(
                     "[Dimensium] Rejected PacketShapePlacement: bounding box volume {} exceeds limit for player {}",
@@ -182,11 +185,10 @@ public class PacketShapePlacement implements IPacket {
 
         Random rand = new Random();
         List<int[]> ops = new ArrayList<>();
+        Vec3DInt anchor = Vec3DInt.from(anchorX, anchorY, anchorZ);
         ShapeMath.iterateRotatedShape(
                 type,
-                w,
-                h,
-                d,
+                shapeDims,
                 hollow,
                 exponent,
                 torusRingR,
@@ -199,14 +201,11 @@ public class PacketShapePlacement implements IPacket {
                 spiralTurns,
                 DimensiumConfig.shapeThreshold,
                 R,
-                ix0,
-                iy0,
-                iz0,
-                ix1,
-                iy1,
-                iz1,
-                (ox, oy, oz) -> {
-                    int bx = anchorX + ox, by = anchorY + oy, bz = anchorZ + oz;
+                boundsMin,
+                boundsMax,
+                offset -> {
+                    Vec3DInt pos = anchor.plus(offset);
+                    int bx = pos.x(), by = pos.y(), bz = pos.z();
                     if (by < 0 || by >= world.getHeight()) return true;
                     if (keepExisting && world.getBlock(bx, by, bz) != Blocks.air) return true;
                     int roll = rand.nextInt(totalWeight), cum = 0, chosen = 0;

@@ -51,7 +51,7 @@ public class ShapePlacementState
      * Offsets may be negative (blocks extend before anchor when rotated).
      * Null = exceeds maxGhostBlocks, use bbox fallback.
      */
-    public List<int[]> ghostBlocks = null;
+    public List<Vec3DInt> ghostBlocks = null;
 
     public ChangeProposal preview = null;
 
@@ -169,11 +169,10 @@ public class ShapePlacementState
 
         Mat3DFloat R = ShapeMath.buildRotationMatrix(rot.x(), rot.y(), rot.z());
 
-        int[] bounds = ShapeMath.computeRotatedBounds(R, w, h, d);
-        int ix0 = bounds[0], iy0 = bounds[1], iz0 = bounds[2];
-        int ix1 = bounds[3], iy1 = bounds[4], iz1 = bounds[5];
+        Vec3DInt shapeDims = Vec3DInt.from(w, h, d);
+        Vec3DInt[] bounds = ShapeMath.computeRotatedBounds(R, shapeDims);
 
-        ghostBlocks = buildGhostBlocks(s, w, h, d, R, ix0, iy0, iz0, ix1, iy1, iz1);
+        ghostBlocks = buildGhostBlocks(s, shapeDims, R, bounds[0], bounds[1]);
         rebuildShapeProposal();
     }
 
@@ -201,22 +200,21 @@ public class ShapePlacementState
 
         int blockId = Block.getIdFromBlock(blk);
         ChangeProposal p = ChangeProposal.forPreview();
-        for (int[] offset : ghostBlocks) {
-            long key = ChangeProposal.packKey(anchor.x() + offset[0], anchor.y() + offset[1], anchor.z() + offset[2]);
+        for (Vec3DInt offset : ghostBlocks) {
+            Vec3DInt pos = anchor.plus(offset);
+            long key = ChangeProposal.packKey(pos.x(), pos.y(), pos.z());
             p.proposed.put(key, new int[] {blockId, meta});
         }
         preview = p;
     }
 
-    private static List<int[]> buildGhostBlocks(
-            ShapeToolState s, int w, int h, int d, Mat3DFloat R, int ix0, int iy0, int iz0, int ix1, int iy1, int iz1) {
+    private static List<Vec3DInt> buildGhostBlocks(
+            ShapeToolState s, Vec3DInt dims, Mat3DFloat R, Vec3DInt boundsMin, Vec3DInt boundsMax) {
         int maxGhost = DimensiumConfig.maxGhostBlocks;
-        List<int[]> blocks = new ArrayList<>();
+        List<Vec3DInt> blocks = new ArrayList<>();
         ShapeMath.iterateRotatedShape(
                 s.shapeType,
-                w,
-                h,
-                d,
+                dims,
                 s.shapeHollow,
                 s.shapeExponent,
                 s.torusRingRadius,
@@ -229,14 +227,10 @@ public class ShapePlacementState
                 s.shapeSpiralTurns,
                 DimensiumConfig.shapeThreshold,
                 R,
-                ix0,
-                iy0,
-                iz0,
-                ix1,
-                iy1,
-                iz1,
-                (ox, oy, oz) -> {
-                    blocks.add(new int[] {ox, oy, oz});
+                boundsMin,
+                boundsMax,
+                offset -> {
+                    blocks.add(offset);
                     return blocks.size() < maxGhost;
                 });
         return blocks.size() >= maxGhost ? null : blocks;

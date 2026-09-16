@@ -8,6 +8,8 @@ import static org.junit.Assert.*;
 
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeMath;
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeToolState.ShapeType;
+import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import org.junit.Test;
 
 /**
@@ -38,11 +40,13 @@ public class SphereConsistencyTest {
     private static final int[] SIZES = {3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
 
     private static boolean geomInt(ShapeType t, int dx, int dy, int dz, int w, int h, int d, boolean hollow) {
-        return ShapeMath.inShapeGeom(t, dx, dy, dz, w, h, d, hollow, 2f, 6, 6, 2, 2, 2f, 6, 1.5f, 3f, 1f);
+        return ShapeMath.inShapeGeom(
+                t, Vec3DInt.from(dx, dy, dz), Vec3DInt.from(w, h, d), hollow, 2f, 6, 6, 2, 2, 2f, 6, 1.5f, 3f, 1f);
     }
 
     private static boolean geomF(ShapeType t, float dx, float dy, float dz, int w, int h, int d, boolean hollow) {
-        return ShapeMath.inShapeGeomF(t, dx, dy, dz, w, h, d, hollow, 2f, 6, 6, 2, 2, 2f, 6, 1.5f, 3f, 1f);
+        return ShapeMath.inShapeGeomF(
+                t, Vec3DFloat.from(dx, dy, dz), Vec3DInt.from(w, h, d), hollow, 2f, 6, 6, 2, 2, 2f, 6, 1.5f, 3f, 1f);
     }
 
     // ── inShapeGeom vs inShapeGeomF agreement ────────────────────────────────

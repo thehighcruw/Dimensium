@@ -7,6 +7,7 @@ package github.thehighcruw.dimensium.editor.tool.creating.shape;
 import github.thehighcruw.dimensium.shared.math.Mat3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec2DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 
 /**
  * Pure-math shape geometry — no Minecraft state.
@@ -16,12 +17,8 @@ public class ShapeMath {
 
     public static boolean inShapeGeom(
             ShapeToolState.ShapeType type,
-            int dx,
-            int dy,
-            int dz,
-            int w,
-            int h,
-            int d,
+            Vec3DInt offset,
+            Vec3DInt dims,
             boolean hollow,
             float exponent,
             int torusRingR,
@@ -33,145 +30,170 @@ public class ShapeMath {
             float spiralSpacing,
             float spiralTurns,
             float threshold) {
-        float cx = (w - 1) / 2f, cy = (h - 1) / 2f, cz = (d - 1) / 2f;
-        float rx = w / 2f, ry = h / 2f, rz = d / 2f;
+        // center = (dims - 1) / 2, radius = dims / 2 (integer voxel convention)
+        Vec3DFloat center = dims.toFloat().minus(Vec3DFloat.ONE).times(0.5f);
+        Vec3DFloat radius = dims.toFloat().times(0.5f);
         switch (type) {
-            case CUBOID:
+            case CUBOID: {
                 if (!hollow) return true;
+                int dx = offset.x(), dy = offset.y(), dz = offset.z();
+                int w = dims.x(), h = dims.y(), d = dims.z();
                 return dx == 0 || dx == w - 1 || dy == 0 || dy == h - 1 || dz == 0 || dz == d - 1;
-
+            }
             case SPHERE: {
-                Vec3DFloat n = Vec3DFloat.from((dx - cx) / rx, (dy - cy) / ry, (dz - cz) / rz);
+                Vec3DFloat n = offset.toFloat().minus(center).divide(radius);
                 float dist = n.dot(n);
-                Vec3DFloat invR = Vec3DFloat.from(1f / rx, 1f / ry, 1f / rz);
+                Vec3DFloat invR = Vec3DFloat.ONE.divide(radius);
                 float vR = 0.5f * (float) Math.sqrt(invR.dot(invR));
                 boolean outer = passL2(dist, vR, threshold);
                 if (!hollow) return outer;
-                float irx = Math.max(1, rx - 1), iry = Math.max(1, ry - 1), irz = Math.max(1, rz - 1);
-                Vec3DFloat inner = Vec3DFloat.from((dx - cx) / irx, (dy - cy) / iry, (dz - cz) / irz);
+                Vec3DFloat innerR = radius.minus(Vec3DFloat.ONE).max(Vec3DFloat.ONE);
+                Vec3DFloat inner = offset.toFloat().minus(center).divide(innerR);
                 return outer && inner.dot(inner) > 1f;
             }
             case CYLINDER: {
-                Vec2DFloat n = Vec2DFloat.from((dx - cx) / rx, (dz - cz) / rz);
+                int dy = offset.y(), h = dims.y();
+                Vec2DFloat n =
+                        Vec2DFloat.from((offset.x() - center.x()) / radius.x(), (offset.z() - center.z()) / radius.z());
                 float dist = n.dot(n);
-                Vec2DFloat invR = Vec2DFloat.from(1f / rx, 1f / rz);
+                Vec2DFloat invR = Vec2DFloat.from(1f / radius.x(), 1f / radius.z());
                 float vR = 0.5f * (float) Math.sqrt(invR.dot(invR));
                 boolean outer = passL2(dist, vR, threshold);
                 if (!hollow) return outer;
-                float irx = Math.max(1, rx - 1), irz = Math.max(1, rz - 1);
-                Vec2DFloat inner = Vec2DFloat.from((dx - cx) / irx, (dz - cz) / irz);
+                Vec2DFloat innerR = Vec2DFloat.from(Math.max(1, radius.x() - 1), Math.max(1, radius.z() - 1));
+                Vec2DFloat inner =
+                        Vec2DFloat.from((offset.x() - center.x()) / innerR.x(), (offset.z() - center.z()) / innerR.y());
                 return outer && (inner.dot(inner) > 1f || dy == 0 || dy == h - 1);
             }
             case PYRAMID: {
+                int dy = offset.y(), h = dims.y();
                 float level = (float) dy / Math.max(1, h - 1);
-                float hw = (1f - level) * rx;
-                float hd = (1f - level) * rz;
-                return dx >= cx - hw && dx <= cx + hw && dz >= cz - hd && dz <= cz + hd;
+                float hw = (1f - level) * radius.x();
+                float hd = (1f - level) * radius.z();
+                float lx = offset.x() - center.x(), lz = offset.z() - center.z();
+                return lx >= -hw && lx <= hw && lz >= -hd && lz <= hd;
             }
             case CONE: {
+                int dy = offset.y(), h = dims.y();
                 float level = (float) dy / Math.max(1, h - 1);
                 float scale = 1f - level;
-                float arx = rx * scale, arz = rz * scale;
-                if (arx < 0.5f || arz < 0.5f) return Math.abs(dx - cx) < 0.5f && Math.abs(dz - cz) < 0.5f;
-                Vec2DFloat n = Vec2DFloat.from((dx - cx) / arx, (dz - cz) / arz);
+                float arx = radius.x() * scale, arz = radius.z() * scale;
+                float lx = offset.x() - center.x(), lz = offset.z() - center.z();
+                if (arx < 0.5f || arz < 0.5f) return Math.abs(lx) < 0.5f && Math.abs(lz) < 0.5f;
+                Vec2DFloat n = Vec2DFloat.from(lx / arx, lz / arz);
                 float dist = n.dot(n);
                 Vec2DFloat invR = Vec2DFloat.from(1f / arx, 1f / arz);
                 float vR = 0.5f * (float) Math.sqrt(invR.dot(invR));
                 boolean outer = passL2(dist, vR, threshold);
                 if (!hollow) return outer;
-                float irx2 = Math.max(0.5f, arx - 1), irz2 = Math.max(0.5f, arz - 1);
-                Vec2DFloat inner = Vec2DFloat.from((dx - cx) / irx2, (dz - cz) / irz2);
+                float irx = Math.max(0.5f, arx - 1), irz = Math.max(0.5f, arz - 1);
+                Vec2DFloat inner = Vec2DFloat.from(lx / irx, lz / irz);
                 return outer && (inner.dot(inner) > 1f || dy == 0);
             }
             case TORUS: {
                 // Elliptic ring: find nearest point on the ring ellipse, then test tube radius
-                float lx = dx - cx, lz = dz - cz;
-                float angle = (float) Math.atan2(
-                        (float) torusRingR > 0 ? lz / (float) torusRingRZ : lz,
-                        (float) torusRingRZ > 0 ? lx / (float) torusRingR : lx);
-                float nearX = (float) torusRingR * (float) Math.cos(angle);
-                float nearZ = (float) torusRingRZ * (float) Math.sin(angle);
-                float tubeDist2 = (lx - nearX) * (lx - nearX) + (dy - cy) * (dy - cy) + (lz - nearZ) * (lz - nearZ);
-                if (!hollow) return tubeDist2 <= (float) torusTubeR * (float) torusTubeR;
-                float ir = Math.max(0.5f, (float) torusTubeR - 1);
-                return tubeDist2 <= (float) torusTubeR * (float) torusTubeR && tubeDist2 > ir * ir;
+                Vec3DFloat local = offset.toFloat().minus(center);
+                float lx = local.x(), lz = local.z();
+                float angle = (float)
+                        Math.atan2(torusRingR > 0 ? lz / torusRingRZ : lz, torusRingRZ > 0 ? lx / torusRingR : lx);
+                float nearX = torusRingR * (float) Math.cos(angle);
+                float nearZ = torusRingRZ * (float) Math.sin(angle);
+                float tubeDist2 = (lx - nearX) * (lx - nearX) + local.y() * local.y() + (lz - nearZ) * (lz - nearZ);
+                float tubeR2 = (float) torusTubeR * torusTubeR;
+                if (!hollow) return tubeDist2 <= tubeR2;
+                float ir = Math.max(0.5f, torusTubeR - 1f);
+                return tubeDist2 <= tubeR2 && tubeDist2 > ir * ir;
             }
             case OCTAHEDRON: {
-                float norm = Math.abs((dx - cx) / rx) + Math.abs((dy - cy) / ry) + Math.abs((dz - cz) / rz);
-                float vR = 0.5f * (1f / rx + 1f / ry + 1f / rz);
+                Vec3DFloat n = offset.toFloat().minus(center).divide(radius).abs();
+                float norm = n.sum();
+                float vR = 0.5f * Vec3DFloat.ONE.divide(radius).sum();
                 boolean outer = passL1(norm, vR, threshold);
                 if (!hollow) return outer;
-                float irx2 = Math.max(0.5f, rx - 1), iry2 = Math.max(0.5f, ry - 1), irz2 = Math.max(0.5f, rz - 1);
-                float inner = Math.abs((dx - cx) / irx2) + Math.abs((dy - cy) / iry2) + Math.abs((dz - cz) / irz2);
-                return outer && inner > 1f;
+                Vec3DFloat innerR = radius.minus(Vec3DFloat.ONE).max(Vec3DFloat.from(0.5f));
+                Vec3DFloat inner = offset.toFloat().minus(center).divide(innerR).abs();
+                return outer && inner.sum() > 1f;
             }
             case DISK: {
+                int dy = offset.y(), h = dims.y();
                 int midY = (h - 1) / 2;
                 if (dy != midY) return false;
-                Vec2DFloat n = Vec2DFloat.from((dx - cx) / rx, (dz - cz) / rz);
+                Vec2DFloat n =
+                        Vec2DFloat.from((offset.x() - center.x()) / radius.x(), (offset.z() - center.z()) / radius.z());
                 float dist = n.dot(n);
-                Vec2DFloat invR = Vec2DFloat.from(1f / rx, 1f / rz);
+                Vec2DFloat invR = Vec2DFloat.from(1f / radius.x(), 1f / radius.z());
                 float vR = 0.5f * (float) Math.sqrt(invR.dot(invR));
                 boolean outer = passL2(dist, vR, threshold);
                 if (!hollow) return outer;
-                float irx2 = Math.max(0.5f, rx - 1), irz2 = Math.max(0.5f, rz - 1);
-                Vec2DFloat inner = Vec2DFloat.from((dx - cx) / irx2, (dz - cz) / irz2);
+                Vec2DFloat innerR = Vec2DFloat.from(Math.max(0.5f, radius.x() - 1), Math.max(0.5f, radius.z() - 1));
+                Vec2DFloat inner =
+                        Vec2DFloat.from((offset.x() - center.x()) / innerR.x(), (offset.z() - center.z()) / innerR.y());
                 return outer && inner.dot(inner) > 1f;
             }
             case PLANE: {
-                return dy == (h - 1) / 2;
+                int h = dims.y();
+                return offset.y() == (h - 1) / 2;
             }
             case SUPERELLIPSE: {
+                int dy = offset.y(), h = dims.y();
                 int midY = (h - 1) / 2;
                 if (dy != midY) return false;
-                float ex = (float) Math.pow(Math.abs((dx - cx) / rx), exponent);
-                float ez = (float) Math.pow(Math.abs((dz - cz) / rz), exponent);
-                float dist = ex + ez;
-                float vR = 0.5f * (float) Math.sqrt(1f / (rx * rx) + 1f / (rz * rz));
+                float nx = Math.abs((offset.x() - center.x()) / radius.x());
+                float nz = Math.abs((offset.z() - center.z()) / radius.z());
+                float dist = (float) (Math.pow(nx, exponent) + Math.pow(nz, exponent));
+                Vec2DFloat invR = Vec2DFloat.from(1f / radius.x(), 1f / radius.z());
+                float vR = 0.5f * (float) Math.sqrt(invR.dot(invR));
                 float cutoffN = (float) Math.pow(1f - vR * (1f - threshold), exponent);
                 boolean outer = dist <= cutoffN;
                 if (!hollow) return outer;
-                float irx2 = Math.max(0.5f, rx - 1), irz2 = Math.max(0.5f, rz - 1);
-                float iex = (float) Math.pow(Math.abs((dx - cx) / irx2), exponent);
-                float iez = (float) Math.pow(Math.abs((dz - cz) / irz2), exponent);
-                return outer && iex + iez > 1f;
+                Vec2DFloat innerR = Vec2DFloat.from(Math.max(0.5f, radius.x() - 1), Math.max(0.5f, radius.z() - 1));
+                float inx = Math.abs((offset.x() - center.x()) / innerR.x());
+                float inz = Math.abs((offset.z() - center.z()) / innerR.y());
+                return outer && Math.pow(inx, exponent) + Math.pow(inz, exponent) > 1f;
             }
             case SUPERSPHERE: {
-                float ex = (float) Math.pow(Math.abs((dx - cx) / rx), supersphereExp);
-                float ey = (float) Math.pow(Math.abs((dy - cy) / ry), supersphereExp);
-                float ez = (float) Math.pow(Math.abs((dz - cz) / rz), supersphereExp);
-                float dist = ex + ey + ez;
-                float vR = 0.5f * (float) Math.sqrt(1f / (rx * rx) + 1f / (ry * ry) + 1f / (rz * rz));
+                Vec3DFloat n = offset.toFloat().minus(center).divide(radius).abs();
+                float dist = (float) (Math.pow(n.x(), supersphereExp)
+                        + Math.pow(n.y(), supersphereExp)
+                        + Math.pow(n.z(), supersphereExp));
+                Vec3DFloat invR = Vec3DFloat.ONE.divide(radius);
+                float vR = 0.5f * (float) Math.sqrt(invR.dot(invR));
                 float cutoffN = (float) Math.pow(1f - vR * (1f - threshold), supersphereExp);
                 boolean outer = dist <= cutoffN;
                 if (!hollow) return outer;
-                float irx2 = Math.max(0.5f, rx - 1), iry2 = Math.max(0.5f, ry - 1), irz2 = Math.max(0.5f, rz - 1);
-                float iex = (float) Math.pow(Math.abs((dx - cx) / irx2), supersphereExp);
-                float iey = (float) Math.pow(Math.abs((dy - cy) / iry2), supersphereExp);
-                float iez = (float) Math.pow(Math.abs((dz - cz) / irz2), supersphereExp);
-                return outer && iex + iey + iez > 1f;
+                Vec3DFloat innerR = radius.minus(Vec3DFloat.ONE).max(Vec3DFloat.from(0.5f));
+                Vec3DFloat inner = offset.toFloat().minus(center).divide(innerR).abs();
+                return outer
+                        && Math.pow(inner.x(), supersphereExp)
+                                        + Math.pow(inner.y(), supersphereExp)
+                                        + Math.pow(inner.z(), supersphereExp)
+                                > 1f;
             }
             case TUBE: {
-                Vec2DFloat n = Vec2DFloat.from((dx - cx) / rx, (dz - cz) / rz);
+                Vec2DFloat n =
+                        Vec2DFloat.from((offset.x() - center.x()) / radius.x(), (offset.z() - center.z()) / radius.z());
                 if (n.dot(n) > 1f) return false;
-                float irx = Math.max(0.5f, rx - tubeWallThickness);
-                float irz = Math.max(0.5f, rz - tubeWallThickness);
-                Vec2DFloat inner = Vec2DFloat.from((dx - cx) / irx, (dz - cz) / irz);
+                float irx = Math.max(0.5f, radius.x() - tubeWallThickness);
+                float irz = Math.max(0.5f, radius.z() - tubeWallThickness);
+                Vec2DFloat inner = Vec2DFloat.from((offset.x() - center.x()) / irx, (offset.z() - center.z()) / irz);
                 return inner.dot(inner) >= 1f;
             }
             case DODECAHEDRON:
-                return dodecahedronContains(dx - cx, dy - cy, dz - cz, rx, ry, rz, hollow);
+                return dodecahedronContains(offset.toFloat().minus(center), radius, hollow);
             case ICOSAHEDRON:
-                return icosahedronContains(dx - cx, dy - cy, dz - cz, rx, ry, rz, hollow);
+                return icosahedronContains(offset.toFloat().minus(center), radius, hollow);
             case REGULAR_POLYGON: {
+                int dy = offset.y(), h = dims.y();
                 int midY = (h - 1) / 2;
                 if (dy != midY) return false;
-                return regularPolygonContains(dx - cx, dz - cz, rx, rz, polygonSides, hollow);
+                return regularPolygonContains(
+                        offset.x() - center.x(), offset.z() - center.z(), radius.x(), radius.z(), polygonSides, hollow);
             }
             case ARCHIMEDEAN_SPIRAL: {
+                int dy = offset.y(), h = dims.y();
                 int midY = (h - 1) / 2;
                 if (dy != midY) return false;
-                return spiralHit(dx - cx, dz - cz, spiralSpacing, spiralTurns);
+                return spiralHit(offset.x() - center.x(), offset.z() - center.z(), spiralSpacing, spiralTurns);
             }
             default:
                 return true;
@@ -227,44 +249,41 @@ public class ShapeMath {
         return false;
     }
 
-    private static boolean dodecahedronContains(
-            float npx, float npy, float npz, float rx, float ry, float rz, boolean hollow) {
+    private static boolean dodecahedronContains(Vec3DFloat localPos, Vec3DFloat radius, boolean hollow) {
         float phi = 1.6180339887f;
         float invMag = 1f / (float) Math.sqrt(1f + phi * phi);
         float thresh = phi * phi / ((float) Math.sqrt(3f) * (float) Math.sqrt(1f + phi * phi));
-        float px = npx / rx, py = npy / ry, pz = npz / rz;
-        float apx = Math.abs(px), apy = Math.abs(py), apz = Math.abs(pz);
-        float fa = (apy + phi * apz) * invMag, fb = (apx + phi * apy) * invMag, fc = (phi * apx + apz) * invMag;
+        Vec3DFloat p = localPos.divide(radius).abs();
+        float fa = (p.y() + phi * p.z()) * invMag;
+        float fb = (p.x() + phi * p.y()) * invMag;
+        float fc = (phi * p.x() + p.z()) * invMag;
         boolean in = Math.max(fa, Math.max(fb, fc)) <= thresh;
         if (!hollow) return in;
-        float irx2 = Math.max(0.5f, rx - 1), iry2 = Math.max(0.5f, ry - 1), irz2 = Math.max(0.5f, rz - 1);
-        float ipx = npx / irx2, ipy = npy / iry2, ipz = npz / irz2;
-        float ifa = (Math.abs(ipy) + phi * Math.abs(ipz)) * invMag;
-        float ifb = (Math.abs(ipx) + phi * Math.abs(ipy)) * invMag;
-        float ifc = (phi * Math.abs(ipx) + Math.abs(ipz)) * invMag;
+        Vec3DFloat innerR = radius.minus(Vec3DFloat.ONE).max(Vec3DFloat.from(0.5f));
+        Vec3DFloat ip = localPos.divide(innerR).abs();
+        float ifa = (ip.y() + phi * ip.z()) * invMag;
+        float ifb = (ip.x() + phi * ip.y()) * invMag;
+        float ifc = (phi * ip.x() + ip.z()) * invMag;
         return in && Math.max(ifa, Math.max(ifb, ifc)) > thresh;
     }
 
-    private static boolean icosahedronContains(
-            float npx, float npy, float npz, float rx, float ry, float rz, boolean hollow) {
+    private static boolean icosahedronContains(Vec3DFloat localPos, Vec3DFloat radius, boolean hollow) {
         float phi = 1.6180339887f;
         float inv3 = 1f / (float) Math.sqrt(3f);
         float thresh = phi * phi / ((float) Math.sqrt(3f) * (float) Math.sqrt(1f + phi * phi));
-        float px = npx / rx, py = npy / ry, pz = npz / rz;
-        float apx = Math.abs(px), apy = Math.abs(py), apz = Math.abs(pz);
-        float c1 = (apx + apy + apz) * inv3;
-        float c2 = (phi * apy + apz / phi) * inv3;
-        float c3 = (apx / phi + phi * apz) * inv3;
-        float c4 = (phi * apx + apy / phi) * inv3;
+        Vec3DFloat p = localPos.divide(radius).abs();
+        float c1 = p.sum() * inv3;
+        float c2 = (phi * p.y() + p.z() / phi) * inv3;
+        float c3 = (p.x() / phi + phi * p.z()) * inv3;
+        float c4 = (phi * p.x() + p.y() / phi) * inv3;
         boolean in = Math.max(c1, Math.max(c2, Math.max(c3, c4))) <= thresh;
         if (!hollow) return in;
-        float irx2 = Math.max(0.5f, rx - 1), iry2 = Math.max(0.5f, ry - 1), irz2 = Math.max(0.5f, rz - 1);
-        float ipx = npx / irx2, ipy = npy / iry2, ipz = npz / irz2;
-        float iapx = Math.abs(ipx), iapy = Math.abs(ipy), iapz = Math.abs(ipz);
-        float ic1 = (iapx + iapy + iapz) * inv3;
-        float ic2 = (phi * iapy + iapz / phi) * inv3;
-        float ic3 = (iapx / phi + phi * iapz) * inv3;
-        float ic4 = (phi * iapx + iapy / phi) * inv3;
+        Vec3DFloat innerR = radius.minus(Vec3DFloat.ONE).max(Vec3DFloat.from(0.5f));
+        Vec3DFloat ip = localPos.divide(innerR).abs();
+        float ic1 = ip.sum() * inv3;
+        float ic2 = (phi * ip.y() + ip.z() / phi) * inv3;
+        float ic3 = (ip.x() / phi + phi * ip.z()) * inv3;
+        float ic4 = (phi * ip.x() + ip.y() / phi) * inv3;
         return in && Math.max(ic1, Math.max(ic2, Math.max(ic3, ic4))) > thresh;
     }
 
@@ -282,12 +301,8 @@ public class ShapeMath {
      */
     public static boolean inShapeGeomF(
             ShapeToolState.ShapeType type,
-            float dx,
-            float dy,
-            float dz,
-            int w,
-            int h,
-            int d,
+            Vec3DFloat offset,
+            Vec3DInt dims,
             boolean hollow,
             float exponent,
             int torusRingR,
@@ -299,146 +314,171 @@ public class ShapeMath {
             float spiralSpacing,
             float spiralTurns,
             float threshold) {
-        float ccx = w / 2f, ccy = h / 2f, ccz = d / 2f;
-        float rx = w / 2f, ry = h / 2f, rz = d / 2f;
+        // In the float variant: center == radius == dims / 2
+        Vec3DFloat center = dims.toFloat().times(0.5f);
+        Vec3DFloat radius = center;
+        int w = dims.x(), h = dims.y(), d = dims.z();
         switch (type) {
             case CUBOID: {
-                boolean in = dx >= 0 && dx < w && dy >= 0 && dy < h && dz >= 0 && dz < d;
+                boolean in = offset.x() >= 0
+                        && offset.x() < w
+                        && offset.y() >= 0
+                        && offset.y() < h
+                        && offset.z() >= 0
+                        && offset.z() < d;
                 if (!hollow) return in;
-                return in && (dx < 1f || dx > w - 2f || dy < 1f || dy > h - 2f || dz < 1f || dz > d - 2f);
+                return in
+                        && (offset.x() < 1f
+                                || offset.x() > w - 2f
+                                || offset.y() < 1f
+                                || offset.y() > h - 2f
+                                || offset.z() < 1f
+                                || offset.z() > d - 2f);
             }
             case SPHERE: {
-                Vec3DFloat n = Vec3DFloat.from((dx - ccx) / rx, (dy - ccy) / ry, (dz - ccz) / rz);
+                Vec3DFloat n = offset.minus(center).divide(radius);
                 float dist = n.dot(n);
-                Vec3DFloat invR = Vec3DFloat.from(1f / rx, 1f / ry, 1f / rz);
+                Vec3DFloat invR = Vec3DFloat.ONE.divide(radius);
                 float vR = 0.5f * (float) Math.sqrt(invR.dot(invR));
                 boolean outer = passL2(dist, vR, threshold);
                 if (!hollow) return outer;
-                float irx2 = Math.max(0.5f, rx - 1), iry2 = Math.max(0.5f, ry - 1), irz2 = Math.max(0.5f, rz - 1);
-                Vec3DFloat inner = Vec3DFloat.from((dx - ccx) / irx2, (dy - ccy) / iry2, (dz - ccz) / irz2);
+                Vec3DFloat innerR = radius.minus(Vec3DFloat.ONE).max(Vec3DFloat.from(0.5f));
+                Vec3DFloat inner = offset.minus(center).divide(innerR);
                 return outer && inner.dot(inner) > 1f;
             }
             case CYLINDER: {
-                Vec2DFloat n = Vec2DFloat.from((dx - ccx) / rx, (dz - ccz) / rz);
+                float dy = offset.y();
+                Vec2DFloat n =
+                        Vec2DFloat.from((offset.x() - center.x()) / radius.x(), (offset.z() - center.z()) / radius.z());
                 float dist = n.dot(n);
-                Vec2DFloat invR = Vec2DFloat.from(1f / rx, 1f / rz);
+                Vec2DFloat invR = Vec2DFloat.from(1f / radius.x(), 1f / radius.z());
                 float vR = 0.5f * (float) Math.sqrt(invR.dot(invR));
                 boolean outer = passL2(dist, vR, threshold);
                 if (!hollow) return outer && dy >= 0 && dy < h;
-                float irx2 = Math.max(0.5f, rx - 1), irz2 = Math.max(0.5f, rz - 1);
+                float irx = Math.max(0.5f, radius.x() - 1), irz = Math.max(0.5f, radius.z() - 1);
                 boolean onCap = dy < 1f || dy > h - 2f;
-                Vec2DFloat inner = Vec2DFloat.from((dx - ccx) / irx2, (dz - ccz) / irz2);
+                Vec2DFloat inner = Vec2DFloat.from((offset.x() - center.x()) / irx, (offset.z() - center.z()) / irz);
                 return outer && dy >= 0 && dy < h && (inner.dot(inner) > 1f || onCap);
             }
             case PYRAMID: {
+                float dy = offset.y();
                 if (dy < 0 || dy >= h) return false;
                 float level = dy / Math.max(1f, h - 1f);
-                float hw = (1f - level) * (w / 2f), hd = (1f - level) * (d / 2f);
-                return Math.abs(dx - ccx) <= hw && Math.abs(dz - ccz) <= hd;
+                float hw = (1f - level) * radius.x(), hd = (1f - level) * radius.z();
+                return Math.abs(offset.x() - center.x()) <= hw && Math.abs(offset.z() - center.z()) <= hd;
             }
             case CONE: {
+                float dy = offset.y();
                 if (dy < 0 || dy >= h) return false;
                 float level = dy / Math.max(1f, h - 1f);
                 float scale = 1f - level;
-                float arx = rx * scale, arz = rz * scale;
-                if (arx < 0.5f || arz < 0.5f) return Math.abs(dx - ccx) < 0.5f && Math.abs(dz - ccz) < 0.5f;
-                Vec2DFloat n = Vec2DFloat.from((dx - ccx) / arx, (dz - ccz) / arz);
+                float arx = radius.x() * scale, arz = radius.z() * scale;
+                float lx = offset.x() - center.x(), lz = offset.z() - center.z();
+                if (arx < 0.5f || arz < 0.5f) return Math.abs(lx) < 0.5f && Math.abs(lz) < 0.5f;
+                Vec2DFloat n = Vec2DFloat.from(lx / arx, lz / arz);
                 float dist = n.dot(n);
                 Vec2DFloat invR = Vec2DFloat.from(1f / arx, 1f / arz);
                 float vR = 0.5f * (float) Math.sqrt(invR.dot(invR));
                 boolean outer = passL2(dist, vR, threshold);
                 if (!hollow) return outer;
                 float irx2 = Math.max(0.5f, arx - 1), irz2 = Math.max(0.5f, arz - 1);
-                boolean onBase = dy < 1f;
-                Vec2DFloat inner = Vec2DFloat.from((dx - ccx) / irx2, (dz - ccz) / irz2);
-                return outer && (inner.dot(inner) > 1f || onBase);
+                Vec2DFloat inner = Vec2DFloat.from(lx / irx2, lz / irz2);
+                return outer && (inner.dot(inner) > 1f || dy < 1f);
             }
             case TORUS: {
-                float lx = dx - ccx, lz = dz - ccz;
-                float angle = (float) Math.atan2(
-                        (float) torusRingR > 0 ? lz / (float) torusRingRZ : lz,
-                        (float) torusRingRZ > 0 ? lx / (float) torusRingR : lx);
-                float nearX = (float) torusRingR * (float) Math.cos(angle);
-                float nearZ = (float) torusRingRZ * (float) Math.sin(angle);
-                float tubeDist2 = (lx - nearX) * (lx - nearX) + (dy - ccy) * (dy - ccy) + (lz - nearZ) * (lz - nearZ);
-                if (!hollow) return tubeDist2 <= (float) torusTubeR * (float) torusTubeR;
-                float ir = Math.max(0.5f, (float) torusTubeR - 1f);
-                return tubeDist2 <= (float) torusTubeR * (float) torusTubeR && tubeDist2 > ir * ir;
+                Vec3DFloat local = offset.minus(center);
+                float lx = local.x(), lz = local.z();
+                float angle = (float)
+                        Math.atan2(torusRingR > 0 ? lz / torusRingRZ : lz, torusRingRZ > 0 ? lx / torusRingR : lx);
+                float nearX = torusRingR * (float) Math.cos(angle);
+                float nearZ = torusRingRZ * (float) Math.sin(angle);
+                float tubeDist2 = (lx - nearX) * (lx - nearX) + local.y() * local.y() + (lz - nearZ) * (lz - nearZ);
+                float tubeR2 = (float) torusTubeR * torusTubeR;
+                if (!hollow) return tubeDist2 <= tubeR2;
+                float ir = Math.max(0.5f, torusTubeR - 1f);
+                return tubeDist2 <= tubeR2 && tubeDist2 > ir * ir;
             }
             case OCTAHEDRON: {
-                float norm = Math.abs((dx - ccx) / rx) + Math.abs((dy - ccy) / ry) + Math.abs((dz - ccz) / rz);
-                float vR = 0.5f * (1f / rx + 1f / ry + 1f / rz);
+                Vec3DFloat n = offset.minus(center).divide(radius).abs();
+                float norm = n.sum();
+                float vR = 0.5f * Vec3DFloat.ONE.divide(radius).sum();
                 boolean outer = passL1(norm, vR, threshold);
                 if (!hollow) return outer;
-                float irx2 = Math.max(0.5f, rx - 1), iry2 = Math.max(0.5f, ry - 1), irz2 = Math.max(0.5f, rz - 1);
-                return outer
-                        && (Math.abs((dx - ccx) / irx2) + Math.abs((dy - ccy) / iry2) + Math.abs((dz - ccz) / irz2))
-                                > 1f;
+                Vec3DFloat innerR = radius.minus(Vec3DFloat.ONE).max(Vec3DFloat.from(0.5f));
+                Vec3DFloat inner = offset.minus(center).divide(innerR).abs();
+                return outer && inner.sum() > 1f;
             }
             case DISK: {
-                if (Math.abs(dy - ccy) > 0.5f) return false;
-                Vec2DFloat n = Vec2DFloat.from((dx - ccx) / rx, (dz - ccz) / rz);
+                if (Math.abs(offset.y() - center.y()) > 0.5f) return false;
+                Vec2DFloat n =
+                        Vec2DFloat.from((offset.x() - center.x()) / radius.x(), (offset.z() - center.z()) / radius.z());
                 float dist = n.dot(n);
-                Vec2DFloat invR = Vec2DFloat.from(1f / rx, 1f / rz);
+                Vec2DFloat invR = Vec2DFloat.from(1f / radius.x(), 1f / radius.z());
                 float vR = 0.5f * (float) Math.sqrt(invR.dot(invR));
                 boolean outer = passL2(dist, vR, threshold);
                 if (!hollow) return outer;
-                float irx2 = Math.max(0.5f, rx - 1), irz2 = Math.max(0.5f, rz - 1);
-                Vec2DFloat inner = Vec2DFloat.from((dx - ccx) / irx2, (dz - ccz) / irz2);
+                Vec2DFloat innerR = Vec2DFloat.from(Math.max(0.5f, radius.x() - 1), Math.max(0.5f, radius.z() - 1));
+                Vec2DFloat inner =
+                        Vec2DFloat.from((offset.x() - center.x()) / innerR.x(), (offset.z() - center.z()) / innerR.y());
                 return outer && inner.dot(inner) > 1f;
             }
             case PLANE:
-                return Math.abs(dy - ccy) <= 0.5f;
+                return Math.abs(offset.y() - center.y()) <= 0.5f;
             case SUPERELLIPSE: {
-                if (Math.abs(dy - ccy) > 0.5f) return false;
-                float ex = (float) Math.pow(Math.abs((dx - ccx) / rx), exponent);
-                float ez = (float) Math.pow(Math.abs((dz - ccz) / rz), exponent);
-                float dist = ex + ez;
-                float vR = 0.5f * (float) Math.sqrt(1f / (rx * rx) + 1f / (rz * rz));
+                if (Math.abs(offset.y() - center.y()) > 0.5f) return false;
+                float nx = Math.abs((offset.x() - center.x()) / radius.x());
+                float nz = Math.abs((offset.z() - center.z()) / radius.z());
+                float dist = (float) (Math.pow(nx, exponent) + Math.pow(nz, exponent));
+                Vec2DFloat invR = Vec2DFloat.from(1f / radius.x(), 1f / radius.z());
+                float vR = 0.5f * (float) Math.sqrt(invR.dot(invR));
                 float cutoffN = (float) Math.pow(1f - vR * (1f - threshold), exponent);
                 boolean outer = dist <= cutoffN;
                 if (!hollow) return outer;
-                float irx2 = Math.max(0.5f, rx - 1), irz2 = Math.max(0.5f, rz - 1);
-                return outer
-                        && ((float) Math.pow(Math.abs((dx - ccx) / irx2), exponent)
-                                        + (float) Math.pow(Math.abs((dz - ccz) / irz2), exponent))
-                                > 1f;
+                Vec2DFloat innerR = Vec2DFloat.from(Math.max(0.5f, radius.x() - 1), Math.max(0.5f, radius.z() - 1));
+                float inx = Math.abs((offset.x() - center.x()) / innerR.x());
+                float inz = Math.abs((offset.z() - center.z()) / innerR.y());
+                return outer && Math.pow(inx, exponent) + Math.pow(inz, exponent) > 1f;
             }
             case SUPERSPHERE: {
-                float ex = (float) Math.pow(Math.abs((dx - ccx) / rx), supersphereExp);
-                float ey = (float) Math.pow(Math.abs((dy - ccy) / ry), supersphereExp);
-                float ez = (float) Math.pow(Math.abs((dz - ccz) / rz), supersphereExp);
-                float dist = ex + ey + ez;
-                float vR = 0.5f * (float) Math.sqrt(1f / (rx * rx) + 1f / (ry * ry) + 1f / (rz * rz));
+                Vec3DFloat n = offset.minus(center).divide(radius).abs();
+                float dist = (float) (Math.pow(n.x(), supersphereExp)
+                        + Math.pow(n.y(), supersphereExp)
+                        + Math.pow(n.z(), supersphereExp));
+                Vec3DFloat invR = Vec3DFloat.ONE.divide(radius);
+                float vR = 0.5f * (float) Math.sqrt(invR.dot(invR));
                 float cutoffN = (float) Math.pow(1f - vR * (1f - threshold), supersphereExp);
                 boolean outer = dist <= cutoffN;
                 if (!hollow) return outer;
-                float irx2 = Math.max(0.5f, rx - 1), iry2 = Math.max(0.5f, ry - 1), irz2 = Math.max(0.5f, rz - 1);
+                Vec3DFloat innerR = radius.minus(Vec3DFloat.ONE).max(Vec3DFloat.from(0.5f));
+                Vec3DFloat inner = offset.minus(center).divide(innerR).abs();
                 return outer
-                        && ((float) Math.pow(Math.abs((dx - ccx) / irx2), supersphereExp)
-                                        + (float) Math.pow(Math.abs((dy - ccy) / iry2), supersphereExp)
-                                        + (float) Math.pow(Math.abs((dz - ccz) / irz2), supersphereExp))
+                        && Math.pow(inner.x(), supersphereExp)
+                                        + Math.pow(inner.y(), supersphereExp)
+                                        + Math.pow(inner.z(), supersphereExp)
                                 > 1f;
             }
             case TUBE: {
-                Vec2DFloat n = Vec2DFloat.from((dx - ccx) / rx, (dz - ccz) / rz);
+                float dy = offset.y();
+                Vec2DFloat n =
+                        Vec2DFloat.from((offset.x() - center.x()) / radius.x(), (offset.z() - center.z()) / radius.z());
                 if (n.dot(n) > 1f || dy < 0 || dy >= h) return false;
-                float irx = Math.max(0.5f, rx - tubeWallThickness);
-                float irz = Math.max(0.5f, rz - tubeWallThickness);
-                Vec2DFloat inner = Vec2DFloat.from((dx - ccx) / irx, (dz - ccz) / irz);
+                float irx = Math.max(0.5f, radius.x() - tubeWallThickness);
+                float irz = Math.max(0.5f, radius.z() - tubeWallThickness);
+                Vec2DFloat inner = Vec2DFloat.from((offset.x() - center.x()) / irx, (offset.z() - center.z()) / irz);
                 return inner.dot(inner) >= 1f;
             }
             case DODECAHEDRON:
-                return dodecahedronContains(dx - ccx, dy - ccy, dz - ccz, rx, ry, rz, hollow);
+                return dodecahedronContains(offset.minus(center), radius, hollow);
             case ICOSAHEDRON:
-                return icosahedronContains(dx - ccx, dy - ccy, dz - ccz, rx, ry, rz, hollow);
+                return icosahedronContains(offset.minus(center), radius, hollow);
             case REGULAR_POLYGON: {
-                if (Math.abs(dy - ccy) > 0.5f) return false;
-                return regularPolygonContains(dx - ccx, dz - ccz, rx, rz, polygonSides, hollow);
+                if (Math.abs(offset.y() - center.y()) > 0.5f) return false;
+                return regularPolygonContains(
+                        offset.x() - center.x(), offset.z() - center.z(), radius.x(), radius.z(), polygonSides, hollow);
             }
             case ARCHIMEDEAN_SPIRAL: {
-                if (Math.abs(dy - ccy) > 0.5f) return false;
-                return spiralHit(dx - ccx, dz - ccz, spiralSpacing, spiralTurns);
+                if (Math.abs(offset.y() - center.y()) > 0.5f) return false;
+                return spiralHit(offset.x() - center.x(), offset.z() - center.z(), spiralSpacing, spiralTurns);
             }
             default:
                 return true;
@@ -452,39 +492,29 @@ public class ShapeMath {
     @FunctionalInterface
     public interface ShapeVoxelConsumer {
 
-        boolean accept(int ox, int oy, int oz);
+        boolean accept(Vec3DInt offset);
     }
 
     /**
      * Computes the integer AABB of a shape's base bounding box after rotation.
-     * Returns int[6] = {ix0, iy0, iz0, ix1, iy1, iz1}.
+     * Returns Vec3DInt[2] = {min, max}.
      */
-    public static int[] computeRotatedBounds(Mat3DFloat R, int w, int h, int d) {
-        float ccx = w / 2f, ccy = h / 2f, ccz = d / 2f;
-        float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE, minZ = Float.MAX_VALUE;
-        float maxX = -Float.MAX_VALUE, maxY = -Float.MAX_VALUE, maxZ = -Float.MAX_VALUE;
+    public static Vec3DInt[] computeRotatedBounds(Mat3DFloat R, Vec3DInt dims) {
+        Vec3DFloat center = dims.toFloat().times(0.5f);
+        Vec3DFloat min = Vec3DFloat.from(Float.MAX_VALUE);
+        Vec3DFloat max = Vec3DFloat.from(-Float.MAX_VALUE);
         for (int mask = 0; mask < 8; mask++) {
-            float hx = ((mask & 1) != 0 ? w : 0) - ccx;
-            float hy = ((mask & 2) != 0 ? h : 0) - ccy;
-            float hz = ((mask & 4) != 0 ? d : 0) - ccz;
-            Vec3DFloat rot = R.mul(Vec3DFloat.from(hx, hy, hz));
-            float wx = rot.x() + ccx;
-            float wy = rot.y() + ccy;
-            float wz = rot.z() + ccz;
-            if (wx < minX) minX = wx;
-            if (wx > maxX) maxX = wx;
-            if (wy < minY) minY = wy;
-            if (wy > maxY) maxY = wy;
-            if (wz < minZ) minZ = wz;
-            if (wz > maxZ) maxZ = wz;
+            Vec3DFloat corner = Vec3DFloat.from(
+                    ((mask & 1) != 0 ? dims.x() : 0),
+                    ((mask & 2) != 0 ? dims.y() : 0),
+                    ((mask & 4) != 0 ? dims.z() : 0));
+            Vec3DFloat rot = R.mul(corner.minus(center)).plus(center);
+            min = min.min(rot);
+            max = max.max(rot);
         }
-        return new int[] {
-            (int) Math.floor(minX),
-            (int) Math.floor(minY),
-            (int) Math.floor(minZ),
-            (int) Math.ceil(maxX),
-            (int) Math.ceil(maxY),
-            (int) Math.ceil(maxZ)
+        return new Vec3DInt[] {
+            Vec3DInt.floor(min),
+            Vec3DInt.from((int) Math.ceil(max.x()), (int) Math.ceil(max.y()), (int) Math.ceil(max.z()))
         };
     }
 
@@ -495,9 +525,7 @@ public class ShapeMath {
      */
     public static void iterateRotatedShape(
             ShapeToolState.ShapeType type,
-            int w,
-            int h,
-            int d,
+            Vec3DInt dims,
             boolean hollow,
             float exponent,
             int torusRingR,
@@ -510,47 +538,33 @@ public class ShapeMath {
             float spiralTurns,
             float threshold,
             Mat3DFloat R,
-            int ix0,
-            int iy0,
-            int iz0,
-            int ix1,
-            int iy1,
-            int iz1,
+            Vec3DInt boundsMin,
+            Vec3DInt boundsMax,
             ShapeVoxelConsumer consumer) {
-        float ccx = w / 2f, ccy = h / 2f, ccz = d / 2f;
-        outer:
-        for (int ox = ix0; ox <= ix1; ox++) {
-            for (int oy = iy0; oy <= iy1; oy++) {
-                for (int oz = iz0; oz <= iz1; oz++) {
-                    float dx0 = (ox + 0.5f) - ccx;
-                    float dy0 = (oy + 0.5f) - ccy;
-                    float dz0 = (oz + 0.5f) - ccz;
-                    Vec3DFloat ld = R.mulTranspose(Vec3DFloat.from(dx0, dy0, dz0));
-                    float ldx = ld.x() + ccx;
-                    float ldy = ld.y() + ccy;
-                    float ldz = ld.z() + ccz;
-                    if (!inShapeGeomF(
-                            type,
-                            ldx,
-                            ldy,
-                            ldz,
-                            w,
-                            h,
-                            d,
-                            hollow,
-                            exponent,
-                            torusRingR,
-                            torusRingRZ,
-                            torusTubeR,
-                            tubeWallThickness,
-                            supersphereExp,
-                            polygonSides,
-                            spiralSpacing,
-                            spiralTurns,
-                            threshold)) continue;
-                    if (!consumer.accept(ox, oy, oz)) break outer;
-                }
-            }
-        }
+        Vec3DFloat center = dims.toFloat().times(0.5f);
+        // anyInclusive stops (returns true) when predicate returns true.
+        // Consumer returns false to abort, so we invert: predicate = !consumer.accept(voxel).
+        Vec3DInt.anyInclusive(boundsMin, boundsMax, (ox, oy, oz) -> {
+            Vec3DInt voxel = Vec3DInt.from(ox, oy, oz);
+            // Map rotated voxel center back to local shape space via R^T
+            Vec3DFloat localOffset =
+                    R.mulTranspose(voxel.toFloat().plus(0.5f).minus(center)).plus(center);
+            if (!inShapeGeomF(
+                    type,
+                    localOffset,
+                    dims,
+                    hollow,
+                    exponent,
+                    torusRingR,
+                    torusRingRZ,
+                    torusTubeR,
+                    tubeWallThickness,
+                    supersphereExp,
+                    polygonSides,
+                    spiralSpacing,
+                    spiralTurns,
+                    threshold)) return false;
+            return !consumer.accept(voxel);
+        });
     }
 }
