@@ -15,10 +15,10 @@ final class PacketUtils {
 
     private PacketUtils() {}
 
-    static void writeCoords(PacketBuffer buf, int x, int y, int z) throws IOException {
-        buf.writeInt(x);
-        buf.writeInt(y);
-        buf.writeInt(z);
+    static void writeCoords(PacketBuffer buf, Vec3DInt coord) throws IOException {
+        buf.writeInt(coord.x());
+        buf.writeInt(coord.y());
+        buf.writeInt(coord.z());
     }
 
     static Vec3DInt readCoords(PacketBuffer buf) throws IOException {
@@ -36,16 +36,9 @@ final class PacketUtils {
         return true;
     }
 
-    static boolean checkVolume(
-            NetHandlerPlayServer handler,
-            String packetName,
-            int minX,
-            int minY,
-            int minZ,
-            int maxX,
-            int maxY,
-            int maxZ) {
-        long volume = (long) (maxX - minX + 1) * (maxY - minY + 1) * (maxZ - minZ + 1);
+    static boolean checkVolume(NetHandlerPlayServer handler, String packetName, Vec3DInt min, Vec3DInt max) {
+        Vec3DInt dims = max.minus(min).plus(1);
+        long volume = dims.longProduct();
         if (volume > 1_000_000L) {
             Dimensium.logger.warn(
                     "[Dimensium] Rejected {}: volume {} exceeds limit for player {}",
@@ -55,10 +48,6 @@ final class PacketUtils {
             return false;
         }
         return true;
-    }
-
-    static boolean checkVolume(NetHandlerPlayServer handler, String packetName, Vec3DInt min, Vec3DInt max) {
-        return checkVolume(handler, packetName, min.x(), min.y(), min.z(), max.x(), max.y(), max.z());
     }
 
     static void writeString(PacketBuffer buf, String s) throws IOException {

@@ -6,6 +6,7 @@ package github.thehighcruw.dimensium.editor.window;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import net.minecraft.block.Block;
 
 @SideOnly(Side.CLIENT)
@@ -56,11 +57,11 @@ public class TypeReplaceSelectionWindow extends AbstractReplaceWindow {
     }
 
     @Override
-    protected int[] buildBlockOp(int x, int y, int z, Block worldBlock, int worldMeta, BlockMapping mapping) {
+    protected int[] buildBlockOp(Vec3DInt coord, Block worldBlock, int worldMeta, BlockMapping mapping) {
         Block findBlock = Block.getBlockFromItem(mapping.source().getItem());
         if (worldBlock != findBlock) return null;
         Block replaceBlock = Block.getBlockFromItem(mapping.target().getItem());
         int outMeta = flag ? worldMeta : mapping.target().getItemDamage();
-        return new int[] {x, y, z, Block.getIdFromBlock(replaceBlock), outMeta};
+        return coord.toBlockOp(Block.getIdFromBlock(replaceBlock), outMeta);
     }
 }

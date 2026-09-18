@@ -5,6 +5,7 @@
 package github.thehighcruw.dimensium.shared.math;
 
 import com.github.bsideup.jabel.Desugar;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import net.minecraft.util.Vec3;
 
@@ -105,6 +106,10 @@ public record Vec3DInt(int x, int y, int z) {
         return x * y * z;
     }
 
+    public long longProduct() {
+        return (long) x * y * z;
+    }
+
     // --- geometry ---
 
     public long lengthSq() {
@@ -135,7 +140,12 @@ public record Vec3DInt(int x, int y, int z) {
      * Iterates (0,0,0) inclusive to (x,y,z) exclusive — treats this vec as dimensions.
      */
     public void forEach(TriIntConsumer fn) {
-        forEachInclusive(ZERO, this, fn);
+        forEachInclusive(ZERO, this.minus(1), fn);
+    }
+
+    /** Same as {@link #forEach(TriIntConsumer)} but passes each position as a Vec3DInt. */
+    public void forEach(Consumer<Vec3DInt> fn) {
+        forEachInclusive(ZERO, this.minus(1), fn);
     }
 
     /**
@@ -144,6 +154,13 @@ public record Vec3DInt(int x, int y, int z) {
     public static void forEachInclusive(Vec3DInt min, Vec3DInt max, TriIntConsumer fn) {
         for (int ix = min.x; ix <= max.x; ix++)
             for (int iy = min.y; iy <= max.y; iy++) for (int iz = min.z; iz <= max.z; iz++) fn.accept(ix, iy, iz);
+    }
+
+    /**
+     * Iterates min to max inclusive on all axes, passing each position as a Vec3DInt.
+     */
+    public static void forEachInclusive(Vec3DInt min, Vec3DInt max, Consumer<Vec3DInt> fn) {
+        forEachInclusive(min, max, (x, y, z) -> fn.accept(Vec3DInt.from(x, y, z)));
     }
 
     /**
@@ -156,11 +173,61 @@ public record Vec3DInt(int x, int y, int z) {
         return false;
     }
 
+    /** Same as {@link #anyInclusive(Vec3DInt, Vec3DInt, TriIntPredicate)} but passes each position as a Vec3DInt. */
+    public static boolean anyInclusive(Vec3DInt min, Vec3DInt max, Predicate<Vec3DInt> fn) {
+        return anyInclusive(min, max, (x, y, z) -> fn.test(Vec3DInt.from(x, y, z)));
+    }
+
+    // --- indexed component access ---
+
+    /** Returns the component at axis 0=x, 1=y, 2=z. */
+    public int get(int axis) {
+        return switch (axis) {
+            case 0 -> x;
+            case 1 -> y;
+            case 2 -> z;
+            default -> throw new IllegalArgumentException("axis must be 0, 1, or 2");
+        };
+    }
+
+    /** Returns a new Vec3DInt with one component replaced. axis: 0=x, 1=y, 2=z. */
+    public Vec3DInt withAxis(int axis, int value) {
+        return switch (axis) {
+            case 0 -> from(value, y, z);
+            case 1 -> from(x, value, z);
+            case 2 -> from(x, y, value);
+            default -> throw new IllegalArgumentException("axis must be 0, 1, or 2");
+        };
+    }
+
+    /** Component-wise Integer.signum. */
+    public Vec3DInt signum() {
+        return from(Integer.signum(x), Integer.signum(y), Integer.signum(z));
+    }
+
     // --- indexing ---
 
     /** Converts this coord to a flat array index: x*strideX + y*strideY + z. */
     public int toIndex(int strideX, int strideY) {
         return x * strideX + y * strideY + z;
+    }
+
+    /** Converts this coord to a flat array index given dimensions (stride = dims.y()*dims.z(), dims.z()). */
+    public int toIndex(Vec3DInt dims) {
+        return x * dims.y() * dims.z() + y * dims.z() + z;
+    }
+
+    /** Decomposes a flat array index back to a Vec3DInt given dimensions. */
+    public static Vec3DInt fromIndex(int idx, Vec3DInt dims) {
+        int lz = idx % dims.z();
+        int ly = (idx / dims.z()) % dims.y();
+        int lx = idx / (dims.z() * dims.y());
+        return from(lx, ly, lz);
+    }
+
+    /** Creates a block-op array {x, y, z, blockId, meta} for use with PacketBlockList. */
+    public int[] toBlockOp(int blockId, int meta) {
+        return new int[] {x, y, z, blockId, meta};
     }
 
     // --- conversions ---

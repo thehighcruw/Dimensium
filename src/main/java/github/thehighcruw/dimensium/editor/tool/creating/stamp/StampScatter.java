@@ -20,9 +20,9 @@ public class StampScatter {
         public final float yaw;
         public final boolean flipX, flipZ;
 
-        StampInstance(int entryIdx, int ax, int ay, int az, float yaw, boolean flipX, boolean flipZ) {
+        StampInstance(int entryIdx, Vec3DInt anchor, float yaw, boolean flipX, boolean flipZ) {
             this.entryIdx = entryIdx;
-            this.anchor = Vec3DInt.from(ax, ay, az);
+            this.anchor = anchor;
             this.yaw = yaw;
             this.flipX = flipX;
             this.flipZ = flipZ;
@@ -60,7 +60,7 @@ public class StampScatter {
             boolean flipX = state.randomXFlip && rng.nextBoolean();
             boolean flipZ = state.randomZFlip && rng.nextBoolean();
             // anchorY: top surface of the hit block → place blueprint base one block above
-            result.add(new StampInstance(entryIdx, pos.x(), pos.y() + 1 + entry.offsetY, pos.z(), yaw, flipX, flipZ));
+            result.add(new StampInstance(entryIdx, pos.plus(0, 1 + entry.offsetY, 0), yaw, flipX, flipZ));
         }
         return result;
     }
@@ -78,9 +78,7 @@ public class StampScatter {
     private static boolean isTooClose(List<StampInstance> placed, int x, int z, float minDist) {
         float minDist2 = minDist * minDist;
         for (StampInstance inst : placed) {
-            int dx = x - inst.anchor.x();
-            int dz = z - inst.anchor.z();
-            if (Vec2DFloat.from(dx, dz).lengthSq() < minDist2) return true;
+            if (Vec2DFloat.from(x - inst.anchor.x(), z - inst.anchor.z()).lengthSq() < minDist2) return true;
         }
         return false;
     }

@@ -7,6 +7,7 @@ package github.thehighcruw.dimensium.network;
 import com.gtnewhorizon.gtnhlib.network.base.IPacket;
 import github.thehighcruw.dimensium.Dimensium;
 import github.thehighcruw.dimensium.editor.tool.BrushApplicator;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import java.io.IOException;
 import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraft.network.PacketBuffer;
@@ -15,22 +16,20 @@ import net.minecraft.world.World;
 /** Applies the currently selected brush/paint tool at the given block position. */
 public class PacketBrushUse implements IPacket {
 
-    private int blockX, blockY, blockZ;
+    private Vec3DInt coord;
 
     public PacketBrushUse() {}
 
     @Override
     public void encode(PacketBuffer buf) throws IOException {
-        buf.writeInt(blockX);
-        buf.writeInt(blockY);
-        buf.writeInt(blockZ);
+        buf.writeInt(coord.x());
+        buf.writeInt(coord.y());
+        buf.writeInt(coord.z());
     }
 
     @Override
     public void decode(PacketBuffer buf) throws IOException {
-        blockX = buf.readInt();
-        blockY = buf.readInt();
-        blockZ = buf.readInt();
+        coord = Vec3DInt.from(buf.readInt(), buf.readInt(), buf.readInt());
     }
 
     @Override
@@ -42,7 +41,7 @@ public class PacketBrushUse implements IPacket {
             return null;
         }
         World world = handler.playerEntity.worldObj;
-        BrushApplicator.applyTool(world, blockX, blockY, blockZ);
+        BrushApplicator.applyTool(world, coord);
         return null;
     }
 }

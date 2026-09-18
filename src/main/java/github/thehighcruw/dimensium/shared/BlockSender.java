@@ -72,7 +72,8 @@ public class BlockSender {
             Set<Long> keep = new HashSet<>(filteredCoords.size());
             for (Vec3DInt c : filteredCoords) keep.add(ChangeProposal.packKey(c));
             List<int[]> filtered = new ArrayList<>(filteredCoords.size());
-            for (int[] op : ops) if (keep.contains(ChangeProposal.packKey(op[0], op[1], op[2]))) filtered.add(op);
+            for (int[] op : ops)
+                if (keep.contains(ChangeProposal.packKey(Vec3DInt.from(op[0], op[1], op[2])))) filtered.add(op);
             sendChunkedFiltered(filtered, action);
         }
     }

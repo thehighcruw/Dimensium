@@ -4,6 +4,7 @@
  */
 package github.thehighcruw.dimensium.tool;
 
+import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import net.minecraft.util.Vec3;
 
@@ -65,9 +66,8 @@ public class BuilderToolState {
      * player's facing direction. direction > 0 = away from player, < 0 = toward.
      */
     public void nudgeOffset(int direction, Vec3 facing) {
-        double ax = Math.abs(facing.xCoord);
-        double ay = Math.abs(facing.yCoord);
-        double az = Math.abs(facing.zCoord);
+        Vec3DDouble facingVec = Vec3DDouble.fromVec3(facing);
+        Vec3DDouble absVec = facingVec.abs();
 
         int dx = 0, dy = 0, dz = 0;
         switch (axisLock) {
@@ -81,9 +81,11 @@ public class BuilderToolState {
                 dz = direction;
                 break;
             default:
-                if (ax >= ay && ax >= az) dx = (int) Math.signum(facing.xCoord) * direction;
-                else if (ay >= ax && ay >= az) dy = (int) Math.signum(facing.yCoord) * direction;
-                else dz = (int) Math.signum(facing.zCoord) * direction;
+                if (absVec.x() >= absVec.y() && absVec.x() >= absVec.z())
+                    dx = (int) Math.signum(facingVec.x()) * direction;
+                else if (absVec.y() >= absVec.x() && absVec.y() >= absVec.z())
+                    dy = (int) Math.signum(facingVec.y()) * direction;
+                else dz = (int) Math.signum(facingVec.z()) * direction;
         }
         offset = offset.plus(Vec3DInt.from(dx, dy, dz));
     }

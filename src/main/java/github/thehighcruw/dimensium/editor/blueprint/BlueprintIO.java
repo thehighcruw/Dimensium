@@ -4,6 +4,7 @@
  */
 package github.thehighcruw.dimensium.editor.blueprint;
 
+import github.thehighcruw.dimensium.editor.clipboard.ClipboardBlock;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -64,12 +65,12 @@ public class BlueprintIO {
         int n = bp.offsets().size();
         int[] flat = new int[n * 5];
         for (int i = 0; i < n; i++) {
-            int[] o = bp.offsets().get(i);
-            flat[i * 5] = o[0];
-            flat[i * 5 + 1] = o[1];
-            flat[i * 5 + 2] = o[2];
-            flat[i * 5 + 3] = o[3];
-            flat[i * 5 + 4] = o[4];
+            ClipboardBlock o = bp.offsets().get(i);
+            flat[i * 5] = o.offset().x();
+            flat[i * 5 + 1] = o.offset().y();
+            flat[i * 5 + 2] = o.offset().z();
+            flat[i * 5 + 3] = o.blockId();
+            flat[i * 5 + 4] = o.meta();
         }
         bodyTag.setIntArray("offsets", flat);
 
@@ -168,10 +169,10 @@ public class BlueprintIO {
                 null);
     }
 
-    private static List<int[]> decodeOffsets(int[] flat) {
-        List<int[]> offsets = new ArrayList<>(flat.length / 5);
+    private static List<ClipboardBlock> decodeOffsets(int[] flat) {
+        List<ClipboardBlock> offsets = new ArrayList<>(flat.length / 5);
         for (int i = 0; i + 4 < flat.length; i += 5) {
-            offsets.add(new int[] {flat[i], flat[i + 1], flat[i + 2], flat[i + 3], flat[i + 4]});
+            offsets.add(new ClipboardBlock(Vec3DInt.from(flat[i], flat[i + 1], flat[i + 2]), flat[i + 3], flat[i + 4]));
         }
         return offsets;
     }

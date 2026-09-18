@@ -8,6 +8,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.tool.ToolRenderer;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.MovingObjectPosition;
@@ -37,9 +38,8 @@ public class ModellingToolRenderer implements ToolRenderer {
         if (!mts.getAxisTranslationGizmo().isDragging()
                 && !mts.getPlaneTranslationGizmo().isDragging()
                 && mc.renderViewEntity != null) {
-            Vec3DDouble gp = Vec3DDouble.from(
-                    mSelPt.pos().x() + 0.5, mSelPt.pos().y() + 0.5, mSelPt.pos().z() + 0.5);
-            mts.getAxisTranslationGizmo().updateHover(mx3d, my3d, mc.renderViewEntity, gp.x(), gp.y(), gp.z(), 0, 0, 0);
+            Vec3DDouble gp = mSelPt.pos().toDouble().plus(0.5);
+            mts.getAxisTranslationGizmo().updateHover(mx3d, my3d, mc.renderViewEntity, gp, Vec3DFloat.ZERO);
         }
     }
 }

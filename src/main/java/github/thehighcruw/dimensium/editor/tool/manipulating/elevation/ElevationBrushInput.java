@@ -15,7 +15,9 @@ import github.thehighcruw.dimensium.editor.tool.BrushInput;
 import github.thehighcruw.dimensium.editor.tool.mask.ToolMaskRegistry;
 import github.thehighcruw.dimensium.shared.BlockSender;
 import github.thehighcruw.dimensium.shared.KeyConstants;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
+import github.thehighcruw.dimensium.shared.util.WorldUtils;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 import java.util.List;
 import net.minecraft.client.Minecraft;
@@ -29,9 +31,7 @@ public class ElevationBrushInput implements BrushInput {
     public static final ElevationBrushInput INSTANCE = new ElevationBrushInput();
 
     private long lastNano = 0;
-    private int lastX = Integer.MIN_VALUE;
-    private int lastY = Integer.MIN_VALUE;
-    private int lastZ = Integer.MIN_VALUE;
+    private Vec3DInt lastPos = null;
     private boolean dragActive = false;
     private int lastFreehandX = Integer.MIN_VALUE;
 
@@ -58,7 +58,7 @@ public class ElevationBrushInput implements BrushInput {
                                     I18n.format(ElevationToolState.INSTANCE.elevationMode.label)));
                 dragActive = false;
                 lastNano = 0;
-                lastX = Integer.MIN_VALUE;
+                lastPos = null;
                 BrushApplicator.clearElevAccum();
             }
             lastFreehandX = Integer.MIN_VALUE;
@@ -80,17 +80,16 @@ public class ElevationBrushInput implements BrushInput {
         }
         boolean isOnce = es.elevationApply == ElevationToolState.ElevationApply.ONCE;
         if (isOnce) {
-            if (mop.blockX == lastX && mop.blockY == lastY && mop.blockZ == lastZ) return true;
-            lastX = mop.blockX;
-            lastY = mop.blockY;
-            lastZ = mop.blockZ;
+            Vec3DInt mopPos = Vec3DInt.from(mop.blockX, mop.blockY, mop.blockZ);
+            if (mopPos.equals(lastPos)) return true;
+            lastPos = mopPos;
         } else {
             long intervalNano = (long) (1e9 / Math.max(0.1, es.elevationRate));
             long now = System.nanoTime();
             if (now - lastNano < intervalNano) return true;
             lastNano = now;
         }
-        BrushApplicator.applyTool(mc.theWorld, mop.blockX, mop.blockY, mop.blockZ);
+        BrushApplicator.applyTool(mc.theWorld, WorldUtils.mopToCoord(mop));
         lastFreehandX = mop.blockX;
         return true;
     }

@@ -9,6 +9,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.tool.ToolSection;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushSection;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushState;
+import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import imgui.ImGui;
 import imgui.type.ImBoolean;
 import java.util.concurrent.ThreadLocalRandom;
@@ -47,24 +48,22 @@ public class DistortSection implements ToolSection {
         }
 
         if (state.distortSeparateAxis) {
-            distX[0] = state.distortDistanceX;
+            distX[0] = state.distortDistance.x();
             if (ImGui.sliderFloat(I18n.format("dimensium.ui.distort.distance_x") + "##dist_x", distX, 0f, 20f)) {
-                state.distortDistanceX = distX[0];
+                state.distortDistance = Vec3DFloat.from(distX[0], state.distortDistance.y(), state.distortDistance.z());
             }
-            distY[0] = state.distortDistanceY;
+            distY[0] = state.distortDistance.y();
             if (ImGui.sliderFloat(I18n.format("dimensium.ui.distort.distance_y") + "##dist_y", distY, 0f, 20f)) {
-                state.distortDistanceY = distY[0];
+                state.distortDistance = Vec3DFloat.from(state.distortDistance.x(), distY[0], state.distortDistance.z());
             }
-            distZ[0] = state.distortDistanceZ;
+            distZ[0] = state.distortDistance.z();
             if (ImGui.sliderFloat(I18n.format("dimensium.ui.distort.distance_z") + "##dist_z", distZ, 0f, 20f)) {
-                state.distortDistanceZ = distZ[0];
+                state.distortDistance = Vec3DFloat.from(state.distortDistance.x(), state.distortDistance.y(), distZ[0]);
             }
         } else {
-            distX[0] = state.distortDistanceX;
+            distX[0] = state.distortDistance.x();
             if (ImGui.sliderFloat(I18n.format("dimensium.ui.distort.distance") + "##dist_xyz", distX, 0f, 20f)) {
-                state.distortDistanceX = distX[0];
-                state.distortDistanceY = distX[0];
-                state.distortDistanceZ = distX[0];
+                state.distortDistance = Vec3DFloat.from(distX[0], distX[0], distX[0]);
             }
         }
 

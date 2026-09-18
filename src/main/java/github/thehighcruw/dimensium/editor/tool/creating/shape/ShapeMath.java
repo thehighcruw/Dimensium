@@ -71,26 +71,26 @@ public class ShapeMath {
             case PYRAMID: {
                 int dy = offset.y(), h = dims.y();
                 float level = (float) dy / Math.max(1, h - 1);
-                float hw = (1f - level) * radius.x();
-                float hd = (1f - level) * radius.z();
-                float lx = offset.x() - center.x(), lz = offset.z() - center.z();
-                return lx >= -hw && lx <= hw && lz >= -hd && lz <= hd;
+                Vec2DFloat local = Vec2DFloat.from(offset.x() - center.x(), offset.z() - center.z());
+                Vec2DFloat hw = Vec2DFloat.from(radius.x(), radius.z()).times(1f - level);
+                return local.abs().x() <= hw.x() && local.abs().y() <= hw.y();
             }
             case CONE: {
                 int dy = offset.y(), h = dims.y();
                 float level = (float) dy / Math.max(1, h - 1);
                 float scale = 1f - level;
-                float arx = radius.x() * scale, arz = radius.z() * scale;
-                float lx = offset.x() - center.x(), lz = offset.z() - center.z();
-                if (arx < 0.5f || arz < 0.5f) return Math.abs(lx) < 0.5f && Math.abs(lz) < 0.5f;
-                Vec2DFloat n = Vec2DFloat.from(lx / arx, lz / arz);
+                Vec2DFloat ar = Vec2DFloat.from(radius.x(), radius.z()).times(scale);
+                Vec2DFloat local = Vec2DFloat.from(offset.x() - center.x(), offset.z() - center.z());
+                if (ar.x() < 0.5f || ar.y() < 0.5f)
+                    return local.abs().x() < 0.5f && local.abs().y() < 0.5f;
+                Vec2DFloat n = local.divide(ar);
                 float dist = n.dot(n);
-                Vec2DFloat invR = Vec2DFloat.from(1f / arx, 1f / arz);
+                Vec2DFloat invR = Vec2DFloat.ONE.divide(ar);
                 float vR = 0.5f * (float) Math.sqrt(invR.dot(invR));
                 boolean outer = passL2(dist, vR, threshold);
                 if (!hollow) return outer;
-                float irx = Math.max(0.5f, arx - 1), irz = Math.max(0.5f, arz - 1);
-                Vec2DFloat inner = Vec2DFloat.from(lx / irx, lz / irz);
+                Vec2DFloat ir = ar.minus(Vec2DFloat.ONE).max(Vec2DFloat.from(0.5f));
+                Vec2DFloat inner = local.divide(ir);
                 return outer && (inner.dot(inner) > 1f || dy == 0);
             }
             case TORUS: {
@@ -101,7 +101,7 @@ public class ShapeMath {
                         torusRingRZ > 0 ? local.x() / torusRingR : local.x());
                 float nearX = torusRingR * (float) Math.cos(angle);
                 float nearZ = torusRingRZ * (float) Math.sin(angle);
-                Vec3DFloat tube = Vec3DFloat.from(local.x() - nearX, local.y(), local.z() - nearZ);
+                Vec3DFloat tube = local.minus(Vec3DFloat.from(nearX, 0f, nearZ));
                 float tubeDist2 = tube.dot(tube);
                 float tubeR2 = (float) torusTubeR * torusTubeR;
                 if (!hollow) return tubeDist2 <= tubeR2;
@@ -119,9 +119,7 @@ public class ShapeMath {
                 return outer && inner.sum() > 1f;
             }
             case DISK: {
-                int dy = offset.y(), h = dims.y();
-                int midY = (h - 1) / 2;
-                if (dy != midY) return false;
+                if (offset.y() != (dims.y() - 1) / 2) return false;
                 Vec2DFloat n =
                         Vec2DFloat.from((offset.x() - center.x()) / radius.x(), (offset.z() - center.z()) / radius.z());
                 float dist = n.dot(n);
@@ -139,21 +137,23 @@ public class ShapeMath {
                 return offset.y() == (h - 1) / 2;
             }
             case SUPERELLIPSE: {
-                int dy = offset.y(), h = dims.y();
-                int midY = (h - 1) / 2;
-                if (dy != midY) return false;
-                float nx = Math.abs((offset.x() - center.x()) / radius.x());
-                float nz = Math.abs((offset.z() - center.z()) / radius.z());
-                float dist = (float) (Math.pow(nx, exponent) + Math.pow(nz, exponent));
-                Vec2DFloat invR = Vec2DFloat.from(1f / radius.x(), 1f / radius.z());
+                if (offset.y() != (dims.y() - 1) / 2) return false;
+                Vec2DFloat n = Vec2DFloat.from(offset.x() - center.x(), offset.z() - center.z())
+                        .divide(Vec2DFloat.from(radius.x(), radius.z()))
+                        .abs();
+                float dist = (float) (Math.pow(n.x(), exponent) + Math.pow(n.y(), exponent));
+                Vec2DFloat invR = Vec2DFloat.ONE.divide(Vec2DFloat.from(radius.x(), radius.z()));
                 float vR = 0.5f * (float) Math.sqrt(invR.dot(invR));
                 float cutoffN = (float) Math.pow(1f - vR * (1f - threshold), exponent);
                 boolean outer = dist <= cutoffN;
                 if (!hollow) return outer;
-                Vec2DFloat innerR = Vec2DFloat.from(Math.max(0.5f, radius.x() - 1), Math.max(0.5f, radius.z() - 1));
-                float inx = Math.abs((offset.x() - center.x()) / innerR.x());
-                float inz = Math.abs((offset.z() - center.z()) / innerR.y());
-                return outer && Math.pow(inx, exponent) + Math.pow(inz, exponent) > 1f;
+                Vec2DFloat innerR = Vec2DFloat.from(radius.x(), radius.z())
+                        .minus(Vec2DFloat.ONE)
+                        .max(Vec2DFloat.from(0.5f));
+                Vec2DFloat inner = Vec2DFloat.from(offset.x() - center.x(), offset.z() - center.z())
+                        .divide(innerR)
+                        .abs();
+                return outer && Math.pow(inner.x(), exponent) + Math.pow(inner.y(), exponent) > 1f;
             }
             case SUPERSPHERE: {
                 Vec3DFloat n = offset.toFloat().minus(center).divide(radius).abs();
@@ -174,12 +174,13 @@ public class ShapeMath {
                                 > 1f;
             }
             case TUBE: {
-                Vec2DFloat n =
-                        Vec2DFloat.from((offset.x() - center.x()) / radius.x(), (offset.z() - center.z()) / radius.z());
+                Vec2DFloat local2d = Vec2DFloat.from(offset.x() - center.x(), offset.z() - center.z());
+                Vec2DFloat outerR = Vec2DFloat.from(radius.x(), radius.z());
+                Vec2DFloat n = local2d.divide(outerR);
                 if (n.dot(n) > 1f) return false;
-                float irx = Math.max(0.5f, radius.x() - tubeWallThickness);
-                float irz = Math.max(0.5f, radius.z() - tubeWallThickness);
-                Vec2DFloat inner = Vec2DFloat.from((offset.x() - center.x()) / irx, (offset.z() - center.z()) / irz);
+                Vec2DFloat innerR =
+                        outerR.minus(Vec2DFloat.from(tubeWallThickness)).max(Vec2DFloat.from(0.5f));
+                Vec2DFloat inner = local2d.divide(innerR);
                 return inner.dot(inner) >= 1f;
             }
             case DODECAHEDRON:
@@ -187,17 +188,14 @@ public class ShapeMath {
             case ICOSAHEDRON:
                 return icosahedronContains(offset.toFloat().minus(center), radius, hollow);
             case REGULAR_POLYGON: {
-                int dy = offset.y(), h = dims.y();
-                int midY = (h - 1) / 2;
-                if (dy != midY) return false;
-                return regularPolygonContains(
-                        offset.x() - center.x(), offset.z() - center.z(), radius.x(), radius.z(), polygonSides, hollow);
+                if (offset.y() != (dims.y() - 1) / 2) return false;
+                Vec2DFloat local2d = Vec2DFloat.from(offset.x() - center.x(), offset.z() - center.z());
+                return regularPolygonContains(local2d, Vec2DFloat.from(radius.x(), radius.z()), polygonSides, hollow);
             }
             case ARCHIMEDEAN_SPIRAL: {
-                int dy = offset.y(), h = dims.y();
-                int midY = (h - 1) / 2;
-                if (dy != midY) return false;
-                return spiralHit(offset.x() - center.x(), offset.z() - center.z(), spiralSpacing, spiralTurns);
+                if (offset.y() != (dims.y() - 1) / 2) return false;
+                return spiralHit(
+                        Vec2DFloat.from(offset.x() - center.x(), offset.z() - center.z()), spiralSpacing, spiralTurns);
             }
             default:
                 return true;
@@ -219,28 +217,28 @@ public class ShapeMath {
     }
 
     private static boolean regularPolygonContains(
-            float lpx, float lpz, float rx, float rz, int polygonSides, boolean hollow) {
+            Vec2DFloat local, Vec2DFloat radii, int polygonSides, boolean hollow) {
         int nsides = Math.max(3, polygonSides);
         float inr = (float) Math.cos(Math.PI / nsides);
-        float maxDot = maxPolygonProjection(lpx / rx, lpz / rz, nsides);
+        float maxDot = maxPolygonProjection(local.divide(radii), nsides);
         if (!hollow) return maxDot <= inr;
-        float irx = Math.max(0.5f, rx - 1), irz = Math.max(0.5f, rz - 1);
-        return maxDot <= inr && maxPolygonProjection(lpx / irx, lpz / irz, nsides) > inr;
+        Vec2DFloat innerR = radii.minus(Vec2DFloat.from(1f)).max(Vec2DFloat.from(0.5f));
+        return maxDot <= inr && maxPolygonProjection(local.divide(innerR), nsides) > inr;
     }
 
-    private static float maxPolygonProjection(float px, float pz, int nsides) {
+    private static float maxPolygonProjection(Vec2DFloat normalized, int nsides) {
         float maxDot = Float.NEGATIVE_INFINITY;
         for (int k = 0; k < nsides; k++) {
             float fa = (float) ((2.0 * Math.PI * (k + 0.5)) / nsides);
-            float d = (float) Math.cos(fa) * px + (float) Math.sin(fa) * pz;
+            float d = (float) Math.cos(fa) * normalized.x() + (float) Math.sin(fa) * normalized.y();
             if (d > maxDot) maxDot = d;
         }
         return maxDot;
     }
 
-    private static boolean spiralHit(float localX, float localZ, float spacing, float turns) {
-        float r = (float) Math.sqrt(localX * localX + localZ * localZ);
-        float theta = (float) Math.atan2(localZ, localX);
+    private static boolean spiralHit(Vec2DFloat local, float spacing, float turns) {
+        float r = local.length();
+        float theta = (float) Math.atan2(local.y(), local.x());
         if (theta < 0) theta += 2f * (float) Math.PI;
         float twoPi = 2f * (float) Math.PI;
         float maxR = spacing * turns;
@@ -320,21 +318,21 @@ public class ShapeMath {
         Vec3DFloat radius = center;
         switch (type) {
             case CUBOID: {
-                int w = dims.x(), h = dims.y(), d = dims.z();
+                Vec3DFloat dimsF = dims.toFloat();
                 boolean in = offset.x() >= 0
-                        && offset.x() < w
+                        && offset.x() < dimsF.x()
                         && offset.y() >= 0
-                        && offset.y() < h
+                        && offset.y() < dimsF.y()
                         && offset.z() >= 0
-                        && offset.z() < d;
+                        && offset.z() < dimsF.z();
                 if (!hollow) return in;
                 return in
                         && (offset.x() < 1f
-                                || offset.x() > w - 2f
+                                || offset.x() > dimsF.x() - 2f
                                 || offset.y() < 1f
-                                || offset.y() > h - 2f
+                                || offset.y() > dimsF.y() - 2f
                                 || offset.z() < 1f
-                                || offset.z() > d - 2f);
+                                || offset.z() > dimsF.z() - 2f);
             }
             case SPHERE: {
                 Vec3DFloat n = offset.minus(center).divide(radius);
@@ -357,9 +355,12 @@ public class ShapeMath {
                 float vR = 0.5f * (float) Math.sqrt(invR.dot(invR));
                 boolean outer = passL2(dist, vR, threshold);
                 if (!hollow) return outer && dy >= 0 && dy < h;
-                float irx = Math.max(0.5f, radius.x() - 1), irz = Math.max(0.5f, radius.z() - 1);
+                Vec2DFloat local2d = Vec2DFloat.from(offset.x() - center.x(), offset.z() - center.z());
+                Vec2DFloat innerR = Vec2DFloat.from(radius.x(), radius.z())
+                        .minus(Vec2DFloat.from(1f))
+                        .max(Vec2DFloat.from(0.5f));
                 boolean onCap = dy < 1f || dy > h - 2f;
-                Vec2DFloat inner = Vec2DFloat.from((offset.x() - center.x()) / irx, (offset.z() - center.z()) / irz);
+                Vec2DFloat inner = local2d.divide(innerR);
                 return outer && dy >= 0 && dy < h && (inner.dot(inner) > 1f || onCap);
             }
             case PYRAMID: {
@@ -376,17 +377,18 @@ public class ShapeMath {
                 if (dy < 0 || dy >= h) return false;
                 float level = dy / Math.max(1f, h - 1f);
                 float scale = 1f - level;
-                float arx = radius.x() * scale, arz = radius.z() * scale;
-                float lx = offset.x() - center.x(), lz = offset.z() - center.z();
-                if (arx < 0.5f || arz < 0.5f) return Math.abs(lx) < 0.5f && Math.abs(lz) < 0.5f;
-                Vec2DFloat n = Vec2DFloat.from(lx / arx, lz / arz);
+                Vec2DFloat ar = Vec2DFloat.from(radius.x(), radius.z()).times(scale);
+                Vec2DFloat local = Vec2DFloat.from(offset.x() - center.x(), offset.z() - center.z());
+                if (ar.x() < 0.5f || ar.y() < 0.5f)
+                    return local.abs().x() < 0.5f && local.abs().y() < 0.5f;
+                Vec2DFloat n = local.divide(ar);
                 float dist = n.dot(n);
-                Vec2DFloat invR = Vec2DFloat.from(1f / arx, 1f / arz);
+                Vec2DFloat invR = Vec2DFloat.ONE.divide(ar);
                 float vR = 0.5f * (float) Math.sqrt(invR.dot(invR));
                 boolean outer = passL2(dist, vR, threshold);
                 if (!hollow) return outer;
-                float irx2 = Math.max(0.5f, arx - 1), irz2 = Math.max(0.5f, arz - 1);
-                Vec2DFloat inner = Vec2DFloat.from(lx / irx2, lz / irz2);
+                Vec2DFloat ir = ar.minus(Vec2DFloat.ONE).max(Vec2DFloat.from(0.5f));
+                Vec2DFloat inner = local.divide(ir);
                 return outer && (inner.dot(inner) > 1f || dy < 1f);
             }
             case TORUS: {
@@ -396,7 +398,7 @@ public class ShapeMath {
                         torusRingRZ > 0 ? local.x() / torusRingR : local.x());
                 float nearX = torusRingR * (float) Math.cos(angle);
                 float nearZ = torusRingRZ * (float) Math.sin(angle);
-                Vec3DFloat tube = Vec3DFloat.from(local.x() - nearX, local.y(), local.z() - nearZ);
+                Vec3DFloat tube = local.minus(Vec3DFloat.from(nearX, 0f, nearZ));
                 float tubeDist2 = tube.dot(tube);
                 float tubeR2 = (float) torusTubeR * torusTubeR;
                 if (!hollow) return tubeDist2 <= tubeR2;
@@ -431,18 +433,22 @@ public class ShapeMath {
                 return Math.abs(offset.y() - center.y()) <= 0.5f;
             case SUPERELLIPSE: {
                 if (Math.abs(offset.y() - center.y()) > 0.5f) return false;
-                float nx = Math.abs((offset.x() - center.x()) / radius.x());
-                float nz = Math.abs((offset.z() - center.z()) / radius.z());
-                float dist = (float) (Math.pow(nx, exponent) + Math.pow(nz, exponent));
-                Vec2DFloat invR = Vec2DFloat.from(1f / radius.x(), 1f / radius.z());
+                Vec2DFloat n = Vec2DFloat.from(offset.x() - center.x(), offset.z() - center.z())
+                        .divide(Vec2DFloat.from(radius.x(), radius.z()))
+                        .abs();
+                float dist = (float) (Math.pow(n.x(), exponent) + Math.pow(n.y(), exponent));
+                Vec2DFloat invR = Vec2DFloat.ONE.divide(Vec2DFloat.from(radius.x(), radius.z()));
                 float vR = 0.5f * (float) Math.sqrt(invR.dot(invR));
                 float cutoffN = (float) Math.pow(1f - vR * (1f - threshold), exponent);
                 boolean outer = dist <= cutoffN;
                 if (!hollow) return outer;
-                Vec2DFloat innerR = Vec2DFloat.from(Math.max(0.5f, radius.x() - 1), Math.max(0.5f, radius.z() - 1));
-                float inx = Math.abs((offset.x() - center.x()) / innerR.x());
-                float inz = Math.abs((offset.z() - center.z()) / innerR.y());
-                return outer && Math.pow(inx, exponent) + Math.pow(inz, exponent) > 1f;
+                Vec2DFloat innerR = Vec2DFloat.from(radius.x(), radius.z())
+                        .minus(Vec2DFloat.ONE)
+                        .max(Vec2DFloat.from(0.5f));
+                Vec2DFloat inner = Vec2DFloat.from(offset.x() - center.x(), offset.z() - center.z())
+                        .divide(innerR)
+                        .abs();
+                return outer && Math.pow(inner.x(), exponent) + Math.pow(inner.y(), exponent) > 1f;
             }
             case SUPERSPHERE: {
                 Vec3DFloat n = offset.minus(center).divide(radius).abs();
@@ -465,12 +471,13 @@ public class ShapeMath {
             case TUBE: {
                 int h = dims.y();
                 float dy = offset.y();
-                Vec2DFloat n =
-                        Vec2DFloat.from((offset.x() - center.x()) / radius.x(), (offset.z() - center.z()) / radius.z());
+                Vec2DFloat local2d = Vec2DFloat.from(offset.x() - center.x(), offset.z() - center.z());
+                Vec2DFloat outerR = Vec2DFloat.from(radius.x(), radius.z());
+                Vec2DFloat n = local2d.divide(outerR);
                 if (n.dot(n) > 1f || dy < 0 || dy >= h) return false;
-                float irx = Math.max(0.5f, radius.x() - tubeWallThickness);
-                float irz = Math.max(0.5f, radius.z() - tubeWallThickness);
-                Vec2DFloat inner = Vec2DFloat.from((offset.x() - center.x()) / irx, (offset.z() - center.z()) / irz);
+                Vec2DFloat innerR =
+                        outerR.minus(Vec2DFloat.from(tubeWallThickness)).max(Vec2DFloat.from(0.5f));
+                Vec2DFloat inner = local2d.divide(innerR);
                 return inner.dot(inner) >= 1f;
             }
             case DODECAHEDRON:
@@ -479,12 +486,13 @@ public class ShapeMath {
                 return icosahedronContains(offset.minus(center), radius, hollow);
             case REGULAR_POLYGON: {
                 if (Math.abs(offset.y() - center.y()) > 0.5f) return false;
-                return regularPolygonContains(
-                        offset.x() - center.x(), offset.z() - center.z(), radius.x(), radius.z(), polygonSides, hollow);
+                Vec2DFloat local2d = Vec2DFloat.from(offset.x() - center.x(), offset.z() - center.z());
+                return regularPolygonContains(local2d, Vec2DFloat.from(radius.x(), radius.z()), polygonSides, hollow);
             }
             case ARCHIMEDEAN_SPIRAL: {
                 if (Math.abs(offset.y() - center.y()) > 0.5f) return false;
-                return spiralHit(offset.x() - center.x(), offset.z() - center.z(), spiralSpacing, spiralTurns);
+                return spiralHit(
+                        Vec2DFloat.from(offset.x() - center.x(), offset.z() - center.z()), spiralSpacing, spiralTurns);
             }
             default:
                 return true;

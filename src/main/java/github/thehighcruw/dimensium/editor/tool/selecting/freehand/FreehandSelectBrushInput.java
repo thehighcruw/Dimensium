@@ -29,9 +29,7 @@ import org.lwjgl.input.Mouse;
 @SideOnly(Side.CLIENT)
 public class FreehandSelectBrushInput implements BrushInput {
 
-    private int lastX = Integer.MIN_VALUE;
-    private int lastY = Integer.MIN_VALUE;
-    private int lastZ = Integer.MIN_VALUE;
+    private Vec3DInt lastPos = null;
 
     @Override
     public boolean onDragTick(Minecraft mc, int sw, int sh) {
@@ -43,15 +41,14 @@ public class FreehandSelectBrushInput implements BrushInput {
         if (heldButton >= 0) {
             MovingObjectPosition mop = RenderUtils.raycastAtCursor();
             if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-                if (mop.blockX != lastX || mop.blockY != lastY || mop.blockZ != lastZ) {
-                    lastX = mop.blockX;
-                    lastY = mop.blockY;
-                    lastZ = mop.blockZ;
+                Vec3DInt mopPos = Vec3DInt.from(mop.blockX, mop.blockY, mop.blockZ);
+                if (!mopPos.equals(lastPos)) {
+                    lastPos = mopPos;
                     onMouseHeld(heldButton, mop);
                 }
             }
         } else {
-            lastX = Integer.MIN_VALUE;
+            lastPos = null;
         }
         return true;
     }
@@ -71,11 +68,11 @@ public class FreehandSelectBrushInput implements BrushInput {
     private static void applyBrush(MovingObjectPosition mop) {
         BrushState bs = BrushState.INSTANCE;
         boolean includeAir = FreehandToolState.INSTANCE.includeAir;
-        int cx = mop.blockX, cy = mop.blockY, cz = mop.blockZ;
+        Vec3DInt center = Vec3DInt.from(mop.blockX, mop.blockY, mop.blockZ);
         World world = Minecraft.getMinecraft().theWorld;
         Set<Long> blocks = new HashSet<>();
         BrushUtil.forBrush(bs, offset -> {
-            Vec3DInt wc = Vec3DInt.from(cx, cy, cz).plus(offset);
+            Vec3DInt wc = center.plus(offset);
             if (includeAir || WorldUtils.getBlock(world, wc) != Blocks.air) {
                 blocks.add(SelectionState.pack(wc));
             }

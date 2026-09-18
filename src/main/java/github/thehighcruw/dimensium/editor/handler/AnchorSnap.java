@@ -30,6 +30,10 @@ public class AnchorSnap {
      * Applies a rotation gizmo drag to a base rotation and returns the updated Euler angles as Vec3DFloat(rotX, rotY,
      * rotZ).
      */
+    public static Vec3DFloat applyRotGizmo(RotationGizmo gizmo, Vec3DFloat base, int mx, int my) {
+        return applyRotGizmo(gizmo, base.x(), base.y(), base.z(), mx, my);
+    }
+
     public static Vec3DFloat applyRotGizmo(RotationGizmo gizmo, float baseX, float baseY, float baseZ, int mx, int my) {
         float delta = gizmo.updateDrag(mx, my);
         RotationGizmo.Axis axis = gizmo.getDragAxis();

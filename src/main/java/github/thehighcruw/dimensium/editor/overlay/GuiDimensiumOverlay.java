@@ -132,40 +132,17 @@ public final class GuiDimensiumOverlay {
         if (cps.active) {
             if (button == KeyConstants.LMB) {
                 EntityLivingBase eye = mc.renderViewEntity;
-                double ccx = cps.centerX(), ccy = cps.centerY(), ccz = cps.centerZ();
+                Vec3DDouble cpsCenter = cps.center();
+                Vec3DDouble anchor = cps.anchorF.toDouble();
+                Vec3DFloat rot = cps.rot;
                 if (eye != null && cps.getAxisTranslationGizmo().hoveredAxis != TranslationGizmo.Axis.NONE) {
-                    cps.getAxisTranslationGizmo()
-                            .startDrag(
-                                    mouseX,
-                                    mouseY,
-                                    ccx,
-                                    ccy,
-                                    ccz,
-                                    cps.anchorF.x(),
-                                    cps.anchorF.y(),
-                                    cps.anchorF.z(),
-                                    0,
-                                    0,
-                                    0);
+                    cps.getAxisTranslationGizmo().startDrag(mouseX, mouseY, cpsCenter, anchor, Vec3DFloat.ZERO);
                 } else if (eye != null
                         && cps.getPlaneTranslationGizmo().hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
-                    cps.getPlaneTranslationGizmo()
-                            .startDrag(
-                                    mouseX,
-                                    mouseY,
-                                    ccx,
-                                    ccy,
-                                    ccz,
-                                    cps.anchorF.x(),
-                                    cps.anchorF.y(),
-                                    cps.anchorF.z(),
-                                    cps.rot.x(),
-                                    cps.rot.y(),
-                                    cps.rot.z());
+                    cps.getPlaneTranslationGizmo().startDrag(mouseX, mouseY, cpsCenter, anchor, rot);
                 } else if (eye != null && cps.getRotationGizmo().hoveredAxis != RotationGizmo.Axis.NONE) {
-                    cps.rotDragBase = cps.rot;
-                    cps.getRotationGizmo()
-                            .startDrag(mouseX, mouseY, ccx, ccy, ccz, cps.rot.x(), cps.rot.y(), cps.rot.z());
+                    cps.rotDragBase = rot;
+                    cps.getRotationGizmo().startDrag(mouseX, mouseY, cpsCenter, rot);
                 }
             } else if (button == KeyConstants.RMB) {
                 cps.cancel();
@@ -326,15 +303,14 @@ public final class GuiDimensiumOverlay {
      * Each entry in {@code positions} is {worldX, worldY, worldZ}.
      */
     public static int findNearestPointOnScreen(
-            List<int[]> positions, int skipIndex, int mouseX, int mouseY, GizmoProjection proj, double thresholdPx) {
+            List<Vec3DInt> positions, int skipIndex, int mouseX, int mouseY, GizmoProjection proj, double thresholdPx) {
         // GizmoProjection.project() already maps GL window coords to the viewport panel's
         // GUI-space position, so projected coords compare directly to mouseX/mouseY.
         int best = -1;
         double bestD2 = thresholdPx * thresholdPx;
         for (int i = 0; i < positions.size(); i++) {
             if (i == skipIndex) continue;
-            int[] p = positions.get(i);
-            double[] s = proj.project(p[0] + 0.5, p[1] + 0.5, p[2] + 0.5);
+            double[] s = proj.project(positions.get(i).toDouble().plus(0.5));
             if (s == null) continue;
             double d2 = Vec2DDouble.from(s[0] - mouseX, s[1] - mouseY).lengthSq();
             if (d2 < bestD2) {
@@ -370,7 +346,7 @@ public final class GuiDimensiumOverlay {
             if (keepExisting) {
                 if (WorldUtils.getBlock(Minecraft.getMinecraft().theWorld, wc) != Blocks.air) continue;
             }
-            ops.add(new int[] {wc.x(), wc.y(), wc.z(), bm[0], bm[1]});
+            ops.add(wc.toBlockOp(bm[0], bm[1]));
         }
         if (!ops.isEmpty()) {
             BlockSender.sendChunked(ops, I18n.format("dimensium.action.modelling"));

@@ -19,8 +19,8 @@ public class SelectionTransformsTest {
         return SelectionTestData.pack(coords);
     }
 
-    private static boolean has(Set<Long> set, int x, int y, int z) {
-        return set.contains(SelectionState.pack(Vec3DInt.from(x, y, z)));
+    private static boolean has(Set<Long> set, Vec3DInt pos) {
+        return set.contains(SelectionState.pack(pos));
     }
 
     // ── expand ────────────────────────────────────────────────────────────────
@@ -38,20 +38,20 @@ public class SelectionTransformsTest {
         Set<Long> result = SelectionTransforms.expand(blocks, 1);
         // original + 6 orthogonal neighbours
         assertEquals(7, result.size());
-        assertTrue(has(result, 5, 64, 5));
-        assertTrue(has(result, 6, 64, 5));
-        assertTrue(has(result, 4, 64, 5));
-        assertTrue(has(result, 5, 65, 5));
-        assertTrue(has(result, 5, 63, 5));
-        assertTrue(has(result, 5, 64, 6));
-        assertTrue(has(result, 5, 64, 4));
+        assertTrue(has(result, Vec3DInt.from(5, 64, 5)));
+        assertTrue(has(result, Vec3DInt.from(6, 64, 5)));
+        assertTrue(has(result, Vec3DInt.from(4, 64, 5)));
+        assertTrue(has(result, Vec3DInt.from(5, 65, 5)));
+        assertTrue(has(result, Vec3DInt.from(5, 63, 5)));
+        assertTrue(has(result, Vec3DInt.from(5, 64, 6)));
+        assertTrue(has(result, Vec3DInt.from(5, 64, 4)));
     }
 
     @Test
     public void expandDoesNotGoBelowY0() {
         Set<Long> blocks = pack(new int[][] {{5, 0, 5}});
         Set<Long> result = SelectionTransforms.expand(blocks, 1);
-        assertFalse(has(result, 5, -1, 5));
+        assertFalse(has(result, Vec3DInt.from(5, -1, 5)));
     }
 
     @Test
@@ -99,7 +99,7 @@ public class SelectionTransformsTest {
         Set<Long> result = SelectionTransforms.shrink(blocks, 1);
         // Only the single interior block (5,64,5) survives
         assertEquals(1, result.size());
-        assertTrue(has(result, 5, 64, 5));
+        assertTrue(has(result, Vec3DInt.from(5, 64, 5)));
     }
 
     @Test

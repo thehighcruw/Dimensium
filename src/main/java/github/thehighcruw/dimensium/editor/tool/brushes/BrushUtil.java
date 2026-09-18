@@ -51,8 +51,7 @@ public final class BrushUtil {
     }
 
     public static void forBrush(BrushState s, Vec3DInt brushSize, VoxelAction action) {
-        Vec3DInt.forEachInclusive(brushSize.negate(), brushSize, (dx, dy, dz) -> {
-            Vec3DInt offset = Vec3DInt.from(dx, dy, dz);
+        Vec3DInt.forEachInclusive(brushSize.negate(), brushSize, offset -> {
             if (!inShape(s.brushShape, offset, brushSize)) return;
             if (s.hollow && isInterior(s.brushShape, offset, brushSize)) return;
             action.run(offset);
@@ -64,8 +63,7 @@ public final class BrushUtil {
     private static final float GEOM_EPS = 1e-6f;
 
     public static void forEachInShape(BrushShape shape, Vec3DInt brushSize, Consumer<Vec3DInt> action) {
-        Vec3DInt.forEachInclusive(brushSize.times(-1), brushSize, (dx, dy, dz) -> {
-            Vec3DInt offset = Vec3DInt.from(dx, dy, dz);
+        Vec3DInt.forEachInclusive(brushSize.negate(), brushSize, offset -> {
             if (inShape(shape, offset, brushSize)) action.accept(offset);
         });
     }
@@ -162,12 +160,11 @@ public final class BrushUtil {
     public static int[] snapshotBlockIds(World world, Vec3DInt origin, Vec3DInt brushSize, int margin) {
         Vec3DInt snapHalf = brushSize.plus(margin);
         Vec3DInt dims = snapHalf.times(2).plus(1);
-        int snStX = dims.y() * dims.z();
         int[] snap = new int[dims.product()];
         int worldMinY = 0, worldMaxY = world.getHeight() - 1;
-        Vec3DInt.forEachInclusive(snapHalf.negate(), snapHalf, (dx, dy, dz) -> {
-            int idx = Vec3DInt.from(dx, dy, dz).plus(snapHalf).toIndex(snStX, dims.z());
-            Vec3DInt worldPos = origin.plus(dx, dy, dz);
+        Vec3DInt.forEachInclusive(snapHalf.negate(), snapHalf, offset -> {
+            int idx = offset.plus(snapHalf).toIndex(dims);
+            Vec3DInt worldPos = origin.plus(offset);
             if (worldPos.y() < worldMinY) snap[idx] = -1;
             else if (worldPos.y() > worldMaxY) snap[idx] = 0;
             else snap[idx] = Block.getIdFromBlock(WorldUtils.getBlock(world, worldPos));

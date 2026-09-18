@@ -11,6 +11,7 @@ import github.thehighcruw.dimensium.editor.window.viewport.world.SelectionRender
 import github.thehighcruw.dimensium.editor.window.viewport.world.TranslationGizmo;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.EntityLivingBase;
@@ -43,37 +44,23 @@ public class BoxSelectToolRenderer implements ToolRenderer {
                 || SelectionRenderer.boxCenterViewPlaneGizmo.isDragging()
                 || SelectionRenderer.boxCenterGizmo.isDragging();
         if (!anyDragging) {
-            SelectionRenderer.boxPos1Gizmo.updateHover(
-                    mx,
-                    my,
-                    bxEye,
-                    bxSel.pendingPos.x() + 0.5,
-                    bxSel.pendingPos.y() + 0.5,
-                    bxSel.pendingPos.z() + 0.5,
-                    0,
-                    0,
-                    0);
+            Vec3DDouble pos1Center = bxSel.pendingPos.toDouble().plus(0.5);
+            Vec3DDouble pos2Center = bxSel.pendingPos2.toDouble().plus(0.5);
+            SelectionRenderer.boxPos1Gizmo.updateHover(mx, my, bxEye, pos1Center, Vec3DFloat.ZERO);
             if (SelectionRenderer.boxPos1Gizmo.hoveredAxis == TranslationGizmo.Axis.NONE) {
-                SelectionRenderer.boxPos2Gizmo.updateHover(
-                        mx,
-                        my,
-                        bxEye,
-                        bxSel.pendingPos2.x() + 0.5,
-                        bxSel.pendingPos2.y() + 0.5,
-                        bxSel.pendingPos2.z() + 0.5,
-                        0,
-                        0,
-                        0);
+                SelectionRenderer.boxPos2Gizmo.updateHover(mx, my, bxEye, pos2Center, Vec3DFloat.ZERO);
             } else {
                 SelectionRenderer.boxPos2Gizmo.hoveredAxis = TranslationGizmo.Axis.NONE;
             }
             if (SelectionRenderer.boxPos1Gizmo.hoveredAxis == TranslationGizmo.Axis.NONE
                     && SelectionRenderer.boxPos2Gizmo.hoveredAxis == TranslationGizmo.Axis.NONE) {
-                double cxW = (bxSel.pendingPos.x() + bxSel.pendingPos2.x()) / 2.0 + 0.5;
-                double cyW = (bxSel.pendingPos.y() + bxSel.pendingPos2.y()) / 2.0 + 0.5;
-                double czW = (bxSel.pendingPos.z() + bxSel.pendingPos2.z()) / 2.0 + 0.5;
-                SelectionRenderer.boxCenterViewPlaneGizmo.updateHover(mx, my, bxEye, cxW, cyW, czW);
-                SelectionRenderer.boxCenterGizmo.updateHover(mx, my, bxEye, cxW, cyW, czW, 0, 0, 0);
+                Vec3DDouble boxCenter = bxSel.pendingPos
+                        .toDouble()
+                        .plus(bxSel.pendingPos2.toDouble())
+                        .times(0.5)
+                        .plus(0.5);
+                SelectionRenderer.boxCenterViewPlaneGizmo.updateHover(mx, my, bxEye, boxCenter);
+                SelectionRenderer.boxCenterGizmo.updateHover(mx, my, bxEye, boxCenter, Vec3DFloat.ZERO);
             } else {
                 SelectionRenderer.boxCenterViewPlaneGizmo.hovered = false;
                 SelectionRenderer.boxCenterGizmo.hoveredAxis = TranslationGizmo.Axis.NONE;

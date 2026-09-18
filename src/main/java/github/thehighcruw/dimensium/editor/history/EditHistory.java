@@ -7,6 +7,7 @@ package github.thehighcruw.dimensium.editor.history;
 import github.thehighcruw.dimensium.network.PacketHistoryEntry;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.PerfTrace;
+import github.thehighcruw.dimensium.shared.util.WorldUtils;
 import java.util.List;
 import java.util.Set;
 import net.minecraft.block.Block;
@@ -34,9 +35,8 @@ public class EditHistory {
      * automatically this way.
      */
     static void applyBlock(World world, Vec3DInt pos, Block blk, int meta) {
-        int x = pos.x(), y = pos.y(), z = pos.z();
         if (blk == null || blk == Blocks.air) {
-            world.setBlock(x, y, z, Blocks.air, 0, 3);
+            WorldUtils.setBlock(world, pos, Blocks.air, 0, 3);
             return;
         }
 
@@ -45,16 +45,16 @@ public class EditHistory {
             if (item instanceof ItemBlock itemBlock) {
                 ItemStack stack = new ItemStack(itemBlock, 1, meta);
                 // Clear the target position first so placeBlockAt has an air block to fill.
-                world.setBlock(x, y, z, Blocks.air, 0, 3);
+                WorldUtils.setBlock(world, pos, Blocks.air, 0, 3);
                 // Use the top face (side=1) as a neutral default; most mods use facing
                 // from the player entity, not the side parameter, for actual orientation.
                 itemBlock.placeBlockAt(
                         stack,
                         FakePlayerFactory.getMinecraft((WorldServer) world),
                         world,
-                        x,
-                        y,
-                        z,
+                        pos.x(),
+                        pos.y(),
+                        pos.z(),
                         1,
                         0.5f,
                         0.5f,
@@ -66,7 +66,7 @@ public class EditHistory {
 
         // Standard case: meta fits in 4 bits, no special placement needed.
         // Flag 2: notify clients but skip neighbour/lighting cascade (bulk-op performance).
-        world.setBlock(x, y, z, blk, meta, 2);
+        WorldUtils.setBlock(world, pos, blk, meta, 2);
     }
 
     /**
@@ -78,8 +78,7 @@ public class EditHistory {
      * meta > 15 blocks fall back to applyBlock() — placeBlockAt() cannot be bypassed.
      */
     static void applyBlockFast(World world, Vec3DInt pos, Block blk, int meta) {
-        int x = pos.x(), y = pos.y(), z = pos.z();
-        if (y < 0 || y >= world.getHeight()) return;
+        if (pos.y() < 0 || pos.y() >= world.getHeight()) return;
         if (blk == null) blk = Blocks.air;
         // Tile-entity blocks must go through world.setBlock so the TE receives a world
         // reference before any constructor logic (e.g. IC2 energy-net registration) fires.
@@ -87,8 +86,8 @@ public class EditHistory {
             applyBlock(world, pos, blk, meta);
             return;
         }
-        Chunk chunk = world.getChunkFromBlockCoords(x, z);
-        chunk.func_150807_a(x & 15, y, z & 15, blk, meta);
+        Chunk chunk = world.getChunkFromBlockCoords(pos.x(), pos.z());
+        chunk.func_150807_a(pos.x() & 15, pos.y(), pos.z() & 15, blk, meta);
         chunk.setChunkModified();
     }
 
@@ -135,15 +134,14 @@ public class EditHistory {
      * Reading it here lets undo restore the correct machine type.
      */
     static int getEffectiveMeta(World world, Vec3DInt pos) {
-        int x = pos.x(), y = pos.y(), z = pos.z();
-        int blockMeta = world.getBlockMetadata(x, y, z);
+        int blockMeta = WorldUtils.getBlockMetadata(world, pos);
         if (blockMeta > 15) return blockMeta; // already "full" — shouldn't happen, but safe
         // Only check TileEntity NBT for blocks that have one; avoids a map lookup per block
         // for the common case (standard blocks with no TileEntity).
-        if (!world.getBlock(x, y, z).hasTileEntity(blockMeta)) return blockMeta;
+        if (!WorldUtils.getBlock(world, pos).hasTileEntity(blockMeta)) return blockMeta;
         TileEntity te;
         try {
-            te = world.getTileEntity(x, y, z);
+            te = world.getTileEntity(pos.x(), pos.y(), pos.z());
         } catch (Throwable ignored) {
             return blockMeta;
         }
@@ -174,11 +172,7 @@ public class EditHistory {
             int[] op = ops.get(i);
             Vec3DInt pos = Vec3DInt.from(op[0], op[1], op[2]);
             before[i] = new int[] {
-                op[0],
-                op[1],
-                op[2],
-                Block.getIdFromBlock(world.getBlock(op[0], op[1], op[2])),
-                getEffectiveMeta(world, pos)
+                op[0], op[1], op[2], Block.getIdFromBlock(WorldUtils.getBlock(world, pos)), getEffectiveMeta(world, pos)
             };
         }
 

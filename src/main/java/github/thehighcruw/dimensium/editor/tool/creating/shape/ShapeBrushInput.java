@@ -14,6 +14,8 @@ import github.thehighcruw.dimensium.editor.window.viewport.world.RotationGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.ScalingGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.TranslationGizmo;
 import github.thehighcruw.dimensium.shared.KeyConstants;
+import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.EntityLivingBase;
@@ -43,52 +45,26 @@ public class ShapeBrushInput implements BrushInput {
         }
 
         if (button == KeyConstants.LMB) {
-            double cx = ps.centerX(), cy = ps.centerY(), cz = ps.centerZ();
+            Vec3DDouble psCenter = ps.center();
+            Vec3DDouble anchor = ps.anchorF.toDouble();
+            Vec3DFloat rot = ps.rot;
             EntityLivingBase eye = mc.renderViewEntity;
             if (ps.viewPlaneGizmo.hovered) {
-                ps.viewPlaneGizmo.startDrag(
-                        mouseX, mouseY, eye, cx, cy, cz, ps.anchorF.x(), ps.anchorF.y(), ps.anchorF.z());
+                ps.viewPlaneGizmo.startDrag(mouseX, mouseY, eye, psCenter, anchor);
             } else if (ps.getAxisTranslationGizmo().hoveredAxis != TranslationGizmo.Axis.NONE) {
-                ps.getAxisTranslationGizmo()
-                        .startDrag(
-                                mouseX,
-                                mouseY,
-                                cx,
-                                cy,
-                                cz,
-                                ps.anchorF.x(),
-                                ps.anchorF.y(),
-                                ps.anchorF.z(),
-                                ps.rot.x(),
-                                ps.rot.y(),
-                                ps.rot.z());
+                ps.getAxisTranslationGizmo().startDrag(mouseX, mouseY, psCenter, anchor, rot);
             } else if (ps.getRotationGizmo().hoveredAxis != RotationGizmo.Axis.NONE) {
-                ps.rotDragBase = ps.rot;
-                ps.getRotationGizmo().startDrag(mouseX, mouseY, cx, cy, cz, ps.rot.x(), ps.rot.y(), ps.rot.z());
+                ps.rotDragBase = rot;
+                ps.getRotationGizmo().startDrag(mouseX, mouseY, psCenter, rot);
             } else if (ps.getScalingGizmo().hoveredAxis != ScalingGizmo.Axis.NONE) {
                 float currentScale = ps.getScalingGizmo().hoveredAxis == ScalingGizmo.Axis.X
                         ? ps.scale.x()
                         : ps.getScalingGizmo().hoveredAxis == ScalingGizmo.Axis.Y ? ps.scale.y() : ps.scale.z();
                 ShapeToolState sts = ShapeToolState.INSTANCE;
-                ps.scaleDragBaseW = sts.shapeWidth;
-                ps.scaleDragBaseH = sts.shapeHeight;
-                ps.scaleDragBaseD = sts.shapeDepth;
-                ps.getScalingGizmo()
-                        .startDrag(mouseX, mouseY, cx, cy, cz, currentScale, ps.rot.x(), ps.rot.y(), ps.rot.z());
+                ps.scaleDragBase = Vec3DInt.from(sts.shapeWidth, sts.shapeHeight, sts.shapeDepth);
+                ps.getScalingGizmo().startDrag(mouseX, mouseY, psCenter, currentScale, rot);
             } else if (ps.getPlaneTranslationGizmo().hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
-                ps.getPlaneTranslationGizmo()
-                        .startDrag(
-                                mouseX,
-                                mouseY,
-                                cx,
-                                cy,
-                                cz,
-                                ps.anchorF.x(),
-                                ps.anchorF.y(),
-                                ps.anchorF.z(),
-                                ps.rot.x(),
-                                ps.rot.y(),
-                                ps.rot.z());
+                ps.getPlaneTranslationGizmo().startDrag(mouseX, mouseY, psCenter, anchor, rot);
             }
         } else if (button == KeyConstants.RMB) {
             GuiDimensiumOverlay.confirmPlacement();

@@ -46,6 +46,10 @@ public class ViewPlaneGizmo {
 
     // ── Rendering ─────────────────────────────────────────────────────────────
 
+    public void render(Vec3DDouble pos, Vec3DDouble camPos) {
+        render(pos.x(), pos.y(), pos.z(), camPos);
+    }
+
     public void render(double gx, double gy, double gz, Vec3DDouble camPos) {
         proj.capture(camPos);
         float scale = RotationGizmo.computeScale(gx - camPos.x(), gy - camPos.y(), gz - camPos.z());
@@ -116,6 +120,10 @@ public class ViewPlaneGizmo {
 
     // ── Hover ─────────────────────────────────────────────────────────────────
 
+    public void updateHover(int mouseX, int mouseY, EntityLivingBase player, Vec3DDouble pos) {
+        updateHover(mouseX, mouseY, player, pos.x(), pos.y(), pos.z());
+    }
+
     public void updateHover(int mouseX, int mouseY, EntityLivingBase player, double gx, double gy, double gz) {
         float scale = RotationGizmo.computeScale(
                 gx - player.posX, gy - (player.posY + player.getEyeHeight()), gz - player.posZ);
@@ -143,6 +151,10 @@ public class ViewPlaneGizmo {
     }
 
     // ── Drag ─────────────────────────────────────────────────────────────────
+
+    public void startDrag(int mouseX, int mouseY, EntityLivingBase player, Vec3DDouble pos, Vec3DDouble anchor) {
+        startDrag(mouseX, mouseY, player, pos.x(), pos.y(), pos.z(), anchor.x(), anchor.y(), anchor.z());
+    }
 
     public void startDrag(
             int mouseX,

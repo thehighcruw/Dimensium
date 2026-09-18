@@ -9,6 +9,7 @@ import cpw.mods.fml.common.gameevent.TickEvent;
 import github.thehighcruw.dimensium.network.PacketCaptureResponse;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.PerfTrace;
+import github.thehighcruw.dimensium.shared.util.WorldUtils;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -54,10 +55,7 @@ public class ServerCaptureQueue {
         }
 
         Vec3DInt posAt(int idx) {
-            int lz = idx % dims.z();
-            int ly = (idx / dims.z()) % dims.y();
-            int lx = idx / (dims.z() * dims.y());
-            return origin.plus(lx, ly, lz);
+            return origin.plus(Vec3DInt.fromIndex(idx, dims));
         }
     }
 
@@ -76,10 +74,10 @@ public class ServerCaptureQueue {
         PerfTrace.push("worldReads");
         while (job.cursor < job.total() && read < READS_PER_TICK) {
             Vec3DInt pos = job.posAt(job.cursor++);
-            Block blk = job.world.getBlock(pos.x(), pos.y(), pos.z());
+            Block blk = WorldUtils.getBlock(job.world, pos);
             if (blk != null && blk != Blocks.air) {
-                int meta = job.world.getBlockMetadata(pos.x(), pos.y(), pos.z());
-                job.results.add(new int[] {pos.x(), pos.y(), pos.z(), Block.getIdFromBlock(blk), meta});
+                int meta = WorldUtils.getBlockMetadata(job.world, pos);
+                job.results.add(pos.toBlockOp(Block.getIdFromBlock(blk), meta));
             }
             read++;
         }

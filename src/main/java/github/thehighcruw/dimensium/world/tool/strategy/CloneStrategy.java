@@ -19,7 +19,7 @@ public class CloneStrategy implements BuilderToolStrategy {
 
     @Override
     public void confirm(BuilderToolState bts, SelectionState sel) {
-        Vec3DInt origin = Vec3DInt.from(sel.minX(), sel.minY(), sel.minZ()).plus(bts.offset);
+        Vec3DInt origin = sel.min().plus(bts.offset);
         final SelectionState selSnap = sel;
         BlockSender.sendChunkedLazy(() -> SelectionOps.clipboardToPlacements(selSnap, origin), "Clone");
     }

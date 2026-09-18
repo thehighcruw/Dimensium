@@ -11,6 +11,7 @@ import github.thehighcruw.dimensium.editor.tool.BrushApplicator;
 import github.thehighcruw.dimensium.editor.tool.BrushInput;
 import github.thehighcruw.dimensium.editor.tool.mask.ToolMaskRegistry;
 import github.thehighcruw.dimensium.shared.BlockSender;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -25,7 +26,7 @@ public class SmoothBrushInput implements BrushInput {
 
     public static final SmoothBrushInput INSTANCE = new SmoothBrushInput();
 
-    private final LinkedHashSet<Long> dragPositions = new LinkedHashSet<>();
+    private final LinkedHashSet<Vec3DInt> dragPositions = new LinkedHashSet<>();
 
     private SmoothBrushInput() {}
 
@@ -34,16 +35,13 @@ public class SmoothBrushInput implements BrushInput {
         return true;
     }
 
-    public Set<Long> getDragPositions() {
+    public Set<Vec3DInt> getDragPositions() {
         return Collections.unmodifiableSet(dragPositions);
     }
 
     @Override
     public boolean onBrushHeld(Minecraft mc, MovingObjectPosition mop) {
-        long pk = ((long) (mop.blockX + 1048576) << 42)
-                | ((long) (mop.blockY + 1048576) << 21)
-                | (long) (mop.blockZ + 1048576);
-        dragPositions.add(pk);
+        dragPositions.add(Vec3DInt.from(mop.blockX, mop.blockY, mop.blockZ));
         return true;
     }
 
@@ -52,11 +50,8 @@ public class SmoothBrushInput implements BrushInput {
         if (dragPositions.isEmpty()) return;
         ChangeProposal.startDrag(ToolMaskRegistry.INSTANCE.getActiveMask());
         long t0 = System.nanoTime();
-        for (long pk : dragPositions) {
-            int bx = (int) ((pk >> 42) & 0x1FFFFF) - 1048576;
-            int by = (int) ((pk >> 21) & 0x1FFFFF) - 1048576;
-            int bz = (int) (pk & 0x1FFFFF) - 1048576;
-            BrushApplicator.applyTool(mc.theWorld, bx, by, bz);
+        for (Vec3DInt pos : dragPositions) {
+            BrushApplicator.applyTool(mc.theWorld, pos);
         }
         long t1 = System.nanoTime();
         List<int[]> ops = ChangeProposal.flush();

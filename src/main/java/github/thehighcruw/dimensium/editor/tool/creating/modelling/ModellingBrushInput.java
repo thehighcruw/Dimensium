@@ -15,6 +15,7 @@ import github.thehighcruw.dimensium.editor.window.viewport.world.PlaneTranslatio
 import github.thehighcruw.dimensium.editor.window.viewport.world.TranslationGizmo;
 import github.thehighcruw.dimensium.shared.KeyConstants;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,14 +56,13 @@ public class ModellingBrushInput implements BrushInput {
 
         if (button == KeyConstants.LMB) {
             EntityLivingBase eye = mc.renderViewEntity;
-            List<int[]> positions = new ArrayList<>();
+            List<Vec3DInt> positions = new ArrayList<>();
             int skipFlat = -1;
             for (int r = 0; r < mts.rows.size(); r++) {
                 List<ModellingToolState.ModelPoint> row = mts.rows.get(r);
                 for (int c = 0; c < row.size(); c++) {
                     if (r == mts.selectedRow && c == mts.selectedPoint) skipFlat = positions.size();
-                    ModellingToolState.ModelPoint p = row.get(c);
-                    positions.add(new int[] {p.pos().x(), p.pos().y(), p.pos().z()});
+                    positions.add(mts.rows.get(r).get(c).pos());
                 }
             }
             int bestFlat = GuiDimensiumOverlay.findNearestPointOnScreen(
@@ -90,14 +90,12 @@ public class ModellingBrushInput implements BrushInput {
                     && mts.selectedPointObj() != null
                     && eye != null) {
                 Vec3DDouble gp = mts.selectedPointObj().pos().toDouble().plus(0.5);
-                mts.getAxisTranslationGizmo()
-                        .startDrag(mouseX, mouseY, gp.x(), gp.y(), gp.z(), gp.x(), gp.y(), gp.z(), 0, 0, 0);
+                mts.getAxisTranslationGizmo().startDrag(mouseX, mouseY, gp, gp, Vec3DFloat.ZERO);
             } else if (mts.getPlaneTranslationGizmo().hoveredPlane != PlaneTranslationGizmo.Plane.NONE
                     && mts.selectedPointObj() != null
                     && eye != null) {
                 Vec3DDouble gp = mts.selectedPointObj().pos().toDouble().plus(0.5);
-                mts.getPlaneTranslationGizmo()
-                        .startDrag(mouseX, mouseY, gp.x(), gp.y(), gp.z(), gp.x(), gp.y(), gp.z(), 0, 0, 0);
+                mts.getPlaneTranslationGizmo().startDrag(mouseX, mouseY, gp, gp, Vec3DFloat.ZERO);
             }
         }
     }

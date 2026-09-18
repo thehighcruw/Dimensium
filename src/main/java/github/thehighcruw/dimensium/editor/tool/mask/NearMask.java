@@ -21,13 +21,11 @@ public class NearMask extends MaskNode {
 
     @Override
     public boolean test(World world, Vec3DInt coord) {
-        Vec3DInt.anyInclusive(Vec3DInt.from(-radius), Vec3DInt.from(radius), (dx, dy, dz) -> {
-            if (dx == 0 && dy == 0 && dz == 0) return false;
-            Vec3DInt offset = Vec3DInt.from(dx, dy, dz);
-            if (offset.lengthSq() > (long) radius * radius) return false;
-            return MaskUtils.testAt(world, coord.plus(offset), blockId, meta);
+        return Vec3DInt.anyInclusive(Vec3DInt.from(-radius), Vec3DInt.from(radius), offset -> {
+            if (offset.equals(Vec3DInt.ZERO)) return false;
+            return offset.lengthSq() <= (long) radius * radius
+                    && MaskUtils.testAt(world, coord.plus(offset), blockId, meta);
         });
-        return false;
     }
 
     @Override

@@ -62,7 +62,7 @@ public class ChangeProposal {
     public static ChangeProposal fromBlockList(List<int[]> blocks) {
         ChangeProposal p = forPreview();
         for (int[] b : blocks) {
-            p.proposed.put(packKey(b[0], b[1], b[2]), new int[] {b[3], b[4]});
+            p.proposed.put(packKey(Vec3DInt.from(b[0], b[1], b[2])), new int[] {b[3], b[4]});
         }
         return p;
     }

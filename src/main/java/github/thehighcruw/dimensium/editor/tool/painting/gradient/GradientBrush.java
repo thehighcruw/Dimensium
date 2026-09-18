@@ -53,14 +53,9 @@ public class GradientBrush implements BrushStrategy {
             if (samePos) {
                 t = 0f;
             } else if (s.gradientShape == GradientToolState.GradientShape.SPHERE) {
-                t = 1f
-                        - (float) (Vec3DDouble.from(pos.x(), pos.y(), pos.z())
-                                        .minus(pos1)
-                                        .length()
-                                / len);
+                t = 1f - (float) (pos.toDouble().minus(pos1).length() / len);
             } else {
-                t = (float)
-                        (Vec3DDouble.from(pos.x(), pos.y(), pos.z()).minus(pos2).dot(axis) / len2);
+                t = (float) (pos.toDouble().minus(pos2).dot(axis) / len2);
             }
 
             if (s.gradientClampToEdge && (t < 0f || t > 1f)) return;

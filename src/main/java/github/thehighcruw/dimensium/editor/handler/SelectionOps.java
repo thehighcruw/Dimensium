@@ -7,7 +7,6 @@ package github.thehighcruw.dimensium.editor.handler;
 import com.github.bsideup.jabel.Desugar;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import github.thehighcruw.dimensium.editor.clipboard.ClipboardUtils;
 import github.thehighcruw.dimensium.shared.BlockColorCache;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
@@ -37,18 +36,18 @@ public class SelectionOps {
         List<int[]> ops = new ArrayList<>(sel.size());
         for (long key : sel.getSelectedBlocks()) {
             Vec3DInt c = SelectionState.unpack(key);
-            ops.add(new int[] {c.x(), c.y(), c.z(), 0, 0});
+            ops.add(c.toBlockOp(0, 0));
         }
         return ops;
     }
 
     public static List<int[]> clipboardToPlacements(SelectionState sel, Vec3DInt origin) {
         if (sel.clipboard == null) return new ArrayList<>();
-        List<int[]> ops = ClipboardUtils.toOffsets(sel.clipboard);
-        for (int[] op : ops) {
-            op[0] += origin.x();
-            op[1] += origin.y();
-            op[2] += origin.z();
+        List<int[]> ops = new ArrayList<>(sel.clipboard.size());
+        for (Map.Entry<Long, SelectionState.BlockData> e : sel.clipboard.entrySet()) {
+            Vec3DInt dest = origin.plus(SelectionState.decodeClipboardKey(e.getKey()));
+            SelectionState.BlockData bd = e.getValue();
+            ops.add(dest.toBlockOp(Block.getIdFromBlock(bd.block()), bd.meta()));
         }
         return ops;
     }
@@ -59,7 +58,7 @@ public class SelectionOps {
             Vec3DInt cv = SelectionState.unpack(key);
             Block b = WorldUtils.getBlock(world, cv);
             if (b == Blocks.water || b == Blocks.flowing_water) {
-                ops.add(new int[] {cv.x(), cv.y(), cv.z(), 0, 0});
+                ops.add(cv.toBlockOp(0, 0));
             }
         }
         return ops;
@@ -91,7 +90,7 @@ public class SelectionOps {
                 if (found) break;
             }
             if (nearest[0] != null) {
-                ops.add(new int[] {cv.x(), cv.y(), cv.z(), Block.getIdFromBlock(nearest[0]), nearestMeta[0]});
+                ops.add(cv.toBlockOp(Block.getIdFromBlock(nearest[0]), nearestMeta[0]));
             }
         }
         return ops;
@@ -110,7 +109,7 @@ public class SelectionOps {
                 }
             }
             if (!isShell) {
-                ops.add(new int[] {cv.x(), cv.y(), cv.z(), 0, 0});
+                ops.add(cv.toBlockOp(0, 0));
             }
         }
         return ops;
@@ -121,11 +120,9 @@ public class SelectionOps {
         if (selected.isEmpty()) return new ArrayList<>();
 
         // Expand bounding box by 1 so flood fill can reach all exterior faces.
-        Vec3DInt origin = Vec3DInt.from(sel.minX(), sel.minY(), sel.minZ()).minus(1);
-        Vec3DInt end = Vec3DInt.from(sel.maxX(), sel.maxY(), sel.maxZ()).plus(1);
+        Vec3DInt origin = sel.min().minus(1);
+        Vec3DInt end = sel.max().plus(1);
         Vec3DInt dims = end.minus(origin).plus(1);
-        int snStX = dims.y() * dims.z(), snStZ = dims.z();
-
         boolean[] visited = new boolean[dims.product()];
 
         Queue<Vec3DInt> queue = new LinkedList<>();
@@ -137,7 +134,7 @@ public class SelectionOps {
             for (Vec3DInt d : BlockUtils.NEIGHBOUR_OFFSETS) {
                 Vec3DInt next = cur.plus(d);
                 if (!next.inBounds(origin, end)) continue;
-                int i = next.minus(origin).toIndex(snStX, snStZ);
+                int i = next.minus(origin).toIndex(dims);
                 if (visited[i]) continue;
                 // Don't cross through selected (solid) blocks.
                 if (selected.contains(SelectionState.pack(next))) continue;
@@ -148,12 +145,11 @@ public class SelectionOps {
 
         // Any non-visited, non-selected block inside the bbox that is air in world = enclosed gap.
         List<int[]> ops = new ArrayList<>();
-        Vec3DInt.forEachInclusive(origin.plus(1), end.minus(1), (x, y, z) -> {
-            Vec3DInt pos = Vec3DInt.from(x, y, z);
+        Vec3DInt.forEachInclusive(origin.plus(1), end.minus(1), pos -> {
             if (selected.contains(SelectionState.pack(pos))) return;
-            int i = pos.minus(origin).toIndex(snStX, snStZ);
+            int i = pos.minus(origin).toIndex(dims);
             if (!visited[i] && WorldUtils.getBlock(world, pos) == Blocks.air) {
-                ops.add(new int[] {x, y, z, Block.getIdFromBlock(fillBlock), fillMeta});
+                ops.add(pos.toBlockOp(Block.getIdFromBlock(fillBlock), fillMeta));
             }
         });
         return ops;
@@ -202,8 +198,8 @@ public class SelectionOps {
                 state.put(SelectionState.pack(pos), new int[] {0, 0});
                 Vec3DInt dropPos = Vec3DInt.from(pos.x(), dropY, pos.z());
                 state.put(SelectionState.pack(dropPos), new int[] {blockId, meta});
-                ops.add(new int[] {pos.x(), pos.y(), pos.z(), 0, 0});
-                ops.add(new int[] {dropPos.x(), dropPos.y(), dropPos.z(), blockId, meta});
+                ops.add(pos.toBlockOp(0, 0));
+                ops.add(dropPos.toBlockOp(blockId, meta));
             }
         }
         return ops;
@@ -216,7 +212,7 @@ public class SelectionOps {
             Block b = WorldUtils.getBlock(world, cv);
             if (b == Blocks.air) continue;
             if (!b.canBlockStay(world, cv.x(), cv.y(), cv.z())) {
-                ops.add(new int[] {cv.x(), cv.y(), cv.z(), 0, 0});
+                ops.add(cv.toBlockOp(0, 0));
             }
         }
         return ops;
@@ -232,8 +228,8 @@ public class SelectionOps {
         List<int[]> candidates = cache.getColourFieldCandidates();
         if (candidates.isEmpty()) return new ArrayList<>();
 
-        Vec3DInt selMin = Vec3DInt.from(sel.minX(), sel.minY(), sel.minZ());
-        Vec3DInt selMax = Vec3DInt.from(sel.maxX(), sel.maxY(), sel.maxZ());
+        Vec3DInt selMin = sel.min();
+        Vec3DInt selMax = sel.max();
         Vec3DInt range = selMax.minus(selMin).max(Vec3DInt.ONE);
 
         Set<Long> selected = sel.getSelectedBlocks();
@@ -264,7 +260,7 @@ public class SelectionOps {
 
             long posKey = SelectionState.pack(pos);
             if (selected.contains(posKey) && claimed.add(posKey)) {
-                ops.add(new int[] {pos.x(), pos.y(), pos.z(), blockId, meta});
+                ops.add(pos.toBlockOp(blockId, meta));
             }
         }
         return ops;

@@ -6,6 +6,7 @@ package github.thehighcruw.dimensium.network;
 
 import com.gtnewhorizon.gtnhlib.network.base.IPacket;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import github.thehighcruw.dimensium.shared.util.WorldUtils;
 import java.io.IOException;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
@@ -30,8 +31,8 @@ public class PacketSelectionOp implements IPacket {
     @Override
     public void encode(PacketBuffer buf) throws IOException {
         buf.writeByte(op.ordinal());
-        PacketUtils.writeCoords(buf, p1.x(), p1.y(), p1.z());
-        PacketUtils.writeCoords(buf, p2.x(), p2.y(), p2.z());
+        PacketUtils.writeCoords(buf, p1);
+        PacketUtils.writeCoords(buf, p2);
         buf.writeInt(blockId);
         buf.writeInt(blockMeta);
     }
@@ -58,7 +59,7 @@ public class PacketSelectionOp implements IPacket {
 
         final Block blk = block;
         final int m = meta;
-        Vec3DInt.forEachInclusive(mn, mx, (x, y, z) -> world.setBlock(x, y, z, blk, m, 3));
+        Vec3DInt.forEachInclusive(mn, mx, coord -> WorldUtils.setBlock(world, coord, blk, m, 3));
 
         return null;
     }

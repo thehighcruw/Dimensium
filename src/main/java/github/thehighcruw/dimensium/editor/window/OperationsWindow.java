@@ -71,7 +71,7 @@ public class OperationsWindow extends ToggleableWindow {
                 List<int[]> ops = new ArrayList<>(_sel.size());
                 for (long key : _sel.getSelectedBlocks()) {
                     Vec3DInt cv = SelectionState.unpack(key);
-                    ops.add(new int[] {cv.x(), cv.y(), cv.z(), bid, meta});
+                    ops.add(cv.toBlockOp(bid, meta));
                 }
                 BlockSender.sendChunked(ops, I18n.format("dimensium.action.fill"));
             }

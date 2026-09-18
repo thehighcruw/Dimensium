@@ -14,6 +14,7 @@ import github.thehighcruw.dimensium.editor.window.imgui.ToggleableWindow;
 import github.thehighcruw.dimensium.shared.BlockSender;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import github.thehighcruw.dimensium.shared.util.WorldUtils;
 import imgui.ImGui;
 import imgui.flag.ImGuiCond;
 import imgui.type.ImBoolean;
@@ -58,7 +59,7 @@ abstract class AbstractReplaceWindow extends ToggleableWindow {
      * Called per selected block per mapping. Return an {@code {x, y, z, blockId, meta}} op to
      * apply, or {@code null} to skip.
      */
-    protected abstract int[] buildBlockOp(int x, int y, int z, Block worldBlock, int worldMeta, BlockMapping mapping);
+    protected abstract int[] buildBlockOp(Vec3DInt coord, Block worldBlock, int worldMeta, BlockMapping mapping);
 
     protected final void applyOp() {
         SelectionState sel = SelectionState.INSTANCE;
@@ -78,12 +79,11 @@ abstract class AbstractReplaceWindow extends ToggleableWindow {
         List<int[]> ops = new ArrayList<>();
         outer:
         for (long key : sel.getSelectedBlocks()) {
-            Vec3DInt cv = SelectionState.unpack(key);
-            int x = cv.x(), y = cv.y(), z = cv.z();
-            Block worldBlock = world.getBlock(x, y, z);
-            int worldMeta = world.getBlockMetadata(x, y, z);
+            Vec3DInt coord = SelectionState.unpack(key);
+            Block worldBlock = WorldUtils.getBlock(world, coord);
+            int worldMeta = WorldUtils.getBlockMetadata(world, coord);
             for (BlockMapping mapping : completeMappings) {
-                int[] op = buildBlockOp(x, y, z, worldBlock, worldMeta, mapping);
+                int[] op = buildBlockOp(coord, worldBlock, worldMeta, mapping);
                 if (op != null) {
                     ops.add(op);
                     continue outer;

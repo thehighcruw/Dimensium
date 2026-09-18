@@ -69,12 +69,15 @@ public final class SelectionTransforms {
         return result;
     }
 
-    public static Set<Long> distort(Set<Long> blocks, float scale, long seed, float distX, float distY, float distZ) {
+    public static Set<Long> distort(Set<Long> blocks, float scale, long seed, Vec3DFloat distortion) {
         Set<Long> result = new HashSet<>(blocks.size());
         float invScale = scale > 0 ? 1f / scale : 1f;
         for (long key : blocks) {
             Vec3DInt coord = SelectionState.unpack(key);
-            Vec3DInt rCoord = warpPosition(coord, invScale, seed, distX, distY, distZ);
+            Vec3DFloat noisePos = coord.toFloat().times(invScale);
+            float[] w = NoiseSampler.warpVec3(noisePos.x(), noisePos.y(), noisePos.z(), seed);
+            Vec3DFloat warp = Vec3DFloat.from(w[0], w[1], w[2]).times(distortion);
+            Vec3DInt rCoord = Vec3DInt.round(coord.toFloat().plus(warp));
             if (rCoord.y() < 0 || rCoord.y() > 255) continue;
             result.add(SelectionState.pack(rCoord));
         }
@@ -107,8 +110,7 @@ public final class SelectionTransforms {
         int[] snap = new int[dims.product()];
         for (long key : blocks) {
             Vec3DInt coord = SelectionState.unpack(key);
-            Vec3DInt snapper = coord.minus(bb.minimum()).plus(margin).plus(Vec3DInt.from(snStX, dims.z(), 1));
-            snap[snapper.sum()] = 1;
+            snap[coord.minus(bb.minimum()).plus(margin).toIndex(dims)] = 1;
         }
 
         Set<Long> result = new HashSet<>();
@@ -119,9 +121,8 @@ public final class SelectionTransforms {
             if (density >= threshold) result.add(key);
         }
         // Also check non-selected voxels in the bounding box that might grow in
-        Vec3DInt.forEachInclusive(Vec3DInt.from(margin), dims.minus(margin + 1), (lx, ly, lz) -> {
-            if (snap[lx * snStX + ly * dims.z() + lz] != 0) return; // already handled above
-            Vec3DInt localizedCoord = Vec3DInt.from(lx, ly, lz);
+        Vec3DInt.forEachInclusive(Vec3DInt.from(margin), dims.minus(margin + 1), localizedCoord -> {
+            if (snap[localizedCoord.toIndex(dims)] != 0) return; // already handled above
             float density = kernel.solidWeight(snap, localizedCoord, snStX, dims.z()) / kernel.totalWeight;
             if (density >= threshold) {
                 Vec3DInt world = localizedCoord.minus(margin).plus(bb.minimum());

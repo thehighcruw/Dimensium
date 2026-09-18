@@ -10,6 +10,7 @@ import github.thehighcruw.dimensium.DimensiumConfig;
 import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
 import github.thehighcruw.dimensium.editor.window.imgui.ToggleableWindow;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
 import github.thehighcruw.dimensium.shared.util.WorldUtils;
 import imgui.ImGui;
@@ -88,15 +89,15 @@ public class BlockInfoWindow extends ToggleableWindow {
                 ImGui.text(I18n.format("dimensium.block_info.meta") + " " + meta);
             }
 
+            Vec3DInt mopPos = WorldUtils.mopToCoord(mop);
             ImGui.text(
-                    I18n.format("dimensium.block_info.pos") + " " + mop.blockX + ", " + mop.blockY + ", " + mop.blockZ);
+                    I18n.format("dimensium.block_info.pos") + " " + mopPos.x() + ", " + mopPos.y() + ", " + mopPos.z());
 
             EntityLivingBase eye = mc.renderViewEntity;
             if (eye != null) {
-                double dist = Vec3DDouble.from(
-                                mop.blockX + 0.5 - eye.posX,
-                                mop.blockY + 0.5 - (eye.posY + eye.getEyeHeight()),
-                                mop.blockZ + 0.5 - eye.posZ)
+                double dist = mopPos.toDouble()
+                        .plus(0.5)
+                        .minus(Vec3DDouble.from(eye.posX, eye.posY + eye.getEyeHeight(), eye.posZ))
                         .length();
                 ImGui.text(I18n.format("dimensium.block_info.distance") + " " + String.format("%.1f", dist) + " m");
             }

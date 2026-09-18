@@ -124,15 +124,14 @@ public class ExtrudeHelper {
             for (int layer = 1; layer <= count; layer++) {
                 for (Vec3DInt pos : connected) {
                     Vec3DInt n = pos.plus(dir.times(layer));
-                    if (WorldUtils.getBlock(world, n) == Blocks.air)
-                        ops.add(new int[] {n.x(), n.y(), n.z(), targetId, targetMeta});
+                    if (WorldUtils.getBlock(world, n) == Blocks.air) ops.add(n.toBlockOp(targetId, targetMeta));
                 }
             }
         } else {
             for (int layer = 0; layer < count; layer++) {
                 for (Vec3DInt pos : connected) {
                     Vec3DInt r = pos.minus(dir.times(layer));
-                    if (WorldUtils.getBlock(world, r) != Blocks.air) ops.add(new int[] {r.x(), r.y(), r.z(), 0, 0});
+                    if (WorldUtils.getBlock(world, r) != Blocks.air) ops.add(r.toBlockOp(0, 0));
                 }
             }
             if (displace) {
@@ -140,7 +139,7 @@ public class ExtrudeHelper {
                     Vec3DInt l = pos.minus(dir.times(count - 1));
                     Vec3DInt b = pos.minus(dir.times(count));
                     if (WorldUtils.getBlock(world, l) != Blocks.air && WorldUtils.getBlock(world, b) == Blocks.air)
-                        ops.add(new int[] {b.x(), b.y(), b.z(), targetId, targetMeta});
+                        ops.add(b.toBlockOp(targetId, targetMeta));
                 }
             }
         }
@@ -211,10 +210,11 @@ public class ExtrudeHelper {
         ChangeProposal p = ChangeProposal.forPreview();
         for (int[] op : buildExtrudeOps(
                 mc.theWorld, expand, count, s.extrudeDisplace, connected, dir, targetBlock, targetMeta)) {
+            Vec3DInt opPos = Vec3DInt.from(op[0], op[1], op[2]);
             if (op[3] == 0) {
-                p.proposed.put(ChangeProposal.packKey(op[0], op[1], op[2]), new int[] {0, 0});
+                p.proposed.put(ChangeProposal.packKey(opPos), new int[] {0, 0});
             } else {
-                p.proposed.put(ChangeProposal.packKey(op[0], op[1], op[2]), new int[] {op[3], op[4]});
+                p.proposed.put(ChangeProposal.packKey(opPos), new int[] {op[3], op[4]});
             }
         }
 

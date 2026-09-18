@@ -59,6 +59,7 @@ import github.thehighcruw.dimensium.editor.window.viewport.world.BrushPreviewRen
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.BlockUtils;
+import github.thehighcruw.dimensium.shared.util.WorldUtils;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.function.Function;
@@ -109,8 +110,8 @@ public final class ToolRegistry {
 
                     @Override
                     public boolean isBlockAffected(Minecraft mc, Vec3DInt wc) {
-                        if (!FreehandToolState.INSTANCE.freehandReplaceSolid
-                                && mc.theWorld.getBlock(wc.x(), wc.y(), wc.z()) != Blocks.air) return false;
+                        if (!FreehandToolState.INSTANCE.freehandReplaceSolid && WorldUtils.getBlock(wc) != Blocks.air)
+                            return false;
                         if (FreehandToolState.INSTANCE.freehandMaskSurface) return hasAirNeighbor(mc, wc);
                         return true;
                     }
@@ -141,7 +142,7 @@ public final class ToolRegistry {
 
                     @Override
                     public boolean isBlockAffected(Minecraft mc, Vec3DInt wc) {
-                        if (mc.theWorld.getBlock(wc.x(), wc.y(), wc.z()) == Blocks.air) return false;
+                        if (WorldUtils.getBlock(wc) == Blocks.air) return false;
                         if (PainterToolState.INSTANCE.painterMaskSurface) return hasAirNeighbor(mc, wc);
                         return true;
                     }
@@ -229,7 +230,7 @@ public final class ToolRegistry {
     private static boolean hasAirNeighbor(Minecraft mc, Vec3DInt wc) {
         for (Vec3DInt d : BlockUtils.NEIGHBOUR_OFFSETS) {
             Vec3DInt nb = wc.plus(d);
-            if (mc.theWorld.getBlock(nb.x(), nb.y(), nb.z()) == Blocks.air) return true;
+            if (WorldUtils.getBlock(nb) == Blocks.air) return true;
         }
         return false;
     }

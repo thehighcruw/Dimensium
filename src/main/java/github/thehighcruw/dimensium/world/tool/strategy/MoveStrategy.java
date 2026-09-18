@@ -21,7 +21,7 @@ public class MoveStrategy implements BuilderToolStrategy {
 
     @Override
     public void confirm(BuilderToolState bts, SelectionState sel) {
-        Vec3DInt origin = Vec3DInt.from(sel.minX(), sel.minY(), sel.minZ()).plus(bts.offset);
+        Vec3DInt origin = sel.min().plus(bts.offset);
 
         // Snapshot air ops now — clearSelection() runs right after confirm() returns.
         final List<int[]> airOps = SelectionOps.selectionToAirOps(sel);

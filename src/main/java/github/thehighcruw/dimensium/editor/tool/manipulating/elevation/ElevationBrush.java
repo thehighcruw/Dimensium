@@ -7,6 +7,7 @@ package github.thehighcruw.dimensium.editor.tool.manipulating.elevation;
 import github.thehighcruw.dimensium.editor.tool.ActiveDragState;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushStrategy;
 import github.thehighcruw.dimensium.shared.math.Vec2DFloat;
+import github.thehighcruw.dimensium.shared.math.Vec2DInt;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 import java.util.HashMap;
@@ -28,88 +29,87 @@ public class ElevationBrush implements BrushStrategy {
     @Override
     public void apply(World world, MovingObjectPosition mop) {
         ElevationToolState s = ElevationToolState.INSTANCE;
-        int cx = mop.blockX, cz = mop.blockZ;
+        Vec2DInt columnCenter = Vec2DInt.from(mop.blockX, mop.blockZ);
         int flattenTargetY = mop.blockY;
         boolean isOnce = s.elevationApply == ElevationToolState.ElevationApply.ONCE;
         int radius = Math.max(1, s.elevationRadius);
 
-        for (int dx = -radius; dx <= radius; dx++) {
-            for (int dz = -radius; dz <= radius; dz++) {
-                float r = Vec2DFloat.from(dx, dz).length() / radius;
-                if (r > 1f) continue;
+        Vec3DInt.forEachInclusive(Vec3DInt.from(-radius, 0, -radius), Vec3DInt.from(radius, 0, radius), offset -> {
+            int dx = offset.x(), dz = offset.z();
+            float r = Vec2DFloat.from(dx, dz).length() / radius;
+            if (r > 1f) return;
 
-                float weight = falloff(s.elevationFalloff, r);
-                weight = edgeSmoothing(weight, r, s.elevationSmoothing);
-                if (weight <= 0f) continue;
+            float weight = falloff(s.elevationFalloff, r);
+            weight = edgeSmoothing(weight, r, s.elevationSmoothing);
+            if (weight <= 0f) return;
 
-                int wx = cx + dx, wz = cz + dz;
-                int topY = getEffectiveTopY(world, wx, wz);
+            Vec2DInt column = columnCenter.plus(dx, dz);
+            int topY = getEffectiveTopY(world, column);
 
-                long colKey = ((long) (wx + 30000000)) << 26 | ((long) (wz + 30000000) & 0x3FFFFFFL);
+            long colKey = ((long) (column.x() + 30000000)) << 26 | ((long) (column.y() + 30000000) & 0x3FFFFFFL);
 
-                if (isOnce) {
-                    int newBlocks = (int) (weight * s.elevationStrength);
-                    int prevBlocks = elevFireCount.getOrDefault(colKey, 0);
-                    int delta = newBlocks - prevBlocks;
-                    if (delta <= 0) continue;
-                    elevFireCount.put(colKey, newBlocks);
-
-                    switch (s.elevationMode) {
-                        case RAISE:
-                            for (int i = 0; i < delta; i++) {
-                                int top = getEffectiveTopY(world, wx, wz);
-                                placeTerrainBlock(world, Vec3DInt.from(wx, top + 1, wz), top, false);
-                            }
-                            break;
-                        case LOWER:
-                            for (int i = 0; i < delta; i++) {
-                                int top = getEffectiveTopY(world, wx, wz);
-                                if (top > 0) ChangeProposal.write(world, Vec3DInt.from(wx, top, wz), Blocks.air, 0);
-                            }
-                            break;
-                        case FLATTEN: {
-                            int steps = Math.min(delta, Math.abs(flattenTargetY - getEffectiveTopY(world, wx, wz)));
-                            for (int i = 0; i < steps; i++) {
-                                int top = getEffectiveTopY(world, wx, wz);
-                                int dy = flattenTargetY - top;
-                                if (dy > 0 && s.flattenDirection != ElevationToolState.FlattenDirection.DOWN)
-                                    placeTerrainBlock(world, Vec3DInt.from(wx, top + 1, wz), top, false);
-                                else if (dy < 0
-                                        && s.flattenDirection != ElevationToolState.FlattenDirection.UP
-                                        && top > 0)
-                                    ChangeProposal.write(world, Vec3DInt.from(wx, top, wz), Blocks.air, 0);
-                                else break;
-                            }
-                            break;
-                        }
-                    }
-                    continue;
-                }
-
-                float prev = elevAccum.getOrDefault(colKey, 0f);
-                float acc = prev + weight;
-                boolean trigger = acc >= 1f;
-                elevAccum.put(colKey, trigger ? acc - 1f : acc);
-                if (!trigger) continue;
+            if (isOnce) {
+                int newBlocks = (int) (weight * s.elevationStrength);
+                int prevBlocks = elevFireCount.getOrDefault(colKey, 0);
+                int delta = newBlocks - prevBlocks;
+                if (delta <= 0) return;
+                elevFireCount.put(colKey, newBlocks);
 
                 switch (s.elevationMode) {
                     case RAISE:
-                        placeTerrainBlock(world, Vec3DInt.from(wx, topY + 1, wz), topY, true);
+                        for (int i = 0; i < delta; i++) {
+                            int top = getEffectiveTopY(world, column);
+                            placeTerrainBlock(world, Vec3DInt.from(column.x(), top + 1, column.y()), top, false);
+                        }
                         break;
                     case LOWER:
-                        if (topY > 0) ChangeProposal.write(world, Vec3DInt.from(wx, topY, wz), Blocks.air, 0);
+                        for (int i = 0; i < delta; i++) {
+                            int top = getEffectiveTopY(world, column);
+                            if (top > 0)
+                                ChangeProposal.write(world, Vec3DInt.from(column.x(), top, column.y()), Blocks.air, 0);
+                        }
                         break;
                     case FLATTEN: {
-                        int dy = flattenTargetY - topY;
-                        if (dy > 0 && s.flattenDirection != ElevationToolState.FlattenDirection.DOWN)
-                            placeTerrainBlock(world, Vec3DInt.from(wx, topY + 1, wz), topY, true);
-                        else if (dy < 0 && s.flattenDirection != ElevationToolState.FlattenDirection.UP && topY > 0)
-                            ChangeProposal.write(world, Vec3DInt.from(wx, topY, wz), Blocks.air, 0);
+                        int steps = Math.min(delta, Math.abs(flattenTargetY - getEffectiveTopY(world, column)));
+                        for (int i = 0; i < steps; i++) {
+                            int top = getEffectiveTopY(world, column);
+                            int dy = flattenTargetY - top;
+                            if (dy > 0 && s.flattenDirection != ElevationToolState.FlattenDirection.DOWN)
+                                placeTerrainBlock(world, Vec3DInt.from(column.x(), top + 1, column.y()), top, false);
+                            else if (dy < 0 && s.flattenDirection != ElevationToolState.FlattenDirection.UP && top > 0)
+                                ChangeProposal.write(world, Vec3DInt.from(column.x(), top, column.y()), Blocks.air, 0);
+                            else break;
+                        }
                         break;
                     }
                 }
+                return;
             }
-        }
+
+            float prev = elevAccum.getOrDefault(colKey, 0f);
+            float acc = prev + weight;
+            boolean trigger = acc >= 1f;
+            elevAccum.put(colKey, trigger ? acc - 1f : acc);
+            if (!trigger) return;
+
+            switch (s.elevationMode) {
+                case RAISE:
+                    placeTerrainBlock(world, Vec3DInt.from(column.x(), topY + 1, column.y()), topY, true);
+                    break;
+                case LOWER:
+                    if (topY > 0)
+                        ChangeProposal.write(world, Vec3DInt.from(column.x(), topY, column.y()), Blocks.air, 0);
+                    break;
+                case FLATTEN: {
+                    int dy = flattenTargetY - topY;
+                    if (dy > 0 && s.flattenDirection != ElevationToolState.FlattenDirection.DOWN)
+                        placeTerrainBlock(world, Vec3DInt.from(column.x(), topY + 1, column.y()), topY, true);
+                    else if (dy < 0 && s.flattenDirection != ElevationToolState.FlattenDirection.UP && topY > 0)
+                        ChangeProposal.write(world, Vec3DInt.from(column.x(), topY, column.y()), Blocks.air, 0);
+                    break;
+                }
+            }
+        });
     }
 
     public static float falloff(ElevationToolState.ElevationFalloff profile, float r) {
@@ -154,18 +154,18 @@ public class ElevationBrush implements BrushStrategy {
         ChangeProposal.write(world, pos, fillWith, fillMeta);
     }
 
-    private static int getEffectiveTopY(World world, int wx, int wz) {
+    private static int getEffectiveTopY(World world, Vec2DInt column) {
         ChangeProposal drag = ActiveDragState.INSTANCE.activeDrag;
         for (int y = 255; y >= 0; y--) {
             if (drag != null) {
-                long key = ChangeProposal.packKey(wx, y, wz);
+                long key = ChangeProposal.packKey(column.x(), y, column.y());
                 int[] bm = drag.proposed.get(key);
                 if (bm != null) {
                     if (bm[0] != 0) return y;
                     continue;
                 }
             }
-            if (world.getBlock(wx, y, wz) != Blocks.air) return y;
+            if (world.getBlock(column.x(), y, column.y()) != Blocks.air) return y;
         }
         return 0;
     }

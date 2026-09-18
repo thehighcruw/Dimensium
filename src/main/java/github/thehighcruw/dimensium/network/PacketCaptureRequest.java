@@ -29,8 +29,8 @@ public class PacketCaptureRequest implements IPacket {
     @Override
     public void encode(PacketBuffer buf) throws IOException {
         buf.writeInt(txId);
-        PacketUtils.writeCoords(buf, min.x(), min.y(), min.z());
-        PacketUtils.writeCoords(buf, max.x(), max.y(), max.z());
+        PacketUtils.writeCoords(buf, min);
+        PacketUtils.writeCoords(buf, max);
     }
 
     @Override

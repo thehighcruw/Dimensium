@@ -103,14 +103,13 @@ public class WorldLines {
             if (pl < 1e-9) return;
         }
         Vec3DDouble pw = perp.times(halfW / pl);
-        double px = pw.x(), py = pw.y(), pz = pw.z();
 
         // CW-from-camera winding — works whether GL_FRONT_FACE is CW or CCW
         // when combined with glDisable(GL_CULL_FACE) below.
-        t.addVertex(ax - px, ay - py, az - pz);
-        t.addVertex(ax + px, ay + py, az + pz);
-        t.addVertex(bx + px, by + py, bz + pz);
-        t.addVertex(bx - px, by - py, bz - pz);
+        t.addVertex(ax - pw.x(), ay - pw.y(), az - pw.z());
+        t.addVertex(ax + pw.x(), ay + pw.y(), az + pw.z());
+        t.addVertex(bx + pw.x(), by + pw.y(), bz + pw.z());
+        t.addVertex(bx - pw.x(), by - pw.y(), bz - pw.z());
     }
 
     /**

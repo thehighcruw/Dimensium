@@ -21,7 +21,7 @@ public class StackStrategy implements BuilderToolStrategy {
 
     @Override
     public void confirm(BuilderToolState bts, SelectionState sel) {
-        Vec3DInt base = Vec3DInt.from(sel.minX(), sel.minY(), sel.minZ());
+        Vec3DInt base = sel.min();
         Vec3DInt dims = Vec3DInt.from(sel.width(), sel.height(), sel.depth());
         Vec3DInt stackMin = bts.stack.min(Vec3DInt.ZERO);
         Vec3DInt stackMax = bts.stack.max(Vec3DInt.ZERO);

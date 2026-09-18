@@ -39,8 +39,12 @@ public class RotationGizmo {
     // X arc: YZ plane, basis (0,1,0) × (0,0,1)
     // Y arc: XZ plane, basis (1,0,0) × (0,0,1)
     // Z arc: XY plane, basis (1,0,0) × (0,1,0)
-    private static final float[][] ARC_P1 = {{0, 1, 0}, {1, 0, 0}, {1, 0, 0}};
-    private static final float[][] ARC_P2 = {{0, 0, 1}, {0, 0, 1}, {0, 1, 0}};
+    private static final Vec3DFloat[] ARC_P1 = {
+        Vec3DFloat.from(0, 1, 0), Vec3DFloat.from(1, 0, 0), Vec3DFloat.from(1, 0, 0)
+    };
+    private static final Vec3DFloat[] ARC_P2 = {
+        Vec3DFloat.from(0, 0, 1), Vec3DFloat.from(0, 0, 1), Vec3DFloat.from(0, 1, 0)
+    };
     private static final float[][] AXIS_COL = {
         {1.0f, 0.25f, 0.25f}, {0.25f, 1.0f, 0.25f}, {0.25f, 0.45f, 1.0f},
     };
@@ -71,6 +75,10 @@ public class RotationGizmo {
 
     // ── Render ────────────────────────────────────────────────────────────────
 
+    public void render(Vec3DDouble pos, Vec3DDouble camPos, Vec3DFloat rot) {
+        render(pos.x(), pos.y(), pos.z(), camPos, rot.x(), rot.y(), rot.z());
+    }
+
     public void render(double gx, double gy, double gz, Vec3DDouble camPos, float rotX, float rotY, float rotZ) {
         beginRender(proj, gx, gy, gz, camPos, rotX, rotY, rotZ);
         Tessellator wt = Tessellator.instance;
@@ -79,7 +87,7 @@ public class RotationGizmo {
             Axis axis = a == 0 ? Axis.X : a == 1 ? Axis.Y : Axis.Z;
             boolean hot = hoveredAxis == axis;
             float[] col = AXIS_COL[a];
-            float[] p1 = ARC_P1[a], p2 = ARC_P2[a];
+            Vec3DFloat p1 = ARC_P1[a], p2 = ARC_P2[a];
 
             if (hot) {
                 GL11.glColor4f(1f, 1f, 1f, 0.20f);
@@ -93,7 +101,7 @@ public class RotationGizmo {
         GL11.glPopMatrix();
     }
 
-    private static void drawArc(Tessellator t, float[] p1, float[] p2, float halfW) {
+    private static void drawArc(Tessellator t, Vec3DFloat p1, Vec3DFloat p2, float halfW) {
         // Render ring as billboard quads via WorldLines — each segment is a consecutive pair
         // of points on the ring.
         WorldLines.prepareSegmentBatch();
@@ -104,12 +112,12 @@ public class RotationGizmo {
             double c = Math.cos(ang) * ARC_R, s = Math.sin(ang) * ARC_R;
             WorldLines.addSegment(
                     t,
-                    prevC * p1[0] + prevS * p2[0],
-                    prevC * p1[1] + prevS * p2[1],
-                    prevC * p1[2] + prevS * p2[2],
-                    c * p1[0] + s * p2[0],
-                    c * p1[1] + s * p2[1],
-                    c * p1[2] + s * p2[2],
+                    prevC * p1.x() + prevS * p2.x(),
+                    prevC * p1.y() + prevS * p2.y(),
+                    prevC * p1.z() + prevS * p2.z(),
+                    c * p1.x() + s * p2.x(),
+                    c * p1.y() + s * p2.y(),
+                    c * p1.z() + s * p2.z(),
                     halfW);
             prevC = c;
             prevS = s;
@@ -118,6 +126,10 @@ public class RotationGizmo {
     }
 
     // ── Hover ─────────────────────────────────────────────────────────────────
+
+    public void updateHover(int mouseX, int mouseY, EntityLivingBase player, Vec3DDouble pos, Vec3DFloat rot) {
+        updateHover(mouseX, mouseY, player, pos.x(), pos.y(), pos.z(), rot.x(), rot.y(), rot.z());
+    }
 
     public void updateHover(
             int mouseX,
@@ -173,6 +185,10 @@ public class RotationGizmo {
      * initial mouse angle relative to the projected gizmo center, so that
      * updateDrag can return the swept angle.
      */
+    public void startDrag(int mouseX, int mouseY, Vec3DDouble pos, Vec3DFloat rot) {
+        startDrag(mouseX, mouseY, pos.x(), pos.y(), pos.z(), rot.x(), rot.y(), rot.z());
+    }
+
     public void startDrag(int mouseX, int mouseY, double gx, double gy, double gz, float rotX, float rotY, float rotZ) {
         if (hoveredAxis == Axis.NONE) return;
         dragAxis = hoveredAxis;
@@ -280,11 +296,11 @@ public class RotationGizmo {
     }
 
     private static Vec3DFloat arcBasisP1(Mat3DFloat R, int a) {
-        return R.mul(Vec3DFloat.from(ARC_P1[a][0], ARC_P1[a][1], ARC_P1[a][2]));
+        return R.mul(ARC_P1[a]);
     }
 
     private static Vec3DFloat arcBasisP2(Mat3DFloat R, int a) {
-        return R.mul(Vec3DFloat.from(ARC_P2[a][0], ARC_P2[a][1], ARC_P2[a][2]));
+        return R.mul(ARC_P2[a]);
     }
 
     static double segDist(double ax, double ay, double bx, double by, double px, double py) {

@@ -11,6 +11,7 @@ import github.thehighcruw.dimensium.shared.BlockSender;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.SelectionState.BlockData;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import github.thehighcruw.dimensium.shared.util.WorldUtils;
 import github.thehighcruw.dimensium.tool.BuilderToolState;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 import java.util.ArrayList;
@@ -36,12 +37,7 @@ public class SmearStrategy implements BuilderToolStrategy {
     }
 
     private static boolean inOriginalSelection(Vec3DInt dest, SelectionState sel) {
-        return dest.x() >= sel.minX()
-                && dest.x() <= sel.maxX()
-                && dest.y() >= sel.minY()
-                && dest.y() <= sel.maxY()
-                && dest.z() >= sel.minZ()
-                && dest.z() <= sel.maxZ();
+        return dest.inBounds(sel.min(), sel.max());
     }
 
     private static StepResult computeSteps(Vec3DInt offset) {
@@ -61,7 +57,7 @@ public class SmearStrategy implements BuilderToolStrategy {
     @Override
     public void confirm(BuilderToolState bts, SelectionState sel) {
         if (sel.clipboard == null) return;
-        Vec3DInt origin = Vec3DInt.from(sel.minX(), sel.minY(), sel.minZ());
+        Vec3DInt origin = sel.min();
         Vec3DInt offset = bts.offset;
         if (offset.equals(Vec3DInt.ZERO)) return;
 
@@ -74,9 +70,8 @@ public class SmearStrategy implements BuilderToolStrategy {
         for (int i = 1; i <= steps; i++) {
             Vec3DInt base = origin.plus(step.times(i));
             forEachSmearBlock(sel, base, (dest, bd) -> {
-                if (!inOriginalSelection(dest, sel) && world.getBlock(dest.x(), dest.y(), dest.z()) != Blocks.air)
-                    return;
-                ops.add(new int[] {dest.x(), dest.y(), dest.z(), Block.getIdFromBlock(bd.block()), bd.meta()});
+                if (!inOriginalSelection(dest, sel) && WorldUtils.getBlock(world, dest) != Blocks.air) return;
+                ops.add(dest.toBlockOp(Block.getIdFromBlock(bd.block()), bd.meta()));
             });
             if (ops.size() > DimensiumConfig.smearBlockCap) break;
         }
@@ -91,7 +86,7 @@ public class SmearStrategy implements BuilderToolStrategy {
             return;
         }
 
-        Vec3DInt origin = Vec3DInt.from(sel.minX(), sel.minY(), sel.minZ());
+        Vec3DInt origin = sel.min();
         Vec3DInt offset = Vec3DInt.from(mop.blockX, mop.blockY, mop.blockZ).minus(origin);
         bts.offset = offset;
         if (offset.equals(Vec3DInt.ZERO)) {

@@ -38,9 +38,9 @@ public class SmoothBrush implements BrushStrategy {
         int[] snapMeta = new int[N];
         int worldMinY = 0, worldMaxY = world.getHeight() - 1;
         Vec3DInt snapHalf = Vec3DInt.from(sx + margin, sy + margin, sx + margin);
-        Vec3DInt.forEachInclusive(snapHalf.negate(), snapHalf, (dx, dy, dz) -> {
-            int idx = Vec3DInt.from(dx, dy, dz).plus(snapHalf).toIndex(snStX, dims.z());
-            Vec3DInt wc = origin.plus(dx, dy, dz);
+        Vec3DInt.forEachInclusive(snapHalf.negate(), snapHalf, offset -> {
+            int idx = offset.plus(snapHalf).toIndex(dims);
+            Vec3DInt wc = origin.plus(offset);
             if (wc.y() < worldMinY) {
                 snapId[idx] = -1;
                 snapMeta[idx] = 0;
@@ -58,10 +58,9 @@ public class SmoothBrush implements BrushStrategy {
         Vec3DInt[] positions = new Vec3DInt[maxPos];
         int[] pCentre = new int[maxPos];
         int[] pc = {0}, os = {0};
-        Vec3DInt.forEachInclusive(brushBounds.negate(), brushBounds, (dx, dy, dz) -> {
-            Vec3DInt offset = Vec3DInt.from(dx, dy, dz);
+        Vec3DInt.forEachInclusive(brushBounds.negate(), brushBounds, offset -> {
             if (!BrushUtil.inShape(bs.brushShape, offset, brushBounds)) return;
-            int ci = offset.plus(sx + margin, sy + margin, sx + margin).toIndex(snStX, dims.z());
+            int ci = offset.plus(sx + margin, sy + margin, sx + margin).toIndex(dims);
             if (snapId[ci] != 0) os[0]++;
             positions[pc[0]] = offset;
             pCentre[pc[0]] = ci;
@@ -81,7 +80,11 @@ public class SmoothBrush implements BrushStrategy {
 
         boolean melt = s.smoothModifier == SmoothToolState.SmoothModifier.MELT;
         boolean grow = s.smoothModifier == SmoothToolState.SmoothModifier.GROW;
-        Vec3DFloat invBrushSize = Vec3DFloat.from(sx > 0 ? 1f / sx : 0f, sy > 0 ? 1f / sy : 0f, sx > 0 ? 1f / sx : 0f);
+        Vec3DFloat brushSizeF = brushBounds.toFloat();
+        Vec3DFloat invBrushSize = Vec3DFloat.from(
+                brushSizeF.x() > 0 ? 1f / brushSizeF.x() : 0f,
+                brushSizeF.y() > 0 ? 1f / brushSizeF.y() : 0f,
+                brushSizeF.z() > 0 ? 1f / brushSizeF.z() : 0f);
         Vec3DInt dimsMax = dims.minus(1);
 
         for (int i = 0; i < posCount; i++) {
@@ -108,7 +111,7 @@ public class SmoothBrush implements BrushStrategy {
             Vec3DInt.forEachInclusive(Vec3DInt.from(-1, -1, -1), Vec3DInt.ONE, (kx, ky, kz) -> {
                 Vec3DInt nb = snap.plus(kx, ky, kz);
                 if (!nb.inBounds(Vec3DInt.ZERO, dimsMax)) return;
-                int idx = nb.toIndex(snStX, dims.z());
+                int idx = nb.toIndex(dims);
                 int bid = snapId[idx];
                 if (bid <= 0) return;
                 boolean found = false;

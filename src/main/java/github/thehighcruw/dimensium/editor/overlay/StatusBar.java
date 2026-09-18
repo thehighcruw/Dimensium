@@ -12,6 +12,8 @@ import github.thehighcruw.dimensium.editor.tool.mask.ToolMask;
 import github.thehighcruw.dimensium.editor.tool.mask.ToolMaskRegistry;
 import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
 import github.thehighcruw.dimensium.shared.SelectionState;
+import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import imgui.ImGui;
 import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiStyleVar;
@@ -126,10 +128,8 @@ public final class StatusBar {
         // ── Camera XYZ ───────────────────────────────────────────────────────
         EntityLivingBase cam = Minecraft.getMinecraft().renderViewEntity;
         if (cam != null) {
-            int cx = (int) Math.floor(cam.posX);
-            int cy = (int) Math.floor(cam.posY);
-            int cz = (int) Math.floor(cam.posZ);
-            ImGui.text(cx + ", " + cy + ", " + cz);
+            Vec3DInt camPos = Vec3DInt.floor(Vec3DDouble.from(cam.posX, cam.posY, cam.posZ));
+            ImGui.text(camPos.x() + ", " + camPos.y() + ", " + camPos.z());
         }
 
         divider(sep);

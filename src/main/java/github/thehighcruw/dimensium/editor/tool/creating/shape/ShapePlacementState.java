@@ -16,6 +16,7 @@ import github.thehighcruw.dimensium.editor.window.viewport.world.ScalingGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.TranslationGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.ViewPlaneGizmo;
 import github.thehighcruw.dimensium.shared.math.Mat3DFloat;
+import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
@@ -39,7 +40,7 @@ public class ShapePlacementState
     /** Sub-block float anchor used for rendering and gizmo positioning. */
     public Vec3DFloat anchorF = Vec3DFloat.ZERO;
     /** Pre-rotation bounding box (shape-type adjusted). */
-    public int baseW, baseH, baseD;
+    public Vec3DInt baseDims = Vec3DInt.ZERO;
 
     /** Rotation angles in degrees around each axis, applied X→Y→Z. Free-angle (not snapped). */
     public Vec3DFloat rot = Vec3DFloat.ZERO;
@@ -58,7 +59,7 @@ public class ShapePlacementState
     /** Per-axis scale multipliers applied on top of the tool-state dimensions. */
     public Vec3DFloat scale = Vec3DFloat.ONE;
     /** ShapeToolState dimensions captured at scale-drag start; used to avoid per-frame runaway. */
-    public int scaleDragBaseW, scaleDragBaseH, scaleDragBaseD;
+    public Vec3DInt scaleDragBase = Vec3DInt.ZERO;
 
     private final TranslationGizmo gizmo = new TranslationGizmo();
     private final RotationGizmo rotGizmo = new RotationGizmo();
@@ -121,16 +122,8 @@ public class ShapePlacementState
     }
 
     /** Rotation center in world space — unchanged by rotation, always the base bbox center. */
-    public double centerX() {
-        return anchorF.x() + baseW / 2.0;
-    }
-
-    public double centerY() {
-        return anchorF.y() + baseH / 2.0;
-    }
-
-    public double centerZ() {
-        return anchorF.z() + baseD / 2.0;
+    public Vec3DDouble center() {
+        return anchorF.toDouble().plus(baseDims.toDouble().times(0.5));
     }
 
     /**
@@ -146,18 +139,13 @@ public class ShapePlacementState
         int rawW = Math.max(1, Math.round(s.shapeWidth * scale.x()));
         int rawH = Math.max(1, Math.round(s.shapeHeight * scale.y()));
         int rawD = Math.max(1, Math.round(s.shapeDepth * scale.z()));
-        Vec3DInt dims = s.effectiveDimensions(rawW, rawH, rawD);
-        int w = dims.x(), h = dims.y(), d = dims.z();
-        baseW = w;
-        baseH = h;
-        baseD = d;
+        baseDims = s.effectiveDimensions(rawW, rawH, rawD);
 
         Mat3DFloat R = ShapeMath.buildRotationMatrix(rot.x(), rot.y(), rot.z());
 
-        Vec3DInt shapeDims = Vec3DInt.from(w, h, d);
-        Vec3DInt[] bounds = ShapeMath.computeRotatedBounds(R, shapeDims);
+        Vec3DInt[] bounds = ShapeMath.computeRotatedBounds(R, baseDims);
 
-        ghostBlocks = buildGhostBlocks(s, shapeDims, R, bounds[0], bounds[1]);
+        ghostBlocks = buildGhostBlocks(s, baseDims, R, bounds[0], bounds[1]);
         rebuildShapeProposal();
     }
 

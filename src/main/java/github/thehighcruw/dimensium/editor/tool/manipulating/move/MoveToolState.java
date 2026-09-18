@@ -16,6 +16,7 @@ import github.thehighcruw.dimensium.editor.window.viewport.world.TranslationGizm
 import github.thehighcruw.dimensium.editor.window.viewport.world.ViewPlaneGizmo;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.math.Mat3DFloat;
+import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.WorldUtils;
@@ -133,16 +134,8 @@ public class MoveToolState
     }
 
     /** World-space gizmo anchor = center of mass + translation delta. */
-    public double gizmoX() {
-        return cm.x() + delta.x();
-    }
-
-    public double gizmoY() {
-        return cm.y() + delta.y();
-    }
-
-    public double gizmoZ() {
-        return cm.z() + delta.z();
+    public Vec3DDouble gizmoPos() {
+        return cm.plus(delta).toDouble();
     }
 
     public void invalidateGhost() {
@@ -173,13 +166,13 @@ public class MoveToolState
 
             Vec3DInt nCoord = Vec3DInt.floor(nPos);
             SelectionState.BlockData bd = e.getValue();
-            blocks.add(new int[] {nCoord.x(), nCoord.y(), nCoord.z(), Block.getIdFromBlock(bd.block()), bd.meta()});
+            blocks.add(nCoord.toBlockOp(Block.getIdFromBlock(bd.block()), bd.meta()));
         }
         ghostBlocks = blocks;
 
         ChangeProposal p = ChangeProposal.forPreview();
         for (int[] b : blocks) {
-            p.proposed.put(ChangeProposal.packKey(b[0], b[1], b[2]), new int[] {b[3], b[4]});
+            p.proposed.put(ChangeProposal.packKey(Vec3DInt.from(b[0], b[1], b[2])), new int[] {b[3], b[4]});
         }
         preview = p;
     }
@@ -187,16 +180,13 @@ public class MoveToolState
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private void computeCoM(SelectionState sel) {
-        double sx = 0, sy = 0, sz = 0;
+        Vec3DDouble sum = Vec3DDouble.ZERO;
         int cnt = 0;
         for (long key : sel.getSelectedBlocks()) {
-            Vec3DInt cv = SelectionState.unpack(key);
-            sx += cv.x() + 0.5;
-            sy += cv.y() + 0.5;
-            sz += cv.z() + 0.5;
+            sum = sum.plus(SelectionState.unpack(key).toDouble().plus(0.5));
             cnt++;
         }
-        cm = Vec3DFloat.from((float) (sx / cnt), (float) (sy / cnt), (float) (sz / cnt));
+        cm = sum.divide(cnt).toFloat();
     }
 
     private void captureSnapshot(SelectionState sel, World world) {

@@ -30,8 +30,8 @@ public class RulerToolRenderer implements ToolRenderer {
 
     @Override
     public boolean renderHover(MovingObjectPosition mop, Vec3DDouble camPos) {
-        List<int[]> points = RulerToolState.INSTANCE.points;
-        int hx = mop.blockX, hy = mop.blockY, hz = mop.blockZ;
+        List<Vec3DInt> points = RulerToolState.INSTANCE.points;
+        Vec3DInt hover = Vec3DInt.from(mop.blockX, mop.blockY, mop.blockZ);
 
         GL11.glPushMatrix();
         GL11.glTranslated(-camPos.x(), -camPos.y(), -camPos.z());
@@ -40,23 +40,27 @@ public class RulerToolRenderer implements ToolRenderer {
         GL11.glLineWidth(2.0f);
         GL11.glColor4f(1.0f, 0.85f, 0.1f, 0.9f);
 
+        Vec3DDouble hd = hover.toDouble();
+        Vec3DDouble hd1 = hd.plus(1.0);
+        Vec3DDouble hc = hd.plus(0.5);
+
         GL11.glBegin(GL11.GL_LINES);
 
         // lines between placed points
         for (int i = 0; i + 1 < points.size(); i++) {
-            int[] a = points.get(i);
-            int[] b = points.get(i + 1);
+            Vec3DDouble ac = points.get(i).toDouble().plus(0.5);
+            Vec3DDouble bc = points.get(i + 1).toDouble().plus(0.5);
             GL11.glColor4f(1.0f, 0.85f, 0.1f, 0.9f);
-            GL11.glVertex3d(a[0] + 0.5, a[1] + 0.5, a[2] + 0.5);
-            GL11.glVertex3d(b[0] + 0.5, b[1] + 0.5, b[2] + 0.5);
+            GL11.glVertex3d(ac.x(), ac.y(), ac.z());
+            GL11.glVertex3d(bc.x(), bc.y(), bc.z());
         }
 
         // line from last point (or cursor cross) to cursor
         if (!points.isEmpty()) {
-            int[] last = points.get(points.size() - 1);
+            Vec3DDouble lastCenter = points.get(points.size() - 1).toDouble().plus(0.5);
             GL11.glColor4f(1.0f, 0.85f, 0.1f, 0.45f);
-            GL11.glVertex3d(last[0] + 0.5, last[1] + 0.5, last[2] + 0.5);
-            GL11.glVertex3d(hx + 0.5, hy + 0.5, hz + 0.5);
+            GL11.glVertex3d(lastCenter.x(), lastCenter.y(), lastCenter.z());
+            GL11.glVertex3d(hc.x(), hc.y(), hc.z());
         }
 
         GL11.glEnd();
@@ -64,12 +68,12 @@ public class RulerToolRenderer implements ToolRenderer {
         // cursor cross — always visible so hover is never blank
         GL11.glBegin(GL11.GL_LINES);
         GL11.glColor4f(1.0f, 0.85f, 0.1f, 0.9f);
-        GL11.glVertex3d(hx, hy + 0.5, hz + 0.5);
-        GL11.glVertex3d(hx + 1.0, hy + 0.5, hz + 0.5);
-        GL11.glVertex3d(hx + 0.5, hy, hz + 0.5);
-        GL11.glVertex3d(hx + 0.5, hy + 1.0, hz + 0.5);
-        GL11.glVertex3d(hx + 0.5, hy + 0.5, hz);
-        GL11.glVertex3d(hx + 0.5, hy + 0.5, hz + 1.0);
+        GL11.glVertex3d(hd.x(), hc.y(), hc.z());
+        GL11.glVertex3d(hd1.x(), hc.y(), hc.z());
+        GL11.glVertex3d(hc.x(), hd.y(), hc.z());
+        GL11.glVertex3d(hc.x(), hd1.y(), hc.z());
+        GL11.glVertex3d(hc.x(), hc.y(), hd.z());
+        GL11.glVertex3d(hc.x(), hc.y(), hd1.z());
         GL11.glEnd();
 
         GL11.glEnable(GL11.GL_DEPTH_TEST);

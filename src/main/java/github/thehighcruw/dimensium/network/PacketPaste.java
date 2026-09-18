@@ -8,6 +8,7 @@ import com.gtnewhorizon.gtnhlib.network.base.IPacket;
 import github.thehighcruw.dimensium.Dimensium;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import github.thehighcruw.dimensium.shared.util.WorldUtils;
 import java.io.IOException;
 import java.util.Map;
 import net.minecraft.block.Block;
@@ -83,17 +84,10 @@ public class PacketPaste implements IPacket {
             return null;
         }
         World world = handler.playerEntity.worldObj;
-        int h = dim.y(), d = dim.z();
-        dim.forEach((x, y, z) -> {
-            int i = x * h * d + y * d + z;
+        dim.forEach(pos -> {
+            int i = pos.toIndex(dim);
             Block blk = Block.getBlockById(blockIds[i]);
-            world.setBlock(
-                    origin.x() + x,
-                    origin.y() + y,
-                    origin.z() + z,
-                    blk != null ? blk : Blocks.air,
-                    blockMetas[i] & 0xFFFF,
-                    3);
+            WorldUtils.setBlock(world, origin.plus(pos), blk != null ? blk : Blocks.air, blockMetas[i] & 0xFFFF, 3);
         });
         return null;
     }

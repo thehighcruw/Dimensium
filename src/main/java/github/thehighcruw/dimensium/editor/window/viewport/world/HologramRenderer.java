@@ -76,7 +76,8 @@ class HologramRenderer {
 
     private void renderSourceDim(SelectionState sel, Vec3DDouble camPos, float pulse) {
         GL11.glPushMatrix();
-        GL11.glTranslated(sel.minX() - camPos.x(), sel.minY() - camPos.y(), sel.minZ() - camPos.z());
+        Vec3DDouble selTrans = sel.min().toDouble().minus(camPos);
+        GL11.glTranslated(selTrans.x(), selTrans.y(), selTrans.z());
         GL11.glColor4f(1.0f, 0.1f, 0.1f, 0.12f + pulse * 0.06f);
         SelectionRenderer.drawFilledBox(sel.width(), sel.height(), sel.depth());
         GL11.glColor4f(1.0f, 0.2f, 0.2f, 0.7f);
@@ -87,7 +88,7 @@ class HologramRenderer {
 
     private void renderSmearVolume(SelectionState sel, BuilderToolState bts, Vec3DDouble camPos, float pulse) {
         Vec3DInt offset = bts.offset;
-        Vec3DInt selMin = Vec3DInt.from(sel.minX(), sel.minY(), sel.minZ());
+        Vec3DInt selMin = sel.min();
         Vec3DInt sweptMin = selMin.plus(offset.min(Vec3DInt.ZERO));
         Vec3DInt sweptDims =
                 Vec3DInt.from(sel.width(), sel.height(), sel.depth()).plus(offset.abs());
@@ -120,9 +121,7 @@ class HologramRenderer {
             boolean perBlock,
             int copyIndex,
             int totalCopies) {
-        Vec3DDouble hPos = Vec3DDouble.from(sel.minX(), sel.minY(), sel.minZ())
-                .plus(offset.toDouble())
-                .minus(camPos);
+        Vec3DDouble hPos = sel.min().toDouble().plus(offset.toDouble()).minus(camPos);
         Vec3DInt clipDims = sel.clipDim;
 
         if (perBlock && sel.clipboard != null) {
@@ -142,8 +141,7 @@ class HologramRenderer {
             PerfTrace.push("texturedPass " + clipDims);
             t.startDrawingQuads();
             int[] batched = {0};
-            Vec3DInt.forEachInclusive(Vec3DInt.ZERO, clipDims.minus(1), (x, y, z) -> {
-                Vec3DInt pos = Vec3DInt.from(x, y, z);
+            Vec3DInt.forEachInclusive(Vec3DInt.ZERO, clipDims.minus(1), pos -> {
                 BlockData bd = sel.clipboardGet(pos);
                 if (bd.block() == Blocks.air || bd.block().getRenderType() != 0) return;
                 for (int face = 0; face < 6; face++) {
@@ -162,8 +160,7 @@ class HologramRenderer {
             PerfTrace.push("colorPass");
             t.startDrawingQuads();
             batched[0] = 0;
-            Vec3DInt.forEachInclusive(Vec3DInt.ZERO, clipDims.minus(1), (x, y, z) -> {
-                Vec3DInt pos = Vec3DInt.from(x, y, z);
+            Vec3DInt.forEachInclusive(Vec3DInt.ZERO, clipDims.minus(1), pos -> {
                 BlockData bd = sel.clipboardGet(pos);
                 if (bd.block() == Blocks.air || bd.block().getRenderType() == 0) return;
                 int blockId = Block.getIdFromBlock(bd.block());
@@ -193,8 +190,7 @@ class HologramRenderer {
             PerfTrace.push("glowPass");
             t.startDrawingQuads();
             batched[0] = 0;
-            Vec3DInt.forEachInclusive(Vec3DInt.ZERO, clipDims.minus(1), (x, y, z) -> {
-                Vec3DInt pos = Vec3DInt.from(x, y, z);
+            Vec3DInt.forEachInclusive(Vec3DInt.ZERO, clipDims.minus(1), pos -> {
                 BlockData bd = sel.clipboardGet(pos);
                 if (bd.block() == Blocks.air) return;
                 for (int face = 0; face < 6; face++) {
@@ -255,18 +251,16 @@ class HologramRenderer {
         Vec3DInt clipDims = sel.clipDim;
 
         HashSet<Long> set = new HashSet<>(clipDims.product());
-        Vec3DInt.forEachInclusive(Vec3DInt.ZERO, clipDims.minus(1), (x, y, z) -> {
-            if (sel.clipboardGet(Vec3DInt.from(x, y, z)).block() != Blocks.air)
-                set.add(SelectionRenderer.lPack(x, y, z));
+        Vec3DInt.forEachInclusive(Vec3DInt.ZERO, clipDims.minus(1), pos -> {
+            if (sel.clipboardGet(pos).block() != Blocks.air) set.add(SelectionRenderer.lPack(pos));
         });
 
         return GhostRenderer.creaseWireframeFromSet(set);
     }
 
     private static void drawAxisLine(SelectionState sel, BuilderToolState bts, Vec3DDouble camPos) {
-        Vec3DDouble src = Vec3DDouble.from(sel.minX(), sel.minY(), sel.minZ())
-                .plus(sel.clipDim.toDouble().times(0.5))
-                .minus(camPos);
+        Vec3DDouble src =
+                sel.min().toDouble().plus(sel.clipDim.toDouble().times(0.5)).minus(camPos);
         Vec3DDouble dst = src.plus(bts.offset.toDouble());
 
         float lr = bts.axisLock == BuilderToolState.AxisLock.X ? 1.0f : 0.3f;

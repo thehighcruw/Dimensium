@@ -42,7 +42,7 @@ public class ModellingMath {
         for (Map.Entry<Long, int[]> e : out.entrySet()) {
             long key = e.getKey();
             Vec3DInt pos = ChangeProposal.unpackKey(key);
-            result.add(new int[] {pos.x(), pos.y(), pos.z(), e.getValue()[0], e.getValue()[1]});
+            result.add(pos.toBlockOp(e.getValue()[0], e.getValue()[1]));
         }
         return result;
     }
@@ -613,28 +613,36 @@ public class ModellingMath {
 
     static void bresenhamLine(Map<Long, int[]> out, ModelPoint a, ModelPoint b, int[] bm) {
         Vec3DInt pa = a.pos(), pb = b.pos();
-        int x = pa.x(), y = pa.y(), z = pa.z();
-        int x1 = pb.x(), y1 = pb.y(), z1 = pb.z();
-        int dx = Math.abs(x1 - x), dy = Math.abs(y1 - y), dz = Math.abs(z1 - z);
-        int sx = x < x1 ? 1 : -1, sy = y < y1 ? 1 : -1, sz = z < z1 ? 1 : -1;
-        addPoint(out, x, y, z, bm);
-        int[] pos = {x, y, z};
-        int[] step = {sx, sy, sz};
-        int[] deltas = {dx, dy, dz};
-        if (dx >= dy && dx >= dz) {
-            bresenhamMajor(out, pos, step, deltas, 0, bm);
-        } else if (dy >= dx && dy >= dz) {
-            bresenhamMajor(out, pos, step, deltas, 1, bm);
-        } else {
-            bresenhamMajor(out, pos, step, deltas, 2, bm);
-        }
+        Vec3DInt delta = pb.minus(pa).abs();
+        Vec3DInt step = pb.minus(pa).signum();
+        addPoint(out, pa, bm);
+        int major = delta.x() >= delta.y() && delta.x() >= delta.z()
+                ? 0
+                : delta.y() >= delta.x() && delta.y() >= delta.z() ? 1 : 2;
+        bresenhamMajor(out, pa, step, delta, major, bm);
     }
 
-    private static void bresenhamMajor(Map<Long, int[]> out, int[] pos, int[] step, int[] deltas, int major, int[] bm) {
-        int a = major == 0 ? 1 : 0;
-        int b = major == 2 ? 1 : 2;
-        bresenhamRun(
-                pos, step, major, a, b, deltas[major], deltas[a], deltas[b], (x, y, z) -> addPoint(out, x, y, z, bm));
+    private static void bresenhamMajor(
+            Map<Long, int[]> out, Vec3DInt start, Vec3DInt step, Vec3DInt delta, int major, int[] bm) {
+        int axisA = major == 0 ? 1 : 0;
+        int axisB = major == 2 ? 1 : 2;
+        int dm = delta.get(major), da = delta.get(axisA), db = delta.get(axisB);
+        int err1 = 2 * da - dm, err2 = 2 * db - dm;
+        Vec3DInt pos = start;
+        for (int i = 0; i < dm; i++) {
+            pos = pos.withAxis(major, pos.get(major) + step.get(major));
+            if (err1 > 0) {
+                pos = pos.withAxis(axisA, pos.get(axisA) + step.get(axisA));
+                err1 -= 2 * dm;
+            }
+            if (err2 > 0) {
+                pos = pos.withAxis(axisB, pos.get(axisB) + step.get(axisB));
+                err2 -= 2 * dm;
+            }
+            err1 += 2 * da;
+            err2 += 2 * db;
+            addPoint(out, pos, bm);
+        }
     }
 
     public static void bresenhamRun(
@@ -664,10 +672,6 @@ public class ModellingMath {
 
     private static void addPoint(Map<Long, int[]> out, Vec3DInt p, int[] bm) {
         out.put(ChangeProposal.packKey(p), bm);
-    }
-
-    private static void addPoint(Map<Long, int[]> out, int x, int y, int z, int[] bm) {
-        out.put(ChangeProposal.packKey(x, y, z), bm);
     }
 
     private static double dist2(Vec3DDouble A, Vec3DDouble B) {

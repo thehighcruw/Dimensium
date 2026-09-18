@@ -10,6 +10,7 @@ import github.thehighcruw.dimensium.DimensiumEditorMode;
 import github.thehighcruw.dimensium.editor.freecam.FreecamUtils;
 import github.thehighcruw.dimensium.shared.InputHandler;
 import github.thehighcruw.dimensium.shared.SelectionState;
+import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.tool.BuilderTool;
 import github.thehighcruw.dimensium.tool.BuilderToolState;
@@ -103,24 +104,23 @@ public class WorldMouseHandler {
     }
 
     private static void nudgeStackCount(BuilderToolState bts, int dir, Vec3 facing) {
-        double ax = Math.abs(facing.xCoord);
-        double ay = Math.abs(facing.yCoord);
-        double az = Math.abs(facing.zCoord);
-        if (ax >= ay && ax >= az) {
+        Vec3DDouble facingVec = Vec3DDouble.fromVec3(facing);
+        Vec3DDouble absVec = facingVec.abs();
+        if (absVec.x() >= absVec.y() && absVec.x() >= absVec.z()) {
             bts.stack = Vec3DInt.from(
-                    Math.max(-64, Math.min(64, bts.stack.x() + (int) Math.signum(facing.xCoord) * dir)),
+                    Math.max(-64, Math.min(64, bts.stack.x() + (int) Math.signum(facingVec.x()) * dir)),
                     bts.stack.y(),
                     bts.stack.z());
-        } else if (ay >= ax && ay >= az) {
+        } else if (absVec.y() >= absVec.x() && absVec.y() >= absVec.z()) {
             bts.stack = Vec3DInt.from(
                     bts.stack.x(),
-                    Math.max(-64, Math.min(64, bts.stack.y() + (int) Math.signum(facing.yCoord) * dir)),
+                    Math.max(-64, Math.min(64, bts.stack.y() + (int) Math.signum(facingVec.y()) * dir)),
                     bts.stack.z());
         } else {
             bts.stack = Vec3DInt.from(
                     bts.stack.x(),
                     bts.stack.y(),
-                    Math.max(-64, Math.min(64, bts.stack.z() + (int) Math.signum(facing.zCoord) * dir)));
+                    Math.max(-64, Math.min(64, bts.stack.z() + (int) Math.signum(facingVec.z()) * dir)));
         }
     }
 }

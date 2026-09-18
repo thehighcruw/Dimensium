@@ -127,20 +127,18 @@ public class SculptBrush implements BrushStrategy {
     private static Vec3DFloat computeSobelNormal(World world, Vec3DInt center, int radius) {
         int search = radius + 8;
         float[] h = new float[9];
-        boolean anyFound = false;
-        for (int dz = -1; dz <= 1; dz++) {
-            for (int dx = -1; dx <= 1; dx++) {
-                int idx = (dz + 1) * 3 + (dx + 1);
-                int top = findTopY(world, center.x() + dx, center.z() + dz, center.y(), search);
-                if (top == Integer.MIN_VALUE) {
-                    h[idx] = center.y();
-                } else {
-                    h[idx] = top;
-                    anyFound = true;
-                }
+        boolean[] anyFound = {false};
+        Vec3DInt.forEachInclusive(Vec3DInt.from(-1, 0, -1), Vec3DInt.from(1, 0, 1), offset -> {
+            int idx = (offset.z() + 1) * 3 + (offset.x() + 1);
+            int top = findTopY(world, center.x() + offset.x(), center.z() + offset.z(), center.y(), search);
+            if (top == Integer.MIN_VALUE) {
+                h[idx] = center.y();
+            } else {
+                h[idx] = top;
+                anyFound[0] = true;
             }
-        }
-        if (!anyFound) return null;
+        });
+        if (!anyFound[0]) return null;
 
         // Sobel kernels (divide by 8 for normalization)
         float dX = (-h[0] + h[2] - 2 * h[3] + 2 * h[5] - h[6] + h[8]) / 8f;
@@ -158,7 +156,7 @@ public class SculptBrush implements BrushStrategy {
 
     private static int findTopY(World world, int x, int z, int cy, int search) {
         for (int y = Math.min(255, cy + search); y >= Math.max(0, cy - search); y--) {
-            if (world.getBlock(x, y, z) != Blocks.air) return y;
+            if (WorldUtils.getBlock(world, Vec3DInt.from(x, y, z)) != Blocks.air) return y;
         }
         return Integer.MIN_VALUE;
     }

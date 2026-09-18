@@ -25,17 +25,14 @@ public class ShapeBrush implements BrushStrategy {
         PaletteState ps = PaletteState.INSTANCE;
         if (ps.palette.isEmpty()) return;
         Vec3DInt dims = s.effectiveDimensions(s.shapeWidth, s.shapeHeight, s.shapeDepth);
-        int w = dims.x(), h = dims.y(), d = dims.z();
 
-        // Center on hit block: offset so dx=0..w-1 is symmetric around mop.blockX.
-        final int fw = w, fh = h, fd = d;
-        Vec3DInt origin =
-                Vec3DInt.from(mop.blockX - (fw - 1) / 2, mop.blockY - (fh - 1) / 2, mop.blockZ - (fd - 1) / 2);
+        // Center on hit block: offset so dx=0..dims.x()-1 is symmetric around mop.blockX.
+        Vec3DInt origin = Vec3DInt.from(
+                mop.blockX - (dims.x() - 1) / 2, mop.blockY - (dims.y() - 1) / 2, mop.blockZ - (dims.z() - 1) / 2);
 
-        Vec3DInt shapeDims = Vec3DInt.from(fw, fh, fd);
-        Vec3DInt.forEachInclusive(Vec3DInt.ZERO, shapeDims.minus(1), (dx, dy, dz) -> {
-            if (!inShapeGeom(s, Vec3DInt.from(dx, dy, dz), shapeDims)) return;
-            Vec3DInt pos = origin.plus(dx, dy, dz);
+        Vec3DInt.forEachInclusive(Vec3DInt.ZERO, dims.minus(1), offset -> {
+            if (!inShapeGeom(s, offset, dims)) return;
+            Vec3DInt pos = origin.plus(offset);
             if (s.shapeKeepExisting && WorldUtils.getBlock(world, pos) != Blocks.air) return;
             BrushUtil.writeFromItem(world, pos, ps.samplePalette(rand));
         });

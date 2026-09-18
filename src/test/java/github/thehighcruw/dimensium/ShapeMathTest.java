@@ -21,11 +21,11 @@ public class ShapeMathTest {
     private static final int SIDES = 6;
     private static final float SPIRAL_SPACING = 1.5f, SPIRAL_TURNS = 3f;
 
-    private static boolean shape(ShapeType type, int dx, int dy, int dz, int w, int h, int d, boolean hollow) {
+    private static boolean shape(ShapeType type, Vec3DInt offset, Vec3DInt dims, boolean hollow) {
         return ShapeMath.inShapeGeom(
                 type,
-                Vec3DInt.from(dx, dy, dz),
-                Vec3DInt.from(w, h, d),
+                offset,
+                dims,
                 hollow,
                 EXP,
                 TORUS_R,
@@ -48,11 +48,12 @@ public class ShapeMathTest {
     }
 
     private static int count(ShapeType type, int w, int h, int d, boolean hollow) {
-        int n = 0;
-        for (int dx = 0; dx < w; dx++)
-            for (int dy = 0; dy < h; dy++)
-                for (int dz = 0; dz < d; dz++) if (shape(type, dx, dy, dz, w, h, d, hollow)) n++;
-        return n;
+        Vec3DInt dims = Vec3DInt.from(w, h, d);
+        int[] n = {0};
+        Vec3DInt.forEachInclusive(Vec3DInt.ZERO, dims.minus(1), offset -> {
+            if (shape(type, offset, dims, hollow)) n[0]++;
+        });
+        return n[0];
     }
 
     // ── CUBOID ───────────────────────────────────────────────────────────────
@@ -64,12 +65,12 @@ public class ShapeMathTest {
 
     @Test
     public void cuboidHollowExcludesCenter() {
-        assertFalse(shape(ShapeType.CUBOID, 2, 2, 2, 5, 5, 5, true));
+        assertFalse(shape(ShapeType.CUBOID, Vec3DInt.from(2, 2, 2), Vec3DInt.from(5, 5, 5), true));
     }
 
     @Test
     public void cuboidHollowIncludesFace() {
-        assertTrue(shape(ShapeType.CUBOID, 0, 2, 2, 5, 5, 5, true));
+        assertTrue(shape(ShapeType.CUBOID, Vec3DInt.from(0, 2, 2), Vec3DInt.from(5, 5, 5), true));
     }
 
     @Test
@@ -82,17 +83,17 @@ public class ShapeMathTest {
 
     @Test
     public void sphereCenterInside() {
-        assertTrue(shape(ShapeType.SPHERE, 5, 5, 5, 11, 11, 11, false));
+        assertTrue(shape(ShapeType.SPHERE, Vec3DInt.from(5, 5, 5), Vec3DInt.from(11, 11, 11), false));
     }
 
     @Test
     public void sphereCornerOutside() {
-        assertFalse(shape(ShapeType.SPHERE, 0, 0, 0, 11, 11, 11, false));
+        assertFalse(shape(ShapeType.SPHERE, Vec3DInt.from(0, 0, 0), Vec3DInt.from(11, 11, 11), false));
     }
 
     @Test
     public void sphereEquatorInside() {
-        assertTrue(shape(ShapeType.SPHERE, 5, 5, 0, 11, 11, 11, false));
+        assertTrue(shape(ShapeType.SPHERE, Vec3DInt.from(5, 5, 0), Vec3DInt.from(11, 11, 11), false));
     }
 
     @Test
@@ -114,44 +115,44 @@ public class ShapeMathTest {
 
     @Test
     public void cylinderCenterInside() {
-        assertTrue(shape(ShapeType.CYLINDER, 5, 3, 5, 11, 7, 11, false));
+        assertTrue(shape(ShapeType.CYLINDER, Vec3DInt.from(5, 3, 5), Vec3DInt.from(11, 7, 11), false));
     }
 
     @Test
     public void cylinderCornerOutside() {
-        assertFalse(shape(ShapeType.CYLINDER, 0, 3, 0, 11, 7, 11, false));
+        assertFalse(shape(ShapeType.CYLINDER, Vec3DInt.from(0, 3, 0), Vec3DInt.from(11, 7, 11), false));
     }
 
     @Test
     public void cylinderHollowCapsIncluded() {
-        assertTrue(shape(ShapeType.CYLINDER, 5, 0, 5, 11, 7, 11, true));
-        assertTrue(shape(ShapeType.CYLINDER, 5, 6, 5, 11, 7, 11, true));
+        assertTrue(shape(ShapeType.CYLINDER, Vec3DInt.from(5, 0, 5), Vec3DInt.from(11, 7, 11), true));
+        assertTrue(shape(ShapeType.CYLINDER, Vec3DInt.from(5, 6, 5), Vec3DInt.from(11, 7, 11), true));
     }
 
     @Test
     public void cylinderHollowMidCenterExcluded() {
-        assertFalse(shape(ShapeType.CYLINDER, 5, 3, 5, 11, 7, 11, true));
+        assertFalse(shape(ShapeType.CYLINDER, Vec3DInt.from(5, 3, 5), Vec3DInt.from(11, 7, 11), true));
     }
 
     @Test
     public void cylinderXSymmetric() {
         assertEquals(
-                shape(ShapeType.CYLINDER, 3, 3, 5, 11, 7, 11, false),
-                shape(ShapeType.CYLINDER, 7, 3, 5, 11, 7, 11, false));
+                shape(ShapeType.CYLINDER, Vec3DInt.from(3, 3, 5), Vec3DInt.from(11, 7, 11), false),
+                shape(ShapeType.CYLINDER, Vec3DInt.from(7, 3, 5), Vec3DInt.from(11, 7, 11), false));
     }
 
     // ── PYRAMID ──────────────────────────────────────────────────────────────
 
     @Test
     public void pyramidBaseFullWidth() {
-        assertTrue(shape(ShapeType.PYRAMID, 4, 0, 4, 9, 9, 9, false));
-        assertTrue(shape(ShapeType.PYRAMID, 0, 0, 0, 9, 9, 9, false));
+        assertTrue(shape(ShapeType.PYRAMID, Vec3DInt.from(4, 0, 4), Vec3DInt.from(9, 9, 9), false));
+        assertTrue(shape(ShapeType.PYRAMID, Vec3DInt.from(0, 0, 0), Vec3DInt.from(9, 9, 9), false));
     }
 
     @Test
     public void pyramidApexOneBlock() {
-        assertTrue(shape(ShapeType.PYRAMID, 4, 8, 4, 9, 9, 9, false));
-        assertFalse(shape(ShapeType.PYRAMID, 6, 8, 4, 9, 9, 9, false));
+        assertTrue(shape(ShapeType.PYRAMID, Vec3DInt.from(4, 8, 4), Vec3DInt.from(9, 9, 9), false));
+        assertFalse(shape(ShapeType.PYRAMID, Vec3DInt.from(6, 8, 4), Vec3DInt.from(9, 9, 9), false));
     }
 
     @Test
@@ -161,7 +162,8 @@ public class ShapeMathTest {
         for (int dy = 1; dy < h; dy++) {
             int slice = 0;
             for (int dx = 0; dx < w; dx++)
-                for (int dz = 0; dz < d; dz++) if (shape(ShapeType.PYRAMID, dx, dy, dz, w, h, d, false)) slice++;
+                for (int dz = 0; dz < d; dz++)
+                    if (shape(ShapeType.PYRAMID, Vec3DInt.from(dx, dy, dz), Vec3DInt.from(w, h, d), false)) slice++;
             assertTrue("slice at dy=" + dy + " should be <= previous", slice <= prev);
             prev = slice;
         }
@@ -171,20 +173,21 @@ public class ShapeMathTest {
 
     @Test
     public void coneBaseEdgeInside() {
-        assertTrue(shape(ShapeType.CONE, 5, 0, 5, 11, 11, 11, false));
-        assertTrue(shape(ShapeType.CONE, 0, 0, 5, 11, 11, 11, false));
+        assertTrue(shape(ShapeType.CONE, Vec3DInt.from(5, 0, 5), Vec3DInt.from(11, 11, 11), false));
+        assertTrue(shape(ShapeType.CONE, Vec3DInt.from(0, 0, 5), Vec3DInt.from(11, 11, 11), false));
     }
 
     @Test
     public void coneBaseCornerOutside() {
-        assertFalse(shape(ShapeType.CONE, 0, 0, 0, 11, 11, 11, false));
+        assertFalse(shape(ShapeType.CONE, Vec3DInt.from(0, 0, 0), Vec3DInt.from(11, 11, 11), false));
     }
 
     @Test
     public void coneApexOneBlock() {
         int apexCount = 0;
         for (int dx = 0; dx < 11; dx++)
-            for (int dz = 0; dz < 11; dz++) if (shape(ShapeType.CONE, dx, 10, dz, 11, 11, 11, false)) apexCount++;
+            for (int dz = 0; dz < 11; dz++)
+                if (shape(ShapeType.CONE, Vec3DInt.from(dx, 10, dz), Vec3DInt.from(11, 11, 11), false)) apexCount++;
         assertEquals(1, apexCount);
     }
 
@@ -195,7 +198,8 @@ public class ShapeMathTest {
         for (int dy = 1; dy < h; dy++) {
             int slice = 0;
             for (int dx = 0; dx < w; dx++)
-                for (int dz = 0; dz < d; dz++) if (shape(ShapeType.CONE, dx, dy, dz, w, h, d, false)) slice++;
+                for (int dz = 0; dz < d; dz++)
+                    if (shape(ShapeType.CONE, Vec3DInt.from(dx, dy, dz), Vec3DInt.from(w, h, d), false)) slice++;
             assertTrue("cone slice at dy=" + dy + " should shrink", slice <= prev);
             prev = slice;
         }
@@ -213,13 +217,13 @@ public class ShapeMathTest {
     @Test
     public void torusRingEquatorInsideSolid() {
         int[] c = torusRingEquatorCoords();
-        assertTrue(shape(ShapeType.TORUS, c[0], c[1], c[2], c[3], c[4], c[3], false));
+        assertTrue(shape(ShapeType.TORUS, Vec3DInt.from(c[0], c[1], c[2]), Vec3DInt.from(c[3], c[4], c[3]), false));
     }
 
     @Test
     public void torusRingEquatorOutsideHollow() {
         int[] c = torusRingEquatorCoords();
-        assertFalse(shape(ShapeType.TORUS, c[0], c[1], c[2], c[3], c[4], c[3], true));
+        assertFalse(shape(ShapeType.TORUS, Vec3DInt.from(c[0], c[1], c[2]), Vec3DInt.from(c[3], c[4], c[3]), true));
     }
 
     @Test
@@ -228,8 +232,8 @@ public class ShapeMathTest {
         int w = outer * 2 + 1, h = r * 2 + 1;
         float cx = (w - 1) / 2f, cy = (h - 1) / 2f;
         int dxOuter = Math.round(cx + R + r), dy = Math.round(cy), dz = Math.round(cx);
-        assertTrue(shape(ShapeType.TORUS, dxOuter, dy, dz, w, h, w, false));
-        assertTrue(shape(ShapeType.TORUS, dxOuter, dy, dz, w, h, w, true));
+        assertTrue(shape(ShapeType.TORUS, Vec3DInt.from(dxOuter, dy, dz), Vec3DInt.from(w, h, w), false));
+        assertTrue(shape(ShapeType.TORUS, Vec3DInt.from(dxOuter, dy, dz), Vec3DInt.from(w, h, w), true));
     }
 
     @Test
@@ -238,7 +242,11 @@ public class ShapeMathTest {
         int outer = TORUS_R + r;
         int w = outer * 2 + 1, h = r * 2 + 1;
         float cx = (w - 1) / 2f, cy = (h - 1) / 2f;
-        assertFalse(shape(ShapeType.TORUS, Math.round(cx), Math.round(cy), Math.round(cx), w, h, w, false));
+        assertFalse(shape(
+                ShapeType.TORUS,
+                Vec3DInt.from(Math.round(cx), Math.round(cy), Math.round(cx)),
+                Vec3DInt.from(w, h, w),
+                false));
     }
 
     @Test
@@ -257,26 +265,26 @@ public class ShapeMathTest {
 
     @Test
     public void octahedronCenterInside() {
-        assertTrue(shape(ShapeType.OCTAHEDRON, 5, 5, 5, 11, 11, 11, false));
+        assertTrue(shape(ShapeType.OCTAHEDRON, Vec3DInt.from(5, 5, 5), Vec3DInt.from(11, 11, 11), false));
     }
 
     @Test
     public void octahedronCornerOutside() {
-        assertFalse(shape(ShapeType.OCTAHEDRON, 0, 0, 0, 11, 11, 11, false));
+        assertFalse(shape(ShapeType.OCTAHEDRON, Vec3DInt.from(0, 0, 0), Vec3DInt.from(11, 11, 11), false));
     }
 
     @Test
     public void octahedronAxialApicesInside() {
-        assertTrue(shape(ShapeType.OCTAHEDRON, 10, 5, 5, 11, 11, 11, false));
-        assertTrue(shape(ShapeType.OCTAHEDRON, 5, 10, 5, 11, 11, 11, false));
-        assertTrue(shape(ShapeType.OCTAHEDRON, 5, 5, 10, 11, 11, 11, false));
+        assertTrue(shape(ShapeType.OCTAHEDRON, Vec3DInt.from(10, 5, 5), Vec3DInt.from(11, 11, 11), false));
+        assertTrue(shape(ShapeType.OCTAHEDRON, Vec3DInt.from(5, 10, 5), Vec3DInt.from(11, 11, 11), false));
+        assertTrue(shape(ShapeType.OCTAHEDRON, Vec3DInt.from(5, 5, 10), Vec3DInt.from(11, 11, 11), false));
     }
 
     @Test
     public void octahedronXSymmetric() {
         assertEquals(
-                shape(ShapeType.OCTAHEDRON, 3, 5, 5, 11, 11, 11, false),
-                shape(ShapeType.OCTAHEDRON, 7, 5, 5, 11, 11, 11, false));
+                shape(ShapeType.OCTAHEDRON, Vec3DInt.from(3, 5, 5), Vec3DInt.from(11, 11, 11), false),
+                shape(ShapeType.OCTAHEDRON, Vec3DInt.from(7, 5, 5), Vec3DInt.from(11, 11, 11), false));
     }
 
     @Test
@@ -292,17 +300,17 @@ public class ShapeMathTest {
 
     @Test
     public void diskCenterMidYInside() {
-        assertTrue(shape(ShapeType.DISK, 5, 2, 5, 11, 5, 11, false));
+        assertTrue(shape(ShapeType.DISK, Vec3DInt.from(5, 2, 5), Vec3DInt.from(11, 5, 11), false));
     }
 
     @Test
     public void diskOffYExcluded() {
-        assertFalse(shape(ShapeType.DISK, 5, 3, 5, 11, 5, 11, false));
+        assertFalse(shape(ShapeType.DISK, Vec3DInt.from(5, 3, 5), Vec3DInt.from(11, 5, 11), false));
     }
 
     @Test
     public void diskCornerOnMidYOutside() {
-        assertFalse(shape(ShapeType.DISK, 0, 2, 0, 11, 5, 11, false));
+        assertFalse(shape(ShapeType.DISK, Vec3DInt.from(0, 2, 0), Vec3DInt.from(11, 5, 11), false));
     }
 
     @Test
@@ -330,7 +338,7 @@ public class ShapeMathTest {
 
     @Test
     public void planeWrongYExcluded() {
-        assertFalse(shape(ShapeType.PLANE, 4, 3, 4, 9, 5, 9, false));
+        assertFalse(shape(ShapeType.PLANE, Vec3DInt.from(4, 3, 4), Vec3DInt.from(9, 5, 9), false));
     }
 
     @Test
@@ -347,13 +355,14 @@ public class ShapeMathTest {
         int seCount = count(ShapeType.SUPERELLIPSE, w, h, d, false);
         int cylMid = 0;
         for (int dx = 0; dx < w; dx++)
-            for (int dz = 0; dz < d; dz++) if (shape(ShapeType.CYLINDER, dx, midY, dz, w, h, d, false)) cylMid++;
+            for (int dz = 0; dz < d; dz++)
+                if (shape(ShapeType.CYLINDER, Vec3DInt.from(dx, midY, dz), Vec3DInt.from(w, h, d), false)) cylMid++;
         assertEquals(cylMid, seCount);
     }
 
     @Test
     public void superellipseOffLayerExcluded() {
-        assertFalse(shape(ShapeType.SUPERELLIPSE, 5, 3, 5, 11, 5, 11, false));
+        assertFalse(shape(ShapeType.SUPERELLIPSE, Vec3DInt.from(5, 3, 5), Vec3DInt.from(11, 5, 11), false));
     }
 
     @Test
@@ -373,12 +382,12 @@ public class ShapeMathTest {
 
     @Test
     public void supersphereCenterInside() {
-        assertTrue(shape(ShapeType.SUPERSPHERE, 5, 5, 5, 11, 11, 11, false));
+        assertTrue(shape(ShapeType.SUPERSPHERE, Vec3DInt.from(5, 5, 5), Vec3DInt.from(11, 11, 11), false));
     }
 
     @Test
     public void supersphereCornerOutside() {
-        assertFalse(shape(ShapeType.SUPERSPHERE, 0, 0, 0, 11, 11, 11, false));
+        assertFalse(shape(ShapeType.SUPERSPHERE, Vec3DInt.from(0, 0, 0), Vec3DInt.from(11, 11, 11), false));
     }
 
     @Test
@@ -393,18 +402,18 @@ public class ShapeMathTest {
 
     @Test
     public void tubeCenterEmpty() {
-        assertFalse(shape(ShapeType.TUBE, 5, 3, 5, 11, 7, 11, false));
+        assertFalse(shape(ShapeType.TUBE, Vec3DInt.from(5, 3, 5), Vec3DInt.from(11, 7, 11), false));
     }
 
     @Test
     public void tubeRingBandIncluded() {
         // rx=5.5, wall=2 → inner rx=3.5: dx=cx+4=9 is in band
-        assertTrue(shape(ShapeType.TUBE, 9, 3, 5, 11, 7, 11, false));
+        assertTrue(shape(ShapeType.TUBE, Vec3DInt.from(9, 3, 5), Vec3DInt.from(11, 7, 11), false));
     }
 
     @Test
     public void tubeOutsideExcluded() {
-        assertFalse(shape(ShapeType.TUBE, 0, 3, 0, 11, 7, 11, false));
+        assertFalse(shape(ShapeType.TUBE, Vec3DInt.from(0, 3, 0), Vec3DInt.from(11, 7, 11), false));
     }
 
     @Test
@@ -416,12 +425,12 @@ public class ShapeMathTest {
 
     @Test
     public void dodecahedronCenterInside() {
-        assertTrue(shape(ShapeType.DODECAHEDRON, 6, 6, 6, 13, 13, 13, false));
+        assertTrue(shape(ShapeType.DODECAHEDRON, Vec3DInt.from(6, 6, 6), Vec3DInt.from(13, 13, 13), false));
     }
 
     @Test
     public void dodecahedronCornerOutside() {
-        assertFalse(shape(ShapeType.DODECAHEDRON, 0, 0, 0, 13, 13, 13, false));
+        assertFalse(shape(ShapeType.DODECAHEDRON, Vec3DInt.from(0, 0, 0), Vec3DInt.from(13, 13, 13), false));
     }
 
     @Test
@@ -438,12 +447,12 @@ public class ShapeMathTest {
 
     @Test
     public void icosahedronCenterInside() {
-        assertTrue(shape(ShapeType.ICOSAHEDRON, 6, 6, 6, 13, 13, 13, false));
+        assertTrue(shape(ShapeType.ICOSAHEDRON, Vec3DInt.from(6, 6, 6), Vec3DInt.from(13, 13, 13), false));
     }
 
     @Test
     public void icosahedronCornerOutside() {
-        assertFalse(shape(ShapeType.ICOSAHEDRON, 0, 0, 0, 13, 13, 13, false));
+        assertFalse(shape(ShapeType.ICOSAHEDRON, Vec3DInt.from(0, 0, 0), Vec3DInt.from(13, 13, 13), false));
     }
 
     @Test
@@ -460,12 +469,12 @@ public class ShapeMathTest {
 
     @Test
     public void regularPolygonCenterInside() {
-        assertTrue(shape(ShapeType.REGULAR_POLYGON, 6, 2, 6, 13, 5, 13, false));
+        assertTrue(shape(ShapeType.REGULAR_POLYGON, Vec3DInt.from(6, 2, 6), Vec3DInt.from(13, 5, 13), false));
     }
 
     @Test
     public void regularPolygonOffLayerExcluded() {
-        assertFalse(shape(ShapeType.REGULAR_POLYGON, 6, 3, 6, 13, 5, 13, false));
+        assertFalse(shape(ShapeType.REGULAR_POLYGON, Vec3DInt.from(6, 3, 6), Vec3DInt.from(13, 5, 13), false));
     }
 
     @Test
@@ -487,7 +496,7 @@ public class ShapeMathTest {
 
     @Test
     public void spiralOffLayerExcluded() {
-        assertFalse(shape(ShapeType.ARCHIMEDEAN_SPIRAL, 10, 3, 10, 21, 5, 21, false));
+        assertFalse(shape(ShapeType.ARCHIMEDEAN_SPIRAL, Vec3DInt.from(10, 3, 10), Vec3DInt.from(21, 5, 21), false));
     }
 
     @Test

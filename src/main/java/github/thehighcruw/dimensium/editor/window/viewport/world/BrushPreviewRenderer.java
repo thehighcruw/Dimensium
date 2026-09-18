@@ -19,6 +19,7 @@ import github.thehighcruw.dimensium.shared.KeyConstants;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
+import github.thehighcruw.dimensium.shared.util.WorldUtils;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -47,8 +48,7 @@ public class BrushPreviewRenderer {
         MovingObjectPosition mop = RenderUtils.raycastAtCursor();
         if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return;
 
-        int bx = mop.blockX, by = mop.blockY, bz = mop.blockZ;
-        double rx = camPos.x(), ry = camPos.y(), rz = camPos.z();
+        Vec3DInt cursor = Vec3DInt.from(mop.blockX, mop.blockY, mop.blockZ);
         Tool activeTool = DimensiumEditorMode.INSTANCE.selectedTool;
         BrushState bs = BrushState.INSTANCE;
         int sx = bs.brushRadius;
@@ -65,52 +65,43 @@ public class BrushPreviewRenderer {
                 // Accumulate solid blocks from all drag positions visited so far + current cursor.
                 // Uses absolute world-coord packing (20 bits/axis, offset 524288).
                 HashSet<Long> absSet = new HashSet<>();
-                collectSolidAbsolute(mc, shape, bx, by, bz, brushSize, absSet);
-                for (long pk : TickHandler.INSTANCE.getSmoothDragPositions()) {
-                    int cx2 = (int) ((pk >> 42) & 0x1FFFFF) - 1048576;
-                    int cy2 = (int) ((pk >> 21) & 0x1FFFFF) - 1048576;
-                    int cz2 = (int) (pk & 0x1FFFFF) - 1048576;
-                    collectSolidAbsolute(mc, shape, cx2, cy2, cz2, brushSize, absSet);
+                collectSolidAbsolute(mc, shape, cursor, brushSize, absSet);
+                for (Vec3DInt dragPos : TickHandler.INSTANCE.getSmoothDragPositions()) {
+                    collectSolidAbsolute(mc, shape, dragPos, brushSize, absSet);
                 }
                 float[] wire = creaseWireframeAbsolute(absSet);
                 if (wire != null && wire.length > 0) {
                     GL11.glColor4f(0.50f, 0.85f, 1.0f, 0.9f);
                     GL11.glPushMatrix();
-                    GL11.glTranslated(-rx, -ry, -rz);
-                    // glTranslated(-rx,-ry,-rz) → eye in local (world) space = (rx,ry,rz)
-                    WorldLines.setEye(Vec3DDouble.from(rx, ry, rz));
+                    GL11.glTranslated(-camPos.x(), -camPos.y(), -camPos.z());
+                    // glTranslated(-camPos) → eye in local (world) space = camPos
+                    WorldLines.setEye(camPos);
                     GhostRenderer.drawWireframeCache(Tessellator.instance, wire);
                     GL11.glPopMatrix();
                 }
             } else {
                 // Non-smooth tools: pulsating fill + crease using relative coords.
                 HashSet<Long> affectedSet = new HashSet<>();
-                Vec3DInt brushOrigin = Vec3DInt.from(bx, by, bz);
-                Vec3DInt.forEachInclusive(brushSize.negate(), brushSize, (dx, dy, dz) -> {
-                    Vec3DInt offset = Vec3DInt.from(dx, dy, dz);
+                Vec3DInt.forEachInclusive(brushSize.negate(), brushSize, offset -> {
                     if (!BrushUtil.inShape(shape, offset, brushSize)) return;
-                    if (renderer.isBlockAffected(mc, brushOrigin.plus(offset)))
-                        affectedSet.add(SelectionRenderer.lPack(dx + sx, dy + sy, dz + sx));
+                    if (renderer.isBlockAffected(mc, cursor.plus(offset)))
+                        affectedSet.add(SelectionRenderer.lPack(offset.plus(brushSize)));
                 });
 
                 if (!affectedSet.isEmpty()) {
                     float pulse = 0.22f + 0.13f * (float) Math.sin(System.currentTimeMillis() / 180.0);
                     GL11.glPushMatrix();
-                    GL11.glTranslated(-rx, -ry, -rz);
+                    GL11.glTranslated(-camPos.x(), -camPos.y(), -camPos.z());
                     GL11.glColor4f(0.35f, 0.75f, 1.0f, pulse);
                     Tessellator t = Tessellator.instance;
                     t.startDrawingQuads();
                     int batched = 0;
                     for (long pk : affectedSet) {
-                        int lx = (int) ((pk >> 26) & 0x1FFF) - 4096;
-                        int ly = (int) ((pk >> 13) & 0x1FFF) - 4096;
-                        int lz = (int) (pk & 0x1FFF) - 4096;
-                        Vec3DInt world = Vec3DInt.from(lx + bx - sx, ly + by - sy, lz + bz - sx);
+                        Vec3DInt local = SelectionRenderer.lUnpack(pk);
+                        Vec3DInt world = cursor.plus(local.minus(brushSize));
                         for (int face = 0; face < 6; face++) {
                             long nk = SelectionRenderer.lPack(
-                                    lx + GhostRenderer.NX[face],
-                                    ly + GhostRenderer.NY[face],
-                                    lz + GhostRenderer.NZ[face]);
+                                    local.plus(GhostRenderer.NX[face], GhostRenderer.NY[face], GhostRenderer.NZ[face]));
                             if (!affectedSet.contains(nk)) {
                                 GhostRenderer.addSingleFace(t, world, face);
                                 if (++batched % 2048 == 0) {
@@ -127,7 +118,10 @@ public class BrushPreviewRenderer {
                     if (wire != null && wire.length > 0) {
                         GL11.glColor4f(0.50f, 0.85f, 1.0f, 0.9f);
                         GL11.glPushMatrix();
-                        pushBrushTranslation(bx, by, bz, rx, ry, rz, sx);
+                        Vec3DDouble brushTrans =
+                                cursor.toDouble().minus(brushSize.toDouble()).minus(camPos);
+                        GL11.glTranslated(brushTrans.x(), brushTrans.y(), brushTrans.z());
+                        WorldLines.setEyeForTranslation(brushTrans);
                         GhostRenderer.drawWireframeCache(Tessellator.instance, wire);
                         GL11.glPopMatrix();
                     }
@@ -137,7 +131,10 @@ public class BrushPreviewRenderer {
             // Static brush-shape preview: transparent white faces + white crease edges
             float[] wire = getBrushWireframe(shape, brushSize);
             GL11.glPushMatrix();
-            pushBrushTranslation(bx, by, bz, rx, ry, rz, sx);
+            Vec3DDouble shapeTrans =
+                    cursor.toDouble().minus(brushSize.toDouble()).minus(camPos);
+            GL11.glTranslated(shapeTrans.x(), shapeTrans.y(), shapeTrans.z());
+            WorldLines.setEyeForTranslation(shapeTrans);
 
             // Outer faces — view-shaded transparent white.
             // Depth write enabled so overlapping faces don't accumulate (fixes corner glow).
@@ -146,30 +143,24 @@ public class BrushPreviewRenderer {
                 GL11.glDepthMask(true);
 
                 // View direction from brush center → normalized
-                Vec3DDouble viewDir = Vec3DDouble.from(rx - bx, ry - by, rz - bz);
+                Vec3DDouble viewDir = camPos.minus(cursor.toDouble());
                 if (viewDir.length() > 0.001) viewDir = viewDir.normalize();
-                double ecx = viewDir.x(), ecy = viewDir.y(), ecz = viewDir.z();
 
                 Tessellator tf = Tessellator.instance;
                 for (int faceDir = 0; faceDir < 6; faceDir++) {
                     // dot(faceNormal, eyeDir): faces toward player are bright, away are dim
-                    float dot = (float) (ecx * GhostRenderer.NX[faceDir]
-                            + ecy * GhostRenderer.NY[faceDir]
-                            + ecz * GhostRenderer.NZ[faceDir]);
+                    float dot = (float) viewDir.dot(Vec3DDouble.from(
+                            GhostRenderer.NX[faceDir], GhostRenderer.NY[faceDir], GhostRenderer.NZ[faceDir]));
                     float brightness = 0.25f + 0.75f * Math.max(0f, dot);
                     GL11.glColor4f(brightness, brightness, brightness, 0.12f);
                     tf.startDrawingQuads();
                     int batched = 0;
                     for (long pk : cachedBrushSet) {
-                        int lx = (int) ((pk >> 26) & 0x1FFF) - 4096;
-                        int ly = (int) ((pk >> 13) & 0x1FFF) - 4096;
-                        int lz = (int) (pk & 0x1FFF) - 4096;
-                        long nk = SelectionRenderer.lPack(
-                                lx + GhostRenderer.NX[faceDir],
-                                ly + GhostRenderer.NY[faceDir],
-                                lz + GhostRenderer.NZ[faceDir]);
+                        Vec3DInt local = SelectionRenderer.lUnpack(pk);
+                        long nk = SelectionRenderer.lPack(local.plus(
+                                GhostRenderer.NX[faceDir], GhostRenderer.NY[faceDir], GhostRenderer.NZ[faceDir]));
                         if (!cachedBrushSet.contains(nk)) {
-                            GhostRenderer.addSingleFace(tf, Vec3DInt.from(lx, ly, lz), faceDir);
+                            GhostRenderer.addSingleFace(tf, local, faceDir);
                             if (++batched % 2048 == 0) {
                                 tf.draw();
                                 tf.startDrawingQuads();
@@ -214,9 +205,8 @@ public class BrushPreviewRenderer {
 
     private static HashSet<Long> buildBrushSet(BrushShape shape, Vec3DInt brushSize) {
         HashSet<Long> set = new HashSet<>();
-        Vec3DInt.forEachInclusive(brushSize.negate(), brushSize, (dx, dy, dz) -> {
-            if (BrushUtil.inShape(shape, Vec3DInt.from(dx, dy, dz), brushSize))
-                set.add(SelectionRenderer.lPack(dx + brushSize.x(), dy + brushSize.y(), dz + brushSize.z()));
+        Vec3DInt.forEachInclusive(brushSize.negate(), brushSize, offset -> {
+            if (BrushUtil.inShape(shape, offset, brushSize)) set.add(SelectionRenderer.lPack(offset.plus(brushSize)));
         });
         return set.size() > BRUSH_VOXEL_MAX ? null : set;
     }
@@ -239,12 +229,23 @@ public class BrushPreviewRenderer {
         return ((long) (x + ABS_OFFSET) << 40) | ((long) (y + ABS_OFFSET) << 20) | (z + ABS_OFFSET);
     }
 
+    private static long wPack(Vec3DInt p) {
+        return wPack(p.x(), p.y(), p.z());
+    }
+
+    private static Vec3DInt wUnpack(long pk) {
+        return Vec3DInt.from(
+                (int) ((pk >> 40) & 0xFFFFF) - ABS_OFFSET,
+                (int) ((pk >> 20) & 0xFFFFF) - ABS_OFFSET,
+                (int) (pk & 0xFFFFF) - ABS_OFFSET);
+    }
+
     private static void collectSolidAbsolute(
-            Minecraft mc, BrushShape shape, int cx, int cy, int cz, Vec3DInt brushSize, HashSet<Long> out) {
-        Vec3DInt.forEachInclusive(brushSize.negate(), brushSize, (dx, dy, dz) -> {
-            if (!BrushUtil.inShape(shape, Vec3DInt.from(dx, dy, dz), brushSize)) return;
-            if (mc.theWorld.getBlock(cx + dx, cy + dy, cz + dz) != Blocks.air)
-                out.add(wPack(cx + dx, cy + dy, cz + dz));
+            Minecraft mc, BrushShape shape, Vec3DInt center, Vec3DInt brushSize, HashSet<Long> out) {
+        Vec3DInt.forEachInclusive(brushSize.negate(), brushSize, offset -> {
+            if (!BrushUtil.inShape(shape, offset, brushSize)) return;
+            Vec3DInt worldPos = center.plus(offset);
+            if (WorldUtils.getBlock(mc.theWorld, worldPos) != Blocks.air) out.add(wPack(worldPos));
         });
     }
 
@@ -262,10 +263,17 @@ public class BrushPreviewRenderer {
             long ek = entry.getKey();
             int axis = (int) (ek >>> 62) & 3;
             long pos = ek & 0x3FFFFFFFFFFFFFFFL;
-            int ex = (int) ((pos >> 40) & 0xFFFFF) - ABS_OFFSET;
-            int ey = (int) ((pos >> 20) & 0xFFFFF) - ABS_OFFSET;
-            int ez = (int) (pos & 0xFFFFF) - ABS_OFFSET;
-            vi = GhostRenderer.writeEdgeVerts(verts, vi, ex, ey, ez, axis);
+            Vec3DInt coord = Vec3DInt.from(
+                    (int) ((pos >> 40) & 0xFFFFF) - ABS_OFFSET,
+                    (int) ((pos >> 20) & 0xFFFFF) - ABS_OFFSET,
+                    (int) (pos & 0xFFFFF) - ABS_OFFSET);
+            Vec3DInt end = coord.plus(axis == 0 ? 1 : 0, axis == 1 ? 1 : 0, axis == 2 ? 1 : 0);
+            verts[vi++] = coord.x();
+            verts[vi++] = coord.y();
+            verts[vi++] = coord.z();
+            verts[vi++] = end.x();
+            verts[vi++] = end.y();
+            verts[vi++] = end.z();
         }
         return verts;
     }
@@ -274,16 +282,14 @@ public class BrushPreviewRenderer {
     private static HashMap<Long, Integer> getEdgeMask(HashSet<Long> set) {
         HashMap<Long, Integer> edgeMask = new HashMap<>(set.size() * 4);
         for (long pk : set) {
-            int bx = (int) ((pk >> 40) & 0xFFFFF) - ABS_OFFSET;
-            int by = (int) ((pk >> 20) & 0xFFFFF) - ABS_OFFSET;
-            int bz = (int) (pk & 0xFFFFF) - ABS_OFFSET;
+            Vec3DInt b = wUnpack(pk);
             for (int face = 0; face < 6; face++) {
-                long nb = wPack(bx + GhostRenderer.NX[face], by + GhostRenderer.NY[face], bz + GhostRenderer.NZ[face]);
+                long nb = wPack(b.plus(GhostRenderer.NX[face], GhostRenderer.NY[face], GhostRenderer.NZ[face]));
                 if (set.contains(nb)) continue;
                 int axisBit = GhostRenderer.FACE_AXIS_BIT[face];
                 for (int[] e : GhostRenderer.FACE_EDGES[face]) {
                     // Edge key: pack edge axis (2 bits) + absolute start corner (wPack)
-                    long ek = ((long) e[0] << 62) | wPack(bx + e[1], by + e[2], bz + e[3]);
+                    long ek = ((long) e[0] << 62) | wPack(b.plus(e[1], e[2], e[3]));
                     edgeMask.compute(ek, (k, prev) -> prev == null ? axisBit : prev | axisBit);
                 }
             }

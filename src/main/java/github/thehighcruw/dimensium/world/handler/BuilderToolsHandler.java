@@ -112,10 +112,7 @@ public class BuilderToolsHandler {
             // Phase transitions to MANIPULATING when PacketCaptureResponse arrives.
             PerfTrace.push("sendCaptureRequest");
             int captureId = CAPTURE_ID_GEN.incrementAndGet();
-            PacketHandler.CHANNEL.sendToServer(new PacketCaptureRequest(
-                    captureId,
-                    Vec3DInt.from(sel.minX(), sel.minY(), sel.minZ()),
-                    Vec3DInt.from(sel.maxX(), sel.maxY(), sel.maxZ())));
+            PacketHandler.CHANNEL.sendToServer(new PacketCaptureRequest(captureId, sel.min(), sel.max()));
             bts.phase = Phase.CAPTURING;
             PerfTrace.pop();
             PerfTrace.end(0);

@@ -15,6 +15,7 @@ import github.thehighcruw.dimensium.editor.window.viewport.world.TranslationGizm
 import github.thehighcruw.dimensium.shared.KeyConstants;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.EntityLivingBase;
@@ -51,22 +52,19 @@ public class BoxSelectBrushInput implements BrushInput {
                     if (SelectionRenderer.boxCenterViewPlaneGizmo.hovered) {
                         SelectionRenderer.INSTANCE.boxCenterDragP1 = sel.pendingPos;
                         SelectionRenderer.INSTANCE.boxCenterDragP2 = sel.pendingPos2;
-                        SelectionRenderer.boxCenterViewPlaneGizmo.startDrag(
-                                mouseX, mouseY, eye, c.x(), c.y(), c.z(), c.x(), c.y(), c.z());
+                        SelectionRenderer.boxCenterViewPlaneGizmo.startDrag(mouseX, mouseY, eye, c, c);
                         return;
                     }
                     if (SelectionRenderer.boxCenterGizmo.hoveredAxis != TranslationGizmo.Axis.NONE) {
                         SelectionRenderer.INSTANCE.boxCenterDragP1 = sel.pendingPos;
                         SelectionRenderer.INSTANCE.boxCenterDragP2 = sel.pendingPos2;
-                        SelectionRenderer.boxCenterGizmo.startDrag(
-                                mouseX, mouseY, c.x(), c.y(), c.z(), c.x(), c.y(), c.z(), 0, 0, 0);
+                        SelectionRenderer.boxCenterGizmo.startDrag(mouseX, mouseY, c, c, Vec3DFloat.ZERO);
                         return;
                     }
                     if (SelectionRenderer.boxCenterPlaneGizmo.hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
                         SelectionRenderer.INSTANCE.boxCenterDragP1 = sel.pendingPos;
                         SelectionRenderer.INSTANCE.boxCenterDragP2 = sel.pendingPos2;
-                        SelectionRenderer.boxCenterPlaneGizmo.startDrag(
-                                mouseX, mouseY, c.x(), c.y(), c.z(), c.x(), c.y(), c.z(), 0, 0, 0);
+                        SelectionRenderer.boxCenterPlaneGizmo.startDrag(mouseX, mouseY, c, c, Vec3DFloat.ZERO);
                         return;
                     }
                 }
@@ -113,11 +111,11 @@ public class BoxSelectBrushInput implements BrushInput {
     private static boolean tryStartPointGizmos(
             int mouseX, int mouseY, Vec3DDouble g, TranslationGizmo axisGizmo, PlaneTranslationGizmo planeGizmo) {
         if (axisGizmo.hoveredAxis != TranslationGizmo.Axis.NONE) {
-            axisGizmo.startDrag(mouseX, mouseY, g.x(), g.y(), g.z(), g.x(), g.y(), g.z(), 0, 0, 0);
+            axisGizmo.startDrag(mouseX, mouseY, g, g, Vec3DFloat.ZERO);
             return true;
         }
         if (planeGizmo.hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
-            planeGizmo.startDrag(mouseX, mouseY, g.x(), g.y(), g.z(), g.x(), g.y(), g.z(), 0, 0, 0);
+            planeGizmo.startDrag(mouseX, mouseY, g, g, Vec3DFloat.ZERO);
             return true;
         }
         return false;

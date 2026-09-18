@@ -7,6 +7,8 @@ package github.thehighcruw.dimensium.editor.window.viewport.world;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.shared.SelectionState;
+import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
@@ -143,8 +145,6 @@ public class ClipboardRenderer {
         System.out.println("[ClipboardRenderer] rebaking " + sel.clipDim.x() + "x" + sel.clipDim.y() + "x"
                 + sel.clipDim.z() + " into fbo=" + fboId + " tex=" + texId);
 
-        int W = sel.clipDim.x(), H = sel.clipDim.y(), D = sel.clipDim.z();
-
         // Save full GL state before touching anything
         GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
         GL11.glMatrixMode(GL11.GL_PROJECTION);
@@ -174,17 +174,19 @@ public class ClipboardRenderer {
             GL11.glMatrixMode(GL11.GL_MODELVIEW);
             GL11.glLoadIdentity();
 
-            float cx = W / 2f, cy = H / 2f, cz = D / 2f;
-            float span = Math.max(Math.max(W, D), H);
+            Vec3DFloat dimF = sel.clipDim.toFloat();
+            Vec3DFloat center = dimF.times(0.5f);
+            float span = dimF.max();
             float dist = (span * 1.7f + 2f) / previewZoom;
             double elevRad = Math.toRadians(previewElev);
             double azimRad = Math.toRadians(previewAzim);
 
-            float ex = cx + dist * (float) (Math.cos(elevRad) * Math.cos(azimRad));
-            float ey = cy + dist * (float) Math.sin(elevRad);
-            float ez = cz + dist * (float) (Math.cos(elevRad) * Math.sin(azimRad));
+            Vec3DFloat eye = center.plus(Vec3DFloat.from(
+                    dist * (float) (Math.cos(elevRad) * Math.cos(azimRad)),
+                    dist * (float) Math.sin(elevRad),
+                    dist * (float) (Math.cos(elevRad) * Math.sin(azimRad))));
 
-            GLU.gluLookAt(ex, ey, ez, cx, cy, cz, 0f, 1f, 0f);
+            GLU.gluLookAt(eye.x(), eye.y(), eye.z(), center.x(), center.y(), center.z(), 0f, 1f, 0f);
 
             // Render blocks
             GL11.glEnable(GL11.GL_DEPTH_TEST);
@@ -206,7 +208,7 @@ public class ClipboardRenderer {
             GL11.glBindTexture(GL11.GL_TEXTURE_2D, whiteLightmap);
             OpenGlHelper.setActiveTexture(OpenGlHelper.defaultTexUnit);
 
-            ClipboardBlockAccess bAccess = new ClipboardBlockAccess(sel.clipboard, W, H, D);
+            ClipboardBlockAccess bAccess = new ClipboardBlockAccess(sel.clipboard, sel.clipDim);
             RenderBlocks rb = new RenderBlocks(bAccess);
             rb.useInventoryTint = false;
             rb.renderAllFaces = true; // ensure exterior faces always render
@@ -219,13 +221,10 @@ public class ClipboardRenderer {
             tessStarted = true;
 
             for (Map.Entry<Long, SelectionState.BlockData> entry : sel.clipboard.entrySet()) {
-                long key = entry.getKey();
-                int x = (int) (key >> 20) & 0xFFFFF;
-                int y = (int) (key >> 10) & 0x3FF;
-                int z = (int) key & 0x3FF;
+                Vec3DInt pos = SelectionState.decodeClipboardKey(entry.getKey());
                 SelectionState.BlockData bd = entry.getValue();
                 if (bd != null && bd.block() != Blocks.air) {
-                    rb.renderBlockByRenderType(bd.block(), x, y, z);
+                    rb.renderBlockByRenderType(bd.block(), pos.x(), pos.y(), pos.z());
                 }
             }
 

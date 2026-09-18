@@ -39,9 +39,8 @@ public class SphereConsistencyTest {
     };
     private static final int[] SIZES = {3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
 
-    private static boolean geomInt(ShapeType t, int dx, int dy, int dz, int w, int h, int d, boolean hollow) {
-        return ShapeMath.inShapeGeom(
-                t, Vec3DInt.from(dx, dy, dz), Vec3DInt.from(w, h, d), hollow, 2f, 6, 6, 2, 2, 2f, 6, 1.5f, 3f, 1f);
+    private static boolean geomInt(ShapeType t, Vec3DInt offset, Vec3DInt dims, boolean hollow) {
+        return ShapeMath.inShapeGeom(t, offset, dims, hollow, 2f, 6, 6, 2, 2, 2f, 6, 1.5f, 3f, 1f);
     }
 
     private static boolean geomF(ShapeType t, float dx, float dy, float dz, int w, int h, int d, boolean hollow) {
@@ -62,7 +61,7 @@ public class SphereConsistencyTest {
         for (int dx = 0; dx < w; dx++)
             for (int dy = 0; dy < h; dy++)
                 for (int dz = 0; dz < d; dz++) {
-                    boolean i = geomInt(type, dx, dy, dz, w, h, d, hollow);
+                    boolean i = geomInt(type, Vec3DInt.from(dx, dy, dz), Vec3DInt.from(w, h, d), hollow);
                     boolean f = geomF(type, dx + 0.5f, dy + 0.5f, dz + 0.5f, w, h, d, hollow);
                     if (i != f)
                         fail(tag + ": inShapeGeom("
@@ -150,7 +149,7 @@ public class SphereConsistencyTest {
                         dy = k;
                         dz = i;
                     }
-                    if (geomInt(type, dx, dy, dz, w, h, d, hollow)) {
+                    if (geomInt(type, Vec3DInt.from(dx, dy, dz), Vec3DInt.from(w, h, d), hollow)) {
                         if (i * 2 < dim - 1) lo++;
                         else hi++;
                     }

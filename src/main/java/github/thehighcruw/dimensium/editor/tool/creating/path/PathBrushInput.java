@@ -18,6 +18,7 @@ import github.thehighcruw.dimensium.editor.window.viewport.world.TranslationGizm
 import github.thehighcruw.dimensium.shared.InputHandler;
 import github.thehighcruw.dimensium.shared.KeyConstants;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import java.util.ArrayList;
 import java.util.List;
@@ -56,9 +57,8 @@ public class PathBrushInput implements BrushInput {
 
         if (button == KeyConstants.LMB) {
             EntityLivingBase eye = mc.renderViewEntity;
-            List<int[]> ptPositions = new ArrayList<>(pts.points.size());
-            for (PathToolState.PathPoint pt : pts.points)
-                ptPositions.add(new int[] {pt.pos.x(), pt.pos.y(), pt.pos.z()});
+            List<Vec3DInt> ptPositions = new ArrayList<>(pts.points.size());
+            for (PathToolState.PathPoint pt : pts.points) ptPositions.add(pt.pos);
             int bestIdx = GuiDimensiumOverlay.findNearestPointOnScreen(
                     ptPositions,
                     pts.selectedIndex,
@@ -73,14 +73,12 @@ public class PathBrushInput implements BrushInput {
                     && pts.selectedPoint() != null
                     && eye != null) {
                 Vec3DDouble gp = pts.selectedPoint().pos.toDouble().plus(0.5);
-                pts.getAxisTranslationGizmo()
-                        .startDrag(mouseX, mouseY, gp.x(), gp.y(), gp.z(), gp.x(), gp.y(), gp.z(), 0, 0, 0);
+                pts.getAxisTranslationGizmo().startDrag(mouseX, mouseY, gp, gp, Vec3DFloat.ZERO);
             } else if (pts.getPlaneTranslationGizmo().hoveredPlane != PlaneTranslationGizmo.Plane.NONE
                     && pts.selectedPoint() != null
                     && eye != null) {
                 Vec3DDouble gp = pts.selectedPoint().pos.toDouble().plus(0.5);
-                pts.getPlaneTranslationGizmo()
-                        .startDrag(mouseX, mouseY, gp.x(), gp.y(), gp.z(), gp.x(), gp.y(), gp.z(), 0, 0, 0);
+                pts.getPlaneTranslationGizmo().startDrag(mouseX, mouseY, gp, gp, Vec3DFloat.ZERO);
             }
         }
     }

@@ -305,13 +305,8 @@ public class SelectionState {
     }
 
     public static Set<Long> aabbBlocks(Vec3DInt p1, Vec3DInt p2) {
-        return aabbBlocks(p1.x(), p1.y(), p1.z(), p2.x(), p2.y(), p2.z());
-    }
-
-    public static Set<Long> aabbBlocks(int x1, int y1, int z1, int x2, int y2, int z2) {
-        Vec3DInt a = Vec3DInt.from(x1, y1, z1), b = Vec3DInt.from(x2, y2, z2);
         Set<Long> set = new HashSet<>();
-        Vec3DInt.forEachInclusive(a.min(b), a.max(b), (x, y, z) -> set.add(pack(Vec3DInt.from(x, y, z))));
+        Vec3DInt.forEachInclusive(p1.min(p2), p1.max(p2), coord -> set.add(pack(coord)));
         return set;
     }
 
@@ -350,13 +345,13 @@ public class SelectionState {
         Map<Long, BlockData> map = new HashMap<>();
         clipboardVersion++;
         Vec3DInt clipOrigin = Vec3DInt.from(minX(), minY(), minZ());
-        clipDim.forEach((x, y, z) -> {
-            Vec3DInt wc = clipOrigin.plus(x, y, z);
+        Vec3DInt.forEachInclusive(Vec3DInt.ZERO, clipDim.minus(1), offset -> {
+            Vec3DInt wc = clipOrigin.plus(offset);
             if (contains(wc)) {
                 Block block = WorldUtils.getBlock(world, wc);
                 if (block != Blocks.air) {
                     int meta = WorldUtils.getBlockMetadata(world, wc);
-                    map.put(clipboardKey(x, y, z), new BlockData(block, meta));
+                    map.put(clipboardKey(offset), new BlockData(block, meta));
                 }
             }
         });

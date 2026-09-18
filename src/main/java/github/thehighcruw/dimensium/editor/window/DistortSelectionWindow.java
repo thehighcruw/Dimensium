@@ -10,6 +10,7 @@ import github.thehighcruw.dimensium.editor.tool.manipulating.distort.DistortTool
 import github.thehighcruw.dimensium.editor.tool.selecting.BooleanOp;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.SelectionTransforms;
+import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import imgui.ImGui;
 import java.util.concurrent.ThreadLocalRandom;
 import net.minecraft.client.resources.I18n;
@@ -30,9 +31,9 @@ public class DistortSelectionWindow extends AbstractSelectionOpWindow {
     public void open() {
         DistortToolState s = DistortToolState.INSTANCE;
         scale[0] = s.distortScale;
-        distX[0] = s.distortDistanceX;
-        distY[0] = s.distortDistanceY;
-        distZ[0] = s.distortDistanceZ;
+        distX[0] = s.distortDistance.x();
+        distY[0] = s.distortDistance.y();
+        distZ[0] = s.distortDistance.z();
         seed = s.distortSeed;
         open = true;
     }
@@ -84,7 +85,8 @@ public class DistortSelectionWindow extends AbstractSelectionOpWindow {
     @Override
     protected void applyOp(SelectionState sel) {
         sel.applyOp(
-                SelectionTransforms.distort(sel.getSelectedBlocks(), scale[0], seed, distX[0], distY[0], distZ[0]),
+                SelectionTransforms.distort(
+                        sel.getSelectedBlocks(), scale[0], seed, Vec3DFloat.from(distX[0], distY[0], distZ[0])),
                 BooleanOp.REPLACE);
     }
 }

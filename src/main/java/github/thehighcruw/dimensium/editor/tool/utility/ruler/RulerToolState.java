@@ -4,6 +4,7 @@
  */
 package github.thehighcruw.dimensium.editor.tool.utility.ruler;
 
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,6 +23,6 @@ public class RulerToolState {
         }
     }
 
-    public final List<int[]> points = new ArrayList<>();
+    public final List<Vec3DInt> points = new ArrayList<>();
     public Mode mode = Mode.DEFAULT;
 }

@@ -42,6 +42,7 @@ import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.PerfTrace;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
+import github.thehighcruw.dimensium.shared.util.WorldUtils;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 import java.util.List;
 import java.util.Set;
@@ -78,7 +79,7 @@ public class TickHandler {
     }
 
     /** Read-only view of accumulated SMOOTH drag positions. */
-    public Set<Long> getSmoothDragPositions() {
+    public Set<Vec3DInt> getSmoothDragPositions() {
         return SmoothBrushInput.INSTANCE.getDragPositions();
     }
 
@@ -322,7 +323,7 @@ public class TickHandler {
         PerfTrace.begin("brushStroke tool=" + tool);
         PerfTrace.push("onBrushHeld/applyTool");
         if (input == null || !input.onBrushHeld(mc, mop)) {
-            BrushApplicator.applyTool(mc.theWorld, mop.blockX, mop.blockY, mop.blockZ);
+            BrushApplicator.applyTool(mc.theWorld, WorldUtils.mopToCoord(mop));
         }
         PerfTrace.pop();
         PerfTrace.end(16);
@@ -346,15 +347,11 @@ public class TickHandler {
                             AnchorSnap.toFloat(anchor.x(), snap),
                             AnchorSnap.toFloat(anchor.y(), snap),
                             AnchorSnap.toFloat(anchor.z(), snap));
-                    ps.anchor = Vec3DInt.from((int) Math.floor(ps.anchorF.x()), (int) Math.floor(ps.anchorF.y()), (int)
-                            Math.floor(ps.anchorF.z()));
+                    ps.anchor = Vec3DInt.floor(ps.anchorF);
                 }
             } else if (ps.getRotationGizmo().isDragging()) {
-                Vec3DFloat angles = AnchorSnap.applyRotGizmo(
-                        ps.getRotationGizmo(), ps.rotDragBase.x(), ps.rotDragBase.y(), ps.rotDragBase.z(), mx, my);
-                if (Math.abs(angles.x() - ps.rot.x()) >= 0.5f
-                        || Math.abs(angles.y() - ps.rot.y()) >= 0.5f
-                        || Math.abs(angles.z() - ps.rot.z()) >= 0.5f) {
+                Vec3DFloat angles = AnchorSnap.applyRotGizmo(ps.getRotationGizmo(), ps.rotDragBase, mx, my);
+                if (angles.minus(ps.rot).abs().max() >= 0.5f) {
                     ps.rot = angles;
                     ps.invalidateGhost();
                 }
@@ -368,13 +365,13 @@ public class TickHandler {
                     else ps.scale = Vec3DFloat.from(ps.scale.x(), ps.scale.y(), result[0]);
                     ShapeToolState sts = ShapeToolState.INSTANCE;
                     if (axis == ScalingGizmo.Axis.X) {
-                        sts.shapeWidth = Math.max(1, Math.round(ps.scaleDragBaseW * ps.scale.x()));
+                        sts.shapeWidth = Math.max(1, Math.round(ps.scaleDragBase.x() * ps.scale.x()));
                         ps.scale = Vec3DFloat.from(1f, ps.scale.y(), ps.scale.z());
                     } else if (axis == ScalingGizmo.Axis.Y) {
-                        sts.shapeHeight = Math.max(1, Math.round(ps.scaleDragBaseH * ps.scale.y()));
+                        sts.shapeHeight = Math.max(1, Math.round(ps.scaleDragBase.y() * ps.scale.y()));
                         ps.scale = Vec3DFloat.from(ps.scale.x(), 1f, ps.scale.z());
                     } else {
-                        sts.shapeDepth = Math.max(1, Math.round(ps.scaleDragBaseD * ps.scale.z()));
+                        sts.shapeDepth = Math.max(1, Math.round(ps.scaleDragBase.z() * ps.scale.z()));
                         ps.scale = Vec3DFloat.from(ps.scale.x(), ps.scale.y(), 1f);
                     }
                     ps.invalidateGhost();
@@ -394,9 +391,7 @@ public class TickHandler {
                             AnchorSnap.toFloat(anchor.x(), snap),
                             AnchorSnap.toFloat(anchor.y(), snap),
                             AnchorSnap.toFloat(anchor.z(), snap));
-                    Vec3DInt newAnchor =
-                            Vec3DInt.from((int) Math.floor(newAnchorF.x()), (int) Math.floor(newAnchorF.y()), (int)
-                                    Math.floor(newAnchorF.z()));
+                    Vec3DInt newAnchor = Vec3DInt.floor(newAnchorF);
                     cps.anchorF = newAnchorF;
                     if (!newAnchor.equals(cps.anchor)) {
                         cps.anchor = newAnchor;
@@ -404,8 +399,7 @@ public class TickHandler {
                     }
                 }
             } else if (cps.getRotationGizmo().isDragging()) {
-                cps.rot = AnchorSnap.applyRotGizmo(
-                        cps.getRotationGizmo(), cps.rotDragBase.x(), cps.rotDragBase.y(), cps.rotDragBase.z(), mx, my);
+                cps.rot = AnchorSnap.applyRotGizmo(cps.getRotationGizmo(), cps.rotDragBase, mx, my);
                 cps.rebuildPreview();
             }
         }
@@ -418,18 +412,16 @@ public class TickHandler {
                         ? ms.getAxisTranslationGizmo().updateDrag(mx, my)
                         : ms.getPlaneTranslationGizmo().updateDrag(mx, my);
                 if (anchor != null) {
-                    ms.delta = Vec3DFloat.from(
-                            AnchorSnap.toFloat(anchor.x(), snap) - ms.cm.x(),
-                            AnchorSnap.toFloat(anchor.y(), snap) - ms.cm.y(),
-                            AnchorSnap.toFloat(anchor.z(), snap) - ms.cm.z());
+                    Vec3DFloat snapped = Vec3DFloat.from(
+                            AnchorSnap.toFloat(anchor.x(), snap),
+                            AnchorSnap.toFloat(anchor.y(), snap),
+                            AnchorSnap.toFloat(anchor.z(), snap));
+                    ms.delta = snapped.minus(ms.cm);
                     ms.invalidateGhost();
                 }
             } else if (ms.getRotationGizmo().isDragging()) {
-                Vec3DFloat angles = AnchorSnap.applyRotGizmo(
-                        ms.getRotationGizmo(), ms.rotDragBase.x(), ms.rotDragBase.y(), ms.rotDragBase.z(), mx, my);
-                if (Math.abs(angles.x() - ms.rot.x()) >= 0.5f
-                        || Math.abs(angles.y() - ms.rot.y()) >= 0.5f
-                        || Math.abs(angles.z() - ms.rot.z()) >= 0.5f) {
+                Vec3DFloat angles = AnchorSnap.applyRotGizmo(ms.getRotationGizmo(), ms.rotDragBase, mx, my);
+                if (angles.minus(ms.rot).abs().max() >= 0.5f) {
                     ms.rot = angles;
                     ms.invalidateGhost();
                 }

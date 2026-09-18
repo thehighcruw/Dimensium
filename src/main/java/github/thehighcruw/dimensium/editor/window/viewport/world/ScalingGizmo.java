@@ -34,7 +34,9 @@ public class ScalingGizmo {
     private static final float BOX_HALF = 0.10f;
     private static final double HIT_PX = 6.0;
 
-    private static final float[][] AXIS_DIR = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
+    private static final Vec3DFloat[] AXIS_DIR = {
+        Vec3DFloat.from(1, 0, 0), Vec3DFloat.from(0, 1, 0), Vec3DFloat.from(0, 0, 1)
+    };
     private static final float[][] AXIS_COL = {
         {1.0f, 0.25f, 0.25f}, // X: red
         {0.25f, 1.0f, 0.25f}, // Y: green
@@ -65,6 +67,10 @@ public class ScalingGizmo {
 
     // ── Rendering ─────────────────────────────────────────────────────────────
 
+    public void render(Vec3DDouble pos, Vec3DDouble camPos, Vec3DFloat rot) {
+        render(pos.x(), pos.y(), pos.z(), camPos, rot.x(), rot.y(), rot.z());
+    }
+
     public void render(double gx, double gy, double gz, Vec3DDouble camPos, float rotX, float rotY, float rotZ) {
         RotationGizmo.beginRender(proj, gx, gy, gz, camPos, rotX, rotY, rotZ);
 
@@ -72,10 +78,10 @@ public class ScalingGizmo {
             Axis axis = a == 0 ? Axis.X : a == 1 ? Axis.Y : Axis.Z;
             boolean hot = hoveredAxis == axis;
             float[] col = AXIS_COL[a];
-            float[] dir = AXIS_DIR[a];
+            Vec3DFloat dir = AXIS_DIR[a];
 
             // Box center along this axis
-            Vec3DFloat bc = Vec3DFloat.from(dir[0] * BOX_CENTER, dir[1] * BOX_CENTER, dir[2] * BOX_CENTER);
+            Vec3DFloat bc = dir.times(BOX_CENTER);
             float h = BOX_HALF;
 
             // Per-axis perpendicular half-extents: for X axis, box extends in Y and Z, etc.
@@ -91,7 +97,7 @@ public class ScalingGizmo {
                 p2 = Vec3DFloat.from(0, h, 0);
             }
             // Along-axis half extent
-            Vec3DFloat p3 = Vec3DFloat.from(dir[0] * h, dir[1] * h, dir[2] * h);
+            Vec3DFloat p3 = dir.times(h);
 
             float alpha = hot ? 0.95f : 0.6f;
             GL11.glColor4f(col[0], col[1], col[2], alpha);
@@ -195,6 +201,10 @@ public class ScalingGizmo {
 
     // ── Hover ──────────────────────────────────────────────────────────────────
 
+    public void updateHover(int mouseX, int mouseY, EntityLivingBase player, Vec3DDouble pos, Vec3DFloat rot) {
+        updateHover(mouseX, mouseY, player, pos.x(), pos.y(), pos.z(), rot.x(), rot.y(), rot.z());
+    }
+
     public void updateHover(
             int mouseX,
             int mouseY,
@@ -213,7 +223,7 @@ public class ScalingGizmo {
         double bestDistSq = HIT_PX * HIT_PX;
 
         for (int a = 0; a < 3; a++) {
-            Vec3DFloat dirRot = R.mul(Vec3DFloat.from(AXIS_DIR[a][0], AXIS_DIR[a][1], AXIS_DIR[a][2]));
+            Vec3DFloat dirRot = R.mul(AXIS_DIR[a]);
             double wcx = gx + dirRot.x() * BOX_CENTER * scale;
             double wcy = gy + dirRot.y() * BOX_CENTER * scale;
             double wcz = gz + dirRot.z() * BOX_CENTER * scale;
@@ -233,6 +243,10 @@ public class ScalingGizmo {
     /**
      * startScale is the current scale value for the hovered axis.
      */
+    public void startDrag(int mouseX, int mouseY, Vec3DDouble pos, float scale, Vec3DFloat rot) {
+        startDrag(mouseX, mouseY, pos.x(), pos.y(), pos.z(), scale, rot.x(), rot.y(), rot.z());
+    }
+
     public void startDrag(
             int mouseX, int mouseY, double gx, double gy, double gz, float scale, float rotX, float rotY, float rotZ) {
         if (hoveredAxis == Axis.NONE) return;
@@ -243,7 +257,7 @@ public class ScalingGizmo {
 
         int a = dragAxis == Axis.X ? 0 : dragAxis == Axis.Y ? 1 : 2;
         Mat3DFloat R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
-        Vec3DFloat dir = R.mul(Vec3DFloat.from(AXIS_DIR[a][0], AXIS_DIR[a][1], AXIS_DIR[a][2]));
+        Vec3DFloat dir = R.mul(AXIS_DIR[a]);
 
         GizmoProjection.ScreenAxis sa = proj.computeAxisScreenDir(gx, gy, gz, dir);
         screenDir = sa.dir();

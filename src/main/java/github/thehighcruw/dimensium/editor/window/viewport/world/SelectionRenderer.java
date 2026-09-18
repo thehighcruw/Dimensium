@@ -41,7 +41,9 @@ import github.thehighcruw.dimensium.shared.BlockColorCache;
 import github.thehighcruw.dimensium.shared.KeyConstants;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.math.Vec2DFloat;
+import github.thehighcruw.dimensium.shared.math.Vec2DInt;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.PerfTrace;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
@@ -175,10 +177,8 @@ public class SelectionRenderer {
                 MovingObjectPosition gmop = RenderUtils.raycastAtCursor();
                 if (gmop != null && gmop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
                     Vec3DDouble p1 = gs.gradientPos1.toDouble().plus(0.5).minus(camPos);
-                    Vec3DDouble p2 = Vec3DDouble.from(
-                            gmop.blockX + 0.5 - camPos.x(),
-                            gmop.blockY + 0.5 - camPos.y(),
-                            gmop.blockZ + 0.5 - camPos.z());
+                    Vec3DDouble p2 =
+                            WorldUtils.mopToCoord(gmop).toDouble().plus(0.5).minus(camPos);
                     GL11.glColor4f(0.6f, 0.3f, 1.0f, 0.9f);
                     WorldLines.setEye(Vec3DDouble.ZERO); // vertices already camera-relative
                     Tessellator gTess = Tessellator.instance;
@@ -370,8 +370,7 @@ public class SelectionRenderer {
                 updateSelWireframeCache(sel);
                 drawSelWireframe(camPos);
             } else {
-                Vec3DDouble selTrans =
-                        Vec3DDouble.from(sel.minX() - camPos.x(), sel.minY() - camPos.y(), sel.minZ() - camPos.z());
+                Vec3DDouble selTrans = sel.min().toDouble().minus(camPos);
                 GL11.glPushMatrix();
                 GL11.glTranslated(selTrans.x(), selTrans.y(), selTrans.z());
                 WorldLines.setEyeForTranslation(selTrans);
@@ -382,8 +381,7 @@ public class SelectionRenderer {
                 GL11.glPopMatrix();
             }
 
-            Vec3DDouble selOutlineTrans =
-                    Vec3DDouble.from(sel.minX() - camPos.x(), sel.minY() - camPos.y(), sel.minZ() - camPos.z());
+            Vec3DDouble selOutlineTrans = sel.min().toDouble().minus(camPos);
             GL11.glPushMatrix();
             GL11.glTranslated(selOutlineTrans.x(), selOutlineTrans.y(), selOutlineTrans.z());
             WorldLines.setEyeForTranslation(selOutlineTrans);
@@ -401,8 +399,7 @@ public class SelectionRenderer {
             sel.boxConfirmed = false;
         }
         if (sel.pendingPos1) {
-            Vec3DDouble pendingTrans = Vec3DDouble.from(
-                    sel.pendingPos.x() - camPos.x(), sel.pendingPos.y() - camPos.y(), sel.pendingPos.z() - camPos.z());
+            Vec3DDouble pendingTrans = sel.pendingPos.toDouble().minus(camPos);
             GL11.glPushMatrix();
             GL11.glTranslated(pendingTrans.x(), pendingTrans.y(), pendingTrans.z());
             WorldLines.setEyeForTranslation(pendingTrans);
@@ -448,38 +445,22 @@ public class SelectionRenderer {
                 boxPos2Gizmo.axisFlip[0] = -boxPos1Gizmo.axisFlip[0];
                 boxPos2Gizmo.axisFlip[1] = -boxPos1Gizmo.axisFlip[1];
                 boxPos2Gizmo.axisFlip[2] = -boxPos1Gizmo.axisFlip[2];
-                boxPos1ViewPlaneGizmo.render(
-                        sel.pendingPos.x() + 0.5, sel.pendingPos.y() + 0.5, sel.pendingPos.z() + 0.5, camPos);
-                boxPos2ViewPlaneGizmo.render(
-                        sel.pendingPos2.x() + 0.5, sel.pendingPos2.y() + 0.5, sel.pendingPos2.z() + 0.5, camPos);
-                boxPos1PlaneGizmo.render(
-                        sel.pendingPos.x() + 0.5, sel.pendingPos.y() + 0.5, sel.pendingPos.z() + 0.5, camPos, 0, 0, 0);
-                boxPos1Gizmo.render(
-                        sel.pendingPos.x() + 0.5, sel.pendingPos.y() + 0.5, sel.pendingPos.z() + 0.5, camPos, 0, 0, 0);
-                boxPos2PlaneGizmo.render(
-                        sel.pendingPos2.x() + 0.5,
-                        sel.pendingPos2.y() + 0.5,
-                        sel.pendingPos2.z() + 0.5,
-                        camPos,
-                        0,
-                        0,
-                        0);
-                boxPos2Gizmo.render(
-                        sel.pendingPos2.x() + 0.5,
-                        sel.pendingPos2.y() + 0.5,
-                        sel.pendingPos2.z() + 0.5,
-                        camPos,
-                        0,
-                        0,
-                        0);
+                Vec3DDouble pos1Center = sel.pendingPos.toDouble().plus(0.5);
+                Vec3DDouble pos2Center = sel.pendingPos2.toDouble().plus(0.5);
+                boxPos1ViewPlaneGizmo.render(pos1Center, camPos);
+                boxPos2ViewPlaneGizmo.render(pos2Center, camPos);
+                boxPos1PlaneGizmo.render(pos1Center, camPos, Vec3DFloat.ZERO);
+                boxPos1Gizmo.render(pos1Center, camPos, Vec3DFloat.ZERO);
+                boxPos2PlaneGizmo.render(pos2Center, camPos, Vec3DFloat.ZERO);
+                boxPos2Gizmo.render(pos2Center, camPos, Vec3DFloat.ZERO);
                 Vec3DDouble cWorld = sel.pendingPos
                         .toDouble()
                         .plus(sel.pendingPos2.toDouble())
                         .times(0.5)
                         .plus(0.5);
-                boxCenterViewPlaneGizmo.render(cWorld.x(), cWorld.y(), cWorld.z(), camPos);
-                boxCenterPlaneGizmo.render(cWorld.x(), cWorld.y(), cWorld.z(), camPos, 0, 0, 0);
-                boxCenterGizmo.render(cWorld.x(), cWorld.y(), cWorld.z(), camPos, 0, 0, 0);
+                boxCenterViewPlaneGizmo.render(cWorld, camPos);
+                boxCenterPlaneGizmo.render(cWorld, camPos, Vec3DFloat.ZERO);
+                boxCenterGizmo.render(cWorld, camPos, Vec3DFloat.ZERO);
             }
         }
 
@@ -532,15 +513,12 @@ public class SelectionRenderer {
                 ps.cancel();
             } else if (!cameraMoving || gizmoDragging) {
                 ps.rebuildIfNeeded();
-                ps.viewPlaneGizmo.render(ps.centerX(), ps.centerY(), ps.centerZ(), camPos);
-                ps.getPlaneTranslationGizmo()
-                        .render(ps.centerX(), ps.centerY(), ps.centerZ(), camPos, ps.rot.x(), ps.rot.y(), ps.rot.z());
-                ps.getAxisTranslationGizmo()
-                        .render(ps.centerX(), ps.centerY(), ps.centerZ(), camPos, ps.rot.x(), ps.rot.y(), ps.rot.z());
-                ps.getScalingGizmo()
-                        .render(ps.centerX(), ps.centerY(), ps.centerZ(), camPos, ps.rot.x(), ps.rot.y(), ps.rot.z());
-                ps.getRotationGizmo()
-                        .render(ps.centerX(), ps.centerY(), ps.centerZ(), camPos, ps.rot.x(), ps.rot.y(), ps.rot.z());
+                Vec3DDouble psCenter = ps.center();
+                ps.viewPlaneGizmo.render(psCenter, camPos);
+                ps.getPlaneTranslationGizmo().render(psCenter, camPos, ps.rot);
+                ps.getAxisTranslationGizmo().render(psCenter, camPos, ps.rot);
+                ps.getScalingGizmo().render(psCenter, camPos, ps.rot);
+                ps.getRotationGizmo().render(psCenter, camPos, ps.rot);
             }
         }
 
@@ -549,26 +527,11 @@ public class SelectionRenderer {
         if (cps.active) {
             if (cps.preview != null) renderProposalPreview(mc, camPos, cps.preview);
             if (!cameraMoving || gizmoDragging) {
-                cps.viewPlaneGizmo.render(cps.centerX(), cps.centerY(), cps.centerZ(), camPos);
-                cps.getPlaneTranslationGizmo()
-                        .render(
-                                cps.centerX(),
-                                cps.centerY(),
-                                cps.centerZ(),
-                                camPos,
-                                cps.rot.x(),
-                                cps.rot.y(),
-                                cps.rot.z());
-                cps.getAxisTranslationGizmo().render(cps.centerX(), cps.centerY(), cps.centerZ(), camPos, 0, 0, 0);
-                cps.getRotationGizmo()
-                        .render(
-                                cps.centerX(),
-                                cps.centerY(),
-                                cps.centerZ(),
-                                camPos,
-                                cps.rot.x(),
-                                cps.rot.y(),
-                                cps.rot.z());
+                Vec3DDouble cpsCenter = cps.center();
+                cps.viewPlaneGizmo.render(cpsCenter, camPos);
+                cps.getPlaneTranslationGizmo().render(cpsCenter, camPos, cps.rot);
+                cps.getAxisTranslationGizmo().render(cpsCenter, camPos, Vec3DFloat.ZERO);
+                cps.getRotationGizmo().render(cpsCenter, camPos, cps.rot);
             }
         }
 
@@ -590,15 +553,12 @@ public class SelectionRenderer {
                     renderProposalPreview(mc, camPos, ms.preview);
                 }
                 if (!cameraMoving || gizmoDragging) {
-                    ms.viewPlaneGizmo.render(ms.gizmoX(), ms.gizmoY(), ms.gizmoZ(), camPos);
-                    ms.getPlaneTranslationGizmo()
-                            .render(ms.gizmoX(), ms.gizmoY(), ms.gizmoZ(), camPos, ms.rot.x(), ms.rot.y(), ms.rot.z());
-                    ms.getAxisTranslationGizmo()
-                            .render(ms.gizmoX(), ms.gizmoY(), ms.gizmoZ(), camPos, ms.rot.x(), ms.rot.y(), ms.rot.z());
-                    ms.getScalingGizmo()
-                            .render(ms.gizmoX(), ms.gizmoY(), ms.gizmoZ(), camPos, ms.rot.x(), ms.rot.y(), ms.rot.z());
-                    ms.getRotationGizmo()
-                            .render(ms.gizmoX(), ms.gizmoY(), ms.gizmoZ(), camPos, ms.rot.x(), ms.rot.y(), ms.rot.z());
+                    Vec3DDouble gizmoPos = ms.gizmoPos();
+                    ms.viewPlaneGizmo.render(gizmoPos, camPos);
+                    ms.getPlaneTranslationGizmo().render(gizmoPos, camPos, ms.rot);
+                    ms.getAxisTranslationGizmo().render(gizmoPos, camPos, ms.rot);
+                    ms.getScalingGizmo().render(gizmoPos, camPos, ms.rot);
+                    ms.getRotationGizmo().render(gizmoPos, camPos, ms.rot);
                 }
             } else if (ms.active) {
                 ms.cancel();
@@ -634,24 +594,9 @@ public class SelectionRenderer {
             // Gizmo on selected point
             ModellingToolState.ModelPoint mSelPt = mts.selectedPointObj();
             if (mSelPt != null && (!cameraMoving || gizmoDragging)) {
-                mts.getPlaneTranslationGizmo()
-                        .render(
-                                mSelPt.pos().x() + 0.5,
-                                mSelPt.pos().y() + 0.5,
-                                mSelPt.pos().z() + 0.5,
-                                camPos,
-                                0,
-                                0,
-                                0);
-                mts.getAxisTranslationGizmo()
-                        .render(
-                                mSelPt.pos().x() + 0.5,
-                                mSelPt.pos().y() + 0.5,
-                                mSelPt.pos().z() + 0.5,
-                                camPos,
-                                0,
-                                0,
-                                0);
+                Vec3DDouble selPtCenter = mSelPt.pos().toDouble().plus(0.5);
+                mts.getPlaneTranslationGizmo().render(selPtCenter, camPos, Vec3DFloat.ZERO);
+                mts.getAxisTranslationGizmo().render(selPtCenter, camPos, Vec3DFloat.ZERO);
             }
             // Lines between adjacent rows (column-matched)
             if (mts.rows.size() >= 2) {
@@ -663,16 +608,10 @@ public class SelectionRenderer {
                     List<ModellingToolState.ModelPoint> rowB = mts.rows.get(r + 1);
                     int maxC = Math.min(rowA.size(), rowB.size());
                     for (int c = 0; c < maxC; c++) {
-                        ModellingToolState.ModelPoint a = rowA.get(c);
-                        ModellingToolState.ModelPoint b = rowB.get(c);
-                        GL11.glVertex3d(
-                                a.pos().x() + 0.5 - camPos.x(),
-                                a.pos().y() + 0.5 - camPos.y(),
-                                a.pos().z() + 0.5 - camPos.z());
-                        GL11.glVertex3d(
-                                b.pos().x() + 0.5 - camPos.x(),
-                                b.pos().y() + 0.5 - camPos.y(),
-                                b.pos().z() + 0.5 - camPos.z());
+                        Vec3DDouble av = rowA.get(c).pos().toDouble().plus(0.5).minus(camPos);
+                        Vec3DDouble bv = rowB.get(c).pos().toDouble().plus(0.5).minus(camPos);
+                        GL11.glVertex3d(av.x(), av.y(), av.z());
+                        GL11.glVertex3d(bv.x(), bv.y(), bv.z());
                     }
                 }
                 GL11.glEnd();
@@ -694,12 +633,9 @@ public class SelectionRenderer {
             if (pathState.selectedIndex >= 0 && !pathState.points.isEmpty() && (!cameraMoving || gizmoDragging)) {
                 PathToolState.PathPoint selPt = pathState.selectedPoint();
                 if (selPt != null) {
-                    pathState
-                            .getPlaneTranslationGizmo()
-                            .render(selPt.pos.x() + 0.5, selPt.pos.y() + 0.5, selPt.pos.z() + 0.5, camPos, 0, 0, 0);
-                    pathState
-                            .getAxisTranslationGizmo()
-                            .render(selPt.pos.x() + 0.5, selPt.pos.y() + 0.5, selPt.pos.z() + 0.5, camPos, 0, 0, 0);
+                    Vec3DDouble selPtCenter = selPt.pos.toDouble().plus(0.5);
+                    pathState.getPlaneTranslationGizmo().render(selPtCenter, camPos, Vec3DFloat.ZERO);
+                    pathState.getAxisTranslationGizmo().render(selPtCenter, camPos, Vec3DFloat.ZERO);
                 }
             }
         }
@@ -724,8 +660,10 @@ public class SelectionRenderer {
         GL11.glLineWidth((float) 1.5);
         GL11.glBegin(GL11.GL_LINE_STRIP);
         GL11.glColor4f((float) 0.55, (float) 0.7, (float) 0.9, (float) 0.6);
-        for (Vec3DInt p : xyzList)
-            GL11.glVertex3d(p.x() + 0.5 - camPos.x(), p.y() + 0.5 - camPos.y(), p.z() + 0.5 - camPos.z());
+        for (Vec3DInt p : xyzList) {
+            Vec3DDouble pv = p.toDouble().plus(0.5).minus(camPos);
+            GL11.glVertex3d(pv.x(), pv.y(), pv.z());
+        }
         GL11.glEnd();
     }
 
@@ -809,15 +747,17 @@ public class SelectionRenderer {
             if (Integer.bitCount(entry.getValue()) <= 1) continue;
             long ek = entry.getKey();
             int axis = (int) (ek >>> 60) & 3;
-            int ex = (int) ((ek >> 34) & 0x3FFFFFF) - 30_000_000;
-            int ey = (int) ((ek >> 26) & 0xFF);
-            int ez = (int) (ek & 0x3FFFFFF) - 30_000_000;
-            verts[vi++] = ex;
-            verts[vi++] = ey;
-            verts[vi++] = ez;
-            verts[vi++] = ex + (axis == 0 ? 1 : 0);
-            verts[vi++] = ey + (axis == 1 ? 1 : 0);
-            verts[vi++] = ez + (axis == 2 ? 1 : 0);
+            Vec3DInt coord = Vec3DInt.from(
+                    (int) ((ek >> 34) & 0x3FFFFFF) - 30_000_000,
+                    (int) ((ek >> 26) & 0xFF),
+                    (int) (ek & 0x3FFFFFF) - 30_000_000);
+            Vec3DInt end = coord.plus(axis == 0 ? 1 : 0, axis == 1 ? 1 : 0, axis == 2 ? 1 : 0);
+            verts[vi++] = coord.x();
+            verts[vi++] = coord.y();
+            verts[vi++] = coord.z();
+            verts[vi++] = end.x();
+            verts[vi++] = end.y();
+            verts[vi++] = end.z();
         }
         return verts;
     }
@@ -844,6 +784,15 @@ public class SelectionRenderer {
 
     static long lPack(int x, int y, int z) {
         return ((long) (x + 4096) << 26) | ((long) (y + 4096) << 13) | (z + 4096);
+    }
+
+    static long lPack(Vec3DInt v) {
+        return lPack(v.x(), v.y(), v.z());
+    }
+
+    static Vec3DInt lUnpack(long pk) {
+        return Vec3DInt.from(
+                (int) ((pk >> 26) & 0x1FFF) - 4096, (int) ((pk >> 13) & 0x1FFF) - 4096, (int) (pk & 0x1FFF) - 4096);
     }
 
     static void drawBox(float x1, float y1, float z1, float x2, float y2, float z2) {
@@ -936,7 +885,7 @@ public class SelectionRenderer {
         if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return;
 
         ElevationToolState s = ElevationToolState.INSTANCE;
-        int cx = mop.blockX, cz = mop.blockZ;
+        Vec2DInt columnCenter = Vec2DInt.from(mop.blockX, mop.blockZ);
         int radius = Math.max(1, s.elevationRadius);
 
         boolean held = Mouse.isButtonDown(KeyConstants.RMB);
@@ -955,8 +904,8 @@ public class SelectionRenderer {
                 weight = ElevationBrush.edgeSmoothing(weight, r, s.elevationSmoothing);
                 if (weight <= 0f) continue;
 
-                int wx = cx + dx, wz = cz + dz;
-                double topY = elevPreviewTopY(mc, wx, wz) + 1.002; // slightly above block top
+                Vec2DInt column = columnCenter.plus(dx, dz);
+                double topY = elevPreviewTopY(mc, column) + 1.002; // slightly above block top
 
                 float alpha = (held ? 0.15f + pulse : 0.08f) + 0.18f * weight;
                 // Green with weight-based brightness
@@ -965,13 +914,13 @@ public class SelectionRenderer {
                 float cb = 0.25f;
 
                 t.setColorRGBA_F(cr, cg, cb, alpha);
-                t.addVertex(wx - camPos.x(), topY - camPos.y(), wz - camPos.z());
+                t.addVertex(column.x() - camPos.x(), topY - camPos.y(), column.y() - camPos.z());
                 t.setColorRGBA_F(cr, cg, cb, alpha);
-                t.addVertex(wx + 1 - camPos.x(), topY - camPos.y(), wz - camPos.z());
+                t.addVertex(column.x() + 1 - camPos.x(), topY - camPos.y(), column.y() - camPos.z());
                 t.setColorRGBA_F(cr, cg, cb, alpha);
-                t.addVertex(wx + 1 - camPos.x(), topY - camPos.y(), wz + 1 - camPos.z());
+                t.addVertex(column.x() + 1 - camPos.x(), topY - camPos.y(), column.y() + 1 - camPos.z());
                 t.setColorRGBA_F(cr, cg, cb, alpha);
-                t.addVertex(wx - camPos.x(), topY - camPos.y(), wz + 1 - camPos.z());
+                t.addVertex(column.x() - camPos.x(), topY - camPos.y(), column.y() + 1 - camPos.z());
             }
         }
         t.draw();
@@ -987,51 +936,51 @@ public class SelectionRenderer {
                 float r = Vec2DFloat.from(dx, dz).length() / radius;
                 if (r > 1f) continue;
 
-                int wx = cx + dx, wz = cz + dz;
-                double topY = elevPreviewTopY(mc, wx, wz) + 1.002;
+                Vec2DInt column = columnCenter.plus(dx, dz);
+                double topY = elevPreviewTopY(mc, column) + 1.002;
 
                 if (Vec2DFloat.from(dx + 1, dz).length() > radius) {
                     WorldLines.addSegment(
                             t,
-                            wx + 1 - camPos.x(),
+                            column.x() + 1 - camPos.x(),
                             topY - camPos.y(),
-                            wz - camPos.z(),
-                            wx + 1 - camPos.x(),
+                            column.y() - camPos.z(),
+                            column.x() + 1 - camPos.x(),
                             topY - camPos.y(),
-                            wz + 1 - camPos.z(),
+                            column.y() + 1 - camPos.z(),
                             WorldLines.W_THIN);
                 }
                 if (Vec2DFloat.from(dx - 1, dz).length() > radius) {
                     WorldLines.addSegment(
                             t,
-                            wx - camPos.x(),
+                            column.x() - camPos.x(),
                             topY - camPos.y(),
-                            wz - camPos.z(),
-                            wx - camPos.x(),
+                            column.y() - camPos.z(),
+                            column.x() - camPos.x(),
                             topY - camPos.y(),
-                            wz + 1 - camPos.z(),
+                            column.y() + 1 - camPos.z(),
                             WorldLines.W_THIN);
                 }
                 if (Vec2DFloat.from(dx, dz + 1).length() > radius) {
                     WorldLines.addSegment(
                             t,
-                            wx - camPos.x(),
+                            column.x() - camPos.x(),
                             topY - camPos.y(),
-                            wz + 1 - camPos.z(),
-                            wx + 1 - camPos.x(),
+                            column.y() + 1 - camPos.z(),
+                            column.x() + 1 - camPos.x(),
                             topY - camPos.y(),
-                            wz + 1 - camPos.z(),
+                            column.y() + 1 - camPos.z(),
                             WorldLines.W_THIN);
                 }
                 if (Vec2DFloat.from(dx, dz - 1).length() > radius) {
                     WorldLines.addSegment(
                             t,
-                            wx - camPos.x(),
+                            column.x() - camPos.x(),
                             topY - camPos.y(),
-                            wz - camPos.z(),
-                            wx + 1 - camPos.x(),
+                            column.y() - camPos.z(),
+                            column.x() + 1 - camPos.x(),
                             topY - camPos.y(),
-                            wz - camPos.z(),
+                            column.y() - camPos.z(),
                             WorldLines.W_THIN);
                 }
             }
@@ -1039,23 +988,23 @@ public class SelectionRenderer {
         t.draw();
     }
 
-    private static double elevPreviewTopY(Minecraft mc, int wx, int wz) {
+    private static double elevPreviewTopY(Minecraft mc, Vec2DInt column) {
         // Check activeDrag proposal first (for Continuous mode visual feedback)
         ChangeProposal drag = ActiveDragState.INSTANCE.activeDrag;
         if (drag != null) {
             for (int y = 255; y >= 0; y--) {
-                long key = ChangeProposal.packKey(wx, y, wz);
+                long key = ChangeProposal.packKey(Vec3DInt.from(column.x(), y, column.y()));
                 int[] bm = drag.proposed.get(key);
                 if (bm != null) {
                     if (bm[0] != 0) return y;
                     continue;
                 }
-                if (mc.theWorld.getBlock(wx, y, wz) != Blocks.air) return y;
+                if (mc.theWorld.getBlock(column.x(), y, column.y()) != Blocks.air) return y;
             }
             return 0;
         }
         for (int y = 255; y >= 0; y--) {
-            if (mc.theWorld.getBlock(wx, y, wz) != Blocks.air) return y;
+            if (mc.theWorld.getBlock(column.x(), y, column.y()) != Blocks.air) return y;
         }
         return 0;
     }
@@ -1102,9 +1051,7 @@ public class SelectionRenderer {
             }
             for (int face = 0; face < 6; face++) {
                 long nk = ChangeProposal.packKey(
-                        bv.x() + GhostRenderer.NX[face],
-                        bv.y() + GhostRenderer.NY[face],
-                        bv.z() + GhostRenderer.NZ[face]);
+                        bv.plus(GhostRenderer.NX[face], GhostRenderer.NY[face], GhostRenderer.NZ[face]));
                 if (!proposed.containsKey(nk)) {
                     GhostRenderer.addTexturedFace(t, bv, blk, bm[1], face, tint);
                     if (++batched % 2048 == 0) {

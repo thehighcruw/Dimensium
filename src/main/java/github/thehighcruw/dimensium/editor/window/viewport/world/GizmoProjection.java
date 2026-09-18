@@ -45,6 +45,10 @@ public final class GizmoProjection {
      * Project gizmo origin and axis tip to screen to get drag direction + scale.
      * Falls back to (1,0) direction and 50 px/unit when projection fails.
      */
+    public ScreenAxis computeAxisScreenDir(Vec3DDouble pos, Vec3DFloat axisDir) {
+        return computeAxisScreenDir(pos.x(), pos.y(), pos.z(), axisDir);
+    }
+
     public ScreenAxis computeAxisScreenDir(double gx, double gy, double gz, Vec3DFloat axisDir) {
         double[] os = project(gx, gy, gz);
         double[] ts = project(gx + axisDir.x(), gy + axisDir.y(), gz + axisDir.z());
@@ -80,6 +84,10 @@ public final class GizmoProjection {
      * Returns null if the point is behind the camera or projection failed.
      *
      */
+    public double[] project(Vec3DDouble pos) {
+        return project(pos.x(), pos.y(), pos.z());
+    }
+
     public double[] project(double wx, double wy, double wz) {
         modelview.rewind();
         projection.rewind();

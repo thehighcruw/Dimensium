@@ -33,7 +33,6 @@ import github.thehighcruw.dimensium.editor.window.viewport.ViewportRegistry;
 import github.thehighcruw.dimensium.editor.window.viewport.ViewportState;
 import github.thehighcruw.dimensium.shared.BlockSender;
 import github.thehighcruw.dimensium.shared.SelectionState;
-import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
 import github.thehighcruw.dimensium.tool.BuilderTool;
@@ -350,14 +349,14 @@ public class KeyHandler {
      * Returns true if a nudge key was consumed.
      */
     private boolean handleGizmoNudge(int key, int mods) {
-        int[] delta = nudgeDelta(key, mods);
+        Vec3DInt delta = nudgeDelta(key, mods);
         if (delta == null) return false;
 
         Tool tool = DimensiumEditorMode.INSTANCE.selectedTool;
 
         if (tool == Tool.SHAPE && ShapePlacementState.INSTANCE.active) {
             ShapePlacementState sps = ShapePlacementState.INSTANCE;
-            sps.anchor = sps.anchor.plus(delta[0], delta[1], delta[2]);
+            sps.anchor = sps.anchor.plus(delta);
             sps.anchorF = sps.anchor.toFloat();
             sps.invalidateGhost();
             sps.rebuildIfNeeded();
@@ -366,7 +365,7 @@ public class KeyHandler {
 
         if (ClipboardPlacementState.INSTANCE.active) {
             ClipboardPlacementState cps = ClipboardPlacementState.INSTANCE;
-            cps.anchor = cps.anchor.plus(delta[0], delta[1], delta[2]);
+            cps.anchor = cps.anchor.plus(delta);
             cps.anchorF = cps.anchor.toFloat();
             cps.rebuildPreview();
             return true;
@@ -374,7 +373,7 @@ public class KeyHandler {
 
         if (tool == Tool.MOVE && MoveToolState.INSTANCE.active) {
             MoveToolState mts = MoveToolState.INSTANCE;
-            mts.delta = mts.delta.plus(Vec3DFloat.from(delta[0], delta[1], delta[2]));
+            mts.delta = mts.delta.plus(delta.toFloat());
             mts.invalidateGhost();
             mts.rebuildIfNeeded();
             return true;
@@ -384,7 +383,7 @@ public class KeyHandler {
             PathToolState pts = PathToolState.INSTANCE;
             PathToolState.PathPoint pt = pts.selectedPoint();
             if (pt != null) {
-                pt.pos = pt.pos.plus(Vec3DInt.from(delta[0], delta[1], delta[2]));
+                pt.pos = pt.pos.plus(delta);
                 pts.getAxisTranslationGizmo().reset();
                 pts.invalidatePath();
                 return true;
@@ -399,8 +398,7 @@ public class KeyHandler {
                         .get(modts.selectedRow)
                         .set(
                                 modts.selectedPoint,
-                                new ModellingToolState.ModelPoint(
-                                        pt.pos().plus(Vec3DInt.from(delta[0], delta[1], delta[2]))));
+                                new ModellingToolState.ModelPoint(pt.pos().plus(delta)));
                 modts.getAxisTranslationGizmo().reset();
                 modts.invalidate();
                 return true;
@@ -411,10 +409,10 @@ public class KeyHandler {
     }
 
     /**
-     * Returns [dx, dy, dz] for the nudge key, or null if key is not a nudge key.
+     * Returns the nudge delta for the key, or null if key is not a nudge key.
      * XZ directions are snapped to the cardinal axis closest to the camera's horizontal facing.
      */
-    private static int[] nudgeDelta(int key, int mods) {
+    private static Vec3DInt nudgeDelta(int key, int mods) {
         boolean fwd = matches(key, mods, Dimensium.gizmoNudgeForward, Dimensium.gizmoNudgeForwardMods);
         boolean bwd = matches(key, mods, Dimensium.gizmoNudgeBackward, Dimensium.gizmoNudgeBackwardMods);
         boolean rgt = matches(key, mods, Dimensium.gizmoNudgeRight, Dimensium.gizmoNudgeRightMods);
@@ -424,8 +422,8 @@ public class KeyHandler {
 
         if (!fwd && !bwd && !rgt && !lft && !up && !dwn) return null;
 
-        if (up) return new int[] {0, 1, 0};
-        if (dwn) return new int[] {0, -1, 0};
+        if (up) return Vec3DInt.from(0, 1, 0);
+        if (dwn) return Vec3DInt.from(0, -1, 0);
 
         Entity cam = FreecamState.INSTANCE.cameraEntity;
         float yaw = cam != null ? cam.rotationYaw : 0f;
@@ -443,9 +441,9 @@ public class KeyHandler {
         // Flip Canvas mirrors the horizontal screen axis, inverting the effective L/R direction.
         int lrSign = ViewState.INSTANCE.flipCanvas ? -1 : 1;
 
-        if (fwd) return new int[] {qfx[q], 0, qfz[q]};
-        if (bwd) return new int[] {-qfx[q], 0, -qfz[q]};
-        if (rgt) return new int[] {lrSign * qrx[q], 0, lrSign * qrz[q]};
-        return new int[] {-lrSign * qrx[q], 0, -lrSign * qrz[q]};
+        if (fwd) return Vec3DInt.from(qfx[q], 0, qfz[q]);
+        if (bwd) return Vec3DInt.from(-qfx[q], 0, -qfz[q]);
+        if (rgt) return Vec3DInt.from(lrSign * qrx[q], 0, lrSign * qrz[q]);
+        return Vec3DInt.from(-lrSign * qrx[q], 0, -lrSign * qrz[q]);
     }
 }

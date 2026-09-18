@@ -11,6 +11,7 @@ import github.thehighcruw.dimensium.editor.window.viewport.world.BrushPreviewRen
 import github.thehighcruw.dimensium.editor.window.viewport.world.SelectionRenderer;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import github.thehighcruw.dimensium.shared.util.WorldUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.MovingObjectPosition;
@@ -43,7 +44,7 @@ public interface ToolRenderer {
 
         @Override
         public boolean isBlockAffected(Minecraft mc, Vec3DInt wc) {
-            return mc.theWorld.getBlock(wc.x(), wc.y(), wc.z()) != Blocks.air;
+            return WorldUtils.getBlock(wc) != Blocks.air;
         }
 
         @Override

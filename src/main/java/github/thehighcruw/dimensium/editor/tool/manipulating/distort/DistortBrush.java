@@ -7,7 +7,7 @@ package github.thehighcruw.dimensium.editor.tool.manipulating.distort;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushState;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushStrategy;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushUtil;
-import github.thehighcruw.dimensium.shared.SelectionTransforms;
+import github.thehighcruw.dimensium.editor.tool.noise.NoiseSampler;
 import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.WorldUtils;
@@ -34,12 +34,18 @@ public class DistortBrush implements BrushStrategy {
         int[] srcId = new int[maxPos], srcMeta = new int[maxPos];
 
         Vec3DInt brushSize = Vec3DInt.from(sx, sy, sx);
-        Vec3DFloat invBrushSize = Vec3DFloat.from(sx > 0 ? 1f / sx : 0f, sy > 0 ? 1f / sy : 0f, sx > 0 ? 1f / sx : 0f);
+        Vec3DFloat brushSizeF = brushSize.toFloat();
+        Vec3DFloat invBrushSize = Vec3DFloat.from(
+                brushSizeF.x() > 0 ? 1f / brushSizeF.x() : 0f,
+                brushSizeF.y() > 0 ? 1f / brushSizeF.y() : 0f,
+                brushSizeF.z() > 0 ? 1f / brushSizeF.z() : 0f);
         int[] pc = {0};
-        Vec3DInt.forEachInclusive(brushSize.negate(), brushSize, (dx, dy, dz) -> {
-            Vec3DInt offset = Vec3DInt.from(dx, dy, dz);
+        Vec3DInt.forEachInclusive(brushSize.negate(), brushSize, offset -> {
             if (!BrushUtil.inShape(bs.brushShape, offset, brushSize)) return;
             Vec3DInt worldPos = origin.plus(offset);
+
+            Vec3DFloat noisePos = worldPos.toFloat().times(invScale);
+            float[] w0 = NoiseSampler.warpVec3(noisePos.x(), noisePos.y(), noisePos.z(), seed);
 
             float edgeFade = 1f;
             if (s.distortSmoothEdges) {
@@ -51,13 +57,10 @@ public class DistortBrush implements BrushStrategy {
             }
 
             offsets[pc[0]] = offset;
-            Vec3DInt srcPos = SelectionTransforms.warpPosition(
-                    worldPos,
-                    invScale,
-                    seed,
-                    s.distortDistanceX * edgeFade,
-                    s.distortDistanceY * edgeFade,
-                    s.distortDistanceZ * edgeFade);
+            Vec3DFloat warp = Vec3DFloat.from(w0[0], w0[1], w0[2])
+                    .times(s.distortDistance)
+                    .times(edgeFade);
+            Vec3DInt srcPos = Vec3DInt.round(worldPos.toFloat().plus(warp));
             srcId[pc[0]] = Block.getIdFromBlock(WorldUtils.getBlock(world, srcPos));
             srcMeta[pc[0]] = WorldUtils.getBlockMetadata(world, srcPos);
             pc[0]++;

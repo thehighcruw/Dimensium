@@ -58,6 +58,14 @@ public record Vec2DFloat(float x, float y) {
         return new Vec2DFloat(Math.abs(x), Math.abs(y));
     }
 
+    public Vec2DFloat min(Vec2DFloat other) {
+        return new Vec2DFloat(Math.min(x, other.x), Math.min(y, other.y));
+    }
+
+    public Vec2DFloat max(Vec2DFloat other) {
+        return new Vec2DFloat(Math.max(x, other.x), Math.max(y, other.y));
+    }
+
     // --- component reductions ---
 
     public float sum() {

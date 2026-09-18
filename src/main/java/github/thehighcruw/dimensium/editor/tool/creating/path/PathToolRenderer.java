@@ -9,6 +9,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.tool.ToolRenderer;
 import github.thehighcruw.dimensium.editor.tool.creating.rock.PathToolState;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.MovingObjectPosition;
@@ -39,10 +40,8 @@ public class PathToolRenderer implements ToolRenderer {
         if (!pathState.getAxisTranslationGizmo().isDragging()
                 && !pathState.getPlaneTranslationGizmo().isDragging()
                 && mc.renderViewEntity != null) {
-            Vec3DDouble gp = Vec3DDouble.from(selPt.pos.x() + 0.5, selPt.pos.y() + 0.5, selPt.pos.z() + 0.5);
-            pathState
-                    .getAxisTranslationGizmo()
-                    .updateHover(mx3d, my3d, mc.renderViewEntity, gp.x(), gp.y(), gp.z(), 0, 0, 0);
+            Vec3DDouble gp = selPt.pos.toDouble().plus(0.5);
+            pathState.getAxisTranslationGizmo().updateHover(mx3d, my3d, mc.renderViewEntity, gp, Vec3DFloat.ZERO);
         }
     }
 }

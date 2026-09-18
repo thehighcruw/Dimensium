@@ -13,6 +13,8 @@ import github.thehighcruw.dimensium.editor.window.viewport.world.PlaneTranslatio
 import github.thehighcruw.dimensium.editor.window.viewport.world.RotationGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.TranslationGizmo;
 import github.thehighcruw.dimensium.shared.KeyConstants;
+import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.MovingObjectPosition;
@@ -34,16 +36,15 @@ public class MoveBrushInput implements BrushInput {
         int mouseX = (int) fs.cursorX, mouseY = (int) fs.cursorY;
 
         if (button == KeyConstants.LMB) {
-            double gx = ms.gizmoX(), gy = ms.gizmoY(), gz = ms.gizmoZ();
+            Vec3DDouble gizmoPos = ms.gizmoPos();
+            Vec3DFloat rot = ms.rot;
             if (ms.getAxisTranslationGizmo().hoveredAxis != TranslationGizmo.Axis.NONE) {
-                ms.getAxisTranslationGizmo()
-                        .startDrag(mouseX, mouseY, gx, gy, gz, gx, gy, gz, ms.rot.x(), ms.rot.y(), ms.rot.z());
+                ms.getAxisTranslationGizmo().startDrag(mouseX, mouseY, gizmoPos, gizmoPos, rot);
             } else if (ms.getPlaneTranslationGizmo().hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
-                ms.getPlaneTranslationGizmo()
-                        .startDrag(mouseX, mouseY, gx, gy, gz, gx, gy, gz, ms.rot.x(), ms.rot.y(), ms.rot.z());
+                ms.getPlaneTranslationGizmo().startDrag(mouseX, mouseY, gizmoPos, gizmoPos, rot);
             } else if (ms.getRotationGizmo().hoveredAxis != RotationGizmo.Axis.NONE) {
-                ms.rotDragBase = ms.rot;
-                ms.getRotationGizmo().startDrag(mouseX, mouseY, gx, gy, gz, ms.rot.x(), ms.rot.y(), ms.rot.z());
+                ms.rotDragBase = rot;
+                ms.getRotationGizmo().startDrag(mouseX, mouseY, gizmoPos, rot);
             }
         } else if (button == KeyConstants.RMB) {
             GuiDimensiumOverlay.confirmMove();

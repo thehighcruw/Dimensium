@@ -144,7 +144,7 @@ public class FillSelectionWindow extends ToggleableWindow {
         for (long key : selected) {
             Vec3DInt cv = SelectionState.unpack(key);
             if (matchesFillMode(selected, cv, fillMode.get())) {
-                ops.add(new int[] {cv.x(), cv.y(), cv.z(), blockId, blockMeta});
+                ops.add(cv.toBlockOp(blockId, blockMeta));
             }
         }
 

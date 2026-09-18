@@ -52,7 +52,7 @@ public class PacketShapePlacement implements IPacket {
 
     public PacketShapePlacement(ShapePlacementState ps, ShapeToolState s, SelectedBlockState sbs) {
         anchor = Vec3DInt.floor(ps.anchorF);
-        dims = Vec3DInt.from(ps.baseW, ps.baseH, ps.baseD);
+        dims = ps.baseDims;
         rot = ps.rot;
         shapeTypeOrd = s.shapeType.ordinal();
         hollow = s.shapeHollow;
@@ -204,8 +204,7 @@ public class PacketShapePlacement implements IPacket {
                         }
                     }
                     Block blk = Block.getBlockById(blockIds[chosen]);
-                    if (blk != null && blk != Blocks.air)
-                        ops.add(new int[] {pos.x(), pos.y(), pos.z(), blockIds[chosen], metas[chosen]});
+                    if (blk != null && blk != Blocks.air) ops.add(pos.toBlockOp(blockIds[chosen], metas[chosen]));
                     return true;
                 });
 

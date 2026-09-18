@@ -56,6 +56,8 @@ import github.thehighcruw.dimensium.editor.window.viewport.world.RotationGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.ScalingGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.TranslationGizmo;
 import github.thehighcruw.dimensium.shared.SelectionState;
+import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.tool.BuilderTool;
 import github.thehighcruw.dimensium.tool.BuilderToolState;
 import github.thehighcruw.dimensium.tool.BuilderToolState.Phase;
@@ -177,24 +179,24 @@ public class OverlayRenderer {
 
             ShapePlacementState ps = ShapePlacementState.INSTANCE;
             if (ps.active && !ps.isAnyGizmoDragging() && mc.renderViewEntity != null) {
-                double cx = ps.centerX(), cy = ps.centerY(), cz = ps.centerZ();
-                updateShapeGizmoHover(ps, mx, my, mc.renderViewEntity, cx, cy, cz);
+                Vec3DDouble psCenter = ps.center();
+                updateShapeGizmoHover(ps, mx, my, mc.renderViewEntity, psCenter);
             }
 
             ClipboardPlacementState cps = ClipboardPlacementState.INSTANCE;
             if (cps.active && !cps.isAnyGizmoDragging() && mc.renderViewEntity != null) {
                 EntityLivingBase cEye = mc.renderViewEntity;
-                double ccx = cps.centerX(), ccy = cps.centerY(), ccz = cps.centerZ();
-                cps.getAxisTranslationGizmo().updateHover(mx, my, cEye, ccx, ccy, ccz, 0, 0, 0);
-                handleGizmoHover(cps, mx, my, cEye, ccx, ccy, ccz, cps.rot.x(), cps.rot.y(), cps.rot.z());
+                Vec3DDouble cpsCenter = cps.center();
+                cps.getAxisTranslationGizmo().updateHover(mx, my, cEye, cpsCenter, Vec3DFloat.ZERO);
+                handleGizmoHover(cps, mx, my, cEye, cpsCenter, cps.rot);
             }
 
             MoveToolState ms = MoveToolState.INSTANCE;
             if (ms.active && !ms.isAnyGizmoDragging() && mc.renderViewEntity != null) {
                 EntityLivingBase eye = mc.renderViewEntity;
-                double gx = ms.gizmoX(), gy = ms.gizmoY(), gz = ms.gizmoZ();
-                ms.getAxisTranslationGizmo().updateHover(mx, my, eye, gx, gy, gz, ms.rot.x(), ms.rot.y(), ms.rot.z());
-                handleGizmoHover(ms, mx, my, eye, gx, gy, gz, ms.rot.x(), ms.rot.y(), ms.rot.z());
+                Vec3DDouble gizmoPos = ms.gizmoPos();
+                ms.getAxisTranslationGizmo().updateHover(mx, my, eye, gizmoPos, ms.rot);
+                handleGizmoHover(ms, mx, my, eye, gizmoPos, ms.rot);
             }
 
             // ── Box-select commit on tool change ─────────────────────────────
@@ -265,8 +267,8 @@ public class OverlayRenderer {
     }
 
     private static void updateShapeGizmoHover(
-            ShapePlacementState ps, int mx, int my, EntityLivingBase eye, double cx, double cy, double cz) {
-        ps.viewPlaneGizmo.updateHover(mx, my, eye, cx, cy, cz);
+            ShapePlacementState ps, int mx, int my, EntityLivingBase eye, Vec3DDouble pos) {
+        ps.viewPlaneGizmo.updateHover(mx, my, eye, pos);
         if (ps.viewPlaneGizmo.hovered) {
             ps.getAxisTranslationGizmo().hoveredAxis = TranslationGizmo.Axis.NONE;
             ps.getScalingGizmo().hoveredAxis = ScalingGizmo.Axis.NONE;
@@ -274,43 +276,33 @@ public class OverlayRenderer {
             ps.getPlaneTranslationGizmo().hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
             return;
         }
-        ps.getAxisTranslationGizmo().updateHover(mx, my, eye, cx, cy, cz, ps.rot.x(), ps.rot.y(), ps.rot.z());
+        ps.getAxisTranslationGizmo().updateHover(mx, my, eye, pos, ps.rot);
         if (ps.getAxisTranslationGizmo().hoveredAxis != TranslationGizmo.Axis.NONE) {
             ps.getScalingGizmo().hoveredAxis = ScalingGizmo.Axis.NONE;
             ps.getRotationGizmo().hoveredAxis = RotationGizmo.Axis.NONE;
             ps.getPlaneTranslationGizmo().hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
             return;
         }
-        ps.getScalingGizmo().updateHover(mx, my, eye, cx, cy, cz, ps.rot.x(), ps.rot.y(), ps.rot.z());
+        ps.getScalingGizmo().updateHover(mx, my, eye, pos, ps.rot);
         if (ps.getScalingGizmo().hoveredAxis != ScalingGizmo.Axis.NONE) {
             ps.getRotationGizmo().hoveredAxis = RotationGizmo.Axis.NONE;
             ps.getPlaneTranslationGizmo().hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
             return;
         }
-        ps.getRotationGizmo().updateHover(mx, my, eye, cx, cy, cz, ps.rot.x(), ps.rot.y(), ps.rot.z());
+        ps.getRotationGizmo().updateHover(mx, my, eye, pos, ps.rot);
         if (ps.getRotationGizmo().hoveredAxis != RotationGizmo.Axis.NONE) {
             ps.getPlaneTranslationGizmo().hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
             return;
         }
-        ps.getPlaneTranslationGizmo().updateHover(mx, my, eye, cx, cy, cz, ps.rot.x(), ps.rot.y(), ps.rot.z());
+        ps.getPlaneTranslationGizmo().updateHover(mx, my, eye, pos, ps.rot);
     }
 
     private static <T extends WithAxisTranslationGizmo & WithPlaneTranslationGizmo & WithRotationGizmo>
-            void handleGizmoHover(
-                    T ms,
-                    int mx,
-                    int my,
-                    EntityLivingBase eye,
-                    double gx,
-                    double gy,
-                    double gz,
-                    float rotX,
-                    float rotY,
-                    float rotZ) {
+            void handleGizmoHover(T ms, int mx, int my, EntityLivingBase eye, Vec3DDouble pos, Vec3DFloat rot) {
         if (ms.getAxisTranslationGizmo().hoveredAxis == TranslationGizmo.Axis.NONE) {
-            ms.getPlaneTranslationGizmo().updateHover(mx, my, eye, gx, gy, gz, rotX, rotY, rotZ);
+            ms.getPlaneTranslationGizmo().updateHover(mx, my, eye, pos, rot);
             if (ms.getPlaneTranslationGizmo().hoveredPlane == PlaneTranslationGizmo.Plane.NONE) {
-                ms.getRotationGizmo().updateHover(mx, my, eye, gx, gy, gz, rotX, rotY, rotZ);
+                ms.getRotationGizmo().updateHover(mx, my, eye, pos, rot);
             } else {
                 ms.getRotationGizmo().hoveredAxis = RotationGizmo.Axis.NONE;
             }

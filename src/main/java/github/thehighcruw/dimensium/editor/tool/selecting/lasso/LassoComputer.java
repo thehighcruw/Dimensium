@@ -51,16 +51,12 @@ public final class LassoComputer {
         double yaw = Math.toRadians(eye.rotationYaw);
         double pitch = Math.toRadians(eye.rotationPitch);
 
-        double lookX = -Math.sin(yaw) * Math.cos(pitch);
-        double lookY = -Math.sin(pitch);
-        double lookZ = Math.cos(yaw) * Math.cos(pitch);
-
+        Vec3DDouble lookDir =
+                Vec3DDouble.from(-Math.sin(yaw) * Math.cos(pitch), -Math.sin(pitch), Math.cos(yaw) * Math.cos(pitch));
         double rightX = Math.cos(yaw);
         double rightZ = Math.sin(yaw);
-
-        double upX = -Math.sin(yaw) * Math.sin(pitch);
-        double upY = Math.cos(pitch);
-        double upZ = Math.cos(yaw) * Math.sin(pitch);
+        Vec3DDouble upDir =
+                Vec3DDouble.from(-Math.sin(yaw) * Math.sin(pitch), Math.cos(pitch), Math.cos(yaw) * Math.sin(pitch));
 
         FreecamState fs = FreecamState.INSTANCE;
         double tanHX = fs.projTanHX;
@@ -98,15 +94,14 @@ public final class LassoComputer {
                     if (block == Blocks.air) continue;
                     if (!includeNonSolid && !block.isOpaqueCube()) continue;
 
-                    double dx = bx + 0.5 - eyePos.x();
-                    double dy = by + 0.5 - eyePos.y();
-                    double dz = bz + 0.5 - eyePos.z();
+                    Vec3DDouble delta =
+                            Vec3DDouble.from(bx + 0.5 - eyePos.x(), by + 0.5 - eyePos.y(), bz + 0.5 - eyePos.z());
 
-                    double fwd = dx * lookX + dy * lookY + dz * lookZ;
+                    double fwd = delta.dot(lookDir);
                     if (fwd <= 0.0 || fwd > RAY_MAX) continue;
 
-                    double right = dx * rightX + dz * rightZ;
-                    double up = dx * upX + dy * upY + dz * upZ;
+                    double right = delta.x() * rightX + delta.z() * rightZ;
+                    double up = delta.dot(upDir);
 
                     // Inverse of cursorToNdcX/Y: ndcX = -right/(fwd*tanHX),
                     // cursorX = ndcCenterX - ndcX * sw/2

@@ -6,6 +6,7 @@ package github.thehighcruw.dimensium.editor.tool.creating.stamp;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import github.thehighcruw.dimensium.editor.clipboard.ClipboardBlock;
 import github.thehighcruw.dimensium.editor.tool.BrushInput;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushState;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushUtil;
@@ -15,6 +16,7 @@ import github.thehighcruw.dimensium.shared.BlockSender;
 import github.thehighcruw.dimensium.shared.math.Mat3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import github.thehighcruw.dimensium.shared.util.WorldUtils;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -108,7 +110,7 @@ public final class StampBrushInput implements BrushInput {
         ChangeProposal p = ChangeProposal.forPreview();
         List<int[]> ops = buildOps(instances, state, mc);
         for (int[] op : ops) {
-            long key = ChangeProposal.packKey(op[0], op[1], op[2]);
+            long key = ChangeProposal.packKey(Vec3DInt.from(op[0], op[1], op[2]));
             p.proposed.put(key, new int[] {op[3], op[4]});
         }
         dragPreview = p;
@@ -118,15 +120,15 @@ public final class StampBrushInput implements BrushInput {
         List<int[]> ops = new ArrayList<>();
         for (StampInstance inst : instances) {
             StampEntry entry = state.blueprints.get(inst.entryIdx);
-            List<int[]> offsets = entry.blueprint.offsets();
+            List<ClipboardBlock> offsets = entry.blueprint.offsets();
             Vec3DInt dim = entry.blueprint.clipDim();
 
             boolean rotated = inst.yaw != 0f;
             Mat3DFloat R = rotated ? ShapeMath.buildRotationMatrix(0f, inst.yaw, 0f) : null;
             Vec3DFloat center = dim.toFloat().divide(2f);
 
-            for (int[] o : offsets) {
-                int lx = o[0], ly = o[1], lz = o[2];
+            for (ClipboardBlock o : offsets) {
+                int lx = o.offset().x(), ly = o.offset().y(), lz = o.offset().z();
 
                 if (inst.flipX) lx = (dim.x() - 1) - lx;
                 if (inst.flipZ) lz = (dim.z() - 1) - lz;
@@ -140,11 +142,11 @@ public final class StampBrushInput implements BrushInput {
                 }
 
                 if (state.keepExisting) {
-                    Block existing = mc.theWorld.getBlock(worldPos.x(), worldPos.y(), worldPos.z());
+                    Block existing = WorldUtils.getBlock(worldPos);
                     if (existing != null && existing != Blocks.air) continue;
                 }
 
-                ops.add(new int[] {worldPos.x(), worldPos.y(), worldPos.z(), o[3], o[4]});
+                ops.add(worldPos.toBlockOp(o.blockId(), o.meta()));
             }
         }
         return ops;

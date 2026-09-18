@@ -39,9 +39,7 @@ public class RockBrush implements BrushStrategy {
                 bs.brushRadius, bs.brushShape.hasHeight ? bs.brushHeight : bs.brushRadius, bs.brushRadius);
         Vec3DInt dims = brushSize.times(2).plus(1);
 
-        int strideX = dims.y() * dims.z();
-
-        float[] density = buildDensity(s, bs, brushSize, neighbour, dims, strideX, dims.z());
+        float[] density = buildDensity(s, bs, brushSize, neighbour, dims);
 
         if (s.smoothingStdDev > 0f) {
             int minRadius = brushSize.min();
@@ -53,7 +51,7 @@ public class RockBrush implements BrushStrategy {
 
         final float[] finalDensity = density;
         BrushUtil.forEachInShape(bs.brushShape, brushSize, offset -> {
-            int idx = offset.plus(brushSize).toIndex(strideX, dims.z());
+            int idx = offset.plus(brushSize).toIndex(dims);
             if (finalDensity[idx] < FILL_THRESHOLD) return;
             Vec3DInt worldPos = neighbour.plus(offset);
             if (WorldUtils.getBlock(world, worldPos) != Blocks.air) return;
@@ -62,13 +60,7 @@ public class RockBrush implements BrushStrategy {
     }
 
     private static float[] buildDensity(
-            RockToolState s,
-            BrushState bs,
-            Vec3DInt brushSize,
-            Vec3DInt neighbour,
-            Vec3DInt dims,
-            int strideX,
-            int strideY) {
+            RockToolState s, BrushState bs, Vec3DInt brushSize, Vec3DInt neighbour, Vec3DInt dims) {
 
         float[] density = new float[dims.product()];
         float noiseRadius = Math.max(0.01f, s.noiseRadius);
@@ -77,8 +69,7 @@ public class RockBrush implements BrushStrategy {
         long seed = s.noiseSeed;
 
         Vec3DFloat brushSizeF = brushSize.toFloat();
-        Vec3DInt.forEachInclusive(brushSize.times(-1), brushSize, (dx, dy, dz) -> {
-            Vec3DInt offset = Vec3DInt.from(dx, dy, dz);
+        Vec3DInt.forEachInclusive(brushSize.negate(), brushSize, offset -> {
             if (!BrushUtil.inShape(bs.brushShape, offset, brushSize)) return;
 
             // Normalized distance from center [0,1] using ellipsoid metric
@@ -97,7 +88,7 @@ public class RockBrush implements BrushStrategy {
             // Blend sphere shape and noise according to noisiness
             float d = sphereDensity + (noise - sphereDensity) * noisiness;
 
-            density[offset.plus(brushSize).toIndex(strideX, strideY)] = d * meld;
+            density[offset.plus(brushSize).toIndex(dims)] = d * meld;
         });
         return density;
     }
@@ -122,23 +113,19 @@ public class RockBrush implements BrushStrategy {
     }
 
     private static float[] blurAxis(float[] src, Vec3DInt dims, float[] kernel, int kr, int axis) {
-        int strideX = dims.y() * dims.z();
         float[] dst = new float[dims.product()];
 
-        dims.forEach((x, y, z) -> {
+        dims.forEach(pos -> {
             float val = 0f;
             float wSum = 0f;
             for (int k = -kr; k <= kr; k++) {
-                int nx = x, ny = y, nz = z;
-                if (axis == 0) nx += k;
-                else if (axis == 1) ny += k;
-                else nz += k;
-                if (nx < 0 || nx >= dims.x() || ny < 0 || ny >= dims.y() || nz < 0 || nz >= dims.z()) continue;
+                Vec3DInt neighbor = pos.withAxis(axis, pos.get(axis) + k);
+                if (!neighbor.inBounds(Vec3DInt.ZERO, dims.minus(1))) continue;
                 float w = kernel[k + kr];
-                val += src[nx * strideX + ny * dims.z() + nz] * w;
+                val += src[neighbor.toIndex(dims)] * w;
                 wSum += w;
             }
-            dst[x * strideX + y * dims.z() + z] = wSum > 0f ? val / wSum : 0f;
+            dst[pos.toIndex(dims)] = wSum > 0f ? val / wSum : 0f;
         });
 
         return dst;

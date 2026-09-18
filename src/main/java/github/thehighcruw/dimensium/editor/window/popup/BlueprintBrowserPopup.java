@@ -10,6 +10,7 @@ import github.thehighcruw.dimensium.editor.blueprint.Blueprint;
 import github.thehighcruw.dimensium.editor.blueprint.BlueprintIO;
 import github.thehighcruw.dimensium.editor.blueprint.BlueprintRegistry;
 import github.thehighcruw.dimensium.editor.blueprint.BlueprintThumbnailCache;
+import github.thehighcruw.dimensium.editor.clipboard.ClipboardBlock;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import imgui.ImGui;
 import imgui.ImVec2;
@@ -283,10 +284,10 @@ public class BlueprintBrowserPopup {
         SelectionState sel = SelectionState.INSTANCE;
         Map<Long, SelectionState.BlockData> clipboard =
                 new HashMap<>(bp.offsets().size());
-        for (int[] o : bp.offsets()) {
-            Block block = Block.getBlockById(o[3]);
+        for (ClipboardBlock o : bp.offsets()) {
+            Block block = Block.getBlockById(o.blockId());
             if (block == null || block == Blocks.air) continue;
-            clipboard.put(SelectionState.clipboardKey(o[0], o[1], o[2]), new SelectionState.BlockData(block, o[4]));
+            clipboard.put(SelectionState.clipboardKey(o.offset()), new SelectionState.BlockData(block, o.meta()));
         }
         sel.clipboard = clipboard;
         sel.clipDim = bp.clipDim();

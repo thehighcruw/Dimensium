@@ -37,8 +37,8 @@ public final class BlockUtils {
     private static Vec3DInt[] precomputeNeighbours26() {
         Vec3DInt[] offsets = new Vec3DInt[26];
         int[] i = {0};
-        Vec3DInt.forEachInclusive(Vec3DInt.from(-1), Vec3DInt.from(1), (dx, dy, dz) -> {
-            if (dx != 0 || dy != 0 || dz != 0) offsets[i[0]++] = Vec3DInt.from(dx, dy, dz);
+        Vec3DInt.forEachInclusive(Vec3DInt.from(-1), Vec3DInt.from(1), offset -> {
+            if (!offset.equals(Vec3DInt.ZERO)) offsets[i[0]++] = offset;
         });
         return offsets;
     }

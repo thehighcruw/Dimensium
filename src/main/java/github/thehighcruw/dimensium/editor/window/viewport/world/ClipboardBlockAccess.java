@@ -5,6 +5,7 @@
 package github.thehighcruw.dimensium.editor.window.viewport.world;
 
 import github.thehighcruw.dimensium.shared.SelectionState;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import java.util.Map;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
@@ -16,17 +17,15 @@ import net.minecraftforge.common.util.ForgeDirection;
 public class ClipboardBlockAccess implements IBlockAccess {
 
     private final Map<Long, SelectionState.BlockData> data;
-    private final int W, H, D;
+    private final Vec3DInt dims;
 
-    public ClipboardBlockAccess(Map<Long, SelectionState.BlockData> data, int w, int h, int d) {
+    public ClipboardBlockAccess(Map<Long, SelectionState.BlockData> data, Vec3DInt dims) {
         this.data = data;
-        this.W = w;
-        this.H = h;
-        this.D = d;
+        this.dims = dims;
     }
 
     private SelectionState.BlockData at(int x, int y, int z) {
-        if (x < 0 || y < 0 || z < 0 || x >= W || y >= H || z >= D) return null;
+        if (x < 0 || y < 0 || z < 0 || x >= dims.x() || y >= dims.y() || z >= dims.z()) return null;
         return data.get(SelectionState.clipboardKey(x, y, z));
     }
 
@@ -64,7 +63,7 @@ public class ClipboardBlockAccess implements IBlockAccess {
 
     @Override
     public int getHeight() {
-        return Math.max(H, 1);
+        return Math.max(dims.y(), 1);
     }
 
     @Override

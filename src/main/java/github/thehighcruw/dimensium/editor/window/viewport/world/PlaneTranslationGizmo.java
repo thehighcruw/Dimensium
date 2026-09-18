@@ -83,6 +83,10 @@ public class PlaneTranslationGizmo {
 
     // ── Rendering ─────────────────────────────────────────────────────────────
 
+    public void render(Vec3DDouble pos, Vec3DDouble camPos, Vec3DFloat rot) {
+        render(pos.x(), pos.y(), pos.z(), camPos, rot.x(), rot.y(), rot.z());
+    }
+
     public void render(double gx, double gy, double gz, Vec3DDouble camPos, float rotX, float rotY, float rotZ) {
         RotationGizmo.beginRender(proj, gx, gy, gz, camPos, rotX, rotY, rotZ);
 
@@ -139,6 +143,10 @@ public class PlaneTranslationGizmo {
     }
 
     // ── Hover ──────────────────────────────────────────────────────────────────
+
+    public void updateHover(int mouseX, int mouseY, EntityLivingBase player, Vec3DDouble pos, Vec3DFloat rot) {
+        updateHover(mouseX, mouseY, player, pos.x(), pos.y(), pos.z(), rot.x(), rot.y(), rot.z());
+    }
 
     public void updateHover(
             int mouseX,
@@ -203,6 +211,21 @@ public class PlaneTranslationGizmo {
      * anchorX/Y/Z is the current shape anchor position in world space.
      * Drag moves the anchor along the two axes of the hovered plane.
      */
+    public void startDrag(int mouseX, int mouseY, Vec3DDouble gizmoPos, Vec3DDouble anchor, Vec3DFloat rot) {
+        startDrag(
+                mouseX,
+                mouseY,
+                gizmoPos.x(),
+                gizmoPos.y(),
+                gizmoPos.z(),
+                anchor.x(),
+                anchor.y(),
+                anchor.z(),
+                rot.x(),
+                rot.y(),
+                rot.z());
+    }
+
     public void startDrag(
             int mouseX,
             int mouseY,

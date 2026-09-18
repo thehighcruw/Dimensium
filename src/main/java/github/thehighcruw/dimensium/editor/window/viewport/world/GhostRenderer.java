@@ -67,11 +67,10 @@ public class GhostRenderer {
         HashMap<Long, Integer> edgeMask = new HashMap<>(blocks.size() * 4);
         for (Vec3DInt p : blocks) {
             for (int face = 0; face < 6; face++) {
-                if (set.contains(SelectionRenderer.lPack(p.x() + NX[face], p.y() + NY[face], p.z() + NZ[face])))
-                    continue;
+                if (set.contains(SelectionRenderer.lPack(p.plus(NX[face], NY[face], NZ[face])))) continue;
                 int axisBit = FACE_AXIS_BIT[face];
                 for (int[] e : FACE_EDGES[face]) {
-                    long ek = lEdgeKey(e[0], p.x() + e[1], p.y() + e[2], p.z() + e[3]);
+                    long ek = lEdgeKey(e[0], p.plus(e[1], e[2], e[3]));
                     edgeMask.compute(ek, (k, prev) -> prev == null ? axisBit : prev | axisBit);
                 }
             }
@@ -98,8 +97,8 @@ public class GhostRenderer {
         float tr = ((tintRGB >> 16) & 0xFF) / 255f;
         float tg = ((tintRGB >> 8) & 0xFF) / 255f;
         float tb = (tintRGB & 0xFF) / 255f;
-        float x = pos.x(), y = pos.y(), z = pos.z();
-        float x2 = x + 1f, y2 = y + 1f, z2 = z + 1f;
+        Vec3DFloat base = pos.toFloat();
+        Vec3DFloat corner = base.plus(1f);
         switch (face) {
             case 0:
                 addFace(
@@ -110,10 +109,10 @@ public class GhostRenderer {
                         tr,
                         tg,
                         tb,
-                        Vec3DFloat.from(x2, y2, z2),
-                        Vec3DFloat.from(x2, y2, z),
-                        Vec3DFloat.from(x2, y, z),
-                        Vec3DFloat.from(x2, y, z2));
+                        Vec3DFloat.from(corner.x(), corner.y(), corner.z()),
+                        Vec3DFloat.from(corner.x(), corner.y(), base.z()),
+                        Vec3DFloat.from(corner.x(), base.y(), base.z()),
+                        Vec3DFloat.from(corner.x(), base.y(), corner.z()));
                 break;
             case 1:
                 addFace(
@@ -124,10 +123,10 @@ public class GhostRenderer {
                         tr,
                         tg,
                         tb,
-                        Vec3DFloat.from(x, y2, z),
-                        Vec3DFloat.from(x, y2, z2),
-                        Vec3DFloat.from(x, y, z2),
-                        Vec3DFloat.from(x, y, z));
+                        Vec3DFloat.from(base.x(), corner.y(), base.z()),
+                        Vec3DFloat.from(base.x(), corner.y(), corner.z()),
+                        Vec3DFloat.from(base.x(), base.y(), corner.z()),
+                        Vec3DFloat.from(base.x(), base.y(), base.z()));
                 break;
             case 2:
                 addFace(
@@ -138,10 +137,10 @@ public class GhostRenderer {
                         tr,
                         tg,
                         tb,
-                        Vec3DFloat.from(x, y2, z),
-                        Vec3DFloat.from(x2, y2, z),
-                        Vec3DFloat.from(x2, y2, z2),
-                        Vec3DFloat.from(x, y2, z2));
+                        Vec3DFloat.from(base.x(), corner.y(), base.z()),
+                        Vec3DFloat.from(corner.x(), corner.y(), base.z()),
+                        Vec3DFloat.from(corner.x(), corner.y(), corner.z()),
+                        Vec3DFloat.from(base.x(), corner.y(), corner.z()));
                 break;
             case 3:
                 addFace(
@@ -152,10 +151,10 @@ public class GhostRenderer {
                         tr,
                         tg,
                         tb,
-                        Vec3DFloat.from(x, y, z2),
-                        Vec3DFloat.from(x2, y, z2),
-                        Vec3DFloat.from(x2, y, z),
-                        Vec3DFloat.from(x, y, z));
+                        Vec3DFloat.from(base.x(), base.y(), corner.z()),
+                        Vec3DFloat.from(corner.x(), base.y(), corner.z()),
+                        Vec3DFloat.from(corner.x(), base.y(), base.z()),
+                        Vec3DFloat.from(base.x(), base.y(), base.z()));
                 break;
             case 4:
                 addFace(
@@ -166,10 +165,10 @@ public class GhostRenderer {
                         tr,
                         tg,
                         tb,
-                        Vec3DFloat.from(x, y2, z2),
-                        Vec3DFloat.from(x2, y2, z2),
-                        Vec3DFloat.from(x2, y, z2),
-                        Vec3DFloat.from(x, y, z2));
+                        Vec3DFloat.from(base.x(), corner.y(), corner.z()),
+                        Vec3DFloat.from(corner.x(), corner.y(), corner.z()),
+                        Vec3DFloat.from(corner.x(), base.y(), corner.z()),
+                        Vec3DFloat.from(base.x(), base.y(), corner.z()));
                 break;
             case 5:
                 addFace(
@@ -180,10 +179,10 @@ public class GhostRenderer {
                         tr,
                         tg,
                         tb,
-                        Vec3DFloat.from(x2, y2, z),
-                        Vec3DFloat.from(x, y2, z),
-                        Vec3DFloat.from(x, y, z),
-                        Vec3DFloat.from(x2, y, z));
+                        Vec3DFloat.from(corner.x(), corner.y(), base.z()),
+                        Vec3DFloat.from(base.x(), corner.y(), base.z()),
+                        Vec3DFloat.from(base.x(), base.y(), base.z()),
+                        Vec3DFloat.from(corner.x(), base.y(), base.z()));
                 break;
             default:
                 break;
@@ -228,14 +227,12 @@ public class GhostRenderer {
     static float[] creaseWireframeFromSet(HashSet<Long> set) {
         HashMap<Long, Integer> edgeMask = new HashMap<>(set.size() * 4);
         for (long pk : set) {
-            int bx = (int) ((pk >> 26) & 0x1FFF) - 4096;
-            int by = (int) ((pk >> 13) & 0x1FFF) - 4096;
-            int bz = (int) (pk & 0x1FFF) - 4096;
+            Vec3DInt b = SelectionRenderer.lUnpack(pk);
             for (int face = 0; face < 6; face++) {
-                if (set.contains(SelectionRenderer.lPack(bx + NX[face], by + NY[face], bz + NZ[face]))) continue;
+                if (set.contains(SelectionRenderer.lPack(b.plus(NX[face], NY[face], NZ[face])))) continue;
                 int axisBit = FACE_AXIS_BIT[face];
                 for (int[] e : FACE_EDGES[face]) {
-                    long ek = ((long) e[0] << 39) | SelectionRenderer.lPack(bx + e[1], by + e[2], bz + e[3]);
+                    long ek = ((long) e[0] << 39) | SelectionRenderer.lPack(b.plus(e[1], e[2], e[3]));
                     edgeMask.compute(ek, (k, prev) -> prev == null ? axisBit : prev | axisBit);
                 }
             }
@@ -253,10 +250,15 @@ public class GhostRenderer {
             if (Integer.bitCount(entry.getValue()) <= 1) continue;
             long ek = entry.getKey();
             int axis = (int) (ek >> 39) & 3;
-            int ex = (int) ((ek >> 26) & 0x1FFF) - 4096;
-            int ey = (int) ((ek >> 13) & 0x1FFF) - 4096;
-            int ez = (int) (ek & 0x1FFF) - 4096;
-            vi = writeEdgeVerts(verts, vi, ex, ey, ez, axis);
+            Vec3DInt coord = Vec3DInt.from(
+                    (int) ((ek >> 26) & 0x1FFF) - 4096, (int) ((ek >> 13) & 0x1FFF) - 4096, (int) (ek & 0x1FFF) - 4096);
+            Vec3DInt end = coord.plus(axis == 0 ? 1 : 0, axis == 1 ? 1 : 0, axis == 2 ? 1 : 0);
+            verts[vi++] = coord.x();
+            verts[vi++] = coord.y();
+            verts[vi++] = coord.z();
+            verts[vi++] = end.x();
+            verts[vi++] = end.y();
+            verts[vi++] = end.z();
         }
         return verts;
     }
@@ -368,6 +370,10 @@ public class GhostRenderer {
 
     private long lEdgeKey(int axis, int x, int y, int z) {
         return ((long) axis << 39) | ((long) (x + 4096) << 26) | ((long) (y + 4096) << 13) | (z + 4096);
+    }
+
+    private long lEdgeKey(int axis, Vec3DInt v) {
+        return lEdgeKey(axis, v.x(), v.y(), v.z());
     }
 
     @FunctionalInterface

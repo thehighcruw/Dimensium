@@ -9,6 +9,7 @@ import cpw.mods.fml.common.gameevent.TickEvent;
 import github.thehighcruw.dimensium.network.PacketHistoryEntry;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.PerfTrace;
+import github.thehighcruw.dimensium.shared.util.WorldUtils;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
@@ -200,7 +201,7 @@ public class ServerEditQueue {
                 op[0],
                 op[1],
                 op[2],
-                Block.getIdFromBlock(edit.world.getBlock(op[0], op[1], op[2])),
+                Block.getIdFromBlock(WorldUtils.getBlock(edit.world, pos)),
                 EditHistory.getEffectiveMeta(edit.world, pos)
             };
         }

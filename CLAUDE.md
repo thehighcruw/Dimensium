@@ -121,9 +121,9 @@ Delete unused code rather than commenting it out or leaving it in place. This in
 
 When a tool, library, or plugin is replaced by a better alternative, remove the old one in the same change. Do not leave disabled-but-present infrastructure (e.g. `isEnabled = false` blocks, commented-out plugin applications).
 
-### 9. Make use of Vec3D{Int/Float/Double} and Mat3DFloat
+### 9. Make use of Vec{2/3}D{Int/Float/Double} and Mat3DFloat
 
-These should be used for representing vectors and matrices and methods on them should be preferred for vector/matrix math.
+These should be used for representing 2d and 3d vectors and matrices and methods on them should be preferred for vector/matrix math.
 Unpacking the scalar values embedded in vectors should be avoided as long as possible.
 
 ### 10. Naming
