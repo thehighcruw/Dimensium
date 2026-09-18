@@ -8,31 +8,31 @@ Minecraft 1.7.10 building mod. Java 8. RetroFuturaGradle. Main package: `github.
 
 ## Source Layout
 
-| Path | Purpose |
-|------|---------|
-| `src/main/java/.../tool/` | Tool enum, selection, clipboard, core tool logic |
-| `src/main/java/.../tool/state/` | Per-tool state singletons |
-| `src/main/java/.../tool/brushes/` | Brush strategy implementations (sculpt, noise, smooth, …) |
-| `src/main/java/.../tool/builder/` | `BuilderTool` placement strategies (clone, erase, move, smear, …) |
-| `src/main/java/.../tool/mask/` | Mask nodes, serializer, and registry |
-| `src/main/java/.../tool/math/` | Geometry math: `ShapeMath`, `ModellingMath`, `NoiseSampler`, `PathMath` |
-| `src/main/java/.../network/` | Client↔server packets (FML SimpleImpl) |
-| `src/main/java/.../render/` | Client-only renderers and overlay GUI |
-| `src/main/java/.../render/imgui/` | ImGui core: `ImGuiWindow`, `ImGuiWindowRegistry`, `ImGuiManager`, GL renderer, icon/item caches |
-| `src/main/java/.../render/panel/` | `ToolOptionsPanel`, `ToolPanel`, shared panel widgets |
-| `src/main/java/.../render/panel/sections/` | Per-tool panel UI sections |
-| `src/main/java/.../render/brushes/` | Brush preview views per tool |
-| `src/main/java/.../render/gui/` | Legacy Minecraft GUI screens (colour picker, gradient helper) |
-| `src/main/java/.../render/popup/` | ImGui popup/modal windows (block picker, blueprint browser, create blueprint, conflict, …) |
-| `src/main/java/.../render/sidebar/` | ImGui sidebar/tool windows (palette, clipboard, selection, operations, autoshade, fill, filter, replace, …) |
-| `src/main/java/.../render/world/` | World-space renderers: selection, hologram, ghost, clipboard, gizmos, brush preview |
-| `src/main/java/.../handler/` | FML event handlers (key input, tick, item) |
-| `src/main/java/.../handler/brushes/` | Brush input handlers per tool |
-| `src/main/java/.../history/` | Undo/redo: `EditHistory`, `ClientEditHistory`, server capture/edit queues |
-| `src/main/java/.../blueprint/` | Blueprint save/load, registry, thumbnail cache |
-| `src/main/java/.../freecam/` | Freecam entity, state, and utilities |
-| `src/main/java/.../proxy/` | Client / server proxy split |
-| `src/main/java/.../util/` | `PerfTrace` and other shared utilities |
+| Path                                       | Purpose                                                                                                     |
+|--------------------------------------------|-------------------------------------------------------------------------------------------------------------|
+| `src/main/java/.../tool/`                  | Tool enum, selection, clipboard, core tool logic                                                            |
+| `src/main/java/.../tool/state/`            | Per-tool state singletons                                                                                   |
+| `src/main/java/.../tool/brushes/`          | Brush strategy implementations (sculpt, noise, smooth, …)                                                   |
+| `src/main/java/.../tool/builder/`          | `BuilderTool` placement strategies (clone, erase, move, smear, …)                                           |
+| `src/main/java/.../tool/mask/`             | Mask nodes, serializer, and registry                                                                        |
+| `src/main/java/.../tool/math/`             | Geometry math: `ShapeMath`, `ModellingMath`, `NoiseSampler`, `PathMath`                                     |
+| `src/main/java/.../network/`               | Client↔server packets (FML SimpleImpl)                                                                      |
+| `src/main/java/.../render/`                | Client-only renderers and overlay GUI                                                                       |
+| `src/main/java/.../render/imgui/`          | ImGui core: `ImGuiWindow`, `ImGuiWindowRegistry`, `ImGuiManager`, GL renderer, icon/item caches             |
+| `src/main/java/.../render/panel/`          | `ToolOptionsPanel`, `ToolPanel`, shared panel widgets                                                       |
+| `src/main/java/.../render/panel/sections/` | Per-tool panel UI sections                                                                                  |
+| `src/main/java/.../render/brushes/`        | Brush preview views per tool                                                                                |
+| `src/main/java/.../render/gui/`            | Legacy Minecraft GUI screens (colour picker, gradient helper)                                               |
+| `src/main/java/.../render/popup/`          | ImGui popup/modal windows (block picker, blueprint browser, create blueprint, conflict, …)                  |
+| `src/main/java/.../render/sidebar/`        | ImGui sidebar/tool windows (palette, clipboard, selection, operations, autoshade, fill, filter, replace, …) |
+| `src/main/java/.../render/world/`          | World-space renderers: selection, hologram, ghost, clipboard, gizmos, brush preview                         |
+| `src/main/java/.../handler/`               | FML event handlers (key input, tick, item)                                                                  |
+| `src/main/java/.../handler/brushes/`       | Brush input handlers per tool                                                                               |
+| `src/main/java/.../history/`               | Undo/redo: `EditHistory`, `ClientEditHistory`, server capture/edit queues                                   |
+| `src/main/java/.../blueprint/`             | Blueprint save/load, registry, thumbnail cache                                                              |
+| `src/main/java/.../freecam/`               | Freecam entity, state, and utilities                                                                        |
+| `src/main/java/.../proxy/`                 | Client / server proxy split                                                                                 |
+| `src/main/java/.../util/`                  | `PerfTrace` and other shared utilities                                                                      |
 
 ---
 
@@ -40,11 +40,11 @@ Minecraft 1.7.10 building mod. Java 8. RetroFuturaGradle. Main package: `github.
 
 `.context/` is **gitignored and read-only**. Shallow clones of upstream GTNH libraries for reference only.
 
-| Directory | Library | Purpose |
-|-----------|---------|---------|
-| `.context/GTNHLib/` | GTNHLib | GTNH utility library — config, networking, keybinds, color, geometry |
-| `.context/RegionLib/` | RegionLib | Region/cubic-chunk file I/O library |
-| `.context/GTNHExtLib/` | GTNHExtLib | Bootstrap/classloader utility |
+| Directory              | Library    | Purpose                                                              |
+|------------------------|------------|----------------------------------------------------------------------|
+| `.context/GTNHLib/`    | GTNHLib    | GTNH utility library — config, networking, keybinds, color, geometry |
+| `.context/RegionLib/`  | RegionLib  | Region/cubic-chunk file I/O library                                  |
+| `.context/GTNHExtLib/` | GTNHExtLib | Bootstrap/classloader utility                                        |
 
 To refresh a clone: `git -C .context/<dir> pull`.
 
@@ -60,11 +60,11 @@ All user-visible text goes through `I18n.format("dimensium.some.key")`. Add keys
 
 New tool behaviours attach via registry, not by editing a central switch. Current registries:
 
-| Registry | Maps | Purpose |
-|---|---|---|
-| `BrushInputRegistry` | `Tool → BrushInput` | mouse/click handling per tool |
-| `BrushViewRegistry` | `Tool → BrushView` | brush outline preview per tool |
-| `ToolStates` | `Tool → ToolSection` | panel section per tool |
+| Registry             | Maps                 | Purpose                        |
+|----------------------|----------------------|--------------------------------|
+| `BrushInputRegistry` | `Tool → BrushInput`  | mouse/click handling per tool  |
+| `BrushViewRegistry`  | `Tool → BrushView`   | brush outline preview per tool |
+| `ToolStates`         | `Tool → ToolSection` | panel section per tool         |
 
 Adding a new tool = register in each relevant registry. Never add `if (tool == Tool.X)` branches in shared code paths.
 
@@ -116,6 +116,21 @@ When a tool, library, or plugin is replaced by a better alternative, remove the 
 ### 9. Prefer GTNHLib over reinventing
 
 Before writing new infrastructure, check `.context/GTNHLib/`. Open integration opportunities below.
+
+### 10. Make use of Vec3D{Int/Float/Double} and Mat3DFloat
+
+These should be used for representing vectors and matrices and methods on them should be preferred for vector/matrix math.
+Unpacking the scalar values embedded in vectors should be avoided as long as possible.
+
+### 11. Naming
+
+Java variables and methods should be camelcase and abbreviations and shorthands should be avoided.
+Single character names are not allowed.
+
+### 12. Re-use of code
+
+Before creating a function that may be a utility - especially static functions -, ensure to check whether an implementation
+already exists. Make sure to re-use existing utility functions whenever possible.
 
 ---
 
