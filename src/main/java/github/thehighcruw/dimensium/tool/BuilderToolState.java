@@ -23,7 +23,9 @@ public class BuilderToolState {
         /** Selection confirmed; server is reading world state. Input ignored until done. */
         CAPTURING,
         /** Both corners set; scroll/middle-click repositions hologram. */
-        MANIPULATING
+        MANIPULATING,
+        /** AABB selected for erase; waiting for DELETE/BACKSPACE confirmation. */
+        CONFIRMING
     }
 
     public Phase phase = Phase.IDLE;

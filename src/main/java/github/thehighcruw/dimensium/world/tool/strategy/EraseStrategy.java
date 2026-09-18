@@ -18,7 +18,6 @@ public class EraseStrategy implements BuilderToolStrategy {
 
     @Override
     public void confirm(BuilderToolState bts, SelectionState sel) {
-        final SelectionState selSnap = sel;
-        BlockSender.sendChunkedLazy(() -> SelectionOps.selectionToAirOps(selSnap), "Erase");
+        BlockSender.sendChunkedUnmasked(SelectionOps.selectionToAirOps(sel), "Erase");
     }
 }

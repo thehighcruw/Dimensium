@@ -383,6 +383,7 @@ public class OverlayRenderer {
                     switch (bts.phase) {
                         case SELECTING -> " \2476+\247r";
                         case MANIPULATING -> " \247a>\247r";
+                        case CONFIRMING -> " \247c✘?\247r";
                         default -> "";
                     };
             String extra = "";

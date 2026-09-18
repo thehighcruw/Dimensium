@@ -36,9 +36,11 @@ import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
+import github.thehighcruw.dimensium.tool.BuilderTool;
 import github.thehighcruw.dimensium.tool.BuilderToolState;
 import github.thehighcruw.dimensium.tool.BuilderToolState.Phase;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
+import github.thehighcruw.dimensium.world.tool.BuilderToolApplicator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -297,6 +299,20 @@ public class KeyHandler {
         if (key >= Keyboard.KEY_1 && key <= Keyboard.KEY_9) {
             DimensiumEditorMode.INSTANCE.exitBuilderTools();
             return;
+        }
+
+        // ── Confirm erase (DELETE / BACKSPACE) ───────────────────────────────
+        if (key == Keyboard.KEY_DELETE || key == Keyboard.KEY_BACK) {
+            BuilderToolState bts = BuilderToolState.INSTANCE;
+            if (bts.phase == Phase.CONFIRMING) {
+                SelectionState erSel = SelectionState.INSTANCE;
+                if (erSel.hasSelection()) {
+                    BuilderToolApplicator.confirm(BuilderTool.ERASE, bts, erSel);
+                }
+                bts.resetPhase();
+                erSel.clearSelection();
+                return;
+            }
         }
 
         // ── Escape: cancel current phase or exit mode ─────────────────────────

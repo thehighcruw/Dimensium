@@ -33,8 +33,9 @@ public class BuilderToolsHandler {
     private static final AtomicInteger CAPTURE_ID_GEN = new AtomicInteger(1);
 
     void handle(MouseEvent event, EntityPlayer player, Minecraft mc) {
-        // Ignore all input while waiting for server capture response.
-        if (BuilderToolState.INSTANCE.phase == Phase.CAPTURING) return;
+        // Ignore all input while waiting for server capture response or erase confirmation.
+        if (BuilderToolState.INSTANCE.phase == Phase.CAPTURING || BuilderToolState.INSTANCE.phase == Phase.CONFIRMING)
+            return;
         BuilderToolState bts = BuilderToolState.INSTANCE;
 
         if (bts.activeTool == BuilderTool.EXTRUDE) {
@@ -93,6 +94,11 @@ public class BuilderToolsHandler {
             sel.pendingPos1 = false;
 
             if (!BuilderToolApplicator.needsCapture(bts.activeTool)) {
+                if (bts.activeTool == BuilderTool.ERASE) {
+                    bts.phase = Phase.CONFIRMING;
+                    PerfTrace.end(0);
+                    return;
+                }
                 PerfTrace.push("confirm");
                 BuilderToolApplicator.confirm(bts.activeTool, bts, sel);
                 PerfTrace.pop();
