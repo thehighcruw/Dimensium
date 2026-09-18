@@ -4,6 +4,7 @@
  */
 package github.thehighcruw.dimensium.shared;
 
+import com.gtnewhorizon.gtnhlib.color.RGBColor;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -249,9 +250,10 @@ public class BlockColorCache {
                     if (rgb == null) continue;
 
                     faceRgbs[validFaces] = rgb;
-                    totalR += (rgb >> 16) & 0xFF;
-                    totalG += (rgb >> 8) & 0xFF;
-                    totalB += rgb & 0xFF;
+                    RGBColor faceColor = RGBColor.fromRGB(rgb);
+                    totalR += faceColor.red;
+                    totalG += faceColor.green;
+                    totalB += faceColor.blue;
                     Float fvar = spriteVarianceCache.get(iconName);
                     if (fvar != null) totalVariance += fvar;
                     validFaces++;
@@ -385,9 +387,11 @@ public class BlockColorCache {
     }
 
     public static double[] rgbToLab(int rgb) {
-        double r = linearize(((rgb >> 16) & 0xFF) / 255.0);
-        double g = linearize(((rgb >> 8) & 0xFF) / 255.0);
-        double b = linearize((rgb & 0xFF) / 255.0);
+        RGBColor color = RGBColor.fromRGB(rgb);
+        double r = linearize(color.red / 255.0);
+        double g = linearize(color.green / 255.0);
+        double b = linearize(color.blue / 255.0);
+        // sRGB → CIE XYZ (D65, IEC 61966-2-1)
         double x = 0.4124564 * r + 0.3575761 * g + 0.1804375 * b;
         double y = 0.2126729 * r + 0.7151522 * g + 0.0721750 * b;
         double z = 0.0193339 * r + 0.1191920 * g + 0.9503041 * b;

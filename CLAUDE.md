@@ -113,66 +113,25 @@ Delete unused code rather than commenting it out or leaving it in place. This in
 
 When a tool, library, or plugin is replaced by a better alternative, remove the old one in the same change. Do not leave disabled-but-present infrastructure (e.g. `isEnabled = false` blocks, commented-out plugin applications).
 
-### 9. Prefer GTNHLib over reinventing
-
-Before writing new infrastructure, check `.context/GTNHLib/`. Open integration opportunities below.
-
-### 10. Make use of Vec3D{Int/Float/Double} and Mat3DFloat
+### 9. Make use of Vec3D{Int/Float/Double} and Mat3DFloat
 
 These should be used for representing vectors and matrices and methods on them should be preferred for vector/matrix math.
 Unpacking the scalar values embedded in vectors should be avoided as long as possible.
 
-### 11. Naming
+### 10. Naming
 
 Java variables and methods should be camelcase and abbreviations and shorthands should be avoided.
 Single character names are not allowed.
 
-### 12. Re-use of code
+### 11. Re-use of code
 
 Before creating a function that may be a utility - especially static functions -, ensure to check whether an implementation
 already exists. Make sure to re-use existing utility functions whenever possible.
 
----
+### 12. Boyscout rule
 
-## GTNHLib Integration Opportunities
-
-### 1. `SyncedKeybind` — replace manual key sync
-
-**Current**: `KeyHandler` reads raw `InputEvent.KeyInputEvent`, then sends custom packets to tell the server which keys are held.
-
-**GTNHLib path**: `com.gtnewhorizon.gtnhlib.keybind.SyncedKeybind`
-
-**What to do**: Register toggle key and builder-mode modifier keys as `SyncedKeybind.createConfigurable(...)`. Remove `PacketKeyDown`-style manual sync. Server-side code calls `syncedKeybind.isKeyDown(player)` directly.
-
----
-
-### 2. `HSVColor` / `RGBColor` — replace raw-int color in BlockColorCache
-
-**Current**: `BlockColorCache` computes average icon colors as raw `int` RGB, manually bit-shifting channels (`>> 16`, `>> 8`, `& 0xFF`).
-
-**GTNHLib path**: `com.gtnewhorizon.gtnhlib.color.{RGBColor,HSVColor,ImmutableColor}`
-
-**What to do**: Wrap computed average colors in `RGBColor`. Use `.toHSV()` for hue-sorted palette display.
-
----
-
-### 3. `CubeIterator` — replace triple-nested loops in shape operations
-
-**Current**: `ShapeMath` and `BuilderTool` operations use nested `for x / y / z` loops over the selection bounding box.
-
-**GTNHLib path**: `com.gtnewhorizon.gtnhlib.geometry.CubeIterator`
-
-**What to do**: For sphere/brush-shaped selections (`BrushShape`), replace nested loops with `CubeIterator` centered on the brush origin. AABB selections keep nested loops.
-
----
-
-### 4. `MutableXYZ` / `ImmutableXYZ` — typed spatial coords
-
-**Current**: `SelectionState`, `ShapePlacementState`, and packet classes pass block positions as bare `int x, y, z` triples or `int[]` arrays.
-
-**GTNHLib path**: `com.gtnewhorizon.gtnhlib.space.{MutableXYZ,ImmutableXYZ}`
-
-**What to do**: Use `ImmutableXYZ` for clipboard origin and selection corners. Use `MutableXYZ` as scratch inside loops to avoid allocating `int[]` tuples (e.g. in `PacketBlockList`).
+When you touch a piece of code, review it for structural issues, technical debt, high complexity.
+Leave it cleaner than you touched it when possible.
 
 ---
 
@@ -202,44 +161,10 @@ already exists. Make sure to re-use existing utility functions whenever possible
 ./gradlew cpdCheck
 ```
 
-Always run `./gradlew classes` after edits to confirm no compile errors before reporting a task complete. Run `./gradlew test` when touching geometry, selection, or raycast logic.
+### Apply spotless formatter
 
----
-
-## Adding a New ImGui Window
-
-Extend `ImGuiWindow` and add to `ClientProxy`. That is all — mouse routing is automatic.
-
-### 1. Extend `ImGuiWindow`, implement `isOpen()`
-
-```java
-public class MyWindow extends ImGuiWindow {
-
-    public static final MyWindow INSTANCE = new MyWindow();
-
-    private boolean open = false;
-
-    private MyWindow() {}   // constructor calls super() → auto-registers with ImGuiWindowRegistry
-
-    @Override
-    public boolean isOpen() { return open; }
-
-    public void renderImGui() {
-        if (!open) return;
-        ImGui.begin("My Window###my_window", ...);
-        captureBounds();  // ← must be immediately after ImGui.begin()
-        // ... content ...
-        ImGui.end();
-    }
-}
+```bash
+./gradlew spotlessApply
 ```
 
-### 2. Register in `ClientProxy.postInit()` — touch INSTANCE in the array
-
-Add `MyWindow.INSTANCE` to the windows array in `ClientProxy.postInit()`. This forces class loading (and therefore registry self-registration) before any mouse event fires.
-
-### 3. Call `renderImGui()` from `OverlayRenderer`
-
-Add `MyWindow.INSTANCE.renderImGui()` to the imgui render block alongside the other windows (around line 496).
-
-No changes needed to `InputHandler` — `ImGuiWindowRegistry.INSTANCE.anyContainsMouse()` picks up the new window automatically.
+Always run `./gradlew spotlessApply` and `./gradlew classes` after edits to confirm no compile errors before reporting a task complete. Run `./gradlew test` when touching geometry, selection, or raycast logic.
