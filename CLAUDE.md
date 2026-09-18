@@ -8,31 +8,39 @@ Minecraft 1.7.10 building mod. Java 8. RetroFuturaGradle. Main package: `github.
 
 ## Source Layout
 
-| Path                                       | Purpose                                                                                                     |
-|--------------------------------------------|-------------------------------------------------------------------------------------------------------------|
-| `src/main/java/.../tool/`                  | Tool enum, selection, clipboard, core tool logic                                                            |
-| `src/main/java/.../tool/state/`            | Per-tool state singletons                                                                                   |
-| `src/main/java/.../tool/brushes/`          | Brush strategy implementations (sculpt, noise, smooth, …)                                                   |
-| `src/main/java/.../tool/builder/`          | `BuilderTool` placement strategies (clone, erase, move, smear, …)                                           |
-| `src/main/java/.../tool/mask/`             | Mask nodes, serializer, and registry                                                                        |
-| `src/main/java/.../tool/math/`             | Geometry math: `ShapeMath`, `ModellingMath`, `NoiseSampler`, `PathMath`                                     |
-| `src/main/java/.../network/`               | Client↔server packets (FML SimpleImpl)                                                                      |
-| `src/main/java/.../render/`                | Client-only renderers and overlay GUI                                                                       |
-| `src/main/java/.../render/imgui/`          | ImGui core: `ImGuiWindow`, `ImGuiWindowRegistry`, `ImGuiManager`, GL renderer, icon/item caches             |
-| `src/main/java/.../render/panel/`          | `ToolOptionsPanel`, `ToolPanel`, shared panel widgets                                                       |
-| `src/main/java/.../render/panel/sections/` | Per-tool panel UI sections                                                                                  |
-| `src/main/java/.../render/brushes/`        | Brush preview views per tool                                                                                |
-| `src/main/java/.../render/gui/`            | Legacy Minecraft GUI screens (colour picker, gradient helper)                                               |
-| `src/main/java/.../render/popup/`          | ImGui popup/modal windows (block picker, blueprint browser, create blueprint, conflict, …)                  |
-| `src/main/java/.../render/sidebar/`        | ImGui sidebar/tool windows (palette, clipboard, selection, operations, autoshade, fill, filter, replace, …) |
-| `src/main/java/.../render/world/`          | World-space renderers: selection, hologram, ghost, clipboard, gizmos, brush preview                         |
-| `src/main/java/.../handler/`               | FML event handlers (key input, tick, item)                                                                  |
-| `src/main/java/.../handler/brushes/`       | Brush input handlers per tool                                                                               |
-| `src/main/java/.../history/`               | Undo/redo: `EditHistory`, `ClientEditHistory`, server capture/edit queues                                   |
-| `src/main/java/.../blueprint/`             | Blueprint save/load, registry, thumbnail cache                                                              |
-| `src/main/java/.../freecam/`               | Freecam entity, state, and utilities                                                                        |
-| `src/main/java/.../proxy/`                 | Client / server proxy split                                                                                 |
-| `src/main/java/.../util/`                  | `PerfTrace` and other shared utilities                                                                      |
+| Path                                          | Purpose                                                                                               |
+|-----------------------------------------------|-------------------------------------------------------------------------------------------------------|
+| `src/main/java/.../tool/`                     | `BuilderTool` item, `BuilderToolState`, `ChangeProposal`                                              |
+| `src/main/java/.../editor/blueprint/`         | Blueprint save/load, registry, thumbnail cache                                                        |
+| `src/main/java/.../editor/clipboard/`         | Clipboard utilities                                                                                   |
+| `src/main/java/.../editor/freecam/`           | Freecam entity, state, and utilities                                                                  |
+| `src/main/java/.../editor/handler/`           | FML event handlers: key input, tick, mouse, selection ops, anchor snap, extrude helper                |
+| `src/main/java/.../editor/history/`           | Undo/redo: `EditHistory`, `ClientEditHistory`, server capture/edit queues                             |
+| `src/main/java/.../editor/overlay/`           | HUD overlay, menu bar, status bar, editing mode screen, layout presets, view state                    |
+| `src/main/java/.../editor/tool/`              | Tool enum/registry, `BrushInput`/`BrushInputRegistry`, `BrushApplicator`, `ToolStates`                |
+| `src/main/java/.../editor/tool/brushes/`      | Shared brush infrastructure: `BrushState`, `BrushStrategy`, `BrushShape`, Gaussian kernel             |
+| `src/main/java/.../editor/tool/creating/`     | Block-creating tools: fill, freehand, modelling, path, rock, sculpt, shape, stamp                     |
+| `src/main/java/.../editor/tool/gizmo/`        | Gizmo interaction interfaces (translate, rotate, scale)                                               |
+| `src/main/java/.../editor/tool/manipulating/` | Selection-manipulating tools: distort, elevation, extrude, melt, move, roughen, shatter, smooth, weld |
+| `src/main/java/.../editor/tool/mask/`         | Mask nodes, serializer, registry, and utilities                                                       |
+| `src/main/java/.../editor/tool/noise/`        | `NoiseSampler`, noise preview renderer                                                                |
+| `src/main/java/.../editor/tool/painting/`     | Paint tools: gradient, noise, painter                                                                 |
+| `src/main/java/.../editor/tool/selecting/`    | Selection tools: box, freehand, lasso, magic; boolean ops and shared state                            |
+| `src/main/java/.../editor/tool/state/`        | Shared per-tool state: `PaletteState`, `PaletteRegistry`, `ClipboardPlacementState`                   |
+| `src/main/java/.../editor/tool/utility/`      | Utility tools: ruler                                                                                  |
+| `src/main/java/.../editor/window/`            | All ImGui windows (palette, clipboard, selection, operations, autoshade, history, …)                  |
+| `src/main/java/.../editor/window/imgui/`      | ImGui core: `ImGuiWindow`, `ImGuiWindowRegistry`, `ImGuiManager`, GL renderer, icon/item caches       |
+| `src/main/java/.../editor/window/panel/`      | Shared panel draw utilities and `PanelSection` base                                                   |
+| `src/main/java/.../editor/window/popup/`      | ImGui popup/modal windows (block picker, blueprint browser, create blueprint, conflict, settings)     |
+| `src/main/java/.../editor/window/viewport/`   | Viewport capture, panel, registry, state, and world-space renderers                                   |
+| `src/main/java/.../network/`                  | Client↔server packets (FML SimpleImpl)                                                                |
+| `src/main/java/.../proxy/`                    | Client / server proxy split                                                                           |
+| `src/main/java/.../shared/`                   | `SelectionState`, `SelectionTransforms`, `BoundingBox`, `InputHandler`, `KeyConstants`                |
+| `src/main/java/.../shared/math/`              | `Vec3DInt/Float/Double`, `Vec2DFloat/Double`, `Mat3DFloat`, tri-int functional interfaces             |
+| `src/main/java/.../shared/util/`              | `BlockUtils`, `WorldUtils`, `RenderUtils`, `UIUtils`, `PerfTrace`                                     |
+| `src/main/java/.../world/handler/`            | Server-side FML event handlers for builder tool and mouse                                             |
+| `src/main/java/.../world/inventory/`          | Legacy Minecraft GUI screens: colour picker, gradient helper                                          |
+| `src/main/java/.../world/tool/`               | Server-side `BuilderToolApplicator` and placement strategies (clone, erase, move, smear, stack)       |
 
 ---
 
@@ -132,6 +140,13 @@ already exists. Make sure to re-use existing utility functions whenever possible
 
 When you touch a piece of code, review it for structural issues, technical debt, high complexity.
 Leave it cleaner than you touched it when possible.
+
+### 13. Put static functions in Utils classes
+
+When you have a function that may be used in various classes and should not be expressed as a member function,
+it should be created as a static function as part of a utility class.
+A few of such classes already exist. If a fitting place exists, make sure to place the static function in that class.
+Those utility classes should not have mutable static state.
 
 ---
 
