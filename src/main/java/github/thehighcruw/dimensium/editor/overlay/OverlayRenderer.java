@@ -194,11 +194,6 @@ public class OverlayRenderer {
                 GuiDimensiumOverlay.commitBoxSelection(bxSel, BoxSelectToolState.INSTANCE);
             }
 
-            // ── Per-tool overlay (gizmos, 2D overlays) ────────────────────────
-            Tool activeTool = DimensiumEditorMode.INSTANCE.selectedTool;
-            ToolRenderer toolRenderer = ToolRegistry.toolRenderer(activeTool);
-            toolRenderer.renderOverlay(mc, mx, my, mx, my);
-
             ViewportRegistry.INSTANCE.flushPendingDeletions();
 
             // Capture world render into the active viewport's texture before ImGui overdraw.
@@ -246,6 +241,12 @@ public class OverlayRenderer {
             // Rebake clipboard FBO after ImGui has rendered — result used next frame.
             // Running before endFrame() risks corrupting GL state that renderDrawData() needs.
             ClipboardWindow.INSTANCE.prebake();
+
+            // ── Per-tool overlay (gizmos, 2D overlays) ────────────────────────
+            // Rendered after ImGui so the overlay is not captured into the viewport texture.
+            Tool activeTool = DimensiumEditorMode.INSTANCE.selectedTool;
+            ToolRenderer toolRenderer = ToolRegistry.toolRenderer(activeTool);
+            toolRenderer.renderOverlay(mc, mx, my, mx, my);
 
             renderCursor(mx, my);
         }
