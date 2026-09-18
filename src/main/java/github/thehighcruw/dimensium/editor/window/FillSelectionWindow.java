@@ -90,7 +90,11 @@ public class FillSelectionWindow extends ToggleableWindow {
                 ImGui.text(selectedBlock.getDisplayName());
             } else {
                 if (ImGui.button(
-                        I18n.format("dimensium.op.replace.no_block") + "##fill_pick", cellSize * 2f, cellSize)) {
+                        I18n.format("dimensium.op.replace.no_block") + "##fill_pick",
+                        0,
+                        cellSize
+                                + DeferredItemRender.ITEM_PAD * 2f
+                                + ImGui.getStyle().getFramePaddingY() * 2f)) {
                     openPicker();
                 }
             }

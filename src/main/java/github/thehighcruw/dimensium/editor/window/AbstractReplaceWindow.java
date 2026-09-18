@@ -153,7 +153,11 @@ abstract class AbstractReplaceWindow extends ToggleableWindow {
             ImGui.text(current.getDisplayName());
         } else {
             if (ImGui.button(
-                    I18n.format("dimensium.op.replace.no_block") + "##" + id + "_pick", cellSize * 2f, cellSize)) {
+                    I18n.format("dimensium.op.replace.no_block") + "##" + id + "_pick",
+                    0,
+                    cellSize
+                            + DeferredItemRender.ITEM_PAD * 2f
+                            + ImGui.getStyle().getFramePaddingY() * 2f)) {
                 OverlayRenderer.picker.open(setter);
             }
         }
