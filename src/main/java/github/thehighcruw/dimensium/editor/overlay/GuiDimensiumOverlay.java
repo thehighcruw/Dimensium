@@ -315,7 +315,7 @@ public final class GuiDimensiumOverlay {
     public static void confirmClipboardPlacement() {
         ClipboardPlacementState cps = ClipboardPlacementState.INSTANCE;
         if (!cps.active) return;
-        BlockSender.sendChunked(cps.toOps(), I18n.format("dimensium.action.paste"));
+        BlockSender.sendChunkedUnmasked(cps.toOps(), I18n.format("dimensium.action.paste"));
         cps.cancel();
     }
 

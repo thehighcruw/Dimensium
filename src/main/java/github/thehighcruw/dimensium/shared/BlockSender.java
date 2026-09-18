@@ -100,6 +100,15 @@ public class BlockSender {
     }
 
     /**
+     * Sends blocks without applying the active toolmask filter — used for paste operations
+     * where the user explicitly placed content and masking would silently discard blocks.
+     */
+    public static void sendChunkedUnmasked(final List<int[]> ops, final String action) {
+        if (ops.isEmpty()) return;
+        sendChunkedFiltered(ops, action);
+    }
+
+    /**
      * Sends blocks to server for undo/redo replay — no history entry is created.
      */
     public static void sendChunkedSkipHistory(final List<int[]> ops) {
