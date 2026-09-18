@@ -33,11 +33,6 @@ public class FillBrushInput implements BrushInput {
     private FillBrushInput() {}
 
     @Override
-    public boolean usesDragLoop() {
-        return true;
-    }
-
-    @Override
     public void onMouseClick(int button, Minecraft mc, MovingObjectPosition mop) {
         if (button == KeyConstants.LMB) {
             GuiDimensiumOverlay.cancelFillPreview();
