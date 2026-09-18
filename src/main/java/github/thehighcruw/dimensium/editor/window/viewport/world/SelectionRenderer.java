@@ -104,9 +104,8 @@ public class SelectionRenderer {
 
     @SubscribeEvent
     public void onRenderWorldLast(RenderWorldLastEvent event) {
-        if (FreecamState.INSTANCE.isMoving() && !GuiDimensiumOverlay.anyGizmoDragging()) {
-            return;
-        }
+        boolean cameraMoving = FreecamState.INSTANCE.isMoving();
+        boolean gizmoDragging = GuiDimensiumOverlay.anyGizmoDragging();
 
         PerfTrace.begin("onRenderWorldLast");
         PerfTrace.push("BlockColorCache.init");
@@ -154,17 +153,19 @@ public class SelectionRenderer {
                 || MenuBar.INSTANCE.containsMouse(_mx, _my, mc.displayWidth);
         boolean _cursorOnViewport = !_mouseOverOtherPanel
                 && (!ImGuiManager.INSTANCE.wantCaptureMouse() || ViewportPanel.INSTANCE.isHovered());
-        if (DimensiumEditorMode.INSTANCE.isActive()
-                && !_anyModal
-                && _cursorOnViewport
-                && (!TickHandler.INSTANCE.isPaintDragging() || _previewTool == Tool.SMOOTH)) {
-            ToolRegistry.toolRenderer(_previewTool).renderWorldPreview(mc, camPos);
-        }
-        if (DimensiumEditorMode.INSTANCE.isActive()
-                && !_anyModal
-                && _cursorOnViewport
-                && DimensiumEditorMode.INSTANCE.selectedTool == Tool.ELEVATION) {
-            renderElevationPreview(mc, camPos);
+        if (!cameraMoving) {
+            if (DimensiumEditorMode.INSTANCE.isActive()
+                    && !_anyModal
+                    && _cursorOnViewport
+                    && (!TickHandler.INSTANCE.isPaintDragging() || _previewTool == Tool.SMOOTH)) {
+                ToolRegistry.toolRenderer(_previewTool).renderWorldPreview(mc, camPos);
+            }
+            if (DimensiumEditorMode.INSTANCE.isActive()
+                    && !_anyModal
+                    && _cursorOnViewport
+                    && DimensiumEditorMode.INSTANCE.selectedTool == Tool.ELEVATION) {
+                renderElevationPreview(mc, camPos);
+            }
         }
 
         // ── Gradient pos1 → cursor line ───────────────────────────────────────
@@ -440,32 +441,46 @@ public class SelectionRenderer {
             GL11.glColor4f(0.2f, 1.0f, 0.8f, 0.9f);
             drawBox(0, 0, 0, mx.x() - mn.x(), mx.y() - mn.y(), mx.z() - mn.z());
             GL11.glPopMatrix();
-            boxPos1Gizmo.axisFlip[0] = sel.pendingPos.x() <= sel.pendingPos2.x() ? -1f : 1f;
-            boxPos1Gizmo.axisFlip[1] = sel.pendingPos.y() <= sel.pendingPos2.y() ? -1f : 1f;
-            boxPos1Gizmo.axisFlip[2] = sel.pendingPos.z() <= sel.pendingPos2.z() ? -1f : 1f;
-            boxPos2Gizmo.axisFlip[0] = -boxPos1Gizmo.axisFlip[0];
-            boxPos2Gizmo.axisFlip[1] = -boxPos1Gizmo.axisFlip[1];
-            boxPos2Gizmo.axisFlip[2] = -boxPos1Gizmo.axisFlip[2];
-            boxPos1ViewPlaneGizmo.render(
-                    sel.pendingPos.x() + 0.5, sel.pendingPos.y() + 0.5, sel.pendingPos.z() + 0.5, camPos);
-            boxPos2ViewPlaneGizmo.render(
-                    sel.pendingPos2.x() + 0.5, sel.pendingPos2.y() + 0.5, sel.pendingPos2.z() + 0.5, camPos);
-            boxPos1PlaneGizmo.render(
-                    sel.pendingPos.x() + 0.5, sel.pendingPos.y() + 0.5, sel.pendingPos.z() + 0.5, camPos, 0, 0, 0);
-            boxPos1Gizmo.render(
-                    sel.pendingPos.x() + 0.5, sel.pendingPos.y() + 0.5, sel.pendingPos.z() + 0.5, camPos, 0, 0, 0);
-            boxPos2PlaneGizmo.render(
-                    sel.pendingPos2.x() + 0.5, sel.pendingPos2.y() + 0.5, sel.pendingPos2.z() + 0.5, camPos, 0, 0, 0);
-            boxPos2Gizmo.render(
-                    sel.pendingPos2.x() + 0.5, sel.pendingPos2.y() + 0.5, sel.pendingPos2.z() + 0.5, camPos, 0, 0, 0);
-            Vec3DDouble cWorld = sel.pendingPos
-                    .toDouble()
-                    .plus(sel.pendingPos2.toDouble())
-                    .times(0.5)
-                    .plus(0.5);
-            boxCenterViewPlaneGizmo.render(cWorld.x(), cWorld.y(), cWorld.z(), camPos);
-            boxCenterPlaneGizmo.render(cWorld.x(), cWorld.y(), cWorld.z(), camPos, 0, 0, 0);
-            boxCenterGizmo.render(cWorld.x(), cWorld.y(), cWorld.z(), camPos, 0, 0, 0);
+            if (!cameraMoving || gizmoDragging) {
+                boxPos1Gizmo.axisFlip[0] = sel.pendingPos.x() <= sel.pendingPos2.x() ? -1f : 1f;
+                boxPos1Gizmo.axisFlip[1] = sel.pendingPos.y() <= sel.pendingPos2.y() ? -1f : 1f;
+                boxPos1Gizmo.axisFlip[2] = sel.pendingPos.z() <= sel.pendingPos2.z() ? -1f : 1f;
+                boxPos2Gizmo.axisFlip[0] = -boxPos1Gizmo.axisFlip[0];
+                boxPos2Gizmo.axisFlip[1] = -boxPos1Gizmo.axisFlip[1];
+                boxPos2Gizmo.axisFlip[2] = -boxPos1Gizmo.axisFlip[2];
+                boxPos1ViewPlaneGizmo.render(
+                        sel.pendingPos.x() + 0.5, sel.pendingPos.y() + 0.5, sel.pendingPos.z() + 0.5, camPos);
+                boxPos2ViewPlaneGizmo.render(
+                        sel.pendingPos2.x() + 0.5, sel.pendingPos2.y() + 0.5, sel.pendingPos2.z() + 0.5, camPos);
+                boxPos1PlaneGizmo.render(
+                        sel.pendingPos.x() + 0.5, sel.pendingPos.y() + 0.5, sel.pendingPos.z() + 0.5, camPos, 0, 0, 0);
+                boxPos1Gizmo.render(
+                        sel.pendingPos.x() + 0.5, sel.pendingPos.y() + 0.5, sel.pendingPos.z() + 0.5, camPos, 0, 0, 0);
+                boxPos2PlaneGizmo.render(
+                        sel.pendingPos2.x() + 0.5,
+                        sel.pendingPos2.y() + 0.5,
+                        sel.pendingPos2.z() + 0.5,
+                        camPos,
+                        0,
+                        0,
+                        0);
+                boxPos2Gizmo.render(
+                        sel.pendingPos2.x() + 0.5,
+                        sel.pendingPos2.y() + 0.5,
+                        sel.pendingPos2.z() + 0.5,
+                        camPos,
+                        0,
+                        0,
+                        0);
+                Vec3DDouble cWorld = sel.pendingPos
+                        .toDouble()
+                        .plus(sel.pendingPos2.toDouble())
+                        .times(0.5)
+                        .plus(0.5);
+                boxCenterViewPlaneGizmo.render(cWorld.x(), cWorld.y(), cWorld.z(), camPos);
+                boxCenterPlaneGizmo.render(cWorld.x(), cWorld.y(), cWorld.z(), camPos, 0, 0, 0);
+                boxCenterGizmo.render(cWorld.x(), cWorld.y(), cWorld.z(), camPos, 0, 0, 0);
+            }
         }
 
         PerfTrace.pop();
@@ -497,12 +512,12 @@ public class SelectionRenderer {
 
         // ── Shape placement gizmos + remaining ────────────────────────────
         PerfTrace.push("gizmosAndRemainder");
-        // ── Shape placement gizmos ────────────────────────────────────────���───
+        // ── Shape placement gizmos ────────────────────────────────────────────
         ShapePlacementState ps = ShapePlacementState.INSTANCE;
         if (ps.active) {
             if (DimensiumEditorMode.INSTANCE.selectedTool != Tool.SHAPE) {
                 ps.cancel();
-            } else {
+            } else if (!cameraMoving || gizmoDragging) {
                 ps.rebuildIfNeeded();
                 ps.viewPlaneGizmo.render(ps.centerX(), ps.centerY(), ps.centerZ(), camPos);
                 ps.getPlaneTranslationGizmo()
@@ -520,12 +535,28 @@ public class SelectionRenderer {
         ClipboardPlacementState cps = ClipboardPlacementState.INSTANCE;
         if (cps.active) {
             if (cps.preview != null) renderProposalPreview(mc, camPos, cps.preview);
-            cps.viewPlaneGizmo.render(cps.centerX(), cps.centerY(), cps.centerZ(), camPos);
-            cps.getPlaneTranslationGizmo()
-                    .render(cps.centerX(), cps.centerY(), cps.centerZ(), camPos, cps.rot.x(), cps.rot.y(), cps.rot.z());
-            cps.getAxisTranslationGizmo().render(cps.centerX(), cps.centerY(), cps.centerZ(), camPos, 0, 0, 0);
-            cps.getRotationGizmo()
-                    .render(cps.centerX(), cps.centerY(), cps.centerZ(), camPos, cps.rot.x(), cps.rot.y(), cps.rot.z());
+            if (!cameraMoving || gizmoDragging) {
+                cps.viewPlaneGizmo.render(cps.centerX(), cps.centerY(), cps.centerZ(), camPos);
+                cps.getPlaneTranslationGizmo()
+                        .render(
+                                cps.centerX(),
+                                cps.centerY(),
+                                cps.centerZ(),
+                                camPos,
+                                cps.rot.x(),
+                                cps.rot.y(),
+                                cps.rot.z());
+                cps.getAxisTranslationGizmo().render(cps.centerX(), cps.centerY(), cps.centerZ(), camPos, 0, 0, 0);
+                cps.getRotationGizmo()
+                        .render(
+                                cps.centerX(),
+                                cps.centerY(),
+                                cps.centerZ(),
+                                camPos,
+                                cps.rot.x(),
+                                cps.rot.y(),
+                                cps.rot.z());
+            }
         }
 
         // ── Move tool ghost + gizmos ──────────────────────────────────────────
@@ -545,15 +576,17 @@ public class SelectionRenderer {
                 if (ms.preview != null) {
                     renderProposalPreview(mc, camPos, ms.preview);
                 }
-                ms.viewPlaneGizmo.render(ms.gizmoX(), ms.gizmoY(), ms.gizmoZ(), camPos);
-                ms.getPlaneTranslationGizmo()
-                        .render(ms.gizmoX(), ms.gizmoY(), ms.gizmoZ(), camPos, ms.rot.x(), ms.rot.y(), ms.rot.z());
-                ms.getAxisTranslationGizmo()
-                        .render(ms.gizmoX(), ms.gizmoY(), ms.gizmoZ(), camPos, ms.rot.x(), ms.rot.y(), ms.rot.z());
-                ms.getScalingGizmo()
-                        .render(ms.gizmoX(), ms.gizmoY(), ms.gizmoZ(), camPos, ms.rot.x(), ms.rot.y(), ms.rot.z());
-                ms.getRotationGizmo()
-                        .render(ms.gizmoX(), ms.gizmoY(), ms.gizmoZ(), camPos, ms.rot.x(), ms.rot.y(), ms.rot.z());
+                if (!cameraMoving || gizmoDragging) {
+                    ms.viewPlaneGizmo.render(ms.gizmoX(), ms.gizmoY(), ms.gizmoZ(), camPos);
+                    ms.getPlaneTranslationGizmo()
+                            .render(ms.gizmoX(), ms.gizmoY(), ms.gizmoZ(), camPos, ms.rot.x(), ms.rot.y(), ms.rot.z());
+                    ms.getAxisTranslationGizmo()
+                            .render(ms.gizmoX(), ms.gizmoY(), ms.gizmoZ(), camPos, ms.rot.x(), ms.rot.y(), ms.rot.z());
+                    ms.getScalingGizmo()
+                            .render(ms.gizmoX(), ms.gizmoY(), ms.gizmoZ(), camPos, ms.rot.x(), ms.rot.y(), ms.rot.z());
+                    ms.getRotationGizmo()
+                            .render(ms.gizmoX(), ms.gizmoY(), ms.gizmoZ(), camPos, ms.rot.x(), ms.rot.y(), ms.rot.z());
+                }
             } else if (ms.active) {
                 ms.cancel();
             }
@@ -587,7 +620,7 @@ public class SelectionRenderer {
             mts.getAxisTranslationGizmo().getProjection().capture(camPos);
             // Gizmo on selected point
             ModellingToolState.ModelPoint mSelPt = mts.selectedPointObj();
-            if (mSelPt != null) {
+            if (mSelPt != null && (!cameraMoving || gizmoDragging)) {
                 mts.getPlaneTranslationGizmo()
                         .render(
                                 mSelPt.pos().x() + 0.5,
@@ -645,7 +678,7 @@ public class SelectionRenderer {
                 boolean ptSel = i == pathState.selectedIndex;
                 renderPointBox(pathPt.pos, ptSel ? 1.0f : 0.55f, ptSel ? 0.85f : 0.70f, 1.0f, camPos);
             }
-            if (pathState.selectedIndex >= 0 && !pathState.points.isEmpty()) {
+            if (pathState.selectedIndex >= 0 && !pathState.points.isEmpty() && (!cameraMoving || gizmoDragging)) {
                 PathToolState.PathPoint selPt = pathState.selectedPoint();
                 if (selPt != null) {
                     pathState

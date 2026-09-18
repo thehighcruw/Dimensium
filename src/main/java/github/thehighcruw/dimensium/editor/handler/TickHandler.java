@@ -70,7 +70,12 @@ public class TickHandler {
 
     // Last block position where freehand paint was sent — used to deduplicate
     // per-render-frame packets so each block gets exactly one packet per drag pass.
-    private Vec3DInt lastFreehand = null;
+    private Vec3DInt lastDragBlock = null;
+
+    private void cancelDrag() {
+        ChangeProposal.cancel();
+        lastDragBlock = null;
+    }
 
     /** Read-only view of accumulated SMOOTH drag positions. */
     public Set<Long> getSmoothDragPositions() {
@@ -79,7 +84,7 @@ public class TickHandler {
 
     /** True while a brush paint drag is active (RMB held, first stroke fired). */
     public boolean isPaintDragging() {
-        return lastFreehand != null || ElevationBrushInput.INSTANCE.isPaintDragging();
+        return lastDragBlock != null || ElevationBrushInput.INSTANCE.isPaintDragging();
     }
 
     // ── Mouse / camera ────────────────────────────────────────────────────────
@@ -270,28 +275,31 @@ public class TickHandler {
 
         if (!BrushInputRegistry.usesDragLoop(tool)) {
             // Tool switched mid-drag — discard any pending proposal.
-            ChangeProposal.cancel();
-            lastFreehand = null;
+            cancelDrag();
             return;
         }
         // Suppress paint during any camera movement (pan, orbit, LMB drag).
-        if (fs.isMoving()) return;
+        // Cancel any in-progress stroke so it isn't flushed when the camera drag ends.
+        if (fs.isMoving()) {
+            if (lastDragBlock != null) cancelDrag();
+            return;
+        }
         if (!Mouse.isButtonDown(KeyConstants.RMB)) {
-            // RMB released — let tool handle release, then flush accumulated proposal.
-            PerfTrace.begin("brushRelease tool=" + tool);
-            PerfTrace.push("onBrushRelease");
-            if (input != null) input.onBrushRelease(mc);
-            PerfTrace.pop();
-            if (lastFreehand != null) {
+            if (lastDragBlock != null) {
+                // RMB released after an active drag — release, flush, send.
+                PerfTrace.begin("brushRelease tool=" + tool);
+                PerfTrace.push("onBrushRelease");
+                if (input != null) input.onBrushRelease(mc);
+                PerfTrace.pop();
                 PerfTrace.push("flush");
                 List<int[]> ops = ChangeProposal.flush();
                 PerfTrace.pop();
                 PerfTrace.push("sendChunked ops=" + ops.size());
                 if (!ops.isEmpty()) BlockSender.sendChunked(ops, toolActionName(tool));
                 PerfTrace.pop();
+                PerfTrace.end(5);
+                lastDragBlock = null;
             }
-            PerfTrace.end(5);
-            lastFreehand = null;
             return;
         }
         if (mx * sf < OverlayRenderer.TOOL_WINDOW.getWidth() || my * sf < (int) MenuBar.INSTANCE.height()) return;
@@ -301,14 +309,14 @@ public class TickHandler {
 
         // Deduplicate: skip if cursor hasn't moved into a new block since last stroke.
         Vec3DInt mopPos = Vec3DInt.from(mop.blockX, mop.blockY, mop.blockZ);
-        if (mopPos.equals(lastFreehand)) return;
+        if (mopPos.equals(lastDragBlock)) return;
 
-        if (lastFreehand == null) {
+        if (lastDragBlock == null) {
             // First stroke of a new drag — open a fresh proposal.
             ChangeProposal.startDrag(ToolMaskRegistry.INSTANCE.getActiveMask());
             if (input != null) input.onBrushDragStart(mc, mop);
         }
-        lastFreehand = mopPos;
+        lastDragBlock = mopPos;
 
         // Let tool handle the stroke; fall back to BrushApplicator for standard brush tools.
         PerfTrace.begin("brushStroke tool=" + tool);
