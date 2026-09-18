@@ -72,8 +72,17 @@ public class FreecamState {
         savedViewEntity = mc.renderViewEntity;
 
         if (!ViewportRegistry.INSTANCE.viewports.isEmpty()) {
-            // Viewports persisted from the previous session — restore them as-is.
+            // Viewports persisted from the previous session — restore camera state, then
+            // snap the active viewport's camera to the current player position so opening
+            // the editor always begins from where the player is standing.
             ViewportRegistry.INSTANCE.restore();
+            if (cameraEntity != null) {
+                cameraEntity.setPosition(
+                        mc.thePlayer.posX, mc.thePlayer.posY + mc.thePlayer.getEyeHeight(), mc.thePlayer.posZ);
+                cameraEntity.rotationYaw = mc.thePlayer.rotationYaw;
+                cameraEntity.rotationPitch = mc.thePlayer.rotationPitch;
+                copyPosition(cameraEntity, cameraEntity);
+            }
         } else {
             // First open (or after a world disconnect cleared everything) — create a fresh viewport.
             cameraEntity = new FreecamEntity(mc.theWorld);

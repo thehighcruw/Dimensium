@@ -77,6 +77,7 @@ import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
+import net.minecraftforge.client.event.RenderPlayerEvent;
 import org.lwjgl.opengl.GL11;
 
 @SideOnly(Side.CLIENT)
@@ -96,10 +97,18 @@ public class OverlayRenderer {
     }
 
     /**
+     * Prevent the local player entity from rendering while the editor is active.
+     * setInvisible(true) reduces body opacity but renderEquippedItems (held item) ignores it.
+     * Cancelling Pre entirely hides both the body and the held item from the freecam viewport.
+     */
+    @SubscribeEvent
+    public void onRenderPlayerPre(RenderPlayerEvent.Pre event) {
+        if (FreecamState.INSTANCE.active) event.setCanceled(true);
+    }
+
+    /**
      * Cancel all vanilla HUD elements while the Dimensium editor overlay is active.
      * The editor draws its own UI via ImGui; vanilla HUD would render on top of the viewport.
-     * Note: the first-person arm (EntityRenderer.renderHand) has no Forge hook in 1.7.10
-     * and cannot be suppressed here — it requires ASM.
      */
     @SubscribeEvent
     public void onHudPre(RenderGameOverlayEvent.Pre event) {
@@ -148,9 +157,9 @@ public class OverlayRenderer {
         if (event.isCancelable() || event.type != RenderGameOverlayEvent.ElementType.ALL) return;
 
         Minecraft mc = Minecraft.getMinecraft();
-        // Restore itemRenderer swapped out in RenderTickEvent.START to suppress the arm.
+        // Restore hideGUI set in RenderTickEvent.START to suppress the first-person arm.
         // renderHand already fired at this point, so restoration is safe.
-        HandRenderer.INSTANCE.restore(mc);
+        if (FreecamState.INSTANCE.active) mc.gameSettings.hideGUI = false;
         EntityPlayer player = mc.thePlayer;
         if (player == null) return;
 

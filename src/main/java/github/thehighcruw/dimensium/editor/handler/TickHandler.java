@@ -15,7 +15,6 @@ import github.thehighcruw.dimensium.editor.freecam.FreecamEntity;
 import github.thehighcruw.dimensium.editor.freecam.FreecamState;
 import github.thehighcruw.dimensium.editor.freecam.FreecamUtils;
 import github.thehighcruw.dimensium.editor.overlay.GuiDimensiumOverlay;
-import github.thehighcruw.dimensium.editor.overlay.HandRenderer;
 import github.thehighcruw.dimensium.editor.overlay.MenuBar;
 import github.thehighcruw.dimensium.editor.overlay.OverlayRenderer;
 import github.thehighcruw.dimensium.editor.overlay.UICoords;
@@ -94,9 +93,11 @@ public class TickHandler {
         FreecamState fs = FreecamState.INSTANCE;
         Minecraft mc = Minecraft.getMinecraft();
 
-        // Suppress first-person arm before EntityRenderer.renderHand fires.
+        // Suppress first-person arm/item before EntityRenderer.renderHand fires.
+        // renderHand checks hideGUI and skips the arm render entirely when true.
+        // We already cancel all vanilla HUD elements via onHudPre, so this has no other visual effect.
         // Restore happens in OverlayRenderer.onRenderOverlay (ALL event) after renderHand.
-        if (fs.active) HandRenderer.INSTANCE.suppress(mc);
+        if (fs.active) mc.gameSettings.hideGUI = true;
 
         if (!fs.active || fs.cameraEntity == null) return;
         if (!Mouse.isInsideWindow()) return;

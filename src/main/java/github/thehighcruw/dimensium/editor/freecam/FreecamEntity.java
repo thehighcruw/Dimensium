@@ -66,4 +66,10 @@ public class FreecamEntity extends EntityLivingBase {
     public ItemStack getHeldItem() {
         return null;
     }
+
+    // Prevent the renderer from treating the camera as inside an opaque block, which causes a black screen.
+    @Override
+    public boolean isEntityInsideOpaqueBlock() {
+        return false;
+    }
 }
