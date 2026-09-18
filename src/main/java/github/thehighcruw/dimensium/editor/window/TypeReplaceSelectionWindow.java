@@ -36,12 +36,12 @@ public class TypeReplaceSelectionWindow extends AbstractReplaceWindow {
     }
 
     @Override
-    protected String block1LabelKey() {
+    protected String block1HeaderKey() {
         return "dimensium.op.type_replace.source";
     }
 
     @Override
-    protected String block2LabelKey() {
+    protected String block2HeaderKey() {
         return "dimensium.op.type_replace.target";
     }
 
@@ -56,10 +56,11 @@ public class TypeReplaceSelectionWindow extends AbstractReplaceWindow {
     }
 
     @Override
-    protected int[] buildBlockOp(
-            int x, int y, int z, Block worldBlock, int worldMeta, Block findBlock, Block replaceBlock) {
+    protected int[] buildBlockOp(int x, int y, int z, Block worldBlock, int worldMeta, BlockMapping mapping) {
+        Block findBlock = Block.getBlockFromItem(mapping.source().getItem());
         if (worldBlock != findBlock) return null;
-        int outMeta = flag ? worldMeta : block2.getItemDamage();
+        Block replaceBlock = Block.getBlockFromItem(mapping.target().getItem());
+        int outMeta = flag ? worldMeta : mapping.target().getItemDamage();
         return new int[] {x, y, z, Block.getIdFromBlock(replaceBlock), outMeta};
     }
 }

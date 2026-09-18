@@ -571,6 +571,7 @@ dimensium.op.replace.find=Find
 dimensium.op.replace.replace_with=Replace With
 dimensium.op.replace.exact_meta=Exact block state
 dimensium.op.replace.no_block=No block selected
+dimensium.op.replace.add_mapping=Add Mapping
 dimensium.op.type_replace.source=Block Type
 dimensium.op.type_replace.target=Replace With
 dimensium.op.type_replace.preserve=Preserve Properties
