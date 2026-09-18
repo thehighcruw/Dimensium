@@ -33,18 +33,18 @@ public class FilterSelectionWindow extends ToggleableWindow {
 
     private boolean keepMatching = true;
     private boolean exactMeta = false;
-    private int selectedIndex = -1;
+    private final Set<Integer> selectedIndices = new HashSet<>();
     private final List<ItemStack> selectionBlocks = new ArrayList<>();
 
     private static final String WINDOW_ID = "###filter_selection_window";
-    private static final int COLS = 8;
+    private static final int COLS = 18;
     private static final int MAX_ROWS = 4;
 
     private FilterSelectionWindow() {}
 
     public void open() {
         selectionBlocks.clear();
-        selectedIndex = -1;
+        selectedIndices.clear();
         scanSelectionBlocks();
         open = true;
     }
@@ -91,7 +91,7 @@ public class FilterSelectionWindow extends ToggleableWindow {
 
         if (visible) {
             boolean hasSel = SelectionState.INSTANCE.hasSelection();
-            boolean canApply = selectedIndex >= 0 && selectedIndex < selectionBlocks.size() && hasSel;
+            boolean canApply = !selectedIndices.isEmpty() && hasSel;
 
             float windowW = ImGui.getWindowWidth();
             float btnW = 70f * scale;
@@ -108,10 +108,11 @@ public class FilterSelectionWindow extends ToggleableWindow {
             } else {
                 for (int i = 0; i < selectionBlocks.size(); i++) {
                     ItemStack stack = selectionBlocks.get(i);
-                    boolean selected = i == selectedIndex;
+                    boolean selected = selectedIndices.contains(i);
 
-                    if (DeferredItemRender.placeButton("##flt_blk_" + i, stack, cellSize * 0.5f, selected)) {
-                        selectedIndex = (selectedIndex == i) ? -1 : i;
+                    if (DeferredItemRender.placeButton("##flt_blk_" + i, stack, cellSize, selected)) {
+                        if (selected) selectedIndices.remove(i);
+                        else selectedIndices.add(i);
                     }
 
                     if ((i + 1) % COLS != 0 && i < selectionBlocks.size() - 1) {
@@ -139,19 +140,29 @@ public class FilterSelectionWindow extends ToggleableWindow {
             ImGui.setCursorPosX(windowW - ImGui.getStyle().getWindowPaddingX() - btnW);
             if (!canApply) ImGui.beginDisabled();
             if (ImGui.button(I18n.format("dimensium.select.apply") + "##flt_apply", btnW, 0)) {
-                ItemStack chosen = selectionBlocks.get(selectedIndex);
-                Block filterBlock = Block.getBlockFromItem(chosen.getItem());
                 SelectionState sel = SelectionState.INSTANCE;
-                if (sel.hasSelection() && filterBlock != null) {
-                    sel.applyOp(
-                            SelectionTransforms.filter(
-                                    sel.getSelectedBlocks(),
-                                    Minecraft.getMinecraft().theWorld,
-                                    filterBlock,
-                                    chosen.getItemDamage(),
-                                    keepMatching,
-                                    exactMeta),
-                            BooleanOp.REPLACE);
+                if (sel.hasSelection()) {
+                    List<Block> targetBlocks = new ArrayList<>();
+                    List<Integer> targetMetas = new ArrayList<>();
+                    for (int idx : selectedIndices) {
+                        ItemStack stack = selectionBlocks.get(idx);
+                        Block block = Block.getBlockFromItem(stack.getItem());
+                        if (block != null) {
+                            targetBlocks.add(block);
+                            targetMetas.add(stack.getItemDamage());
+                        }
+                    }
+                    if (!targetBlocks.isEmpty()) {
+                        sel.applyOp(
+                                SelectionTransforms.filterMultiple(
+                                        sel.getSelectedBlocks(),
+                                        Minecraft.getMinecraft().theWorld,
+                                        targetBlocks,
+                                        targetMetas,
+                                        keepMatching,
+                                        exactMeta),
+                                BooleanOp.REPLACE);
+                    }
                 }
                 close();
             }

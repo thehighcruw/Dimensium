@@ -141,6 +141,28 @@ public final class SelectionTransforms {
         return result;
     }
 
+    public static Set<Long> filterMultiple(
+            Set<Long> blocks,
+            World world,
+            List<Block> targetBlocks,
+            List<Integer> targetMetas,
+            boolean keepMatching,
+            boolean exactMeta) {
+        if (keepMatching) {
+            Set<Long> result = new HashSet<>();
+            for (int i = 0; i < targetBlocks.size(); i++) {
+                result.addAll(filter(blocks, world, targetBlocks.get(i), targetMetas.get(i), true, exactMeta));
+            }
+            return result;
+        } else {
+            Set<Long> result = new HashSet<>(blocks);
+            for (int i = 0; i < targetBlocks.size(); i++) {
+                result.removeAll(filter(blocks, world, targetBlocks.get(i), targetMetas.get(i), true, exactMeta));
+            }
+            return result;
+        }
+    }
+
     public static Set<Long> convexHull(Set<Long> blocks) {
         if (blocks.isEmpty()) return new HashSet<>();
 
