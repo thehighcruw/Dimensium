@@ -20,7 +20,6 @@ import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class ClipboardPlacementState implements WithAxisTranslationGizmo, WithPlaneTranslationGizmo, WithRotationGizmo {
 
@@ -126,15 +125,7 @@ public class ClipboardPlacementState implements WithAxisTranslationGizmo, WithPl
     /** Returns ops ready for BlockSender.sendChunked, with rotation applied. */
     public List<int[]> toOps() {
         if (preview != null) {
-            List<int[]> ops = new ArrayList<>(preview.proposed.size());
-            for (Map.Entry<Long, int[]> e : preview.proposed.entrySet()) {
-                long key = e.getKey();
-                int[] bm = e.getValue();
-                ops.add(new int[] {
-                    ChangeProposal.unpackX(key), ChangeProposal.unpackY(key), ChangeProposal.unpackZ(key), bm[0], bm[1]
-                });
-            }
-            return ops;
+            return ChangeProposal.mapToOps(preview.proposed);
         }
         List<int[]> ops = new ArrayList<>(offsets.size());
         for (int[] o : offsets) {

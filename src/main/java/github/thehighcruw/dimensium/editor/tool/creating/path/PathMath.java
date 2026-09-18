@@ -54,15 +54,7 @@ public class PathMath {
             }
         }
 
-        List<int[]> result = new ArrayList<>(out.size());
-        for (Map.Entry<Long, int[]> e : out.entrySet()) {
-            long key = e.getKey();
-            int[] bm = e.getValue();
-            result.add(new int[] {
-                ChangeProposal.unpackX(key), ChangeProposal.unpackY(key), ChangeProposal.unpackZ(key), bm[0], bm[1]
-            });
-        }
-        return result;
+        return ChangeProposal.mapToOps(out);
     }
 
     private static void applySplinePositions(

@@ -69,24 +69,18 @@ public class PathBrushInput implements BrushInput {
             if (bestIdx >= 0) {
                 pts.selectedIndex = bestIdx;
                 pts.getAxisTranslationGizmo().reset();
-            } else if (pts.getAxisTranslationGizmo().hoveredAxis != TranslationGizmo.Axis.NONE
-                    && pts.selectedPoint() != null
-                    && eye != null) {
+            } else if (pts.selectedPoint() != null && eye != null) {
                 Vec3DDouble gp = Vec3DDouble.from(
                         pts.selectedPoint().pos.x() + 0.5,
                         pts.selectedPoint().pos.y() + 0.5,
                         pts.selectedPoint().pos.z() + 0.5);
-                pts.getAxisTranslationGizmo()
-                        .startDrag(mouseX, mouseY, gp.x(), gp.y(), gp.z(), gp.x(), gp.y(), gp.z(), 0, 0, 0);
-            } else if (pts.getPlaneTranslationGizmo().hoveredPlane != PlaneTranslationGizmo.Plane.NONE
-                    && pts.selectedPoint() != null
-                    && eye != null) {
-                Vec3DDouble gp = Vec3DDouble.from(
-                        pts.selectedPoint().pos.x() + 0.5,
-                        pts.selectedPoint().pos.y() + 0.5,
-                        pts.selectedPoint().pos.z() + 0.5);
-                pts.getPlaneTranslationGizmo()
-                        .startDrag(mouseX, mouseY, gp.x(), gp.y(), gp.z(), gp.x(), gp.y(), gp.z(), 0, 0, 0);
+                if (pts.getAxisTranslationGizmo().hoveredAxis != TranslationGizmo.Axis.NONE) {
+                    pts.getAxisTranslationGizmo()
+                            .startDrag(mouseX, mouseY, gp.x(), gp.y(), gp.z(), gp.x(), gp.y(), gp.z(), 0, 0, 0);
+                } else if (pts.getPlaneTranslationGizmo().hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
+                    pts.getPlaneTranslationGizmo()
+                            .startDrag(mouseX, mouseY, gp.x(), gp.y(), gp.z(), gp.x(), gp.y(), gp.z(), 0, 0, 0);
+                }
             }
         }
     }

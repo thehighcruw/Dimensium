@@ -86,9 +86,7 @@ public class TranslationGizmo {
      * @param rx/ry/rz interpolated player eye position (for glTranslated offset)
      */
     public void render(double gx, double gy, double gz, Vec3DDouble camPos, float rotX, float rotY, float rotZ) {
-        proj.capture(camPos);
-        float scale = RotationGizmo.computeScale(gx - camPos.x(), gy - camPos.y(), gz - camPos.z());
-        RotationGizmo.setupGizmoMatrix(gx, gy, gz, camPos, rotX, rotY, rotZ, scale);
+        RotationGizmo.beginRender(proj, gx, gy, gz, camPos, rotX, rotY, rotZ);
         Tessellator wt = Tessellator.instance;
 
         for (int a = 0; a < 3; a++) {
@@ -174,22 +172,20 @@ public class TranslationGizmo {
             float rotX,
             float rotY,
             float rotZ) {
-        double eyeX = player.posX, eyeY = player.posY + player.getEyeHeight(), eyeZ = player.posZ;
-        float scale = RotationGizmo.computeScale(gx - eyeX, gy - eyeY, gz - eyeZ);
-        float scaledArm = (ARM_LEN + CONE_H) * scale;
+        RotationGizmo.HoverState hs = RotationGizmo.hoverState(player, gx, gy, gz, rotX, rotY, rotZ);
+        float scaledArm = (ARM_LEN + CONE_H) * hs.scale();
         double[] origin = proj.project(gx, gy, gz);
         if (origin == null) {
             hoveredAxis = Axis.NONE;
             return;
         }
 
-        Mat3DFloat R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
+        Mat3DFloat R = hs.R();
         Axis best = Axis.NONE;
         double bestDist = HIT_PX;
 
         for (int a = 0; a < 3; a++) {
-            Vec3DFloat dir = R.mul(Vec3DFloat.from(
-                    AXIS_DIR[a][0] * axisFlip[a], AXIS_DIR[a][1] * axisFlip[a], AXIS_DIR[a][2] * axisFlip[a]));
+            Vec3DFloat dir = rotatedAxis(R, a);
             double[] tip = proj.project(gx + dir.x() * scaledArm, gy + dir.y() * scaledArm, gz + dir.z() * scaledArm);
             if (tip == null) continue;
 
@@ -227,19 +223,12 @@ public class TranslationGizmo {
 
         Mat3DFloat R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
         int a = dragAxis == Axis.X ? 0 : dragAxis == Axis.Y ? 1 : 2;
-        rotatedAxisDir = R.mul(Vec3DFloat.from(
-                AXIS_DIR[a][0] * axisFlip[a], AXIS_DIR[a][1] * axisFlip[a], AXIS_DIR[a][2] * axisFlip[a]));
+        rotatedAxisDir = rotatedAxis(R, a);
 
         // Screen-based fallback (used when ray unprojection fails)
-        double[] os = proj.project(gx, gy, gz);
-        double[] ts = proj.project(gx + rotatedAxisDir.x(), gy + rotatedAxisDir.y(), gz + rotatedAxisDir.z());
-        if (os == null || ts == null) {
-            screenDir = Vec2DDouble.from(1, 0);
-            pixelsPerBlock = 50;
-        } else {
-            screenDir = Vec2DDouble.screenDir(os, ts);
-            pixelsPerBlock = Vec2DDouble.screenScale(os, ts);
-        }
+        GizmoProjection.ScreenAxis sa = proj.computeAxisScreenDir(gx, gy, gz, rotatedAxisDir);
+        screenDir = sa.dir();
+        pixelsPerBlock = sa.pixelsPerUnit();
 
         // Ray-based drag: find initial parameter along axis
         double[] ray = proj.unprojectRay(mouseX, mouseY);
@@ -250,6 +239,11 @@ public class TranslationGizmo {
             dragStartT = 0;
             useRayDrag = false;
         }
+    }
+
+    private Vec3DFloat rotatedAxis(Mat3DFloat R, int a) {
+        return R.mul(Vec3DFloat.from(
+                AXIS_DIR[a][0] * axisFlip[a], AXIS_DIR[a][1] * axisFlip[a], AXIS_DIR[a][2] * axisFlip[a]));
     }
 
     /** Returns t such that gizmoCenter + t*axisDir is closest to the ray. */
@@ -267,10 +261,6 @@ public class TranslationGizmo {
         return (dDotA * eDotD - eDotA) / denom;
     }
 
-    /**
-     * Returns updated [anchorX, anchorY, anchorZ] based on mouse delta.
-     * Returns null if not dragging.
-     */
     /** Returns updated anchor, or null if not dragging. */
     public Vec3DDouble updateDrag(int mouseX, int mouseY) {
         if (dragAxis == Axis.NONE) return null;
@@ -278,21 +268,17 @@ public class TranslationGizmo {
             double[] ray = proj.unprojectRay(mouseX, mouseY);
             if (ray != null) {
                 double t = closestAxisT(ray, dragGizmo.x(), dragGizmo.y(), dragGizmo.z(), rotatedAxisDir);
-                double delta = t - dragStartT;
-                return Vec3DDouble.from(
-                        startAnchor.x() + delta * rotatedAxisDir.x(),
-                        startAnchor.y() + delta * rotatedAxisDir.y(),
-                        startAnchor.z() + delta * rotatedAxisDir.z());
+                return anchorPlusDelta(t - dragStartT);
             }
         }
         // Screen-based fallback
         double screenProj =
                 Vec2DDouble.from(mouseX - dragStartMX, mouseY - dragStartMY).dot(screenDir);
-        double delta = screenProj / pixelsPerBlock;
-        return Vec3DDouble.from(
-                startAnchor.x() + delta * rotatedAxisDir.x(),
-                startAnchor.y() + delta * rotatedAxisDir.y(),
-                startAnchor.z() + delta * rotatedAxisDir.z());
+        return anchorPlusDelta(screenProj / pixelsPerBlock);
+    }
+
+    private Vec3DDouble anchorPlusDelta(double delta) {
+        return startAnchor.plus(rotatedAxisDir.toDouble().times(delta));
     }
 
     public void endDrag() {

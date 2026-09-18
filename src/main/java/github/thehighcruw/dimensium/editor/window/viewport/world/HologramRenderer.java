@@ -16,6 +16,7 @@ import github.thehighcruw.dimensium.shared.util.RenderUtils;
 import github.thehighcruw.dimensium.tool.BuilderTool;
 import github.thehighcruw.dimensium.tool.BuilderToolState;
 import java.util.HashSet;
+import java.util.function.Predicate;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
@@ -160,55 +161,37 @@ class HologramRenderer {
             Tessellator t = Tessellator.instance;
             PerfTrace.push("texturedPass w=" + w + " h=" + h + " d=" + d);
             t.startDrawingQuads();
-            int batched = 0;
-            for (int x = 0; x < w; x++) {
-                for (int y = 0; y < h; y++) {
-                    for (int z = 0; z < d; z++) {
-                        BlockData bd = sel.clipboardGet(Vec3DInt.from(x, y, z));
-                        if (bd.block() == Blocks.air || bd.block().getRenderType() != 0) continue;
-                        for (int face = 0; face < 6; face++) {
-                            if (isFacingAir(sel, face, x, y, z, w, h, d)) {
-                                GhostRenderer.addTexturedFace(t, Vec3DInt.from(x, y, z), bd.block(), bd.meta(), face);
-                                if (++batched % 2048 == 0) {
-                                    t.draw();
-                                    t.startDrawingQuads();
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            t.draw();
+            renderExposedFaces(
+                    sel,
+                    w,
+                    h,
+                    d,
+                    t,
+                    bd -> bd.block() != Blocks.air && bd.block().getRenderType() == 0,
+                    (x, y, z, bd, face) ->
+                            GhostRenderer.addTexturedFace(t, Vec3DInt.from(x, y, z), bd.block(), bd.meta(), face));
             PerfTrace.pop();
             GL11.glDisable(GL11.GL_TEXTURE_2D);
             PerfTrace.push("colorPass");
             t.startDrawingQuads();
-            batched = 0;
-            for (int x = 0; x < w; x++) {
-                for (int y = 0; y < h; y++) {
-                    for (int z = 0; z < d; z++) {
-                        BlockData bd = sel.clipboardGet(Vec3DInt.from(x, y, z));
-                        if (bd.block() == Blocks.air || bd.block().getRenderType() == 0) continue;
+            renderExposedFaces(
+                    sel,
+                    w,
+                    h,
+                    d,
+                    t,
+                    bd -> bd.block() != Blocks.air && bd.block().getRenderType() != 0,
+                    (x, y, z, bd, face) -> {
                         int blockId = Block.getIdFromBlock(bd.block());
                         int rgb = BlockColorCache.INSTANCE.blockColor(blockId, bd.meta());
-                        if (rgb < 0) rgb = 0x888888;
-                        float r = ((rgb >> 16) & 0xFF) / 255f;
-                        float g = ((rgb >> 8) & 0xFF) / 255f;
-                        float b = (rgb & 0xFF) / 255f;
-                        GL11.glColor4f(r, g, b, 1.0f);
-                        for (int face = 0; face < 6; face++) {
-                            if (isFacingAir(sel, face, x, y, z, w, h, d)) {
-                                GhostRenderer.addSingleFace(t, Vec3DInt.from(x, y, z), face);
-                                if (++batched % 2048 == 0) {
-                                    t.draw();
-                                    t.startDrawingQuads();
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            t.draw();
+                        int safeRgb = rgb < 0 ? 0x888888 : rgb;
+                        GL11.glColor4f(
+                                ((safeRgb >> 16) & 0xFF) / 255f,
+                                ((safeRgb >> 8) & 0xFF) / 255f,
+                                (safeRgb & 0xFF) / 255f,
+                                1.0f);
+                        GhostRenderer.addSingleFace(t, Vec3DInt.from(x, y, z), face);
+                    });
             PerfTrace.pop();
 
             // Glow — slightly more negative offset so no z-fighting with opaque pass.
@@ -220,7 +203,7 @@ class HologramRenderer {
             GL11.glColor4f(0.20f, 1.0f, 0.45f, 0.05f + 0.07f * pulse);
             PerfTrace.push("glowPass");
             t.startDrawingQuads();
-            batched = 0;
+            int batched = 0;
             for (int x = 0; x < w; x++) {
                 for (int y = 0; y < h; y++) {
                     for (int z = 0; z < d; z++) {
@@ -274,6 +257,39 @@ class HologramRenderer {
             SelectionRenderer.drawBox(-0.02f, -0.02f, -0.02f, w + 0.02f, h + 0.02f, d + 0.02f);
             GL11.glPopMatrix();
         }
+    }
+
+    @FunctionalInterface
+    private interface BlockFaceConsumer {
+
+        void accept(int x, int y, int z, SelectionState.BlockData bd, int face);
+    }
+
+    private static void renderExposedFaces(
+            SelectionState sel,
+            int w,
+            int h,
+            int d,
+            Tessellator t,
+            Predicate<SelectionState.BlockData> include,
+            BlockFaceConsumer action) {
+        int batched = 0;
+        for (int x = 0; x < w; x++)
+            for (int y = 0; y < h; y++)
+                for (int z = 0; z < d; z++) {
+                    SelectionState.BlockData bd = sel.clipboardGet(Vec3DInt.from(x, y, z));
+                    if (!include.test(bd)) continue;
+                    for (int face = 0; face < 6; face++) {
+                        if (isFacingAir(sel, face, x, y, z, w, h, d)) {
+                            action.accept(x, y, z, bd, face);
+                            if (++batched % 2048 == 0) {
+                                t.draw();
+                                t.startDrawingQuads();
+                            }
+                        }
+                    }
+                }
+        t.draw();
     }
 
     private static boolean isFacingAir(SelectionState sel, int face, int x, int y, int z, int w, int h, int d) {

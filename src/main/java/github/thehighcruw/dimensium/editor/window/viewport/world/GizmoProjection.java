@@ -4,11 +4,14 @@
  */
 package github.thehighcruw.dimensium.editor.window.viewport.world;
 
+import com.github.bsideup.jabel.Desugar;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.window.viewport.ViewportRegistry;
 import github.thehighcruw.dimensium.editor.window.viewport.ViewportState;
+import github.thehighcruw.dimensium.shared.math.Vec2DDouble;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import net.minecraft.client.Minecraft;
@@ -31,6 +34,23 @@ import org.lwjgl.util.glu.GLU;
  */
 @SideOnly(Side.CLIENT)
 public final class GizmoProjection {
+
+    @Desugar
+    public record ScreenAxis(Vec2DDouble dir, double pixelsPerUnit) {
+
+        static final ScreenAxis FALLBACK = new ScreenAxis(Vec2DDouble.from(1, 0), 50);
+    }
+
+    /**
+     * Project gizmo origin and axis tip to screen to get drag direction + scale.
+     * Falls back to (1,0) direction and 50 px/unit when projection fails.
+     */
+    public ScreenAxis computeAxisScreenDir(double gx, double gy, double gz, Vec3DFloat axisDir) {
+        double[] os = project(gx, gy, gz);
+        double[] ts = project(gx + axisDir.x(), gy + axisDir.y(), gz + axisDir.z());
+        if (os == null || ts == null) return ScreenAxis.FALLBACK;
+        return new ScreenAxis(Vec2DDouble.screenDir(os, ts), Vec2DDouble.screenScale(os, ts));
+    }
 
     private final FloatBuffer modelview = BufferUtils.createFloatBuffer(16);
     private final FloatBuffer projection = BufferUtils.createFloatBuffer(16);

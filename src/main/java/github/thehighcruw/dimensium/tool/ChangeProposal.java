@@ -73,8 +73,13 @@ public class ChangeProposal {
 
     /** Returns all entries in this proposal as [x, y, z, blockId, meta] rows. */
     public List<int[]> toOps() {
-        List<int[]> ops = new ArrayList<>(proposed.size());
-        for (Map.Entry<Long, int[]> e : proposed.entrySet()) {
+        return mapToOps(proposed);
+    }
+
+    /** Converts a packed-key map to [x, y, z, blockId, meta] op rows. */
+    public static List<int[]> mapToOps(Map<Long, int[]> map) {
+        List<int[]> ops = new ArrayList<>(map.size());
+        for (Map.Entry<Long, int[]> e : map.entrySet()) {
             long key = e.getKey();
             int[] bm = e.getValue();
             ops.add(new int[] {unpackX(key), unpackY(key), unpackZ(key), bm[0], bm[1]});

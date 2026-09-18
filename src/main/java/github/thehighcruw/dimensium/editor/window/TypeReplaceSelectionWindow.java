@@ -6,16 +6,7 @@ package github.thehighcruw.dimensium.editor.window;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import github.thehighcruw.dimensium.shared.BlockSender;
-import github.thehighcruw.dimensium.shared.SelectionState;
-import github.thehighcruw.dimensium.shared.math.Vec3DInt;
-import java.util.ArrayList;
-import java.util.List;
 import net.minecraft.block.Block;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.init.Blocks;
-import net.minecraft.world.World;
 
 @SideOnly(Side.CLIENT)
 public class TypeReplaceSelectionWindow extends AbstractReplaceWindow {
@@ -60,28 +51,15 @@ public class TypeReplaceSelectionWindow extends AbstractReplaceWindow {
     }
 
     @Override
-    protected void applyOp() {
-        SelectionState sel = SelectionState.INSTANCE;
-        if (!sel.hasSelection() || block1 == null || block2 == null) return;
-        Block srcBlock = Block.getBlockFromItem(block1.getItem());
-        Block tgtBlock = Block.getBlockFromItem(block2.getItem());
-        if (srcBlock == null || srcBlock == Blocks.air || tgtBlock == null) return;
+    protected String applyActionKey() {
+        return "dimensium.action.op.type_replace";
+    }
 
-        int tgtId = Block.getIdFromBlock(tgtBlock);
-        int tgtMeta = block2.getItemDamage();
-
-        World world = Minecraft.getMinecraft().theWorld;
-        if (world == null) return;
-
-        List<int[]> ops = new ArrayList<>();
-        for (long key : sel.getSelectedBlocks()) {
-            Vec3DInt cv = SelectionState.unpack(key);
-            int x = cv.x(), y = cv.y(), z = cv.z();
-            Block worldBlock = world.getBlock(x, y, z);
-            if (worldBlock != srcBlock) continue;
-            int outMeta = flag ? world.getBlockMetadata(x, y, z) : tgtMeta;
-            ops.add(new int[] {x, y, z, tgtId, outMeta});
-        }
-        BlockSender.sendChunked(ops, I18n.format("dimensium.action.op.type_replace"));
+    @Override
+    protected int[] buildBlockOp(
+            int x, int y, int z, Block worldBlock, int worldMeta, Block findBlock, Block replaceBlock) {
+        if (worldBlock != findBlock) return null;
+        int outMeta = flag ? worldMeta : block2.getItemDamage();
+        return new int[] {x, y, z, Block.getIdFromBlock(replaceBlock), outMeta};
     }
 }

@@ -10,14 +10,23 @@ import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.BlockUtils;
 import github.thehighcruw.dimensium.shared.util.WorldUtils;
+import github.thehighcruw.dimensium.tool.ChangeProposal;
 import java.util.function.Consumer;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
+import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 
 public final class BrushUtil {
 
     private BrushUtil() {}
+
+    public static void writeFromItem(World world, Vec3DInt pos, ItemStack item) {
+        if (item == null) return;
+        Block blk = Block.getBlockFromItem(item.getItem());
+        int meta = item.getItemDamage();
+        if (blk != null && blk != Blocks.air) ChangeProposal.write(world, pos, blk, meta);
+    }
 
     public static Vec3DInt faceNormal(int sideHit) {
         return sideHit >= 0 && sideHit < 6 ? BlockUtils.NEIGHBOUR_OFFSETS[sideHit] : BlockUtils.NEIGHBOUR_OFFSETS[1];

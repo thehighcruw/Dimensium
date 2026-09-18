@@ -66,9 +66,7 @@ public class ScalingGizmo {
     // ── Rendering ─────────────────────────────────────────────────────────────
 
     public void render(double gx, double gy, double gz, Vec3DDouble camPos, float rotX, float rotY, float rotZ) {
-        proj.capture(camPos);
-        float scale = RotationGizmo.computeScale(gx - camPos.x(), gy - camPos.y(), gz - camPos.z());
-        RotationGizmo.setupGizmoMatrix(gx, gy, gz, camPos, rotX, rotY, rotZ, scale);
+        RotationGizmo.beginRender(proj, gx, gy, gz, camPos, rotX, rotY, rotZ);
 
         for (int a = 0; a < 3; a++) {
             Axis axis = a == 0 ? Axis.X : a == 1 ? Axis.Y : Axis.Z;
@@ -207,9 +205,9 @@ public class ScalingGizmo {
             float rotX,
             float rotY,
             float rotZ) {
-        double eyeX = player.posX, eyeY = player.posY + player.getEyeHeight(), eyeZ = player.posZ;
-        float scale = RotationGizmo.computeScale(gx - eyeX, gy - eyeY, gz - eyeZ);
-        Mat3DFloat R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
+        RotationGizmo.HoverState hs = RotationGizmo.hoverState(player, gx, gy, gz, rotX, rotY, rotZ);
+        float scale = hs.scale();
+        Mat3DFloat R = hs.R();
 
         Axis best = Axis.NONE;
         double bestDistSq = HIT_PX * HIT_PX;
@@ -247,15 +245,9 @@ public class ScalingGizmo {
         Mat3DFloat R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
         Vec3DFloat dir = R.mul(Vec3DFloat.from(AXIS_DIR[a][0], AXIS_DIR[a][1], AXIS_DIR[a][2]));
 
-        double[] os = proj.project(gx, gy, gz);
-        double[] ts = proj.project(gx + dir.x(), gy + dir.y(), gz + dir.z());
-        if (os == null || ts == null) {
-            screenDir = Vec2DDouble.from(1, 0);
-            pixelsPerUnit = 50;
-            return;
-        }
-        screenDir = Vec2DDouble.screenDir(os, ts);
-        pixelsPerUnit = Vec2DDouble.screenScale(os, ts);
+        GizmoProjection.ScreenAxis sa = proj.computeAxisScreenDir(gx, gy, gz, dir);
+        screenDir = sa.dir();
+        pixelsPerUnit = sa.pixelsPerUnit();
     }
 
     /**

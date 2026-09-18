@@ -722,15 +722,7 @@ public class SelectionRenderer {
         lastMagicZ = mop.blockZ;
 
         MagicSelectToolState ts = MagicSelectToolState.INSTANCE;
-        Set<Long> flooded = SelectionState.floodFill(
-                mc.theWorld,
-                Vec3DInt.from(mop.blockX, mop.blockY, mop.blockZ),
-                ts.magicSelectLimit,
-                ts.magicSelectRange,
-                ts.magicSelectSurface,
-                ts.magicSelectCorners,
-                ts.magicCompareType,
-                ts.magicDirection);
+        Set<Long> flooded = ts.floodFillFrom(mc.theWorld, mop);
 
         ChangeProposal p = ChangeProposal.forPreview();
         for (long key : flooded) {

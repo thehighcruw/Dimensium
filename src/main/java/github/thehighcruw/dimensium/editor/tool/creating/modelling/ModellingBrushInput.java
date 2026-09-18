@@ -89,24 +89,18 @@ public class ModellingBrushInput implements BrushInput {
                         }
                     }
                 }
-            } else if (mts.getAxisTranslationGizmo().hoveredAxis != TranslationGizmo.Axis.NONE
-                    && mts.selectedPointObj() != null
-                    && eye != null) {
+            } else if (mts.selectedPointObj() != null && eye != null) {
                 Vec3DDouble gp = Vec3DDouble.from(
                         mts.selectedPointObj().pos().x() + 0.5,
                         mts.selectedPointObj().pos().y() + 0.5,
                         mts.selectedPointObj().pos().z() + 0.5);
-                mts.getAxisTranslationGizmo()
-                        .startDrag(mouseX, mouseY, gp.x(), gp.y(), gp.z(), gp.x(), gp.y(), gp.z(), 0, 0, 0);
-            } else if (mts.getPlaneTranslationGizmo().hoveredPlane != PlaneTranslationGizmo.Plane.NONE
-                    && mts.selectedPointObj() != null
-                    && eye != null) {
-                Vec3DDouble gp = Vec3DDouble.from(
-                        mts.selectedPointObj().pos().x() + 0.5,
-                        mts.selectedPointObj().pos().y() + 0.5,
-                        mts.selectedPointObj().pos().z() + 0.5);
-                mts.getPlaneTranslationGizmo()
-                        .startDrag(mouseX, mouseY, gp.x(), gp.y(), gp.z(), gp.x(), gp.y(), gp.z(), 0, 0, 0);
+                if (mts.getAxisTranslationGizmo().hoveredAxis != TranslationGizmo.Axis.NONE) {
+                    mts.getAxisTranslationGizmo()
+                            .startDrag(mouseX, mouseY, gp.x(), gp.y(), gp.z(), gp.x(), gp.y(), gp.z(), 0, 0, 0);
+                } else if (mts.getPlaneTranslationGizmo().hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
+                    mts.getPlaneTranslationGizmo()
+                            .startDrag(mouseX, mouseY, gp.x(), gp.y(), gp.z(), gp.x(), gp.y(), gp.z(), 0, 0, 0);
+                }
             }
         }
     }

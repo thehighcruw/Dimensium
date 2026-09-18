@@ -10,13 +10,21 @@ import github.thehighcruw.dimensium.editor.overlay.OverlayRenderer;
 import github.thehighcruw.dimensium.editor.window.imgui.DeferredItemRender;
 import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
 import github.thehighcruw.dimensium.editor.window.imgui.ToggleableWindow;
+import github.thehighcruw.dimensium.shared.BlockSender;
 import github.thehighcruw.dimensium.shared.SelectionState;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import imgui.ImGui;
 import imgui.flag.ImGuiCond;
 import imgui.type.ImBoolean;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
+import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
+import net.minecraft.world.World;
 
 @SideOnly(Side.CLIENT)
 abstract class AbstractReplaceWindow extends ToggleableWindow {
@@ -40,7 +48,34 @@ abstract class AbstractReplaceWindow extends ToggleableWindow {
 
     protected abstract String checkboxKey();
 
-    protected abstract void applyOp();
+    /** I18n key for the undo/history action name, e.g. "dimensium.action.op.replace". */
+    protected abstract String applyActionKey();
+
+    /**
+     * Called per selected block. Return an {@code {x, y, z, blockId, meta}} op to apply, or
+     * {@code null} to skip this block.
+     */
+    protected abstract int[] buildBlockOp(
+            int x, int y, int z, Block worldBlock, int worldMeta, Block findBlock, Block replaceBlock);
+
+    protected final void applyOp() {
+        SelectionState sel = SelectionState.INSTANCE;
+        if (!sel.hasSelection() || block1 == null || block2 == null) return;
+        Block findBlock = Block.getBlockFromItem(block1.getItem());
+        Block replaceBlock = Block.getBlockFromItem(block2.getItem());
+        if (findBlock == null || findBlock == Blocks.air || replaceBlock == null) return;
+        World world = Minecraft.getMinecraft().theWorld;
+        if (world == null) return;
+        List<int[]> ops = new ArrayList<>();
+        for (long key : sel.getSelectedBlocks()) {
+            Vec3DInt cv = SelectionState.unpack(key);
+            int x = cv.x(), y = cv.y(), z = cv.z();
+            int[] op = buildBlockOp(
+                    x, y, z, world.getBlock(x, y, z), world.getBlockMetadata(x, y, z), findBlock, replaceBlock);
+            if (op != null) ops.add(op);
+        }
+        BlockSender.sendChunked(ops, I18n.format(applyActionKey()));
+    }
 
     public void open() {
         block1 = null;

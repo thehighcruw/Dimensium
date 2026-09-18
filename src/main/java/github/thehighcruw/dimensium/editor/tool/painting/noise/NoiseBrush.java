@@ -11,8 +11,6 @@ import github.thehighcruw.dimensium.editor.tool.noise.NoiseSampler;
 import github.thehighcruw.dimensium.editor.tool.state.PaletteState;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.WorldUtils;
-import github.thehighcruw.dimensium.tool.ChangeProposal;
-import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
@@ -60,11 +58,7 @@ public class NoiseBrush implements BrushStrategy {
                 noiseVal = NoiseSampler.sample2D(s, nx, pos.y());
             }
 
-            ItemStack item = samplePaletteByNoise(ps, noiseVal);
-            if (item == null) return;
-            Block blk = Block.getBlockFromItem(item.getItem());
-            int meta = item.getItemDamage();
-            if (blk != null && blk != Blocks.air) ChangeProposal.write(world, pos, blk, meta);
+            BrushUtil.writeFromItem(world, pos, samplePaletteByNoise(ps, noiseVal));
         });
     }
 

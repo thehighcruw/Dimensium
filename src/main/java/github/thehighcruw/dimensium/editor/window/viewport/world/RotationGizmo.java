@@ -4,6 +4,7 @@
  */
 package github.thehighcruw.dimensium.editor.window.viewport.world;
 
+import com.github.bsideup.jabel.Desugar;
 import github.thehighcruw.dimensium.DimensiumConfig;
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeMath;
 import github.thehighcruw.dimensium.shared.math.Mat3DFloat;
@@ -71,9 +72,7 @@ public class RotationGizmo {
     // ── Render ────────────────────────────────────────────────────────────────
 
     public void render(double gx, double gy, double gz, Vec3DDouble camPos, float rotX, float rotY, float rotZ) {
-        proj.capture(camPos);
-        float scale = computeScale(gx - camPos.x(), gy - camPos.y(), gz - camPos.z());
-        setupGizmoMatrix(gx, gy, gz, camPos, rotX, rotY, rotZ, scale);
+        beginRender(proj, gx, gy, gz, camPos, rotX, rotY, rotZ);
         Tessellator wt = Tessellator.instance;
 
         for (int a = 0; a < 3; a++) {
@@ -130,10 +129,9 @@ public class RotationGizmo {
             float rotX,
             float rotY,
             float rotZ) {
-        double eyeX = player.posX, eyeY = player.posY + player.getEyeHeight(), eyeZ = player.posZ;
-        float scale = computeScale(gx - eyeX, gy - eyeY, gz - eyeZ);
-        float scaledR = ARC_R * scale;
-        Mat3DFloat R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
+        HoverState hs = hoverState(player, gx, gy, gz, rotX, rotY, rotZ);
+        float scaledR = ARC_R * hs.scale();
+        Mat3DFloat R = hs.R();
         Axis best = Axis.NONE;
         double bestDist = HIT_PX;
 
@@ -233,6 +231,31 @@ public class RotationGizmo {
     }
 
     // ── Util ─────────────────────────────────────────────────────────────────
+
+    @Desugar
+    record HoverState(float scale, Mat3DFloat R) {}
+
+    static float beginRender(
+            GizmoProjection proj,
+            double gx,
+            double gy,
+            double gz,
+            Vec3DDouble camPos,
+            float rotX,
+            float rotY,
+            float rotZ) {
+        proj.capture(camPos);
+        float scale = computeScale(gx - camPos.x(), gy - camPos.y(), gz - camPos.z());
+        setupGizmoMatrix(gx, gy, gz, camPos, rotX, rotY, rotZ, scale);
+        return scale;
+    }
+
+    static HoverState hoverState(
+            EntityLivingBase player, double gx, double gy, double gz, float rotX, float rotY, float rotZ) {
+        double eyeX = player.posX, eyeY = player.posY + player.getEyeHeight(), eyeZ = player.posZ;
+        float scale = computeScale(gx - eyeX, gy - eyeY, gz - eyeZ);
+        return new HoverState(scale, ShapeMath.buildRotationMatrix(rotX, rotY, rotZ));
+    }
 
     static float computeScale(double dgx, double dgy, double dgz) {
         double dist = Math.sqrt(dgx * dgx + dgy * dgy + dgz * dgz);

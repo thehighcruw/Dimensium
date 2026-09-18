@@ -168,22 +168,19 @@ public class ViewPlaneGizmo {
         double[] sR = proj.project(gx + cameraRight.x(), gy + cameraRight.y(), gz + cameraRight.z());
         double[] sU = proj.project(gx + cameraUp.x(), gy + cameraUp.y(), gz + cameraUp.z());
 
-        if (s0 == null || sR == null) {
-            scrRight = Vec2DDouble.from(1, 0);
-            pixelsPerUnitRight = 50;
-        } else {
-            Vec2DDouble dr = Vec2DDouble.from(sR[0] - s0[0], sR[1] - s0[1]);
-            pixelsPerUnitRight = Math.max(1.0, dr.length());
-            scrRight = dr.divide(pixelsPerUnitRight);
-        }
-        if (s0 == null || sU == null) {
-            scrUp = Vec2DDouble.from(0, -1);
-            pixelsPerUnitUp = 50;
-        } else {
-            Vec2DDouble du = Vec2DDouble.from(sU[0] - s0[0], sU[1] - s0[1]);
-            pixelsPerUnitUp = Math.max(1.0, du.length());
-            scrUp = du.divide(pixelsPerUnitUp);
-        }
+        GizmoProjection.ScreenAxis saRight = computeScreenAxis(s0, sR, Vec2DDouble.from(1, 0));
+        scrRight = saRight.dir();
+        pixelsPerUnitRight = saRight.pixelsPerUnit();
+        GizmoProjection.ScreenAxis saUp = computeScreenAxis(s0, sU, Vec2DDouble.from(0, -1));
+        scrUp = saUp.dir();
+        pixelsPerUnitUp = saUp.pixelsPerUnit();
+    }
+
+    private static GizmoProjection.ScreenAxis computeScreenAxis(double[] s0, double[] s, Vec2DDouble fallbackDir) {
+        if (s0 == null || s == null) return new GizmoProjection.ScreenAxis(fallbackDir, 50);
+        Vec2DDouble d = Vec2DDouble.from(s[0] - s0[0], s[1] - s0[1]);
+        double scale = Math.max(1.0, d.length());
+        return new GizmoProjection.ScreenAxis(d.divide(scale), scale);
     }
 
     /** Returns updated anchor, or null if not dragging. */

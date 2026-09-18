@@ -5,7 +5,6 @@
 package github.thehighcruw.dimensium.network;
 
 import com.gtnewhorizon.gtnhlib.network.base.IPacket;
-import github.thehighcruw.dimensium.Dimensium;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import java.io.IOException;
 import net.minecraft.block.Block;
@@ -22,7 +21,8 @@ public class PacketSelectionOp implements IPacket {
     }
 
     public Op op;
-    public int x1, y1, z1, x2, y2, z2;
+    public Vec3DInt p1 = Vec3DInt.ZERO;
+    public Vec3DInt p2 = Vec3DInt.ZERO;
     public int blockId, blockMeta;
 
     public PacketSelectionOp() {}
@@ -30,12 +30,8 @@ public class PacketSelectionOp implements IPacket {
     @Override
     public void encode(PacketBuffer buf) throws IOException {
         buf.writeByte(op.ordinal());
-        buf.writeInt(x1);
-        buf.writeInt(y1);
-        buf.writeInt(z1);
-        buf.writeInt(x2);
-        buf.writeInt(y2);
-        buf.writeInt(z2);
+        PacketUtils.writeCoords(buf, p1.x(), p1.y(), p1.z());
+        PacketUtils.writeCoords(buf, p2.x(), p2.y(), p2.z());
         buf.writeInt(blockId);
         buf.writeInt(blockMeta);
     }
@@ -43,37 +39,19 @@ public class PacketSelectionOp implements IPacket {
     @Override
     public void decode(PacketBuffer buf) throws IOException {
         op = Op.values()[buf.readByte() & 0xFF];
-        x1 = buf.readInt();
-        y1 = buf.readInt();
-        z1 = buf.readInt();
-        x2 = buf.readInt();
-        y2 = buf.readInt();
-        z2 = buf.readInt();
+        p1 = PacketUtils.readCoords(buf);
+        p2 = PacketUtils.readCoords(buf);
         blockId = buf.readInt();
         blockMeta = buf.readInt();
     }
 
     @Override
     public IPacket executeServer(NetHandlerPlayServer handler) {
-        if (!handler.playerEntity.capabilities.isCreativeMode) {
-            Dimensium.logger.warn(
-                    "[Dimensium] Rejected PacketSelectionOp from non-creative player {}",
-                    handler.playerEntity.getCommandSenderName());
-            return null;
-        }
+        if (!PacketUtils.requireCreative(handler, "PacketSelectionOp")) return null;
         World world = handler.playerEntity.worldObj;
-        int minX = Math.min(x1, x2), maxX = Math.max(x1, x2);
-        int minY = Math.min(y1, y2), maxY = Math.max(y1, y2);
-        int minZ = Math.min(z1, z2), maxZ = Math.max(z1, z2);
-
-        long volume = (long) (maxX - minX + 1) * (maxY - minY + 1) * (maxZ - minZ + 1);
-        if (volume > 1_000_000L) {
-            Dimensium.logger.warn(
-                    "[Dimensium] Rejected PacketSelectionOp: volume {} exceeds limit for player {}",
-                    volume,
-                    handler.playerEntity.getCommandSenderName());
+        Vec3DInt mn = p1.min(p2), mx = p1.max(p2);
+        if (!PacketUtils.checkVolume(handler, "PacketSelectionOp", mn.x(), mn.y(), mn.z(), mx.x(), mx.y(), mx.z()))
             return null;
-        }
 
         Block block = op == Op.DELETE ? Blocks.air : Block.getBlockById(blockId);
         if (block == null) block = Blocks.air;
@@ -81,10 +59,7 @@ public class PacketSelectionOp implements IPacket {
 
         final Block blk = block;
         final int m = meta;
-        Vec3DInt.forEachInclusive(
-                Vec3DInt.from(minX, minY, minZ),
-                Vec3DInt.from(maxX, maxY, maxZ),
-                (x, y, z) -> world.setBlock(x, y, z, blk, m, 3));
+        Vec3DInt.forEachInclusive(mn, mx, (x, y, z) -> world.setBlock(x, y, z, blk, m, 3));
 
         return null;
     }

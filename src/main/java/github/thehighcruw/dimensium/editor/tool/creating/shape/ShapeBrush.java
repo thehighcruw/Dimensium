@@ -6,14 +6,12 @@ package github.thehighcruw.dimensium.editor.tool.creating.shape;
 
 import github.thehighcruw.dimensium.DimensiumConfig;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushStrategy;
+import github.thehighcruw.dimensium.editor.tool.brushes.BrushUtil;
 import github.thehighcruw.dimensium.editor.tool.state.PaletteState;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.WorldUtils;
-import github.thehighcruw.dimensium.tool.ChangeProposal;
 import java.util.Random;
-import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
-import net.minecraft.item.ItemStack;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.World;
 
@@ -39,11 +37,7 @@ public class ShapeBrush implements BrushStrategy {
             if (!inShapeGeom(s, Vec3DInt.from(dx, dy, dz), shapeDims)) return;
             Vec3DInt pos = origin.plus(dx, dy, dz);
             if (s.shapeKeepExisting && WorldUtils.getBlock(world, pos) != Blocks.air) return;
-            ItemStack item = ps.samplePalette(rand);
-            if (item == null) return;
-            Block blk = Block.getBlockFromItem(item.getItem());
-            int meta = item.getItemDamage();
-            if (blk != null && blk != Blocks.air) ChangeProposal.write(world, pos, blk, meta);
+            BrushUtil.writeFromItem(world, pos, ps.samplePalette(rand));
         });
     }
 

@@ -4,6 +4,12 @@
  */
 package github.thehighcruw.dimensium.editor.tool.selecting.magic;
 
+import github.thehighcruw.dimensium.shared.SelectionState;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import java.util.Set;
+import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.world.World;
+
 public class MagicSelectToolState {
 
     public static final MagicSelectToolState INSTANCE = new MagicSelectToolState();
@@ -39,4 +45,16 @@ public class MagicSelectToolState {
     public boolean magicSelectCorners = false;
     public MagicCompareType magicCompareType = MagicCompareType.BLOCK_STATE;
     public MagicDirection magicDirection = MagicDirection.BOTH;
+
+    public Set<Long> floodFillFrom(World world, MovingObjectPosition mop) {
+        return SelectionState.floodFill(
+                world,
+                Vec3DInt.from(mop.blockX, mop.blockY, mop.blockZ),
+                magicSelectLimit,
+                magicSelectRange,
+                magicSelectSurface,
+                magicSelectCorners,
+                magicCompareType,
+                magicDirection);
+    }
 }

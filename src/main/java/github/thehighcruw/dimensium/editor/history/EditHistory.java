@@ -100,16 +100,10 @@ public class EditHistory {
      */
     static void finalizeChunks(World world, Set<Long> chunkKeys, List<int[]> ops) {
         PerfTrace.push("generateSkylightMap chunks=" + chunkKeys.size());
-        for (long ck : chunkKeys) {
-            int cx = (int) (ck >> 32);
-            int cz = (int) (ck & 0xFFFFFFFFL);
-            Chunk chunk = world.getChunkFromChunkCoords(cx, cz);
-            if (chunk != null) chunk.generateSkylightMap();
-        }
+        skylightAndLightRecalc(world, chunkKeys, ops);
         PerfTrace.pop();
         PerfTrace.push("markBlockForUpdate ops=" + ops.size());
         for (int[] op : ops) {
-            world.func_147451_t(op[0], op[1], op[2]); // block-light recalc
             world.markBlockForUpdate(op[0], op[1], op[2]);
         }
         PerfTrace.pop();

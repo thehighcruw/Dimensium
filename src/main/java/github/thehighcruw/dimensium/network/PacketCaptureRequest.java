@@ -5,8 +5,8 @@
 package github.thehighcruw.dimensium.network;
 
 import com.gtnewhorizon.gtnhlib.network.base.IPacket;
-import github.thehighcruw.dimensium.Dimensium;
 import github.thehighcruw.dimensium.editor.history.ServerCaptureQueue;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import java.io.IOException;
 import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraft.network.PacketBuffer;
@@ -15,59 +15,37 @@ import net.minecraft.network.PacketBuffer;
 public class PacketCaptureRequest implements IPacket {
 
     public int txId;
-    public int minX, minY, minZ, maxX, maxY, maxZ;
+    public Vec3DInt min = Vec3DInt.ZERO;
+    public Vec3DInt max = Vec3DInt.ZERO;
 
     public PacketCaptureRequest() {}
 
     public PacketCaptureRequest(int txId, int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
         this.txId = txId;
-        this.minX = minX;
-        this.minY = minY;
-        this.minZ = minZ;
-        this.maxX = maxX;
-        this.maxY = maxY;
-        this.maxZ = maxZ;
+        this.min = Vec3DInt.from(minX, minY, minZ);
+        this.max = Vec3DInt.from(maxX, maxY, maxZ);
     }
 
     @Override
     public void encode(PacketBuffer buf) throws IOException {
         buf.writeInt(txId);
-        buf.writeInt(minX);
-        buf.writeInt(minY);
-        buf.writeInt(minZ);
-        buf.writeInt(maxX);
-        buf.writeInt(maxY);
-        buf.writeInt(maxZ);
+        PacketUtils.writeCoords(buf, min.x(), min.y(), min.z());
+        PacketUtils.writeCoords(buf, max.x(), max.y(), max.z());
     }
 
     @Override
     public void decode(PacketBuffer buf) throws IOException {
         txId = buf.readInt();
-        minX = buf.readInt();
-        minY = buf.readInt();
-        minZ = buf.readInt();
-        maxX = buf.readInt();
-        maxY = buf.readInt();
-        maxZ = buf.readInt();
+        min = PacketUtils.readCoords(buf);
+        max = PacketUtils.readCoords(buf);
     }
 
     @Override
     public IPacket executeServer(NetHandlerPlayServer handler) {
-        if (!handler.playerEntity.capabilities.isCreativeMode) {
-            Dimensium.logger.warn(
-                    "[Dimensium] Rejected PacketCaptureRequest from non-creative player {}",
-                    handler.playerEntity.getCommandSenderName());
-            return null;
-        }
-        long volume = (long) (maxX - minX + 1) * (maxY - minY + 1) * (maxZ - minZ + 1);
-        if (volume > 1_000_000L) {
-            Dimensium.logger.warn(
-                    "[Dimensium] Rejected PacketCaptureRequest: volume {} exceeds limit for player {}",
-                    volume,
-                    handler.playerEntity.getCommandSenderName());
-            return null;
-        }
-        ServerCaptureQueue.enqueue(handler.playerEntity, txId, minX, minY, minZ, maxX, maxY, maxZ);
+        if (!PacketUtils.requireCreative(handler, "PacketCaptureRequest")) return null;
+        if (!PacketUtils.checkVolume(
+                handler, "PacketCaptureRequest", min.x(), min.y(), min.z(), max.x(), max.y(), max.z())) return null;
+        ServerCaptureQueue.enqueue(handler.playerEntity, txId, min.x(), min.y(), min.z(), max.x(), max.y(), max.z());
         return null;
     }
 }

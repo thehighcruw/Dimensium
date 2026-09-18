@@ -295,14 +295,9 @@ public class SelectionState {
     }
 
     public static Set<Long> aabbBlocks(int x1, int y1, int z1, int x2, int y2, int z2) {
-        int minX = Math.min(x1, x2), maxX = Math.max(x1, x2);
-        int minY = Math.min(y1, y2), maxY = Math.max(y1, y2);
-        int minZ = Math.min(z1, z2), maxZ = Math.max(z1, z2);
+        Vec3DInt a = Vec3DInt.from(x1, y1, z1), b = Vec3DInt.from(x2, y2, z2);
         Set<Long> set = new HashSet<>();
-        Vec3DInt.forEachInclusive(
-                Vec3DInt.from(minX, minY, minZ),
-                Vec3DInt.from(maxX, maxY, maxZ),
-                (x, y, z) -> set.add(pack(Vec3DInt.from(x, y, z))));
+        Vec3DInt.forEachInclusive(a.min(b), a.max(b), (x, y, z) -> set.add(pack(Vec3DInt.from(x, y, z))));
         return set;
     }
 

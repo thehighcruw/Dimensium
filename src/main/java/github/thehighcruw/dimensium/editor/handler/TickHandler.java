@@ -500,14 +500,7 @@ public class TickHandler {
         // normally only synced in client ticks. EntityRenderer uses lastTickPos for
         // world-space render offset and prevPos for interpolation — both must match
         // posX each render tick or blocks ghost/lag relative to the camera.
-        cam.prevPosX = cam.posX;
-        cam.prevPosY = cam.posY;
-        cam.prevPosZ = cam.posZ;
-        cam.lastTickPosX = cam.posX;
-        cam.lastTickPosY = cam.posY;
-        cam.lastTickPosZ = cam.posZ;
-        cam.prevRotationYaw = cam.rotationYaw;
-        cam.prevRotationPitch = cam.rotationPitch;
+        FreecamState.copyPosition(cam, cam);
     }
 
     private static void setPivotFromRay(FreecamState fs, FreecamEntity cam, Minecraft mc, Vec3DDouble rd) {

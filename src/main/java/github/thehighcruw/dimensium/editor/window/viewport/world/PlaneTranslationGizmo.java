@@ -84,9 +84,7 @@ public class PlaneTranslationGizmo {
     // ── Rendering ─────────────────────────────────────────────────────────────
 
     public void render(double gx, double gy, double gz, Vec3DDouble camPos, float rotX, float rotY, float rotZ) {
-        proj.capture(camPos);
-        float scale = RotationGizmo.computeScale(gx - camPos.x(), gy - camPos.y(), gz - camPos.z());
-        RotationGizmo.setupGizmoMatrix(gx, gy, gz, camPos, rotX, rotY, rotZ, scale);
+        RotationGizmo.beginRender(proj, gx, gy, gz, camPos, rotX, rotY, rotZ);
 
         for (int p = 0; p < 3; p++) {
             Plane plane = p == 0 ? Plane.XY : p == 1 ? Plane.XZ : Plane.YZ;
@@ -152,9 +150,9 @@ public class PlaneTranslationGizmo {
             float rotX,
             float rotY,
             float rotZ) {
-        double eyeX = player.posX, eyeY = player.posY + player.getEyeHeight(), eyeZ = player.posZ;
-        float scale = RotationGizmo.computeScale(gx - eyeX, gy - eyeY, gz - eyeZ);
-        Mat3DFloat R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
+        RotationGizmo.HoverState hs = RotationGizmo.hoverState(player, gx, gy, gz, rotX, rotY, rotZ);
+        float scale = hs.scale();
+        Mat3DFloat R = hs.R();
 
         Plane best = Plane.NONE;
         double bestDist = HIT_PX;
@@ -162,8 +160,8 @@ public class PlaneTranslationGizmo {
         for (int p = 0; p < 3; p++) {
             float cx = CENTERS[p][0], cy = CENTERS[p][1], cz = CENTERS[p][2];
             float[] a = PLANE_A[p], b = PLANE_B[p];
-            Vec3DFloat ha = R.mul(Vec3DFloat.from(a[0] * SQ_HALF, a[1] * SQ_HALF, a[2] * SQ_HALF));
-            Vec3DFloat hb = R.mul(Vec3DFloat.from(b[0] * SQ_HALF, b[1] * SQ_HALF, b[2] * SQ_HALF));
+            Vec3DFloat ha = rotatedAxis(R, a, SQ_HALF);
+            Vec3DFloat hb = rotatedAxis(R, b, SQ_HALF);
             Vec3DFloat cRot = R.mul(Vec3DFloat.from(cx, cy, cz));
             double wcx = gx + cRot.x() * scale, wcy = gy + cRot.y() * scale, wcz = gz + cRot.z() * scale;
             double[][] corners = new double[4][];
@@ -226,8 +224,8 @@ public class PlaneTranslationGizmo {
 
         int p = dragPlane == Plane.XY ? 0 : dragPlane == Plane.XZ ? 1 : 2;
         Mat3DFloat R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
-        worldAxisA = R.mul(Vec3DFloat.from(PLANE_A[p][0], PLANE_A[p][1], PLANE_A[p][2]));
-        worldAxisB = R.mul(Vec3DFloat.from(PLANE_B[p][0], PLANE_B[p][1], PLANE_B[p][2]));
+        worldAxisA = rotatedAxis(R, PLANE_A[p]);
+        worldAxisB = rotatedAxis(R, PLANE_B[p]);
 
         // Plane normal = worldAxisA × worldAxisB
         dragPlaneN = Vec3DDouble.from(
@@ -274,6 +272,14 @@ public class PlaneTranslationGizmo {
         }
     }
 
+    private static Vec3DFloat rotatedAxis(Mat3DFloat R, float[] axis) {
+        return R.mul(Vec3DFloat.from(axis[0], axis[1], axis[2]));
+    }
+
+    private static Vec3DFloat rotatedAxis(Mat3DFloat R, float[] axis, float scale) {
+        return R.mul(Vec3DFloat.from(axis[0] * scale, axis[1] * scale, axis[2] * scale));
+    }
+
     private static double[] rayPlaneIntersect(
             double[] ray, double px, double py, double pz, double nx, double ny, double nz) {
         double dDotN = ray[3] * nx + ray[4] * ny + ray[5] * nz;
@@ -297,10 +303,8 @@ public class PlaneTranslationGizmo {
                         dragPlaneN.y(),
                         dragPlaneN.z());
                 if (hit != null) {
-                    return Vec3DDouble.from(
-                            startAnchor.x() + (hit[0] - dragStartH.x()),
-                            startAnchor.y() + (hit[1] - dragStartH.y()),
-                            startAnchor.z() + (hit[2] - dragStartH.z()));
+                    return startAnchor.plus(Vec3DDouble.from(
+                            hit[0] - dragStartH.x(), hit[1] - dragStartH.y(), hit[2] - dragStartH.z()));
                 }
             }
         }
@@ -308,10 +312,9 @@ public class PlaneTranslationGizmo {
         Vec2DDouble dm = Vec2DDouble.from(mouseX - dragStartMX, mouseY - dragStartMY);
         double deltaA = dm.dot(screenAxisA) / pixelsPerUnitA;
         double deltaB = dm.dot(screenAxisB) / pixelsPerUnitB;
-        return Vec3DDouble.from(
-                startAnchor.x() + deltaA * worldAxisA.x() + deltaB * worldAxisB.x(),
-                startAnchor.y() + deltaA * worldAxisA.y() + deltaB * worldAxisB.y(),
-                startAnchor.z() + deltaA * worldAxisA.z() + deltaB * worldAxisB.z());
+        Vec3DDouble delta =
+                worldAxisA.toDouble().times(deltaA).plus(worldAxisB.toDouble().times(deltaB));
+        return startAnchor.plus(delta);
     }
 
     public void endDrag() {
