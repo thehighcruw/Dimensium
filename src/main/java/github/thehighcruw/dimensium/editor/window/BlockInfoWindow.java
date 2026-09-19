@@ -11,6 +11,7 @@ import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
 import github.thehighcruw.dimensium.editor.window.imgui.ToggleableWindow;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
+import github.thehighcruw.dimensium.shared.util.WorldUtils;
 import imgui.ImGui;
 import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiCond;
@@ -20,7 +21,6 @@ import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.MovingObjectPosition;
 
@@ -62,51 +62,49 @@ public class BlockInfoWindow extends ToggleableWindow {
             return;
         }
 
-        if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-            Block block = mc.theWorld.getBlock(mop.blockX, mop.blockY, mop.blockZ);
-            int meta = mc.theWorld.getBlockMetadata(mop.blockX, mop.blockY, mop.blockZ);
+        ItemStack hoveredStack = WorldUtils.blockStackFromMop(mc.theWorld, mop);
+        if (hoveredStack != null) {
+            Block block = Block.getBlockFromItem(hoveredStack.getItem());
+            int meta = hoveredStack.getItemDamage();
+            String displayName;
+            try {
+                displayName = hoveredStack.getDisplayName();
+            } catch (Exception e) {
+                displayName = block.getLocalizedName();
+            }
+            ImGui.text(displayName);
 
-            if (block != null && block != Blocks.air) {
-                String displayName;
-                try {
-                    displayName = new ItemStack(block, 1, meta).getDisplayName();
-                } catch (Exception e) {
-                    displayName = block.getLocalizedName();
-                }
-                ImGui.text(displayName);
-
-                String unloc = block.getUnlocalizedName();
-                if (unloc != null) {
-                    float dim = 0.55f;
-                    ImGui.pushStyleColor(ImGuiCol.Text, dim, dim, dim, 1f);
-                    ImGui.text(unloc);
-                    ImGui.popStyleColor();
-                }
-
-                ImGui.separator();
-
-                if (meta != 0) {
-                    ImGui.text(I18n.format("dimensium.block_info.meta") + " " + meta);
-                }
-
-                ImGui.text(I18n.format("dimensium.block_info.pos") + " " + mop.blockX + ", " + mop.blockY + ", "
-                        + mop.blockZ);
-
-                EntityLivingBase eye = mc.renderViewEntity;
-                if (eye != null) {
-                    double dist = Vec3DDouble.from(
-                                    mop.blockX + 0.5 - eye.posX,
-                                    mop.blockY + 0.5 - (eye.posY + eye.getEyeHeight()),
-                                    mop.blockZ + 0.5 - eye.posZ)
-                            .length();
-                    ImGui.text(I18n.format("dimensium.block_info.distance") + " " + String.format("%.1f", dist) + " m");
-                }
-            } else {
+            String unloc = block.getUnlocalizedName();
+            if (unloc != null) {
                 float dim = 0.55f;
                 ImGui.pushStyleColor(ImGuiCol.Text, dim, dim, dim, 1f);
-                ImGui.text(I18n.format("dimensium.block_info.air"));
+                ImGui.text(unloc);
                 ImGui.popStyleColor();
             }
+
+            ImGui.separator();
+
+            if (meta != 0) {
+                ImGui.text(I18n.format("dimensium.block_info.meta") + " " + meta);
+            }
+
+            ImGui.text(
+                    I18n.format("dimensium.block_info.pos") + " " + mop.blockX + ", " + mop.blockY + ", " + mop.blockZ);
+
+            EntityLivingBase eye = mc.renderViewEntity;
+            if (eye != null) {
+                double dist = Vec3DDouble.from(
+                                mop.blockX + 0.5 - eye.posX,
+                                mop.blockY + 0.5 - (eye.posY + eye.getEyeHeight()),
+                                mop.blockZ + 0.5 - eye.posZ)
+                        .length();
+                ImGui.text(I18n.format("dimensium.block_info.distance") + " " + String.format("%.1f", dist) + " m");
+            }
+        } else if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+            float dim = 0.55f;
+            ImGui.pushStyleColor(ImGuiCol.Text, dim, dim, dim, 1f);
+            ImGui.text(I18n.format("dimensium.block_info.air"));
+            ImGui.popStyleColor();
         } else {
             float dim = 0.55f;
             ImGui.pushStyleColor(ImGuiCol.Text, dim, dim, dim, 1f);

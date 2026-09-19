@@ -66,13 +66,6 @@ public class NoiseBrush implements BrushStrategy {
         if (ps.palette.isEmpty()) return null;
         int total = ps.totalPaletteWeight();
         if (total == 0) return null;
-        int target = (int) (v * total);
-        if (target >= total) target = total - 1;
-        int cum = 0;
-        for (int i = 0; i < ps.palette.size(); i++) {
-            cum += ps.getWeight(i);
-            if (target < cum) return ps.palette.get(i);
-        }
-        return ps.palette.get(ps.palette.size() - 1);
+        return ps.samplePaletteAt(Math.min((int) (v * total), total - 1));
     }
 }

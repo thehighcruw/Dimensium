@@ -5,6 +5,7 @@
 package github.thehighcruw.dimensium.editor.tool.creating.modelling;
 
 import github.thehighcruw.dimensium.editor.tool.creating.modelling.ModellingToolState.ModelPoint;
+import github.thehighcruw.dimensium.shared.math.TriIntConsumer;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.BlockUtils;
@@ -632,21 +633,26 @@ public class ModellingMath {
     private static void bresenhamMajor(Map<Long, int[]> out, int[] pos, int[] step, int[] deltas, int major, int[] bm) {
         int a = major == 0 ? 1 : 0;
         int b = major == 2 ? 1 : 2;
-        int dm = deltas[major], da = deltas[a], db = deltas[b];
-        int err1 = 2 * da - dm, err2 = 2 * db - dm;
-        for (int i = 0; i < dm; i++) {
-            pos[major] += step[major];
+        bresenhamRun(
+                pos, step, major, a, b, deltas[major], deltas[a], deltas[b], (x, y, z) -> addPoint(out, x, y, z, bm));
+    }
+
+    public static void bresenhamRun(
+            int[] pos, int[] step, int pIdx, int s1Idx, int s2Idx, int dp, int ds1, int ds2, TriIntConsumer callback) {
+        int err1 = 2 * ds1 - dp, err2 = 2 * ds2 - dp;
+        for (int i = 0; i < dp; i++) {
+            pos[pIdx] += step[pIdx];
             if (err1 > 0) {
-                pos[a] += step[a];
-                err1 -= 2 * dm;
+                pos[s1Idx] += step[s1Idx];
+                err1 -= 2 * dp;
             }
             if (err2 > 0) {
-                pos[b] += step[b];
-                err2 -= 2 * dm;
+                pos[s2Idx] += step[s2Idx];
+                err2 -= 2 * dp;
             }
-            err1 += 2 * da;
-            err2 += 2 * db;
-            addPoint(out, pos[0], pos[1], pos[2], bm);
+            err1 += 2 * ds1;
+            err2 += 2 * ds2;
+            callback.accept(pos[0], pos[1], pos[2]);
         }
     }
 

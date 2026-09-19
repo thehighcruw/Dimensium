@@ -121,14 +121,10 @@ public final class GuiDimensiumOverlay {
         if (button == 2) {
             MovingObjectPosition mop = raycastFromMouse(
                     (int) FreecamState.INSTANCE.cursorX, (int) FreecamState.INSTANCE.cursorY, scaledW, scaledH);
-            if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-                Block b = mc.theWorld.getBlock(mop.blockX, mop.blockY, mop.blockZ);
-                int meta = mc.theWorld.getBlockMetadata(mop.blockX, mop.blockY, mop.blockZ);
-                if (b != null && b != Blocks.air) {
-                    ItemStack picked = new ItemStack(b, 1, meta);
-                    RecentBlockHistory.add(picked);
-                    SelectedBlockState.INSTANCE.selectedBlock = picked;
-                }
+            ItemStack picked = WorldUtils.blockStackFromMop(mc.theWorld, mop);
+            if (picked != null) {
+                RecentBlockHistory.add(picked);
+                SelectedBlockState.INSTANCE.selectedBlock = picked;
             }
             return;
         }

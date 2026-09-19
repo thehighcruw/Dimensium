@@ -7,6 +7,7 @@ package github.thehighcruw.dimensium.network;
 import github.thehighcruw.dimensium.Dimensium;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraft.network.PacketBuffer;
 
@@ -54,5 +55,22 @@ final class PacketUtils {
             return false;
         }
         return true;
+    }
+
+    static boolean checkVolume(NetHandlerPlayServer handler, String packetName, Vec3DInt min, Vec3DInt max) {
+        return checkVolume(handler, packetName, min.x(), min.y(), min.z(), max.x(), max.y(), max.z());
+    }
+
+    static void writeString(PacketBuffer buf, String s) throws IOException {
+        byte[] bytes = s.getBytes(StandardCharsets.UTF_8);
+        buf.writeShort(bytes.length);
+        buf.writeBytes(bytes);
+    }
+
+    static String readString(PacketBuffer buf) throws IOException {
+        int len = buf.readShort() & 0xFFFF;
+        byte[] bytes = new byte[len];
+        buf.readBytes(bytes);
+        return new String(bytes, StandardCharsets.UTF_8);
     }
 }

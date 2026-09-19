@@ -154,47 +154,44 @@ public class PathMath {
 
         int[] c = {x0, y0, z0};
         int[] sg = {sx, sy, sz};
-        int[] stepRef = {0};
         result.add(SplinePoint.of(c[0], c[1], c[2], 0.0));
 
+        int[] stepRef = {0};
         if (dx >= dy && dx >= dz) {
-            bresenhamRun(c, sg, 0, 1, 2, dx, dy, dz, totalSteps, stepRef, result);
+            ModellingMath.bresenhamRun(
+                    c,
+                    sg,
+                    0,
+                    1,
+                    2,
+                    dx,
+                    dy,
+                    dz,
+                    (x, y, z) -> result.add(SplinePoint.of(x, y, z, (double) ++stepRef[0] / totalSteps)));
         } else if (dy >= dx && dy >= dz) {
-            bresenhamRun(c, sg, 1, 0, 2, dy, dx, dz, totalSteps, stepRef, result);
+            ModellingMath.bresenhamRun(
+                    c,
+                    sg,
+                    1,
+                    0,
+                    2,
+                    dy,
+                    dx,
+                    dz,
+                    (x, y, z) -> result.add(SplinePoint.of(x, y, z, (double) ++stepRef[0] / totalSteps)));
         } else {
-            bresenhamRun(c, sg, 2, 0, 1, dz, dx, dy, totalSteps, stepRef, result);
+            ModellingMath.bresenhamRun(
+                    c,
+                    sg,
+                    2,
+                    0,
+                    1,
+                    dz,
+                    dx,
+                    dy,
+                    (x, y, z) -> result.add(SplinePoint.of(x, y, z, (double) ++stepRef[0] / totalSteps)));
         }
         return result;
-    }
-
-    private static void bresenhamRun(
-            int[] c,
-            int[] sg,
-            int pIdx,
-            int s1Idx,
-            int s2Idx,
-            int dp,
-            int ds1,
-            int ds2,
-            int totalSteps,
-            int[] stepRef,
-            List<SplinePoint> result) {
-        int err1 = 2 * ds1 - dp;
-        int err2 = 2 * ds2 - dp;
-        for (int i = 0; i < dp; i++) {
-            c[pIdx] += sg[pIdx];
-            if (err1 > 0) {
-                c[s1Idx] += sg[s1Idx];
-                err1 -= 2 * dp;
-            }
-            if (err2 > 0) {
-                c[s2Idx] += sg[s2Idx];
-                err2 -= 2 * dp;
-            }
-            err1 += 2 * ds1;
-            err2 += 2 * ds2;
-            result.add(SplinePoint.of(c[0], c[1], c[2], (double) ++stepRef[0] / totalSteps));
-        }
     }
 
     static List<SplinePoint> ddaSegment(PathToolState.PathPoint a, PathToolState.PathPoint b) {

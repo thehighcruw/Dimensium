@@ -74,14 +74,18 @@ public final class SelectionTransforms {
         float invScale = scale > 0 ? 1f / scale : 1f;
         for (long key : blocks) {
             Vec3DInt coord = SelectionState.unpack(key);
-            Vec3DFloat noisePos = coord.toFloat().times(invScale);
-            float[] w = NoiseSampler.warpVec3(noisePos.x(), noisePos.y(), noisePos.z(), seed);
-            Vec3DFloat warp = Vec3DFloat.from(w[0] * distX, w[1] * distY, w[2] * distZ);
-            Vec3DInt rCoord = Vec3DInt.round(coord.toFloat().plus(warp));
+            Vec3DInt rCoord = warpPosition(coord, invScale, seed, distX, distY, distZ);
             if (rCoord.y() < 0 || rCoord.y() > 255) continue;
             result.add(SelectionState.pack(rCoord));
         }
         return result;
+    }
+
+    public static Vec3DInt warpPosition(
+            Vec3DInt pos, float invScale, long seed, float distX, float distY, float distZ) {
+        Vec3DFloat noisePos = pos.toFloat().times(invScale);
+        float[] w = NoiseSampler.warpVec3(noisePos.x(), noisePos.y(), noisePos.z(), seed);
+        return Vec3DInt.round(pos.toFloat().plus(Vec3DFloat.from(w[0] * distX, w[1] * distY, w[2] * distZ)));
     }
 
     /**

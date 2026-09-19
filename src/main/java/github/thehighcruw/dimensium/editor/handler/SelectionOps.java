@@ -7,6 +7,7 @@ package github.thehighcruw.dimensium.editor.handler;
 import com.github.bsideup.jabel.Desugar;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import github.thehighcruw.dimensium.editor.clipboard.ClipboardUtils;
 import github.thehighcruw.dimensium.shared.BlockColorCache;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
@@ -43,11 +44,11 @@ public class SelectionOps {
 
     public static List<int[]> clipboardToPlacements(SelectionState sel, Vec3DInt origin) {
         if (sel.clipboard == null) return new ArrayList<>();
-        List<int[]> ops = new ArrayList<>(sel.clipboard.size());
-        for (Map.Entry<Long, SelectionState.BlockData> e : sel.clipboard.entrySet()) {
-            Vec3DInt dest = origin.plus(SelectionState.decodeClipboardKey(e.getKey()));
-            SelectionState.BlockData bd = e.getValue();
-            ops.add(new int[] {dest.x(), dest.y(), dest.z(), Block.getIdFromBlock(bd.block()), bd.meta()});
+        List<int[]> ops = ClipboardUtils.toOffsets(sel.clipboard);
+        for (int[] op : ops) {
+            op[0] += origin.x();
+            op[1] += origin.y();
+            op[2] += origin.z();
         }
         return ops;
     }

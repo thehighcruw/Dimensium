@@ -50,8 +50,7 @@ public class PacketSelectionOp implements IPacket {
         if (!PacketUtils.requireCreative(handler, "PacketSelectionOp")) return null;
         World world = handler.playerEntity.worldObj;
         Vec3DInt mn = p1.min(p2), mx = p1.max(p2);
-        if (!PacketUtils.checkVolume(handler, "PacketSelectionOp", mn.x(), mn.y(), mn.z(), mx.x(), mx.y(), mx.z()))
-            return null;
+        if (!PacketUtils.checkVolume(handler, "PacketSelectionOp", mn, mx)) return null;
 
         Block block = op == Op.DELETE ? Blocks.air : Block.getBlockById(blockId);
         if (block == null) block = Blocks.air;

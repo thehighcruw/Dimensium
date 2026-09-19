@@ -15,6 +15,7 @@ import github.thehighcruw.dimensium.tool.BuilderToolState;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiConsumer;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
@@ -25,6 +26,14 @@ public class SmearStrategy implements BuilderToolStrategy {
 
     @Desugar
     private record StepResult(Vec3DInt step, int steps) {}
+
+    private static void forEachSmearBlock(SelectionState sel, Vec3DInt base, BiConsumer<Vec3DInt, BlockData> action) {
+        sel.clipDim.forEach((x, y, z) -> {
+            BlockData bd = sel.clipboardGet(Vec3DInt.from(x, y, z));
+            if (bd.block() == Blocks.air) return;
+            action.accept(base.plus(Vec3DInt.from(x, y, z)), bd);
+        });
+    }
 
     private static boolean inOriginalSelection(Vec3DInt dest, SelectionState sel) {
         return dest.x() >= sel.minX()
@@ -64,10 +73,7 @@ public class SmearStrategy implements BuilderToolStrategy {
         List<int[]> ops = new ArrayList<>();
         for (int i = 1; i <= steps; i++) {
             Vec3DInt base = origin.plus(step.times(i));
-            sel.clipDim.forEach((x, y, z) -> {
-                BlockData bd = sel.clipboardGet(Vec3DInt.from(x, y, z));
-                if (bd.block() == Blocks.air) return;
-                Vec3DInt dest = base.plus(Vec3DInt.from(x, y, z));
+            forEachSmearBlock(sel, base, (dest, bd) -> {
                 if (!inOriginalSelection(dest, sel) && world.getBlock(dest.x(), dest.y(), dest.z()) != Blocks.air)
                     return;
                 ops.add(new int[] {dest.x(), dest.y(), dest.z(), Block.getIdFromBlock(bd.block()), bd.meta()});
@@ -101,11 +107,8 @@ public class SmearStrategy implements BuilderToolStrategy {
         boolean[] done = {false};
         for (int i = 1; i <= steps && !done[0]; i++) {
             Vec3DInt base = origin.plus(step.times(i));
-            sel.clipDim.forEach((x, y, z) -> {
+            forEachSmearBlock(sel, base, (dest, bd) -> {
                 if (done[0]) return;
-                BlockData bd = sel.clipboardGet(Vec3DInt.from(x, y, z));
-                if (bd.block() == Blocks.air) return;
-                Vec3DInt dest = base.plus(Vec3DInt.from(x, y, z));
                 if (!inOriginalSelection(dest, sel)) {
                     p.proposed.put(
                             ChangeProposal.packKey(dest), new int[] {Block.getIdFromBlock(bd.block()), bd.meta()});

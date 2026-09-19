@@ -32,8 +32,7 @@ public final class ViewportState {
      * contentX/W are in physical pixels (from ImGui); cursor and scaledW are in GUI pixels — scale up before comparing.
      */
     public double cursorToNdcX(double cursorX, int scaledW) {
-        Minecraft mc = Minecraft.getMinecraft();
-        int sf = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight).getScaleFactor();
+        int sf = guiScaleFactor();
         double physCursorX = cursorX * sf;
         double physW = scaledW * sf;
         if (ViewState.INSTANCE.flipCanvas) physCursorX = (physW - 1) - physCursorX;
@@ -45,11 +44,15 @@ public final class ViewportState {
      * contentY/H are in physical pixels (from ImGui); cursor and scaledH are in GUI pixels — scale up before comparing.
      */
     public double cursorToNdcY(double cursorY, int scaledH) {
-        Minecraft mc = Minecraft.getMinecraft();
-        int sf = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight).getScaleFactor();
+        int sf = guiScaleFactor();
         double physCursorY = cursorY * sf;
         double physH = scaledH * sf;
         return -(physCursorY - (contentY + contentH * 0.5)) / (physH * 0.5);
+    }
+
+    private static int guiScaleFactor() {
+        Minecraft mc = Minecraft.getMinecraft();
+        return new ScaledResolution(mc, mc.displayWidth, mc.displayHeight).getScaleFactor();
     }
 
     // Per-viewport camera control state. Swapped into/out of FreecamState on tab switch.

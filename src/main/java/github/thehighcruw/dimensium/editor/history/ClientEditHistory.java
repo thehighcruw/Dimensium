@@ -136,15 +136,18 @@ public class ClientEditHistory {
         }
     }
 
+    private long entryByteSize(Entry e) {
+        return (long) (e.before.length + e.after.length) * 20 + e.action.length() * 2L;
+    }
+
     public long totalBytes() {
         long sum = 0;
-        for (Entry e : entries) sum += (long) (e.before.length + e.after.length) * 20 + e.action.length() * 2L;
+        for (Entry e : entries) sum += entryByteSize(e);
         return sum;
     }
 
     public long entryBytes(int i) {
-        Entry e = entries.get(i);
-        return (long) (e.before.length + e.after.length) * 20 + e.action.length() * 2L;
+        return entryByteSize(entries.get(i));
     }
 
     public void clear() {

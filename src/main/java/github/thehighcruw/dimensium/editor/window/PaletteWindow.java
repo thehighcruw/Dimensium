@@ -93,14 +93,7 @@ public class PaletteWindow extends ToggleableWindow {
 
                     DeferredItemRender.placeButton("##palcatblock_" + i + "_" + j, block, CELL_SIZE * scale);
 
-                    if (ImGui.beginDragDropTarget()) {
-                        byte[] payload = ImGui.acceptDragDropPayload(DRAG_TYPE);
-                        if (payload != null) {
-                            ItemStack dropped = blockFromPayload(payload);
-                            if (dropped != null) PaletteRegistry.INSTANCE.addBlock(i, dropped);
-                        }
-                        ImGui.endDragDropTarget();
-                    }
+                    acceptBlockDrop(i);
 
                     if (ImGui.beginPopupContextItem("##palcatblock_ctx_" + i + "_" + j)) {
                         if (ImGui.menuItem(I18n.format("dimensium.palette.context.set_active"))) {
@@ -118,14 +111,7 @@ public class PaletteWindow extends ToggleableWindow {
 
                 // Drop target on empty row below blocks
                 ImGui.dummy(ImGui.getContentRegionAvailX(), 6f * scale);
-                if (ImGui.beginDragDropTarget()) {
-                    byte[] payload = ImGui.acceptDragDropPayload(DRAG_TYPE);
-                    if (payload != null) {
-                        ItemStack dropped = blockFromPayload(payload);
-                        if (dropped != null) PaletteRegistry.INSTANCE.addBlock(i, dropped);
-                    }
-                    ImGui.endDragDropTarget();
-                }
+                acceptBlockDrop(i);
 
                 if (pendingRemoveBlock >= 0) {
                     PaletteRegistry.INSTANCE.removeBlock(i, pendingRemoveBlock);
@@ -240,6 +226,16 @@ public class PaletteWindow extends ToggleableWindow {
         String name = Block.blockRegistry.getNameForObject(b);
         String s = name + ":" + stack.getItemDamage();
         return s.getBytes(StandardCharsets.UTF_8);
+    }
+
+    private void acceptBlockDrop(int categoryIndex) {
+        if (!ImGui.beginDragDropTarget()) return;
+        byte[] payload = ImGui.acceptDragDropPayload(DRAG_TYPE);
+        if (payload != null) {
+            ItemStack dropped = blockFromPayload(payload);
+            if (dropped != null) PaletteRegistry.INSTANCE.addBlock(categoryIndex, dropped);
+        }
+        ImGui.endDragDropTarget();
     }
 
     private static ItemStack blockFromPayload(byte[] data) {

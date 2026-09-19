@@ -165,15 +165,11 @@ public class PathToolState implements WithAxisTranslationGizmo, WithPlaneTransla
                     .append(',')
                     .append(pt.radius)
                     .append(',');
-            if (pt.block != null) {
-                sb.append(Block.getIdFromBlock(Block.getBlockFromItem(pt.block.getItem())))
+            ItemStack blockForPoint = pt.block != null ? pt.block : activeBlock;
+            if (blockForPoint != null) {
+                sb.append(Block.getIdFromBlock(Block.getBlockFromItem(blockForPoint.getItem())))
                         .append(',')
-                        .append(pt.block.getItemDamage())
-                        .append(';');
-            } else if (activeBlock != null) {
-                sb.append(Block.getIdFromBlock(Block.getBlockFromItem(activeBlock.getItem())))
-                        .append(',')
-                        .append(activeBlock.getItemDamage())
+                        .append(blockForPoint.getItemDamage())
                         .append(';');
             } else {
                 sb.append("null;");

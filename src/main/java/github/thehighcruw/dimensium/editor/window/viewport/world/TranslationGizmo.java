@@ -233,7 +233,7 @@ public class TranslationGizmo {
         // Ray-based drag: find initial parameter along axis
         double[] ray = proj.unprojectRay(mouseX, mouseY);
         if (ray != null) {
-            dragStartT = closestAxisT(ray, dragGizmo.x(), dragGizmo.y(), dragGizmo.z(), rotatedAxisDir);
+            dragStartT = closestAxisTAtGizmo(ray);
             useRayDrag = true;
         } else {
             dragStartT = 0;
@@ -267,14 +267,17 @@ public class TranslationGizmo {
         if (useRayDrag) {
             double[] ray = proj.unprojectRay(mouseX, mouseY);
             if (ray != null) {
-                double t = closestAxisT(ray, dragGizmo.x(), dragGizmo.y(), dragGizmo.z(), rotatedAxisDir);
-                return anchorPlusDelta(t - dragStartT);
+                return anchorPlusDelta(closestAxisTAtGizmo(ray) - dragStartT);
             }
         }
         // Screen-based fallback
         double screenProj =
                 Vec2DDouble.from(mouseX - dragStartMX, mouseY - dragStartMY).dot(screenDir);
         return anchorPlusDelta(screenProj / pixelsPerBlock);
+    }
+
+    private double closestAxisTAtGizmo(double[] ray) {
+        return closestAxisT(ray, dragGizmo.x(), dragGizmo.y(), dragGizmo.z(), rotatedAxisDir);
     }
 
     private Vec3DDouble anchorPlusDelta(double delta) {

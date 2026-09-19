@@ -7,7 +7,7 @@ package github.thehighcruw.dimensium.editor.tool.manipulating.distort;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushState;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushStrategy;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushUtil;
-import github.thehighcruw.dimensium.editor.tool.noise.NoiseSampler;
+import github.thehighcruw.dimensium.shared.SelectionTransforms;
 import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.WorldUtils;
@@ -41,10 +41,6 @@ public class DistortBrush implements BrushStrategy {
             if (!BrushUtil.inShape(bs.brushShape, offset, brushSize)) return;
             Vec3DInt worldPos = origin.plus(offset);
 
-            Vec3DFloat noisePos = worldPos.toFloat().times(invScale);
-            float[] w0 = NoiseSampler.warpVec3(noisePos.x(), noisePos.y(), noisePos.z(), seed);
-            float wx0 = w0[0], wy0 = w0[1], wz0 = w0[2];
-
             float edgeFade = 1f;
             if (s.distortSmoothEdges) {
                 float r = offset.toFloat().abs().times(invBrushSize).max();
@@ -55,10 +51,13 @@ public class DistortBrush implements BrushStrategy {
             }
 
             offsets[pc[0]] = offset;
-            Vec3DFloat warp = Vec3DFloat.from(
-                            wx0 * s.distortDistanceX, wy0 * s.distortDistanceY, wz0 * s.distortDistanceZ)
-                    .times(edgeFade);
-            Vec3DInt srcPos = Vec3DInt.round(worldPos.toFloat().plus(warp));
+            Vec3DInt srcPos = SelectionTransforms.warpPosition(
+                    worldPos,
+                    invScale,
+                    seed,
+                    s.distortDistanceX * edgeFade,
+                    s.distortDistanceY * edgeFade,
+                    s.distortDistanceZ * edgeFade);
             srcId[pc[0]] = Block.getIdFromBlock(WorldUtils.getBlock(world, srcPos));
             srcMeta[pc[0]] = WorldUtils.getBlockMetadata(world, srcPos);
             pc[0]++;

@@ -12,11 +12,8 @@ import github.thehighcruw.dimensium.editor.tool.state.PaletteState;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.WorldUtils;
-import github.thehighcruw.dimensium.tool.ChangeProposal;
 import java.util.Random;
-import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
-import net.minecraft.item.ItemStack;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.World;
 
@@ -78,10 +75,7 @@ public class GradientBrush implements BrushStrategy {
             }
 
             int palIdx = paletteIdx(s, ps, t);
-            ItemStack item = ps.palette.get(palIdx);
-            Block blk = Block.getBlockFromItem(item.getItem());
-            int meta = item.getItemDamage();
-            if (blk != null && blk != Blocks.air) ChangeProposal.write(world, pos, blk, meta);
+            BrushUtil.writeFromItem(world, pos, ps.palette.get(palIdx));
         });
     }
 

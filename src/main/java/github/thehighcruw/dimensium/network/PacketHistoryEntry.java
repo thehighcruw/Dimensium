@@ -10,7 +10,6 @@ import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.history.ClientEditHistory;
 import github.thehighcruw.dimensium.shared.BlockSender;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -88,9 +87,7 @@ public class PacketHistoryEntry implements IPacket {
         buf.writeInt(txId);
         buf.writeBoolean(isFinalChunk);
         buf.writeBoolean(includesAfter);
-        byte[] nameBytes = action.getBytes(StandardCharsets.UTF_8);
-        buf.writeShort(nameBytes.length);
-        buf.writeBytes(nameBytes);
+        PacketUtils.writeString(buf, action);
         PacketBlockList.encodeBlocks(buf, beforeChunk);
         if (includesAfter) PacketBlockList.encodeBlocks(buf, afterChunk);
     }
@@ -100,10 +97,7 @@ public class PacketHistoryEntry implements IPacket {
         txId = buf.readInt();
         isFinalChunk = buf.readBoolean();
         includesAfter = buf.readBoolean();
-        int nameLen = buf.readShort() & 0xFFFF;
-        byte[] nameBytes = new byte[nameLen];
-        buf.readBytes(nameBytes);
-        action = new String(nameBytes, StandardCharsets.UTF_8);
+        action = PacketUtils.readString(buf);
         beforeChunk = PacketBlockList.decodeBlocks(buf);
         afterChunk = includesAfter ? PacketBlockList.decodeBlocks(buf) : new ArrayList<>();
     }

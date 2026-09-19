@@ -43,8 +43,7 @@ public class PacketCaptureRequest implements IPacket {
     @Override
     public IPacket executeServer(NetHandlerPlayServer handler) {
         if (!PacketUtils.requireCreative(handler, "PacketCaptureRequest")) return null;
-        if (!PacketUtils.checkVolume(
-                handler, "PacketCaptureRequest", min.x(), min.y(), min.z(), max.x(), max.y(), max.z())) return null;
+        if (!PacketUtils.checkVolume(handler, "PacketCaptureRequest", min, max)) return null;
         ServerCaptureQueue.enqueue(handler.playerEntity, txId, min, max);
         return null;
     }

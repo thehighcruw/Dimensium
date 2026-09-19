@@ -45,6 +45,14 @@ public final class BlockUtils {
 
     private BlockUtils() {}
 
+    /** Returns the registry name of the block from the given stack, or null if not a placeable block. */
+    public static String getBlockRegistryName(ItemStack stack) {
+        if (stack == null) return null;
+        Block blk = Block.getBlockFromItem(stack.getItem());
+        if (blk == null) return null;
+        return (String) Block.blockRegistry.getNameForObject(blk);
+    }
+
     /** Returns {blockId, meta} or null if stack is null or not a placeable block. */
     public static int[] blockToIdMeta(ItemStack stack) {
         if (stack == null) return null;

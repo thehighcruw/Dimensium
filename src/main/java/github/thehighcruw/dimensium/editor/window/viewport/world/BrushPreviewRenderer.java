@@ -127,9 +127,7 @@ public class BrushPreviewRenderer {
                     if (wire != null && wire.length > 0) {
                         GL11.glColor4f(0.50f, 0.85f, 1.0f, 0.9f);
                         GL11.glPushMatrix();
-                        Vec3DDouble brushTrans = Vec3DDouble.from(bx - sx - rx, by - sy - ry, bz - sx - rz);
-                        GL11.glTranslated(brushTrans.x(), brushTrans.y(), brushTrans.z());
-                        WorldLines.setEyeForTranslation(brushTrans);
+                        pushBrushTranslation(bx, by, bz, rx, ry, rz, sx);
                         GhostRenderer.drawWireframeCache(Tessellator.instance, wire);
                         GL11.glPopMatrix();
                     }
@@ -139,9 +137,7 @@ public class BrushPreviewRenderer {
             // Static brush-shape preview: transparent white faces + white crease edges
             float[] wire = getBrushWireframe(shape, brushSize);
             GL11.glPushMatrix();
-            Vec3DDouble shapeTrans = Vec3DDouble.from(bx - sx - rx, by - sy - ry, bz - sx - rz);
-            GL11.glTranslated(shapeTrans.x(), shapeTrans.y(), shapeTrans.z());
-            WorldLines.setEyeForTranslation(shapeTrans);
+            pushBrushTranslation(bx, by, bz, rx, ry, rz, sx);
 
             // Outer faces — view-shaded transparent white.
             // Depth write enabled so overlapping faces don't accumulate (fixes corner glow).
@@ -210,6 +206,12 @@ public class BrushPreviewRenderer {
         return cachedBrushWire;
     }
 
+    private static void pushBrushTranslation(int bx, int by, int bz, double rx, double ry, double rz, int radius) {
+        Vec3DDouble trans = Vec3DDouble.from(bx - radius - rx, by - radius - ry, bz - radius - rz);
+        GL11.glTranslated(trans.x(), trans.y(), trans.z());
+        WorldLines.setEyeForTranslation(trans);
+    }
+
     private static HashSet<Long> buildBrushSet(BrushShape shape, Vec3DInt brushSize) {
         HashSet<Long> set = new HashSet<>();
         Vec3DInt.forEachInclusive(brushSize.negate(), brushSize, (dx, dy, dz) -> {
@@ -263,12 +265,7 @@ public class BrushPreviewRenderer {
             int ex = (int) ((pos >> 40) & 0xFFFFF) - ABS_OFFSET;
             int ey = (int) ((pos >> 20) & 0xFFFFF) - ABS_OFFSET;
             int ez = (int) (pos & 0xFFFFF) - ABS_OFFSET;
-            verts[vi++] = ex;
-            verts[vi++] = ey;
-            verts[vi++] = ez;
-            verts[vi++] = ex + (axis == 0 ? 1 : 0);
-            verts[vi++] = ey + (axis == 1 ? 1 : 0);
-            verts[vi++] = ez + (axis == 2 ? 1 : 0);
+            vi = GhostRenderer.writeEdgeVerts(verts, vi, ex, ey, ez, axis);
         }
         return verts;
     }

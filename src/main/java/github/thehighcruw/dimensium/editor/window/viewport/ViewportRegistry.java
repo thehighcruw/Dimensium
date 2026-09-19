@@ -90,12 +90,7 @@ public final class ViewportRegistry {
         fs.orbitDist = next.orbitDist;
 
         // Clear drag state — don't carry over an in-progress drag from the old viewport.
-        fs.lmbPressing = false;
-        fs.lmbDragging = false;
-        fs.rmbPressing = false;
-        fs.rmbDragging = false;
-        fs.cameraLmbDragActive = false;
-        fs.cameraRmbDragActive = false;
+        fs.resetMouseDragState();
 
         fs.cameraEntity = next.cameraEntity;
         Minecraft.getMinecraft().renderViewEntity = next.cameraEntity;
@@ -115,18 +110,7 @@ public final class ViewportRegistry {
             // switch to the adjacent viewport without trying to save the old state.
             int newActive = Math.min(index, viewports.size() - 1);
             activeIndex = newActive;
-            FreecamState fs = FreecamState.INSTANCE;
-            ViewportState next = viewports.get(newActive);
-            fs.speed = next.speed;
-            fs.orbiting = next.orbiting;
-            fs.pivot = next.pivot;
-            fs.orbitDist = next.orbitDist;
-            fs.lmbPressing = false;
-            fs.lmbDragging = false;
-            fs.rmbPressing = false;
-            fs.rmbDragging = false;
-            fs.cameraEntity = next.cameraEntity;
-            Minecraft.getMinecraft().renderViewEntity = next.cameraEntity;
+            applyViewportToFreecam(viewports.get(newActive), true);
         } else if (index < activeIndex) {
             // A non-active viewport before the active one was removed — fix up the index.
             // FreecamState already reflects the correct still-active viewport.
@@ -154,18 +138,16 @@ public final class ViewportRegistry {
      */
     public void restore() {
         if (viewports.isEmpty()) return;
+        applyViewportToFreecam(viewports.get(activeIndex), false);
+    }
+
+    private void applyViewportToFreecam(ViewportState vp, boolean preserveOrbiting) {
         FreecamState fs = FreecamState.INSTANCE;
-        ViewportState vp = viewports.get(activeIndex);
         fs.speed = vp.speed;
-        fs.orbiting = false;
+        fs.orbiting = preserveOrbiting ? vp.orbiting : false;
         fs.pivot = vp.pivot;
         fs.orbitDist = vp.orbitDist;
-        fs.lmbPressing = false;
-        fs.lmbDragging = false;
-        fs.rmbPressing = false;
-        fs.rmbDragging = false;
-        fs.cameraLmbDragActive = false;
-        fs.cameraRmbDragActive = false;
+        fs.resetMouseDragState();
         fs.cameraEntity = vp.cameraEntity;
         Minecraft.getMinecraft().renderViewEntity = vp.cameraEntity;
     }

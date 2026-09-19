@@ -253,16 +253,7 @@ public class PlaneTranslationGizmo {
 
         // Ray-based drag: find initial hit on plane
         double[] ray = proj.unprojectRay(mouseX, mouseY);
-        double[] hit = ray != null
-                ? rayPlaneIntersect(
-                        ray,
-                        dragGizmo.x(),
-                        dragGizmo.y(),
-                        dragGizmo.z(),
-                        dragPlaneN.x(),
-                        dragPlaneN.y(),
-                        dragPlaneN.z())
-                : null;
+        double[] hit = ray != null ? rayIntersectDragPlane(ray) : null;
         if (hit != null) {
             dragStartH = Vec3DDouble.from(hit[0], hit[1], hit[2]);
             useRayDrag = true;
@@ -270,6 +261,11 @@ public class PlaneTranslationGizmo {
             dragStartH = Vec3DDouble.ZERO;
             useRayDrag = false;
         }
+    }
+
+    private double[] rayIntersectDragPlane(double[] ray) {
+        return rayPlaneIntersect(
+                ray, dragGizmo.x(), dragGizmo.y(), dragGizmo.z(), dragPlaneN.x(), dragPlaneN.y(), dragPlaneN.z());
     }
 
     private static Vec3DFloat rotatedAxis(Mat3DFloat R, float[] axis) {
@@ -294,14 +290,7 @@ public class PlaneTranslationGizmo {
         if (useRayDrag) {
             double[] ray = proj.unprojectRay(mouseX, mouseY);
             if (ray != null) {
-                double[] hit = rayPlaneIntersect(
-                        ray,
-                        dragGizmo.x(),
-                        dragGizmo.y(),
-                        dragGizmo.z(),
-                        dragPlaneN.x(),
-                        dragPlaneN.y(),
-                        dragPlaneN.z());
+                double[] hit = rayIntersectDragPlane(ray);
                 if (hit != null) {
                     return startAnchor.plus(Vec3DDouble.from(
                             hit[0] - dragStartH.x(), hit[1] - dragStartH.y(), hit[2] - dragStartH.z()));

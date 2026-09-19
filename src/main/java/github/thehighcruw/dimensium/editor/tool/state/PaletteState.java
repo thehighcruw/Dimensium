@@ -32,16 +32,19 @@ public class PaletteState {
         return total;
     }
 
+    public ItemStack samplePaletteAt(int weightedIndex) {
+        int cum = 0;
+        for (int i = 0; i < palette.size(); i++) {
+            cum += getWeight(i);
+            if (weightedIndex < cum) return palette.get(i);
+        }
+        return palette.isEmpty() ? null : palette.get(palette.size() - 1);
+    }
+
     public ItemStack samplePalette(Random rand) {
         if (palette.isEmpty()) return null;
         int total = totalPaletteWeight();
         if (total == 0) return null;
-        int roll = rand.nextInt(total);
-        int cum = 0;
-        for (int i = 0; i < palette.size(); i++) {
-            cum += getWeight(i);
-            if (roll < cum) return palette.get(i);
-        }
-        return null;
+        return samplePaletteAt(rand.nextInt(total));
     }
 }

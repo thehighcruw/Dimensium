@@ -53,7 +53,7 @@ public class GhostRenderer {
     float[] computeLocalWireframe(List<Vec3DInt> blocks) {
         // Build block lookup set using local coord packing (coords assumed < ±4096)
         Set<Long> set = new HashSet<>(blocks.size() * 2);
-        for (Vec3DInt p : blocks) set.add(lPack(p));
+        for (Vec3DInt p : blocks) set.add(SelectionRenderer.lPack(p.x(), p.y(), p.z()));
 
         // For each exterior face, register its 4 edges with the face's plane-group bit.
         // An edge is a "crease" (should be drawn) iff it borders faces from 2+ plane groups.
@@ -67,7 +67,8 @@ public class GhostRenderer {
         HashMap<Long, Integer> edgeMask = new HashMap<>(blocks.size() * 4);
         for (Vec3DInt p : blocks) {
             for (int face = 0; face < 6; face++) {
-                if (set.contains(lPack(p.x() + NX[face], p.y() + NY[face], p.z() + NZ[face]))) continue;
+                if (set.contains(SelectionRenderer.lPack(p.x() + NX[face], p.y() + NY[face], p.z() + NZ[face])))
+                    continue;
                 int axisBit = FACE_AXIS_BIT[face];
                 for (int[] e : FACE_EDGES[face]) {
                     long ek = lEdgeKey(e[0], p.x() + e[1], p.y() + e[2], p.z() + e[3]);
@@ -255,14 +256,19 @@ public class GhostRenderer {
             int ex = (int) ((ek >> 26) & 0x1FFF) - 4096;
             int ey = (int) ((ek >> 13) & 0x1FFF) - 4096;
             int ez = (int) (ek & 0x1FFF) - 4096;
-            verts[vi++] = ex;
-            verts[vi++] = ey;
-            verts[vi++] = ez;
-            verts[vi++] = ex + (axis == 0 ? 1 : 0);
-            verts[vi++] = ey + (axis == 1 ? 1 : 0);
-            verts[vi++] = ez + (axis == 2 ? 1 : 0);
+            vi = writeEdgeVerts(verts, vi, ex, ey, ez, axis);
         }
         return verts;
+    }
+
+    static int writeEdgeVerts(float[] verts, int vi, int ex, int ey, int ez, int axis) {
+        verts[vi++] = ex;
+        verts[vi++] = ey;
+        verts[vi++] = ez;
+        verts[vi++] = ex + (axis == 0 ? 1 : 0);
+        verts[vi++] = ey + (axis == 1 ? 1 : 0);
+        verts[vi++] = ez + (axis == 2 ? 1 : 0);
+        return vi;
     }
 
     static void addBoxFaces(Tessellator t, float x2, float y2, float z2) {
@@ -358,16 +364,6 @@ public class GhostRenderer {
 
     static void addSingleFace(Tessellator t, Vec3DInt pos, int face) {
         addSingleFace(t, pos, face, 0f);
-    }
-
-    // ── Edge/block packing (local small-coord space, ±4096) ───────────────────
-
-    private long lPack(int x, int y, int z) {
-        return ((long) (x + 4096) << 26) | ((long) (y + 4096) << 13) | (z + 4096);
-    }
-
-    private long lPack(Vec3DInt p) {
-        return lPack(p.x(), p.y(), p.z());
     }
 
     private long lEdgeKey(int axis, int x, int y, int z) {

@@ -6,6 +6,7 @@ package github.thehighcruw.dimensium.editor.tool.state;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import github.thehighcruw.dimensium.shared.util.BlockUtils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -82,19 +83,24 @@ public class PaletteRegistry {
     }
 
     public void removeBlock(int categoryIndex, int blockIndex) {
-        if (categoryIndex < 0 || categoryIndex >= categories.size()) return;
-        List<ItemStack> blocks = categories.get(categoryIndex).blocks;
-        if (blockIndex < 0 || blockIndex >= blocks.size()) return;
+        List<ItemStack> blocks = blockListAt(categoryIndex, blockIndex);
+        if (blocks == null) return;
         blocks.remove(blockIndex);
         save();
     }
 
     public void replaceBlock(int categoryIndex, int blockIndex, ItemStack stack) {
-        if (categoryIndex < 0 || categoryIndex >= categories.size()) return;
-        List<ItemStack> blocks = categories.get(categoryIndex).blocks;
-        if (blockIndex < 0 || blockIndex >= blocks.size()) return;
+        List<ItemStack> blocks = blockListAt(categoryIndex, blockIndex);
+        if (blocks == null) return;
         blocks.set(blockIndex, stack.copy());
         save();
+    }
+
+    private List<ItemStack> blockListAt(int categoryIndex, int blockIndex) {
+        if (categoryIndex < 0 || categoryIndex >= categories.size()) return null;
+        List<ItemStack> blocks = categories.get(categoryIndex).blocks;
+        if (blockIndex < 0 || blockIndex >= blocks.size()) return null;
+        return blocks;
     }
 
     // ── Persistence ───────────────────────────────────────────────────────────
@@ -111,9 +117,7 @@ public class PaletteRegistry {
             catTag.setString("name", cat.name);
             NBTTagList blockList = new NBTTagList();
             for (ItemStack s : cat.blocks) {
-                Block b = Block.getBlockFromItem(s.getItem());
-                if (b == null) continue;
-                String blockName = Block.blockRegistry.getNameForObject(b);
+                String blockName = BlockUtils.getBlockRegistryName(s);
                 if (blockName == null) continue;
                 NBTTagCompound blockTag = new NBTTagCompound();
                 blockTag.setString("block", blockName);

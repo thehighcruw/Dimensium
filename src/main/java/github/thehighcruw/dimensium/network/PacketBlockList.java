@@ -10,7 +10,6 @@ import github.thehighcruw.dimensium.editor.history.EditHistory;
 import github.thehighcruw.dimensium.editor.history.ServerEditQueue;
 import github.thehighcruw.dimensium.shared.util.PerfTrace;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -65,9 +64,7 @@ public class PacketBlockList implements IPacket {
 
     @Override
     public void encode(PacketBuffer buf) throws IOException {
-        byte[] nameBytes = action.getBytes(StandardCharsets.UTF_8);
-        buf.writeShort(nameBytes.length);
-        buf.writeBytes(nameBytes);
+        PacketUtils.writeString(buf, action);
         buf.writeInt(transactionId);
         buf.writeBoolean(isFinalChunk);
         buf.writeBoolean(skipHistory);
@@ -76,10 +73,7 @@ public class PacketBlockList implements IPacket {
 
     @Override
     public void decode(PacketBuffer buf) throws IOException {
-        int nameLen = buf.readShort() & 0xFFFF;
-        byte[] nameBytes = new byte[nameLen];
-        buf.readBytes(nameBytes);
-        action = new String(nameBytes, StandardCharsets.UTF_8);
+        action = PacketUtils.readString(buf);
         transactionId = buf.readInt();
         isFinalChunk = buf.readBoolean();
         skipHistory = buf.readBoolean();

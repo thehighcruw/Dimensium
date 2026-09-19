@@ -54,6 +54,15 @@ public class FreecamState {
     private EntityLivingBase savedViewEntity = null;
     public FreecamEntity cameraEntity = null;
 
+    public void resetMouseDragState() {
+        lmbPressing = false;
+        lmbDragging = false;
+        rmbPressing = false;
+        rmbDragging = false;
+        cameraLmbDragActive = false;
+        cameraRmbDragActive = false;
+    }
+
     public void activate() {
         Minecraft mc = Minecraft.getMinecraft();
         if (active || mc.thePlayer == null || mc.theWorld == null) return;
@@ -63,12 +72,7 @@ public class FreecamState {
         cursorX = sr.getScaledWidth() / 2f;
         cursorY = sr.getScaledHeight() / 2f;
 
-        lmbPressing = false;
-        lmbDragging = false;
-        rmbPressing = false;
-        rmbDragging = false;
-        cameraLmbDragActive = false;
-        cameraRmbDragActive = false;
+        resetMouseDragState();
         savedViewEntity = mc.renderViewEntity;
 
         if (!ViewportRegistry.INSTANCE.viewports.isEmpty()) {
@@ -124,12 +128,7 @@ public class FreecamState {
         cameraEntity = null;
         // Do NOT clear ViewportRegistry — viewports persist across toggles.
         // ViewportRegistry.INSTANCE.clear() is called on world disconnect (DimensiumMode.fullReset).
-        lmbPressing = false;
-        lmbDragging = false;
-        rmbPressing = false;
-        rmbDragging = false;
-        cameraLmbDragActive = false;
-        cameraRmbDragActive = false;
+        resetMouseDragState();
         orbiting = false;
         active = false;
     }

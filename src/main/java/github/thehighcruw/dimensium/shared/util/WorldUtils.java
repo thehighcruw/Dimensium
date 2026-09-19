@@ -8,6 +8,8 @@ import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import javax.annotation.Nullable;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
+import net.minecraft.init.Blocks;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.World;
 
@@ -43,5 +45,14 @@ public final class WorldUtils {
 
     public static Vec3DInt mopToCoord(MovingObjectPosition mop) {
         return Vec3DInt.from(mop.blockX, mop.blockY, mop.blockZ);
+    }
+
+    /** Returns an ItemStack for the block under mop, or null if mop is null/non-block/air. */
+    public static @Nullable ItemStack blockStackFromMop(World world, MovingObjectPosition mop) {
+        if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return null;
+        Block block = world.getBlock(mop.blockX, mop.blockY, mop.blockZ);
+        if (block == null || block == Blocks.air) return null;
+        int meta = world.getBlockMetadata(mop.blockX, mop.blockY, mop.blockZ);
+        return new ItemStack(block, 1, meta);
     }
 }

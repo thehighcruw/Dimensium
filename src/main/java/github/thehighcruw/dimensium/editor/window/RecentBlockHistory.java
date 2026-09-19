@@ -6,6 +6,7 @@ package github.thehighcruw.dimensium.editor.window;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import github.thehighcruw.dimensium.shared.util.BlockUtils;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -63,9 +64,7 @@ public class RecentBlockHistory {
         try (PrintWriter w =
                 new PrintWriter(new OutputStreamWriter(new FileOutputStream(saveFile()), StandardCharsets.UTF_8))) {
             for (ItemStack s : history) {
-                Block b = Block.getBlockFromItem(s.getItem());
-                if (b == null) continue;
-                String name = Block.blockRegistry.getNameForObject(b);
+                String name = BlockUtils.getBlockRegistryName(s);
                 if (name == null) continue;
                 w.println(name + ":" + s.getItemDamage());
             }
