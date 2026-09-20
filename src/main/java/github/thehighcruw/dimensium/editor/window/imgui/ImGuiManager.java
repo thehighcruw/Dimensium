@@ -55,6 +55,7 @@ public final class ImGuiManager {
     private final Queue<Character> pendingChars = new ArrayDeque<>();
     private final Queue<int[]> pendingKeyEvents = new ArrayDeque<>();
     private float pendingWheel = 0f;
+    private boolean suppressEscapeOnce = false;
 
     // Track modifier key state from key events — Keyboard.isKeyDown() is unreliable on macOS
     // (LWJGL 2 does not correctly report Ctrl held state on some macOS configurations).
@@ -171,6 +172,10 @@ public final class ImGuiManager {
         io.setMouseWheel(pendingWheel);
         pendingWheel = 0f;
 
+        if (suppressEscapeOnce) {
+            pendingKeyEvents.removeIf(ev -> ev[0] == ImGuiKey.Escape);
+            suppressEscapeOnce = false;
+        }
         while (!pendingKeyEvents.isEmpty()) {
             int[] ev = pendingKeyEvents.poll();
             io.addKeyEvent(ev[0], ev[1] == 1);
@@ -277,6 +282,16 @@ public final class ImGuiManager {
 
     public boolean anyModalOpen() {
         return initialized && ImGui.isPopupOpen("", ImGuiPopupFlags.AnyPopup);
+    }
+
+    /**
+     * Drops any queued Escape key events before the next newFrame() flush.
+     * Call this when opening a popup to prevent a stale Escape (e.g. from a tool-cancel
+     * key that fired in the same game tick as the popup-opening key) from immediately
+     * closing the popup on its first render frame.
+     */
+    public void suppressEscapeOnce() {
+        suppressEscapeOnce = true;
     }
 
     private void applyStyle() {

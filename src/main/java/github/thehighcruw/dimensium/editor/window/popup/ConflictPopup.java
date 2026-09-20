@@ -6,6 +6,7 @@ package github.thehighcruw.dimensium.editor.window.popup;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
 import imgui.ImGui;
 import imgui.flag.ImGuiKey;
 import imgui.flag.ImGuiWindowFlags;
@@ -33,6 +34,7 @@ public class ConflictPopup {
     public void show(int mismatchCount, Runnable onApply, Runnable onSkip) {
         open = true;
         pendingOpen = true;
+        ImGuiManager.INSTANCE.suppressEscapeOnce();
         message = mismatchCount == 1
                 ? I18n.format("dimensium.popup.conflict.message.single")
                 : I18n.format("dimensium.popup.conflict.message.plural", mismatchCount);

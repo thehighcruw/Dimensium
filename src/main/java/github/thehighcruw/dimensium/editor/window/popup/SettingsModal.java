@@ -248,6 +248,7 @@ public class SettingsModal {
     public void open() {
         open = true;
         pendingOpen = true;
+        ImGuiManager.INSTANCE.suppressEscapeOnce();
         pendingScale[0] = ImGuiManager.INSTANCE.getUIScale();
         pendingWorldScrollSpeed[0] = DimensiumConfig.worldScrollSpeedModifier;
         pendingUiScrollSpeed[0] = DimensiumConfig.uiScrollSpeedModifier;
