@@ -54,7 +54,7 @@ public class MoveToolState
     /** Rotation snapshot at the start of a rotation drag. */
     public Vec3DFloat rotDragBase = Vec3DFloat.ZERO;
 
-    /** Per-axis scale factors applied to ghost block offsets from center of mass. */
+    /** Per-axis scale factors — resamples the selection via nearest-neighbour into a scaled bounding box. */
     public Vec3DFloat scale = Vec3DFloat.ONE;
 
     /**
@@ -144,7 +144,7 @@ public class MoveToolState
     }
 
     /**
-     * Recompute ghost blocks and preview when translation/rotation or snapshot changes.
+     * Recompute ghost blocks and preview when translation, rotation, scale, or snapshot changes.
      * No-op if nothing changed.
      */
     public void rebuildIfNeeded() {
@@ -159,19 +159,61 @@ public class MoveToolState
         lastScale = scale;
         snapshotVersion = currentSnapshotVersion;
 
-        Mat3DFloat R = ShapeMath.buildRotationMatrix(rot.x(), rot.y(), rot.z());
-
-        List<int[]> blocks = new ArrayList<>(snapshot.size());
+        // Build local-space nearest-neighbour lookup with bbox tracking.
+        Map<Long, SelectionState.BlockData> localLookup = new HashMap<>(snapshot.size());
+        int lMinX = Integer.MAX_VALUE, lMinY = Integer.MAX_VALUE, lMinZ = Integer.MAX_VALUE;
+        int lMaxX = Integer.MIN_VALUE, lMaxY = Integer.MIN_VALUE, lMaxZ = Integer.MIN_VALUE;
+        float fMinX = Float.MAX_VALUE, fMinY = Float.MAX_VALUE, fMinZ = Float.MAX_VALUE;
+        float fMaxX = -Float.MAX_VALUE, fMaxY = -Float.MAX_VALUE, fMaxZ = -Float.MAX_VALUE;
         for (Map.Entry<Long, SelectionState.BlockData> e : snapshot.entrySet()) {
-            long k = e.getKey();
-            Vec3DInt wv = SelectionState.unpack(k);
+            Vec3DInt wv = SelectionState.unpack(e.getKey());
             Vec3DFloat centered = wv.toFloat().plus(0.5f).minus(cm);
-            Vec3DFloat rv = R.mul(centered.times(scale));
-            Vec3DFloat nPos = cm.plus(delta).plus(rv);
+            Vec3DInt lk = Vec3DInt.floor(centered);
+            localLookup.put(ChangeProposal.packKey(lk), e.getValue());
+            if (lk.x() < lMinX) lMinX = lk.x();
+            if (lk.y() < lMinY) lMinY = lk.y();
+            if (lk.z() < lMinZ) lMinZ = lk.z();
+            if (lk.x() > lMaxX) lMaxX = lk.x();
+            if (lk.y() > lMaxY) lMaxY = lk.y();
+            if (lk.z() > lMaxZ) lMaxZ = lk.z();
+            if (centered.x() < fMinX) fMinX = centered.x();
+            if (centered.y() < fMinY) fMinY = centered.y();
+            if (centered.z() < fMinZ) fMinZ = centered.z();
+            if (centered.x() > fMaxX) fMaxX = centered.x();
+            if (centered.y() > fMaxY) fMaxY = centered.y();
+            if (centered.z() > fMaxZ) fMaxZ = centered.z();
+        }
 
-            Vec3DInt nCoord = Vec3DInt.floor(nPos);
-            SelectionState.BlockData bd = e.getValue();
-            blocks.add(nCoord.toBlockOp(Block.getIdFromBlock(bd.block()), bd.meta()));
+        int bboxW = lMaxX - lMinX + 1;
+        int bboxH = lMaxY - lMinY + 1;
+        int bboxD = lMaxZ - lMinZ + 1;
+        int scaledW = Math.max(1, Math.round(bboxW * scale.x()));
+        int scaledH = Math.max(1, Math.round(bboxH * scale.y()));
+        int scaledD = Math.max(1, Math.round(bboxD * scale.z()));
+        // Use exact float min/max to preserve correct world positions under nearest-neighbour resampling.
+        Vec3DFloat bboxFloatCenter = Vec3DFloat.from((fMinX + fMaxX) / 2f, (fMinY + fMaxY) / 2f, (fMinZ + fMaxZ) / 2f);
+        Vec3DFloat scaledCenter = Vec3DFloat.from(scaledW, scaledH, scaledD).divide(2f);
+
+        Mat3DFloat R = ShapeMath.buildRotationMatrix(rot.x(), rot.y(), rot.z());
+        Vec3DFloat gizmoPos = cm.plus(delta);
+
+        List<int[]> blocks = new ArrayList<>();
+        for (int sx = 0; sx < scaledW; sx++) {
+            for (int sy = 0; sy < scaledH; sy++) {
+                for (int sz = 0; sz < scaledD; sz++) {
+                    // Nearest-neighbour reverse-map into local bbox space.
+                    int srcX = Math.min((int) (sx / scale.x()), bboxW - 1);
+                    int srcY = Math.min((int) (sy / scale.y()), bboxH - 1);
+                    int srcZ = Math.min((int) (sz / scale.z()), bboxD - 1);
+                    Vec3DInt lk = Vec3DInt.from(lMinX + srcX, lMinY + srcY, lMinZ + srcZ);
+                    SelectionState.BlockData bd = localLookup.get(ChangeProposal.packKey(lk));
+                    if (bd == null) continue;
+                    Vec3DFloat offset =
+                            Vec3DFloat.from(sx + 0.5f, sy + 0.5f, sz + 0.5f).minus(scaledCenter);
+                    Vec3DInt nCoord = Vec3DInt.floor(gizmoPos.plus(R.mul(bboxFloatCenter.plus(offset))));
+                    blocks.add(nCoord.toBlockOp(Block.getIdFromBlock(bd.block()), bd.meta()));
+                }
+            }
         }
         ghostBlocks = blocks;
 
