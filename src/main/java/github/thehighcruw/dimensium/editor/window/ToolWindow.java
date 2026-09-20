@@ -62,6 +62,7 @@ public class ToolWindow extends ToggleableWindow {
             Tool.EXTRUDE,
             Tool.MOVE,
             Tool.ELEVATION,
+            Tool.SLOPE,
             Tool.DISTORT,
             Tool.SHATTER
         },

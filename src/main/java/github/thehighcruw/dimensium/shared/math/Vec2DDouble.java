@@ -62,6 +62,11 @@ public record Vec2DDouble(double x, double y) {
         return len > 0.001 ? Vec2DDouble.from(dx / len, dy / len) : Vec2DDouble.from(1, 0);
     }
 
+    /** Returns a point at the given polar coordinates: (cos(angle)*radius, sin(angle)*radius). */
+    public static Vec2DDouble fromPolar(double angle, double radius) {
+        return new Vec2DDouble(Math.cos(angle) * radius, Math.sin(angle) * radius);
+    }
+
     /** Returns Math.max(1.0, distance) between two projected points — usable as pixels-per-unit scale. */
     public static double screenScale(double[] from, double[] to) {
         double dx = to[0] - from[0], dy = to[1] - from[1];

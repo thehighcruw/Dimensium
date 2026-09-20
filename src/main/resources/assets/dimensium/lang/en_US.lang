@@ -152,6 +152,7 @@ dimensium.action.paint=Paint (%s)
 dimensium.action.noise=Noise (%s)
 dimensium.action.gradient=Gradient (%s)
 dimensium.action.smooth=Smooth
+dimensium.action.slope=Slope
 dimensium.action.elevation=%s
 dimensium.action.rock=Rock
 dimensium.action.extrude=Extrude
@@ -221,6 +222,7 @@ dimensium.shatter.axis.y=Flat (Y axis)
 dimensium.shatter.axis.z=Flat (Z axis)
 
 # Ruler tool
+dimensium.tool.slope=Slope
 dimensium.tool.ruler=Ruler
 dimensium.tool.modelling=Modelling
 dimensium.ui.category.utility=Utility
@@ -295,6 +297,27 @@ dimensium.heightmap.browser.none=None
 dimensium.heightmap.browser.reload=Reload
 
 dimensium.ui.section.heightmap=Heightmap
+
+dimensium.slope_shape.plane=Plane
+dimensium.slope_shape.cone=Cone
+
+dimensium.slope_apply.raise_and_lower=Raise & Lower
+dimensium.slope_apply.raise=Raise
+dimensium.slope_apply.lower=Lower
+
+dimensium.ui.section.slope_info=Slope Info
+dimensium.ui.slope.shape=Shape
+dimensium.ui.slope.apply_mode=Mode
+dimensium.ui.slope.radius=Radius
+dimensium.ui.slope.smoothing=Smoothing
+dimensium.ui.slope.clamp=Clamp to pos1/pos2
+dimensium.ui.slope.no_pos1=RMB click to set target point
+dimensium.ui.slope.drag_hint=RMB drag to draw slope
+dimensium.ui.slope.clear_pos1=Clear Target
+dimensium.ui.slope.height_delta=Height: %d blocks
+dimensium.ui.slope.xz_distance=XZ Distance: %s blocks
+dimensium.ui.slope.euclidean=3D Distance: %s blocks
+dimensium.ui.slope.angle=Angle: %s°
 
 dimensium.ui.extrude.corners=Corners
 dimensium.ui.extrude.count=Count

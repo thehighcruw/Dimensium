@@ -27,6 +27,7 @@ import github.thehighcruw.dimensium.editor.tool.creating.stamp.StampBrushInput;
 import github.thehighcruw.dimensium.editor.tool.manipulating.elevation.ElevationBrush;
 import github.thehighcruw.dimensium.editor.tool.manipulating.elevation.ElevationToolState;
 import github.thehighcruw.dimensium.editor.tool.manipulating.move.MoveToolState;
+import github.thehighcruw.dimensium.editor.tool.manipulating.slope.SlopeToolState;
 import github.thehighcruw.dimensium.editor.tool.painting.gradient.GradientToolState;
 import github.thehighcruw.dimensium.editor.tool.selecting.SelectedBlockState;
 import github.thehighcruw.dimensium.editor.tool.selecting.box.BoxSelectToolState;
@@ -173,6 +174,45 @@ public class SelectionRenderer {
         // ── Gradient pos1 → cursor / pos2 line ───────────────────────────────
         if (DimensiumEditorMode.INSTANCE.isActive() && DimensiumEditorMode.INSTANCE.selectedTool == Tool.GRADIENT) {
             renderGradientOverlay(mc, player, camPos);
+        }
+
+        // ── Slope pos1 → cursor line / pos2 box ──────────────────────────────
+        if (DimensiumEditorMode.INSTANCE.isActive() && DimensiumEditorMode.INSTANCE.selectedTool == Tool.SLOPE) {
+            SlopeToolState ss = SlopeToolState.INSTANCE;
+            if (ss.hasPos1) {
+                MovingObjectPosition smop = RenderUtils.raycastAtCursor();
+                if (smop != null && smop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+                    Vec3DDouble cursorCenter =
+                            WorldUtils.mopToCoord(smop).toDouble().plus(0.5);
+                    Vec3DDouble targetPos = ss.hasPos2 ? ss.pos2.toDouble().plus(0.5) : cursorCenter;
+                    Vec3DDouble p1 = ss.pos1.toDouble().plus(0.5).minus(camPos);
+                    Vec3DDouble p2 = targetPos.minus(camPos);
+                    GL11.glColor4f(0.2f, 0.75f, 1.0f, 0.9f);
+                    WorldLines.setEye(Vec3DDouble.ZERO);
+                    Tessellator sTess = Tessellator.instance;
+                    sTess.startDrawingQuads();
+                    WorldLines.addSegment(sTess, p1, p2, WorldLines.W_SEL);
+                    sTess.draw();
+                    // Pos1 box
+                    Vec3DDouble pos1Trans = ss.pos1.toDouble().minus(camPos);
+                    GL11.glPushMatrix();
+                    GL11.glTranslated(pos1Trans.x(), pos1Trans.y(), pos1Trans.z());
+                    GL11.glColor4f(0.2f, 0.75f, 1.0f, 1.0f);
+                    WorldLines.setEyeForTranslation(pos1Trans);
+                    drawBox(0, 0, 0, 1, 1, 1);
+                    GL11.glPopMatrix();
+                    // Pos2 box while dragging
+                    if (ss.hasPos2) {
+                        Vec3DDouble pos2Trans = ss.pos2.toDouble().minus(camPos);
+                        GL11.glPushMatrix();
+                        GL11.glTranslated(pos2Trans.x(), pos2Trans.y(), pos2Trans.z());
+                        GL11.glColor4f(0.2f, 0.75f, 1.0f, 0.7f);
+                        WorldLines.setEyeForTranslation(pos2Trans);
+                        drawBox(0, 0, 0, 1, 1, 1);
+                        GL11.glPopMatrix();
+                    }
+                }
+            }
         }
 
         PerfTrace.pop();

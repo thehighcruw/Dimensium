@@ -29,6 +29,7 @@ public enum Tool {
     MELT("dimensium.tool.melt"),
     ROUGHEN("dimensium.tool.roughen"),
     SHATTER("dimensium.tool.shatter"),
+    SLOPE("dimensium.tool.slope"),
     RULER("dimensium.tool.ruler"),
     MODELLING("dimensium.tool.modelling");
 

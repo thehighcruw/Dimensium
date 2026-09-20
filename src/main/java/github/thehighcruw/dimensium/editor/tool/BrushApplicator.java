@@ -16,6 +16,7 @@ import github.thehighcruw.dimensium.editor.tool.manipulating.elevation.Elevation
 import github.thehighcruw.dimensium.editor.tool.manipulating.melt.MeltBrush;
 import github.thehighcruw.dimensium.editor.tool.manipulating.roughen.RoughenBrush;
 import github.thehighcruw.dimensium.editor.tool.manipulating.shatter.ShatterBrush;
+import github.thehighcruw.dimensium.editor.tool.manipulating.slope.SlopeBrush;
 import github.thehighcruw.dimensium.editor.tool.manipulating.smooth.SmoothBrush;
 import github.thehighcruw.dimensium.editor.tool.manipulating.weld.WeldBrush;
 import github.thehighcruw.dimensium.editor.tool.painting.gradient.GradientBrush;
@@ -48,6 +49,7 @@ public class BrushApplicator {
         BRUSHES.put(Tool.DISTORT, new DistortBrush());
         BRUSHES.put(Tool.ROUGHEN, new RoughenBrush());
         BRUSHES.put(Tool.SHATTER, new ShatterBrush());
+        BRUSHES.put(Tool.SLOPE, new SlopeBrush());
     }
 
     public static void clearElevAccum() {

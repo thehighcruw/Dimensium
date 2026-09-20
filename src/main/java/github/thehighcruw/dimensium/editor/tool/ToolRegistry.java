@@ -33,6 +33,9 @@ import github.thehighcruw.dimensium.editor.tool.manipulating.move.MoveBrushInput
 import github.thehighcruw.dimensium.editor.tool.manipulating.move.MoveSection;
 import github.thehighcruw.dimensium.editor.tool.manipulating.roughen.RoughenSection;
 import github.thehighcruw.dimensium.editor.tool.manipulating.shatter.ShatterSection;
+import github.thehighcruw.dimensium.editor.tool.manipulating.slope.SlopeBrushInput;
+import github.thehighcruw.dimensium.editor.tool.manipulating.slope.SlopeSection;
+import github.thehighcruw.dimensium.editor.tool.manipulating.slope.SlopeToolRenderer;
 import github.thehighcruw.dimensium.editor.tool.manipulating.smooth.SmoothBrushInput;
 import github.thehighcruw.dimensium.editor.tool.manipulating.smooth.SmoothSection;
 import github.thehighcruw.dimensium.editor.tool.manipulating.weld.WeldSection;
@@ -209,6 +212,8 @@ public final class ToolRegistry {
                 s -> new ShatterSection(s.shatter, s.brush),
                 PaintBrushInput.INSTANCE,
                 ToolRenderer.DEFAULT_BRUSH);
+
+        register(Tool.SLOPE, s -> new SlopeSection(s.slope), SlopeBrushInput.INSTANCE, SlopeToolRenderer.INSTANCE);
 
         register(Tool.RULER, s -> new RulerSection(s.ruler), new RulerBrushInput(), new RulerToolRenderer());
 
