@@ -57,6 +57,7 @@ public final class MaskSerializer {
         if (entry instanceof ToolMask mask) {
             obj.addProperty("type", "mask");
             obj.addProperty("name", mask.getName());
+            obj.addProperty("role", mask.getRole().name());
             if (mask.getRoot() != null) obj.add("root", serializeNode(mask.getRoot()));
         } else if (entry instanceof MaskFolder folder) {
             obj.addProperty("type", "folder");
@@ -157,6 +158,12 @@ public final class MaskSerializer {
         String name = obj.has("name") ? obj.get("name").getAsString() : "Unnamed";
         if ("mask".equals(type)) {
             ToolMask mask = new ToolMask(name);
+            if (obj.has("role")) {
+                try {
+                    mask.setRole(MaskRole.valueOf(obj.get("role").getAsString()));
+                } catch (IllegalArgumentException ignored) {
+                }
+            }
             if (obj.has("root")) {
                 MaskNode root = deserializeNode(obj.getAsJsonObject("root"));
                 if (root != null) mask.setRoot(root);

@@ -33,9 +33,9 @@ public final class ToolMaskRegistry {
         activeMask = mask;
     }
 
-    /** Filter a packed-coordinate selection set by the active mask. Returns same set if no mask set. */
+    /** Filter a packed-coordinate selection set by the active mask. Skipped if no mask or mask role is source-only. */
     public Set<Long> filterSelection(Set<Long> keys) {
-        if (activeMask == null) return keys;
+        if (activeMask == null || !activeMask.getRole().appliesToDestination()) return keys;
         World world = Minecraft.getMinecraft().theWorld;
         if (world == null) return keys;
         Set<Long> result = new HashSet<>(keys.size());
@@ -46,9 +46,9 @@ public final class ToolMaskRegistry {
         return result;
     }
 
-    /** Filter ops by the active mask. Returns same list if no mask set. */
+    /** Filter destination ops by the active mask. Returns same list if no mask set or mask role is source-only. */
     public List<Vec3DInt> filter(List<Vec3DInt> ops) {
-        if (activeMask == null) return ops;
+        if (activeMask == null || !activeMask.getRole().appliesToDestination()) return ops;
         World world = Minecraft.getMinecraft().theWorld;
         if (world == null) return ops;
         List<Vec3DInt> result = new ArrayList<>(ops.size());

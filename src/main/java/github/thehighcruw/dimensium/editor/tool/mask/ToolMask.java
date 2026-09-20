@@ -11,6 +11,7 @@ public class ToolMask implements MaskEntry {
 
     private String name;
     private MaskNode root;
+    private MaskRole role = MaskRole.BOTH;
 
     public ToolMask(String name) {
         this.name = name;
@@ -33,6 +34,14 @@ public class ToolMask implements MaskEntry {
 
     public void setRoot(MaskNode root) {
         this.root = root;
+    }
+
+    public MaskRole getRole() {
+        return role;
+    }
+
+    public void setRole(MaskRole role) {
+        this.role = role;
     }
 
     public boolean test(World world, Vec3DInt coord) {

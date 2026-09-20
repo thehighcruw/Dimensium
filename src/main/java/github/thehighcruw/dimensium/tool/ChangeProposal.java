@@ -95,6 +95,16 @@ public class ChangeProposal {
         return drag.toOps();
     }
 
+    // ── Source mask ───────────────────────────────────────────────────────────
+
+    /** Returns true if the coord passes the active drag's source mask, or if no source mask applies. */
+    public static boolean testSource(World world, Vec3DInt coord) {
+        ChangeProposal drag = ActiveDragState.INSTANCE.activeDrag;
+        if (drag == null || drag.dragMask == null) return true;
+        if (!drag.dragMask.getRole().appliesToSource()) return true;
+        return drag.dragMask.test(world, coord);
+    }
+
     // ── Write interception ────────────────────────────────────────────────────
 
     /**
@@ -105,7 +115,9 @@ public class ChangeProposal {
         if (coord.y() < 0 || coord.y() >= world.getHeight()) return;
         ChangeProposal drag = ActiveDragState.INSTANCE.activeDrag;
         if (drag != null) {
-            if (drag.dragMask != null && !drag.dragMask.test(world, coord)) return;
+            if (drag.dragMask != null
+                    && drag.dragMask.getRole().appliesToDestination()
+                    && !drag.dragMask.test(world, coord)) return;
             drag.proposed.put(packKey(coord), new int[] {Block.getIdFromBlock(blk), meta});
         } else {
             WorldUtils.setBlock(world, coord, blk, meta, 3);

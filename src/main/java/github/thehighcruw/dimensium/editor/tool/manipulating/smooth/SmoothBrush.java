@@ -47,6 +47,9 @@ public class SmoothBrush implements BrushStrategy {
             } else if (wc.y() > worldMaxY) {
                 snapId[idx] = 0;
                 snapMeta[idx] = 0;
+            } else if (!ChangeProposal.testSource(world, wc)) {
+                snapId[idx] = 0;
+                snapMeta[idx] = 0;
             } else {
                 snapId[idx] = Block.getIdFromBlock(WorldUtils.getBlock(world, wc));
                 snapMeta[idx] = WorldUtils.getBlockMetadata(world, wc);

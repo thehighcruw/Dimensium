@@ -18,6 +18,7 @@ import github.thehighcruw.dimensium.editor.tool.mask.CanSeeSkyMask;
 import github.thehighcruw.dimensium.editor.tool.mask.InSelectionMask;
 import github.thehighcruw.dimensium.editor.tool.mask.LogicNode;
 import github.thehighcruw.dimensium.editor.tool.mask.MaskNode;
+import github.thehighcruw.dimensium.editor.tool.mask.MaskRole;
 import github.thehighcruw.dimensium.editor.tool.mask.NearMask;
 import github.thehighcruw.dimensium.editor.tool.mask.NeighbourMask;
 import github.thehighcruw.dimensium.editor.tool.mask.NotNode;
@@ -155,6 +156,32 @@ public class ToolMaskEditorWindow extends ToggleableWindow {
                 ImGui.closeCurrentPopup();
             }
             ImGui.endPopup();
+        }
+
+        if (editingMask != null) {
+            renderRoleCombo(scale);
+        }
+    }
+
+    private static final MaskRole[] ROLES = MaskRole.values();
+
+    private void renderRoleCombo(float scale) {
+        ImGui.text(I18n.format("dimensium.mask.editor.role_label"));
+        ImGui.sameLine();
+        String currentRoleLabel = I18n.format(
+                "dimensium.mask.editor.role." + editingMask.getRole().name().toLowerCase());
+        ImGui.setNextItemWidth(160f * scale);
+        if (ImGui.beginCombo("##mask_role", currentRoleLabel)) {
+            for (MaskRole role : ROLES) {
+                String label =
+                        I18n.format("dimensium.mask.editor.role." + role.name().toLowerCase());
+                boolean selected = editingMask.getRole() == role;
+                if (ImGui.selectable(label, selected)) {
+                    editingMask.setRole(role);
+                    ToolMaskRegistry.INSTANCE.save();
+                }
+            }
+            ImGui.endCombo();
         }
     }
 
@@ -553,11 +580,11 @@ public class ToolMaskEditorWindow extends ToggleableWindow {
     private void renderLeafEditor(MaskNode node, float scale) {
         float w = 120f * scale;
         if (node instanceof BlockMask) {
-            renderBlockIdEditor(((BlockMask) node), w);
+            renderBlockMaskEditor(((BlockMask) node), w);
         } else if (node instanceof AboveMask) {
-            renderBlockIdEditor2(((AboveMask) node), w);
+            renderAboveMaskEditor(((AboveMask) node), w);
         } else if (node instanceof BelowMask) {
-            renderBlockIdEditor3(((BelowMask) node), w);
+            renderBelowMaskEditor(((BelowMask) node), w);
         } else if (node instanceof NearMask) {
             renderNearEditor(((NearMask) node), w);
         } else if (node instanceof NeighbourMask) {
@@ -573,61 +600,53 @@ public class ToolMaskEditorWindow extends ToggleableWindow {
         }
     }
 
-    private void renderBlockIdEditor(BlockMask m, float w) {
-        ImInt id = new ImInt(m.blockId);
-        ImGui.setNextItemWidth(w);
-        if (ImGui.inputInt("ID##b", id)) m.blockId = Math.max(0, id.get());
-        ImInt meta = new ImInt(m.meta);
-        ImGui.setNextItemWidth(w);
-        if (ImGui.inputInt("Meta (-1=any)##b", meta)) m.meta = Math.max(-1, meta.get());
+    private void renderBlockMaskEditor(BlockMask m, float w) {
+        int[] result = renderBlockIdMetaInputs("b", m.blockId, m.meta, w);
+        m.blockId = result[0];
+        m.meta = result[1];
     }
 
-    private void renderBlockIdEditor2(AboveMask m, float w) {
-        ImInt id = new ImInt(m.blockId);
-        ImGui.setNextItemWidth(w);
-        if (ImGui.inputInt("ID##a", id)) m.blockId = Math.max(0, id.get());
-        ImInt meta = new ImInt(m.meta);
-        ImGui.setNextItemWidth(w);
-        if (ImGui.inputInt("Meta (-1=any)##a", meta)) m.meta = Math.max(-1, meta.get());
+    private void renderAboveMaskEditor(AboveMask m, float w) {
+        int[] result = renderBlockIdMetaInputs("a", m.blockId, m.meta, w);
+        m.blockId = result[0];
+        m.meta = result[1];
     }
 
-    private void renderBlockIdEditor3(BelowMask m, float w) {
-        ImInt id = new ImInt(m.blockId);
-        ImGui.setNextItemWidth(w);
-        if (ImGui.inputInt("ID##bw", id)) m.blockId = Math.max(0, id.get());
-        ImInt meta = new ImInt(m.meta);
-        ImGui.setNextItemWidth(w);
-        if (ImGui.inputInt("Meta (-1=any)##bw", meta)) m.meta = Math.max(-1, meta.get());
+    private void renderBelowMaskEditor(BelowMask m, float w) {
+        int[] result = renderBlockIdMetaInputs("bw", m.blockId, m.meta, w);
+        m.blockId = result[0];
+        m.meta = result[1];
     }
 
     private void renderNearEditor(NearMask m, float w) {
-        ImInt id = new ImInt(m.blockId);
-        ImGui.setNextItemWidth(w);
-        if (ImGui.inputInt("ID##n", id)) m.blockId = Math.max(0, id.get());
-        ImInt meta = new ImInt(m.meta);
-        ImGui.setNextItemWidth(w);
-        if (ImGui.inputInt("Meta (-1=any)##n", meta)) m.meta = Math.max(-1, meta.get());
+        int[] result = renderBlockIdMetaInputs("n", m.blockId, m.meta, w);
+        m.blockId = result[0];
+        m.meta = result[1];
         ImInt r = new ImInt(m.radius);
         ImGui.setNextItemWidth(w);
         if (ImGui.inputInt("Radius##n", r)) m.radius = Math.max(1, r.get());
     }
 
     private void renderNeighbourEditor(NeighbourMask m, float w) {
-        ImInt id = new ImInt(m.blockId);
-        ImGui.setNextItemWidth(w);
-        if (ImGui.inputInt("ID##nb", id)) m.blockId = Math.max(0, id.get());
-        ImInt meta = new ImInt(m.meta);
-        ImGui.setNextItemWidth(w);
-        if (ImGui.inputInt("Meta (-1=any)##nb", meta)) m.meta = Math.max(-1, meta.get());
+        int[] result = renderBlockIdMetaInputs("nb", m.blockId, m.meta, w);
+        m.blockId = result[0];
+        m.meta = result[1];
     }
 
     private void renderAdjacentEditor(AdjacentMask m, float w) {
-        ImInt id = new ImInt(m.blockId);
+        int[] result = renderBlockIdMetaInputs("adj", m.blockId, m.meta, w);
+        m.blockId = result[0];
+        m.meta = result[1];
+    }
+
+    private int[] renderBlockIdMetaInputs(String suffix, int blockId, int meta, float w) {
+        ImInt id = new ImInt(blockId);
         ImGui.setNextItemWidth(w);
-        if (ImGui.inputInt("ID##adj", id)) m.blockId = Math.max(0, id.get());
-        ImInt meta = new ImInt(m.meta);
+        if (ImGui.inputInt("ID##" + suffix, id)) blockId = Math.max(0, id.get());
+        ImInt metaInput = new ImInt(meta);
         ImGui.setNextItemWidth(w);
-        if (ImGui.inputInt("Meta (-1=any)##adj", meta)) m.meta = Math.max(-1, meta.get());
+        if (ImGui.inputInt("Meta (-1=any)##" + suffix, metaInput)) meta = Math.max(-1, metaInput.get());
+        return new int[] {blockId, meta};
     }
 
     private void renderYEditor(YMask m, float w) {
