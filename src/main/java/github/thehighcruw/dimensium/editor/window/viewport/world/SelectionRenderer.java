@@ -650,6 +650,7 @@ public class SelectionRenderer {
         GL11.glVertex3d(rx, ry, rz + arm);
         GL11.glEnd();
     }
+
     private static void renderGradientOverlay(Minecraft mc, EntityPlayer player, Vec3DDouble camPos) {
         GradientToolState gs = GradientToolState.INSTANCE;
         if (!gs.gradientHasPos1) return;

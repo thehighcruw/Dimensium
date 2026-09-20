@@ -34,7 +34,7 @@ public class RoughenBrush implements BrushStrategy {
             Vec3DInt pos = coord.plus(offset);
             if (WorldUtils.getBlock(world, pos) == Blocks.air) return;
             int exposed = countAirFaces(world, pos);
-            if (exposed < s.faces) {
+            if (exposed >= s.faces) {
                 candidates.add(pos);
             }
         });
