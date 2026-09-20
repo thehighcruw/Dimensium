@@ -284,6 +284,17 @@ dimensium.ui.elevation.radius=Radius
 dimensium.ui.elevation.rate=Rate
 dimensium.ui.elevation.smoothing=Smoothing
 dimensium.ui.elevation.strength=Strength
+dimensium.ui.elevation.heightmap.browse=Browse...
+
+dimensium.heightmap.browser.title=Heightmap Browser
+dimensium.heightmap.browser.loading=Loading...
+dimensium.heightmap.browser.empty=No heightmaps found. Add PNG files to dimensium/heightmaps in your .minecraft folder.
+dimensium.heightmap.browser.noresults=No matches
+dimensium.heightmap.browser.search.tip=Filter by name
+dimensium.heightmap.browser.none=None
+dimensium.heightmap.browser.reload=Reload
+
+dimensium.ui.section.heightmap=Heightmap
 
 dimensium.ui.extrude.corners=Corners
 dimensium.ui.extrude.count=Count

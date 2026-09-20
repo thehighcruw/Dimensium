@@ -15,6 +15,7 @@ import github.thehighcruw.dimensium.editor.handler.KeyHandler;
 import github.thehighcruw.dimensium.editor.handler.TickHandler;
 import github.thehighcruw.dimensium.editor.overlay.LayoutPresetRegistry;
 import github.thehighcruw.dimensium.editor.overlay.OverlayRenderer;
+import github.thehighcruw.dimensium.editor.tool.manipulating.elevation.HeightmapRegistry;
 import github.thehighcruw.dimensium.editor.tool.mask.ToolMaskRegistry;
 import github.thehighcruw.dimensium.editor.tool.state.PaletteRegistry;
 import github.thehighcruw.dimensium.editor.window.AnalyzeWindow;
@@ -67,6 +68,7 @@ public class ClientProxy implements IProxy {
     @Override
     public void postInit() {
         BlueprintRegistry.INSTANCE.init();
+        HeightmapRegistry.INSTANCE.init();
         ToolMaskRegistry.INSTANCE.load();
         PaletteRegistry.INSTANCE.load();
         // Touch all floating window singletons so their constructors self-register

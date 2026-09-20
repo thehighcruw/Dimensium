@@ -75,4 +75,5 @@ public class ElevationToolState {
     public float elevationSmoothing = 0.0f;
     public float elevationRate = 8.0f;
     public int elevationStrength = 5;
+    public HeightmapData activeHeightmap = null;
 }

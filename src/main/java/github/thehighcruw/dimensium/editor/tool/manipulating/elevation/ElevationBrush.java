@@ -41,6 +41,9 @@ public class ElevationBrush implements BrushStrategy {
 
             float weight = falloff(s.elevationFalloff, r);
             weight = edgeSmoothing(weight, r, s.elevationSmoothing);
+            if (s.activeHeightmap != null) {
+                weight *= s.activeHeightmap.sample((float) dx / radius, (float) dz / radius);
+            }
             if (weight <= 0f) return;
 
             Vec2DInt column = columnCenter.plus(dx, dz);

@@ -11,12 +11,17 @@ import github.thehighcruw.dimensium.editor.tool.manipulating.elevation.Elevation
 import github.thehighcruw.dimensium.editor.tool.manipulating.elevation.ElevationToolState.ElevationFalloff;
 import github.thehighcruw.dimensium.editor.tool.manipulating.elevation.ElevationToolState.ElevationMode;
 import github.thehighcruw.dimensium.editor.tool.manipulating.elevation.ElevationToolState.FlattenDirection;
+import github.thehighcruw.dimensium.editor.window.popup.HeightmapBrowserPopup;
 import imgui.ImGui;
+import imgui.ImVec2;
 import imgui.type.ImInt;
 import net.minecraft.client.resources.I18n;
+import org.lwjgl.opengl.GL11;
 
 @SideOnly(Side.CLIENT)
 public class ElevationSection implements ToolSection {
+
+    private static final float HEIGHTMAP_PREVIEW_SIZE = 48f;
 
     private final ElevationToolState state;
     private final ImInt modeIdx = new ImInt();
@@ -27,6 +32,9 @@ public class ElevationSection implements ToolSection {
     private final float[] smoothing = new float[1];
     private final float[] rate = new float[1];
     private final int[] strength = new int[1];
+
+    private HeightmapData lastTexturedHeightmap = null;
+    private int heightmapPreviewTexId = -1;
 
     public ElevationSection(ElevationToolState state) {
         this.state = state;
@@ -120,6 +128,61 @@ public class ElevationSection implements ToolSection {
                     ElevationToolState.STRENGTH_MAX)) {
                 state.elevationStrength = strength[0];
             }
+        }
+
+        ImGui.spacing();
+        ImGui.text(I18n.format("dimensium.ui.section.heightmap"));
+        ImGui.separator();
+        renderHeightmapSection();
+    }
+
+    private void renderHeightmapSection() {
+        ensureHeightmapPreviewTexture();
+
+        if (heightmapPreviewTexId != -1) {
+            ImVec2 pos = new ImVec2();
+            ImGui.getCursorScreenPos(pos);
+            ImGui.image(heightmapPreviewTexId, HEIGHTMAP_PREVIEW_SIZE, HEIGHTMAP_PREVIEW_SIZE);
+            ImGui.sameLine(0, 8f);
+        }
+
+        ImGui.beginGroup();
+        String heightmapName = state.activeHeightmap != null
+                ? state.activeHeightmap.name()
+                : I18n.format("dimensium.heightmap.browser.none");
+        ImGui.textDisabled(heightmapName);
+        if (ImGui.button(I18n.format("dimensium.ui.elevation.heightmap.browse") + "##elev_hm_browse")) {
+            HeightmapBrowserPopup.INSTANCE.open(heightmap -> state.activeHeightmap = heightmap);
+        }
+        ImGui.endGroup();
+    }
+
+    private void ensureHeightmapPreviewTexture() {
+        if (state.activeHeightmap == lastTexturedHeightmap) return;
+        if (heightmapPreviewTexId != -1) {
+            GL11.glDeleteTextures(heightmapPreviewTexId);
+            heightmapPreviewTexId = -1;
+        }
+        lastTexturedHeightmap = state.activeHeightmap;
+        if (state.activeHeightmap == null) return;
+        try {
+            int id = GL11.glGenTextures();
+            GL11.glBindTexture(GL11.GL_TEXTURE_2D, id);
+            GL11.glTexImage2D(
+                    GL11.GL_TEXTURE_2D,
+                    0,
+                    GL11.GL_RGBA8,
+                    state.activeHeightmap.width(),
+                    state.activeHeightmap.height(),
+                    0,
+                    GL11.GL_RGBA,
+                    GL11.GL_UNSIGNED_BYTE,
+                    state.activeHeightmap.toRgbaBuffer());
+            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
+            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
+            GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
+            heightmapPreviewTexId = id;
+        } catch (Exception ignored) {
         }
     }
 }

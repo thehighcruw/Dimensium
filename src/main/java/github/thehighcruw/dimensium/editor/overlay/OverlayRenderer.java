@@ -47,6 +47,7 @@ import github.thehighcruw.dimensium.editor.window.popup.BlockPickerPopup;
 import github.thehighcruw.dimensium.editor.window.popup.BlueprintBrowserPopup;
 import github.thehighcruw.dimensium.editor.window.popup.ConflictPopup;
 import github.thehighcruw.dimensium.editor.window.popup.CreateBlueprintPopup;
+import github.thehighcruw.dimensium.editor.window.popup.HeightmapBrowserPopup;
 import github.thehighcruw.dimensium.editor.window.popup.SettingsModal;
 import github.thehighcruw.dimensium.editor.window.viewport.ViewportCapture;
 import github.thehighcruw.dimensium.editor.window.viewport.ViewportPanel;
@@ -223,6 +224,7 @@ public class OverlayRenderer {
             ConflictPopup.INSTANCE.renderImGui();
             CreateBlueprintPopup.INSTANCE.renderImGui();
             BlueprintBrowserPopup.INSTANCE.renderImGui();
+            HeightmapBrowserPopup.INSTANCE.renderImGui();
             SettingsModal.INSTANCE.renderImGui();
             FilterSelectionWindow.INSTANCE.renderImGui();
             DistortSelectionWindow.INSTANCE.renderImGui();
