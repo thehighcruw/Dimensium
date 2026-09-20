@@ -46,10 +46,6 @@ public class FreecamState {
     public boolean orbiting = false;
     public Vec3DDouble pivot = Vec3DDouble.ZERO;
     public double orbitDist;
-    // Angular offset (degrees) from the camera look direction to the pivot direction at orbit start.
-    // Kept constant throughout the orbit so the pivot stays at the same screen position.
-    public float pivotOffsetYaw = 0;
-    public float pivotOffsetPitch = 0;
 
     private EntityLivingBase savedViewEntity = null;
     public FreecamEntity cameraEntity = null;

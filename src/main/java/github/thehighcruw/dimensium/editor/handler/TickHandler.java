@@ -17,7 +17,6 @@ import github.thehighcruw.dimensium.editor.freecam.FreecamUtils;
 import github.thehighcruw.dimensium.editor.overlay.GuiDimensiumOverlay;
 import github.thehighcruw.dimensium.editor.overlay.MenuBar;
 import github.thehighcruw.dimensium.editor.overlay.OverlayRenderer;
-import github.thehighcruw.dimensium.editor.overlay.UICoords;
 import github.thehighcruw.dimensium.editor.tool.BrushApplicator;
 import github.thehighcruw.dimensium.editor.tool.BrushInput;
 import github.thehighcruw.dimensium.editor.tool.BrushInputRegistry;
@@ -34,6 +33,8 @@ import github.thehighcruw.dimensium.editor.tool.painting.gradient.GradientToolSt
 import github.thehighcruw.dimensium.editor.tool.painting.noise.NoiseToolState;
 import github.thehighcruw.dimensium.editor.tool.state.ClipboardPlacementState;
 import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
+import github.thehighcruw.dimensium.editor.window.viewport.ViewportRegistry;
+import github.thehighcruw.dimensium.editor.window.viewport.ViewportState;
 import github.thehighcruw.dimensium.editor.window.viewport.world.ScalingGizmo;
 import github.thehighcruw.dimensium.shared.BlockSender;
 import github.thehighcruw.dimensium.shared.KeyConstants;
@@ -448,8 +449,14 @@ public class TickHandler {
 
     private void startOrbit(FreecamState fs, FreecamEntity cam, Minecraft mc, boolean useCursor) {
         if (useCursor) {
-            double ndcX = UICoords.guiToNdcX(fs.cursorX);
-            double ndcY = UICoords.guiToNdcY(fs.cursorY);
+            ScaledResolution sr = RenderUtils.scaledResolution();
+            ViewportState vp = ViewportRegistry.INSTANCE.active();
+            double ndcX = vp != null
+                    ? vp.cursorToNdcX(fs.cursorX, sr.getScaledWidth())
+                    : 1.0 - (2.0 * fs.cursorX / sr.getScaledWidth());
+            double ndcY = vp != null
+                    ? vp.cursorToNdcY(fs.cursorY, sr.getScaledHeight())
+                    : 1.0 - (2.0 * fs.cursorY / sr.getScaledHeight());
 
             Vec3DDouble[] basis = FreecamUtils.cameraBasis(cam.rotationYaw, cam.rotationPitch);
             Vec3DDouble fwd = basis[0], rgt = basis[1], up = basis[2];
@@ -466,36 +473,51 @@ public class TickHandler {
             setPivotFromRay(fs, cam, mc, rd);
         }
 
-        Vec3DDouble orbitOffset = Vec3DDouble.from(cam.posX, cam.posY, cam.posZ).minus(fs.pivot);
-        fs.orbitDist = Math.max(1.0, orbitOffset.length());
-
-        // Store the angular offset from camera look direction to pivot direction so the
-        // pivot stays at the same screen-space position throughout the orbit.
-        double pivotDist = fs.orbitDist;
-        double pivotYawRad = Math.atan2(orbitOffset.x(), -orbitOffset.z());
-        double pivotPitchRad = Math.asin(Math.max(-1.0, Math.min(1.0, orbitOffset.y() / pivotDist)));
-        fs.pivotOffsetYaw = (float) Math.toDegrees(pivotYawRad) - cam.rotationYaw;
-        fs.pivotOffsetPitch = (float) Math.toDegrees(pivotPitchRad) - cam.rotationPitch;
-
+        fs.orbitDist = Math.max(
+                1.0,
+                Vec3DDouble.from(cam.posX, cam.posY, cam.posZ).minus(fs.pivot).length());
         fs.orbiting = true;
     }
 
     private void applyOrbit(FreecamState fs, FreecamEntity cam, float rawDX, float rawDY, float scale) {
-        cam.rotationYaw += rawDX * scale * 0.15f;
-        cam.rotationPitch -= rawDY * scale * 0.15f;
+        float yawDelta = rawDX * scale * 0.15f;
+        float pitchDelta = rawDY * scale * 0.15f;
+
+        cam.rotationYaw += yawDelta;
+        cam.rotationPitch -= pitchDelta;
         cam.rotationPitch = Math.max(-89.9f, Math.min(89.9f, cam.rotationPitch));
 
-        // Pivot direction = camera look direction + fixed angular offset recorded at drag start.
-        // This keeps the pivot at the same screen position as the orbit rotates.
-        double pivotYaw = Math.toRadians(cam.rotationYaw + fs.pivotOffsetYaw);
-        double pivotPitch = Math.toRadians(cam.rotationPitch + fs.pivotOffsetPitch);
-        double pFwdX = -Math.sin(pivotYaw) * Math.cos(pivotPitch);
-        double pFwdY = -Math.sin(pivotPitch);
-        double pFwdZ = Math.cos(pivotYaw) * Math.cos(pivotPitch);
+        // Turntable orbit: rotate the cam-pivot offset vector rather than tracking
+        // angular offsets in Euler space. Euler offsets drift horizontally during
+        // vertical drags when the pivot is off-screen-center; vector rotation avoids this.
+        // Horizontal drag: rotate offset around world Y axis.
+        // Vertical drag: rotate offset around camera right axis.
+        double offsetX = cam.posX - fs.pivot.x();
+        double offsetY = cam.posY - fs.pivot.y();
+        double offsetZ = cam.posZ - fs.pivot.z();
 
-        cam.posX = fs.pivot.x() - pFwdX * fs.orbitDist;
-        cam.posY = fs.pivot.y() - pFwdY * fs.orbitDist;
-        cam.posZ = fs.pivot.z() - pFwdZ * fs.orbitDist;
+        double yawRad = -Math.toRadians(yawDelta);
+        double cosY = Math.cos(yawRad), sinY = Math.sin(yawRad);
+        double rotatedX = offsetX * cosY + offsetZ * sinY;
+        double rotatedZ = -offsetX * sinY + offsetZ * cosY;
+        offsetX = rotatedX;
+        offsetZ = rotatedZ;
+
+        double rgtX = Math.cos(Math.toRadians(cam.rotationYaw));
+        double rgtZ = Math.sin(Math.toRadians(cam.rotationYaw));
+        double pitchRad = -Math.toRadians(pitchDelta);
+        double cosP = Math.cos(pitchRad), sinP = Math.sin(pitchRad);
+        double kDotV = rgtX * offsetX + rgtZ * offsetZ;
+        double crossX = -rgtZ * offsetY;
+        double crossY = rgtZ * offsetX - rgtX * offsetZ;
+        double crossZ = rgtX * offsetY;
+        offsetX = offsetX * cosP + crossX * sinP + rgtX * kDotV * (1 - cosP);
+        offsetY = offsetY * cosP + crossY * sinP;
+        offsetZ = offsetZ * cosP + crossZ * sinP + rgtZ * kDotV * (1 - cosP);
+
+        cam.posX = fs.pivot.x() + offsetX;
+        cam.posY = fs.pivot.y() + offsetY;
+        cam.posZ = fs.pivot.z() + offsetZ;
 
         // Orbit updates position every render tick, but prevPos and lastTickPos are
         // normally only synced in client ticks. EntityRenderer uses lastTickPos for

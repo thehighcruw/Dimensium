@@ -9,6 +9,7 @@ import javax.annotation.Nullable;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.World;
@@ -52,6 +53,7 @@ public final class WorldUtils {
         if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return null;
         Block block = world.getBlock(mop.blockX, mop.blockY, mop.blockZ);
         if (block == null || block == Blocks.air) return null;
+        if (Item.getItemFromBlock(block) == null) return null;
         int meta = world.getBlockMetadata(mop.blockX, mop.blockY, mop.blockZ);
         return new ItemStack(block, 1, meta);
     }

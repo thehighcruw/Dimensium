@@ -641,8 +641,33 @@ public class SelectionRenderer {
         }
 
         PerfTrace.pop();
+
+        // ── Orbit pivot marker ────────────────────────────────────────────────────
+        if (FreecamState.INSTANCE.orbiting) {
+            renderOrbitPivot(FreecamState.INSTANCE.pivot, camPos);
+        }
+
         GL11.glPopAttrib();
         PerfTrace.end(16);
+    }
+
+    private static void renderOrbitPivot(Vec3DDouble pivot, Vec3DDouble camPos) {
+        float arm = 0.4f;
+        double rx = pivot.x() - camPos.x();
+        double ry = pivot.y() - camPos.y();
+        double rz = pivot.z() - camPos.z();
+        GL11.glDisable(GL11.GL_DEPTH_TEST);
+        GL11.glDisable(GL11.GL_TEXTURE_2D);
+        GL11.glLineWidth(2.0f);
+        GL11.glColor4f(1.0f, 0.65f, 0.1f, 0.9f);
+        GL11.glBegin(GL11.GL_LINES);
+        GL11.glVertex3d(rx - arm, ry, rz);
+        GL11.glVertex3d(rx + arm, ry, rz);
+        GL11.glVertex3d(rx, ry - arm, rz);
+        GL11.glVertex3d(rx, ry + arm, rz);
+        GL11.glVertex3d(rx, ry, rz - arm);
+        GL11.glVertex3d(rx, ry, rz + arm);
+        GL11.glEnd();
     }
 
     private static void renderPointBox(Vec3DInt worldPos, float r, float g, float b, Vec3DDouble camPos) {
