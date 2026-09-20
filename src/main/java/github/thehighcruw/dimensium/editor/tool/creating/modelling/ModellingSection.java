@@ -56,6 +56,31 @@ public class ModellingSection implements ToolSection {
             state.offsetTargetPoint = offsetTarget.get();
         }
 
+        if (state.mode.usesRows()) {
+            ImGui.dummy(0f, 3f);
+            ImGui.separator();
+            ImGui.dummy(0f, 2f);
+            ImGui.text(I18n.format("dimensium.ui.modelling.rows"));
+            ImGui.textDisabled(I18n.format("dimensium.ui.modelling.rows_hint"));
+            for (int rowIndex = 0; rowIndex < state.rows.size(); rowIndex++) {
+                boolean isActive = rowIndex == state.currentRowIndex;
+                if (isActive) ImGui.pushStyleColor(ImGuiCol.Button, 0.20f, 0.50f, 0.20f, 1.0f);
+                String rowLabel = I18n.format(
+                        "dimensium.ui.modelling.row",
+                        rowIndex + 1,
+                        state.rows.get(rowIndex).size());
+                if (ImGui.button(rowLabel + "##mod_row_" + rowIndex)) {
+                    state.currentRowIndex = rowIndex;
+                    state.selectedRow = rowIndex;
+                    state.selectedPoint = -1;
+                }
+                if (isActive) ImGui.popStyleColor();
+            }
+            if (ImGui.button(I18n.format("dimensium.ui.modelling.add_row") + "##mod_add_row")) {
+                state.addRow();
+            }
+        }
+
         ModellingToolState.ModelPoint selPt = state.selectedPointObj();
         if (selPt != null) {
             ImGui.dummy(0f, 3f);

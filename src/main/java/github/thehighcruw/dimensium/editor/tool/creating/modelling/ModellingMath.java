@@ -252,7 +252,14 @@ public class ModellingMath {
 
     // ── Surface modes (lofted) ────────────────────────────────────────────────
 
+    private static List<List<ModelPoint>> filterEmptyRows(List<List<ModelPoint>> rows) {
+        List<List<ModelPoint>> filtered = new ArrayList<>();
+        for (List<ModelPoint> row : rows) if (!row.isEmpty()) filtered.add(row);
+        return filtered;
+    }
+
     private static void computeLoftedFlat(Map<Long, int[]> out, List<List<ModelPoint>> rows, int[] bm) {
+        rows = filterEmptyRows(rows);
         if (rows.size() < 2) {
             if (rows.size() == 1) {
                 List<ModelPoint> row = rows.get(0);
@@ -287,6 +294,7 @@ public class ModellingMath {
 
     private static void computeLoftedSurface(
             Map<Long, int[]> out, List<List<ModelPoint>> rows, int[] bm, LoftedSampler sampler) {
+        rows = filterEmptyRows(rows);
         if (rows.size() < 2) {
             computeLoftedFlat(out, rows, bm);
             return;

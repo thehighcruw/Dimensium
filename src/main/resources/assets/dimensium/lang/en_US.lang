@@ -321,7 +321,11 @@ dimensium.ui.melt.threshold=Threshold
 dimensium.ui.modelling.mode=Mode
 dimensium.ui.modelling.offset_target=Offset Target
 dimensium.ui.modelling.paste_mode=Paste Mode
+dimensium.ui.modelling.add_row=Add Row
 dimensium.ui.modelling.remove_selected=Remove Selected
+dimensium.ui.modelling.row=Row %d (%d pts)
+dimensium.ui.modelling.rows=Rows
+dimensium.ui.modelling.rows_hint=Shift+RMB adds new row
 dimensium.ui.modelling.selected_point=Selected Point
 
 dimensium.ui.move.hint=Drag gizmo to move selection.
