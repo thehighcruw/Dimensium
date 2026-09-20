@@ -82,5 +82,6 @@ public class ShatterSection implements ToolSection {
             cachedParams = state.noiseParams;
             cachedCrackWidth = state.crackWidth;
         }
+        NoisePreviewRenderer.drawPreviewImage(noisePreviewTex);
     }
 }

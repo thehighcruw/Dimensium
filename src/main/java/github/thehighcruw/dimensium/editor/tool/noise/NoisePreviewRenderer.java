@@ -5,8 +5,12 @@
 package github.thehighcruw.dimensium.editor.tool.noise;
 
 import github.thehighcruw.dimensium.editor.tool.painting.noise.NoiseParams;
+import github.thehighcruw.dimensium.editor.tool.state.PaletteState;
+import github.thehighcruw.dimensium.shared.BlockColorCache;
 import imgui.ImGui;
 import java.nio.ByteBuffer;
+import net.minecraft.block.Block;
+import net.minecraft.item.ItemStack;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
@@ -16,7 +20,15 @@ public class NoisePreviewRenderer {
     private static final int PREVIEW_TEX_SIZE = 64;
 
     public static int rerenderNoisePreview(NoiseParams p, int noisePreviewTex) {
+        return rerenderNoisePreview(p, noisePreviewTex, null, true);
+    }
+
+    public static int rerenderNoisePreview(
+            NoiseParams p, int noisePreviewTex, PaletteState paletteState, boolean showGrayscale) {
         if (noisePreviewTex == -1) noisePreviewTex = GL11.glGenTextures();
+
+        boolean useBlockColors = !showGrayscale && paletteState != null && !paletteState.palette.isEmpty();
+        int[] paletteRgbs = useBlockColors ? buildPaletteRgbs(paletteState) : null;
 
         int sz = PREVIEW_TEX_SIZE;
         ByteBuffer buf = BufferUtils.createByteBuffer(sz * sz * 3);
@@ -25,8 +37,16 @@ public class NoisePreviewRenderer {
                 float wx = px * 50f / sz;
                 float wy = py * 50f / sz;
                 float v = NoiseSampler.sample2D(p, wx, wy);
-                byte b = (byte) (int) (v * 255f);
-                buf.put(b).put(b).put(b);
+                if (paletteRgbs != null) {
+                    int index = Math.min((int) (v * paletteRgbs.length), paletteRgbs.length - 1);
+                    int rgb = paletteRgbs[index];
+                    buf.put((byte) ((rgb >> 16) & 0xFF))
+                            .put((byte) ((rgb >> 8) & 0xFF))
+                            .put((byte) (rgb & 0xFF));
+                } else {
+                    byte gray = (byte) (int) (v * 255f);
+                    buf.put(gray).put(gray).put(gray);
+                }
             }
         }
 
@@ -40,9 +60,36 @@ public class NoisePreviewRenderer {
         GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGB8, sz, sz, 0, GL11.GL_RGB, GL11.GL_UNSIGNED_BYTE, buf);
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
 
+        return noisePreviewTex;
+    }
+
+    public static void drawPreviewImage(int noisePreviewTex) {
+        if (noisePreviewTex == -1) return;
         float displaySize = ImGui.getContentRegionAvailX();
         ImGui.image(noisePreviewTex, displaySize, displaySize, 0, 0, 1, 1);
+    }
 
-        return noisePreviewTex;
+    private static int[] buildPaletteRgbs(PaletteState paletteState) {
+        int total = paletteState.totalPaletteWeight();
+        if (total == 0) return new int[0];
+        int[] rgbs = new int[total];
+        int cursor = 0;
+        for (int i = 0; i < paletteState.palette.size(); i++) {
+            ItemStack stack = paletteState.palette.get(i);
+            int rgb = stackColor(stack);
+            int weight = paletteState.getWeight(i);
+            for (int w = 0; w < weight; w++) {
+                rgbs[cursor++] = rgb;
+            }
+        }
+        return rgbs;
+    }
+
+    private static int stackColor(ItemStack stack) {
+        if (stack == null || stack.getItem() == null) return 0;
+        Block block = Block.getBlockFromItem(stack.getItem());
+        if (block == null) return 0;
+        int rgb = BlockColorCache.INSTANCE.blockColor(Block.getIdFromBlock(block), stack.getItemDamage());
+        return rgb == -1 ? 0 : rgb;
     }
 }

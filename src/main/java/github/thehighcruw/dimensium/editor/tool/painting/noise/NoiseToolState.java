@@ -19,8 +19,8 @@ public class NoiseToolState {
 
         public final String label;
 
-        NoiseType(String l) {
-            label = l;
+        NoiseType(String label) {
+            this.label = label;
         }
     }
 
@@ -28,4 +28,5 @@ public class NoiseToolState {
 
     public boolean noiseSurfaceOnly = false;
     public boolean noise3D = false;
+    public boolean showGrayscaleNoise = false;
 }

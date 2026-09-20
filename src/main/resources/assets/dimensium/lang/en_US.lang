@@ -339,6 +339,7 @@ dimensium.ui.noise.octaves=Octaves
 dimensium.ui.noise.randomize_seed=Randomize Seed
 dimensium.ui.noise.preview=Preview
 dimensium.ui.noise.scale=Scale
+dimensium.ui.noise.show_grayscale=Show Grayscale Noise
 dimensium.ui.noise.surface_only=Surface Only
 dimensium.ui.noise.type=Type
 
