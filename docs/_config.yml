@@ -1,0 +1,12 @@
+title: Dimensium
+description: A Minecraft 1.7.10 building mod
+theme: minima
+
+plugins:
+  - jekyll-relative-links
+
+relative_links:
+  enabled: true
+  collections: true
+
+markdown: kramdown
