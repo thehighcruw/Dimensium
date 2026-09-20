@@ -12,7 +12,7 @@
       {% assign is_ancestor = true %}
     {% endif %}
 
-    <li class="nav-item{% if is_active %} active{% endif %}{% if is_ancestor and item.children %} open{% endif %}">
+    <li class="nav-item{% if is_active %} active{% endif %}{% if item.children %} open{% endif %}">
       <span class="nav-row">
         <a class="nav-link" href="{{ item.url | relative_url }}">{{ item.title }}</a>
         {% if item.children %}

@@ -17,6 +17,14 @@ layout: default
 </div>
 
 <script>
+  var baseurl = '{{ site.baseurl }}';
+  document.querySelectorAll('.content a[href]').forEach(function(a) {
+    var href = a.getAttribute('href');
+    if (href.startsWith('/') && !href.startsWith(baseurl)) {
+      a.setAttribute('href', baseurl + href);
+    }
+  });
+
   document.querySelectorAll('.nav-toggle').forEach(function(btn) {
     btn.addEventListener('click', function(e) {
       e.preventDefault();
