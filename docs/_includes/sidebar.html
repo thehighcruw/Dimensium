@@ -13,7 +13,14 @@
     {% endif %}
 
     <li class="nav-item{% if is_active %} active{% endif %}{% if is_ancestor and item.children %} open{% endif %}">
-      <a class="nav-link" href="{{ item.url | relative_url }}">{{ item.title }}</a>
+      <span class="nav-row">
+        <a class="nav-link" href="{{ item.url | relative_url }}">{{ item.title }}</a>
+        {% if item.children %}
+          <button class="nav-toggle" aria-label="Toggle {{ item.title }}" type="button">
+            <svg viewBox="0 0 10 10" width="10" height="10" aria-hidden="true"><path d="M2 3 L5 7 L8 3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        {% endif %}
+      </span>
       {% if item.children %}
         {% include sidebar.html items=item.children %}
       {% endif %}

@@ -74,6 +74,7 @@ body {
   display: flex;
   margin-top: $header-height;
   min-height: calc(100vh - #{$header-height});
+  margin-left: $sidebar-width;
 }
 
 // Content
@@ -190,10 +191,51 @@ body {
   background: $color-bg-sidebar;
   border-right: 1px solid $color-border;
   padding: 24px 0;
-  position: sticky;
+  position: fixed;
   top: $header-height;
-  height: calc(100vh - #{$header-height});
+  left: 0;
+  bottom: 0;
   overflow-y: auto;
+}
+
+// CSS counters for numbering
+.sidebar > .nav-list {
+  counter-reset: nav-top;
+
+  > .nav-item {
+    counter-increment: nav-top;
+
+    > .nav-row > .nav-link::before {
+      content: counter(nav-top) ". ";
+      color: $color-text-muted;
+    }
+
+    > .nav-list {
+      counter-reset: nav-sub;
+
+      > .nav-item {
+        counter-increment: nav-sub;
+
+        > .nav-row > .nav-link::before {
+          content: counter(nav-top) "." counter(nav-sub) " ";
+          color: $color-text-muted;
+        }
+
+        > .nav-list {
+          counter-reset: nav-leaf;
+
+          > .nav-item {
+            counter-increment: nav-leaf;
+
+            > .nav-row > .nav-link::before {
+              content: counter(nav-top) "." counter(nav-sub) "." counter(nav-leaf) " ";
+              color: $color-text-muted;
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
 .nav-list {
@@ -214,9 +256,15 @@ body {
   }
 }
 
+.nav-row {
+  display: flex;
+  align-items: center;
+}
+
 .nav-link {
+  flex: 1;
   display: block;
-  padding: 6px 20px;
+  padding: 6px 8px 6px 20px;
   color: $color-text-muted;
   text-decoration: none;
   font-size: 14px;
@@ -228,7 +276,31 @@ body {
   }
 }
 
-.nav-item.active > .nav-link {
+.nav-toggle {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: $color-text-muted;
+  padding: 6px 12px 6px 4px;
+  display: flex;
+  align-items: center;
+  transition: color $transition;
+
+  svg {
+    transition: transform $transition;
+  }
+
+  &:hover {
+    color: $color-text;
+  }
+}
+
+.nav-item.open > .nav-row > .nav-toggle svg {
+  transform: rotate(180deg);
+}
+
+.nav-item.active > .nav-row > .nav-link {
   color: $color-accent;
   font-weight: 500;
 }
