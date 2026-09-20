@@ -45,7 +45,10 @@ public class FreecamState {
     // Orbit state — CameraMod+LMB or orbit-crosshair keybinding.
     public boolean orbiting = false;
     public Vec3DDouble pivot = Vec3DDouble.ZERO;
+    // Distance from camera to pivot along the cursor ray at orbit start.
     public double orbitDist;
+    // NDC position of the cursor at orbit start; pivot is kept on this ray throughout.
+    public double orbitNdcX, orbitNdcY;
 
     private EntityLivingBase savedViewEntity = null;
     public FreecamEntity cameraEntity = null;

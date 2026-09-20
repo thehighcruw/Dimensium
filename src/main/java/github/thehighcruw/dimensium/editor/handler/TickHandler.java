@@ -448,31 +448,33 @@ public class TickHandler {
     }
 
     private void startOrbit(FreecamState fs, FreecamEntity cam, Minecraft mc, boolean useCursor) {
+        ScaledResolution sr = RenderUtils.scaledResolution();
+        ViewportState vp = ViewportRegistry.INSTANCE.active();
+
+        double ndcX, ndcY;
         if (useCursor) {
-            ScaledResolution sr = RenderUtils.scaledResolution();
-            ViewportState vp = ViewportRegistry.INSTANCE.active();
-            double ndcX = vp != null
+            ndcX = vp != null
                     ? vp.cursorToNdcX(fs.cursorX, sr.getScaledWidth())
                     : 1.0 - (2.0 * fs.cursorX / sr.getScaledWidth());
-            double ndcY = vp != null
+            ndcY = vp != null
                     ? vp.cursorToNdcY(fs.cursorY, sr.getScaledHeight())
                     : 1.0 - (2.0 * fs.cursorY / sr.getScaledHeight());
-
-            Vec3DDouble[] basis = FreecamUtils.cameraBasis(cam.rotationYaw, cam.rotationPitch);
-            Vec3DDouble fwd = basis[0], rgt = basis[1], up = basis[2];
-
-            Vec3DDouble rd = Vec3DDouble.from(
-                            fwd.x() + ndcX * fs.projTanHX * rgt.x() + ndcY * fs.projTanHY * up.x(),
-                            fwd.y() + ndcY * fs.projTanHY * up.y(),
-                            fwd.z() + ndcX * fs.projTanHX * rgt.z() + ndcY * fs.projTanHY * up.z())
-                    .normalize();
-
-            setPivotFromRay(fs, cam, mc, rd);
         } else {
-            Vec3DDouble rd = FreecamUtils.cameraBasis(cam.rotationYaw, cam.rotationPitch)[0];
-            setPivotFromRay(fs, cam, mc, rd);
+            ndcX = 0.0;
+            ndcY = 0.0;
         }
 
+        Vec3DDouble[] basis = FreecamUtils.cameraBasis(cam.rotationYaw, cam.rotationPitch);
+        Vec3DDouble cursorRay = basis[0].plus(basis[1].times(ndcX * fs.projTanHX))
+                .plus(basis[2].times(ndcY * fs.projTanHY))
+                .normalize();
+
+        setPivotFromRay(fs, cam, mc, cursorRay);
+
+        fs.orbitNdcX = ndcX;
+        fs.orbitNdcY = ndcY;
+        // orbitDist = depth of pivot along the cursor ray from the camera.
+        // Guarantees C = pivot - orbitDist * cursorRay at start, and applyOrbit preserves this invariant.
         fs.orbitDist = Math.max(
                 1.0,
                 Vec3DDouble.from(cam.posX, cam.posY, cam.posZ).minus(fs.pivot).length());
@@ -480,44 +482,20 @@ public class TickHandler {
     }
 
     private void applyOrbit(FreecamState fs, FreecamEntity cam, float rawDX, float rawDY, float scale) {
-        float yawDelta = rawDX * scale * 0.15f;
-        float pitchDelta = rawDY * scale * 0.15f;
+        cam.rotationYaw += rawDX * scale * 0.15f;
+        cam.rotationPitch = Math.max(-89.9f, Math.min(89.9f, cam.rotationPitch - rawDY * scale * 0.15f));
 
-        cam.rotationYaw += yawDelta;
-        cam.rotationPitch -= pitchDelta;
-        cam.rotationPitch = Math.max(-89.9f, Math.min(89.9f, cam.rotationPitch));
-
-        // Turntable orbit: rotate the cam-pivot offset vector rather than tracking
-        // angular offsets in Euler space. Euler offsets drift horizontally during
-        // vertical drags when the pivot is off-screen-center; vector rotation avoids this.
-        // Horizontal drag: rotate offset around world Y axis.
-        // Vertical drag: rotate offset around camera right axis.
-        double offsetX = cam.posX - fs.pivot.x();
-        double offsetY = cam.posY - fs.pivot.y();
-        double offsetZ = cam.posZ - fs.pivot.z();
-
-        double yawRad = -Math.toRadians(yawDelta);
-        double cosY = Math.cos(yawRad), sinY = Math.sin(yawRad);
-        double rotatedX = offsetX * cosY + offsetZ * sinY;
-        double rotatedZ = -offsetX * sinY + offsetZ * cosY;
-        offsetX = rotatedX;
-        offsetZ = rotatedZ;
-
-        double rgtX = Math.cos(Math.toRadians(cam.rotationYaw));
-        double rgtZ = Math.sin(Math.toRadians(cam.rotationYaw));
-        double pitchRad = -Math.toRadians(pitchDelta);
-        double cosP = Math.cos(pitchRad), sinP = Math.sin(pitchRad);
-        double kDotV = rgtX * offsetX + rgtZ * offsetZ;
-        double crossX = -rgtZ * offsetY;
-        double crossY = rgtZ * offsetX - rgtX * offsetZ;
-        double crossZ = rgtX * offsetY;
-        offsetX = offsetX * cosP + crossX * sinP + rgtX * kDotV * (1 - cosP);
-        offsetY = offsetY * cosP + crossY * sinP;
-        offsetZ = offsetZ * cosP + crossZ * sinP + rgtZ * kDotV * (1 - cosP);
-
-        cam.posX = fs.pivot.x() + offsetX;
-        cam.posY = fs.pivot.y() + offsetY;
-        cam.posZ = fs.pivot.z() + offsetZ;
+        // Recompute the ray through the SAME cursor NDC position with the new camera orientation.
+        // Placing the camera at pivot - orbitDist * cursorRay guarantees the pivot projects to
+        // (orbitNdcX, orbitNdcY) every frame — the block under the cursor stays fixed on screen.
+        Vec3DDouble[] basis = FreecamUtils.cameraBasis(cam.rotationYaw, cam.rotationPitch);
+        Vec3DDouble cursorRay = basis[0].plus(basis[1].times(fs.orbitNdcX * fs.projTanHX))
+                .plus(basis[2].times(fs.orbitNdcY * fs.projTanHY))
+                .normalize();
+        Vec3DDouble newCamPos = fs.pivot.minus(cursorRay.times(fs.orbitDist));
+        cam.posX = newCamPos.x();
+        cam.posY = newCamPos.y();
+        cam.posZ = newCamPos.z();
 
         // Orbit updates position every render tick, but prevPos and lastTickPos are
         // normally only synced in client ticks. EntityRenderer uses lastTickPos for
@@ -527,13 +505,15 @@ public class TickHandler {
     }
 
     private static void setPivotFromRay(FreecamState fs, FreecamEntity cam, Minecraft mc, Vec3DDouble rd) {
-        Vec3 start = Vec3.createVectorHelper(cam.posX, cam.posY, cam.posZ);
-        Vec3 end = Vec3.createVectorHelper(cam.posX + rd.x() * 512, cam.posY + rd.y() * 512, cam.posZ + rd.z() * 512);
+        Vec3DDouble camPos = Vec3DDouble.from(cam.posX, cam.posY, cam.posZ);
+        Vec3DDouble endPos = camPos.plus(rd.times(FreecamUtils.REACH));
+        Vec3 start = Vec3.createVectorHelper(camPos.x(), camPos.y(), camPos.z());
+        Vec3 end = Vec3.createVectorHelper(endPos.x(), endPos.y(), endPos.z());
         MovingObjectPosition hit = mc.theWorld.rayTraceBlocks(start, end, false);
         if (hit != null && hit.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-            fs.pivot = Vec3DDouble.from(hit.blockX + 0.5, hit.blockY + 0.5, hit.blockZ + 0.5);
+            fs.pivot = Vec3DDouble.fromVec3(hit.hitVec);
         } else {
-            fs.pivot = Vec3DDouble.from(cam.posX + rd.x() * 20, cam.posY + rd.y() * 20, cam.posZ + rd.z() * 20);
+            fs.pivot = camPos.plus(rd.times(20));
         }
     }
 
