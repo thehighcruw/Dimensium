@@ -142,7 +142,7 @@ public final class GizmoProjection {
         ViewportState vp = ViewportRegistry.INSTANCE.active();
         if (vp != null && vp.contentW > 1 && vp.contentH > 1) {
             winX = (float) ((mouseX * sf - vp.contentX) + displayW / 2.0 - vp.contentW / 2.0);
-            winY = (float) (displayH / 2.0 + vp.contentH / 2.0 - vp.contentY - mouseY * sf);
+            winY = (float) (vp.contentY + vp.contentH / 2.0 + displayH / 2.0 - mouseY * sf);
         } else {
             winX = mouseX * sf;
             winY = displayH - mouseY * sf;
