@@ -32,7 +32,7 @@ public class ScalingGizmo {
     private static final float SCALE_SENSITIVITY = 0.25f;
 
     private static final float BOX_HALF = 0.10f;
-    private static final double HIT_PX = 6.0;
+    private static final double HIT_PX = 10.0;
 
     private static final Vec3DFloat[] AXIS_DIR = {
         Vec3DFloat.from(1, 0, 0), Vec3DFloat.from(0, 1, 0), Vec3DFloat.from(0, 0, 1)
@@ -220,7 +220,7 @@ public class ScalingGizmo {
         Mat3DFloat R = hs.R();
 
         Axis best = Axis.NONE;
-        double bestDistSq = HIT_PX * HIT_PX;
+        double bestDist = HIT_PX;
 
         for (int a = 0; a < 3; a++) {
             Vec3DFloat dirRot = R.mul(AXIS_DIR[a]);
@@ -229,9 +229,9 @@ public class ScalingGizmo {
             double wcz = gz + dirRot.z() * BOX_CENTER * scale;
             double[] sc = proj.project(wcx, wcy, wcz);
             if (sc == null) continue;
-            double distSq = Vec2DDouble.from(sc[0] - mouseX, sc[1] - mouseY).lengthSq();
-            if (distSq < bestDistSq) {
-                bestDistSq = distSq;
+            double dist = Math.max(Math.abs(sc[0] - mouseX), Math.abs(sc[1] - mouseY));
+            if (dist < bestDist) {
+                bestDist = dist;
                 best = a == 0 ? Axis.X : a == 1 ? Axis.Y : Axis.Z;
             }
         }

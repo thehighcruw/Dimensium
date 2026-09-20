@@ -190,6 +190,7 @@ public final class GuiDimensiumOverlay {
                 if (ms.getPlaneTranslationGizmo().isDragging())
                     ms.getPlaneTranslationGizmo().endDrag();
                 if (ms.getRotationGizmo().isDragging()) ms.getRotationGizmo().endDrag();
+                if (ms.getScalingGizmo().isDragging()) ms.getScalingGizmo().endDrag();
             }
             SelectionState sel = SelectionState.INSTANCE;
             if (sel.boxConfirmed) {

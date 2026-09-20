@@ -16,6 +16,7 @@ import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapePlacementSta
 import github.thehighcruw.dimensium.editor.tool.gizmo.WithAxisTranslationGizmo;
 import github.thehighcruw.dimensium.editor.tool.gizmo.WithPlaneTranslationGizmo;
 import github.thehighcruw.dimensium.editor.tool.gizmo.WithRotationGizmo;
+import github.thehighcruw.dimensium.editor.tool.gizmo.WithScalingGizmo;
 import github.thehighcruw.dimensium.editor.tool.manipulating.move.MoveToolState;
 import github.thehighcruw.dimensium.editor.tool.selecting.box.BoxSelectToolState;
 import github.thehighcruw.dimensium.editor.tool.state.ClipboardPlacementState;
@@ -194,7 +195,7 @@ public class OverlayRenderer {
             if (ms.active && !ms.isAnyGizmoDragging() && mc.renderViewEntity != null) {
                 EntityLivingBase eye = mc.renderViewEntity;
                 Vec3DDouble gizmoPos = ms.gizmoPos();
-                handleGizmoHover(ms, mx, my, eye, gizmoPos, ms.rot);
+                handleGizmoHoverWithScale(ms, mx, my, eye, gizmoPos, ms.rot);
             }
 
             // ── Box-select commit on tool change ─────────────────────────────
@@ -305,6 +306,32 @@ public class OverlayRenderer {
         }
         ms.getAxisTranslationGizmo().updateHover(mx, my, eye, pos, rot);
         if (ms.getAxisTranslationGizmo().hoveredAxis != TranslationGizmo.Axis.NONE) {
+            ms.getRotationGizmo().hoveredAxis = RotationGizmo.Axis.NONE;
+            return;
+        }
+        ms.getRotationGizmo().updateHover(mx, my, eye, pos, rot);
+    }
+
+    private static <
+                    T extends
+                            WithAxisTranslationGizmo & WithPlaneTranslationGizmo & WithRotationGizmo & WithScalingGizmo>
+            void handleGizmoHoverWithScale(
+                    T ms, int mx, int my, EntityLivingBase eye, Vec3DDouble pos, Vec3DFloat rot) {
+        ms.getPlaneTranslationGizmo().updateHover(mx, my, eye, pos, rot);
+        if (ms.getPlaneTranslationGizmo().hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
+            ms.getAxisTranslationGizmo().hoveredAxis = TranslationGizmo.Axis.NONE;
+            ms.getScalingGizmo().hoveredAxis = ScalingGizmo.Axis.NONE;
+            ms.getRotationGizmo().hoveredAxis = RotationGizmo.Axis.NONE;
+            return;
+        }
+        ms.getAxisTranslationGizmo().updateHover(mx, my, eye, pos, rot);
+        if (ms.getAxisTranslationGizmo().hoveredAxis != TranslationGizmo.Axis.NONE) {
+            ms.getScalingGizmo().hoveredAxis = ScalingGizmo.Axis.NONE;
+            ms.getRotationGizmo().hoveredAxis = RotationGizmo.Axis.NONE;
+            return;
+        }
+        ms.getScalingGizmo().updateHover(mx, my, eye, pos, rot);
+        if (ms.getScalingGizmo().hoveredAxis != ScalingGizmo.Axis.NONE) {
             ms.getRotationGizmo().hoveredAxis = RotationGizmo.Axis.NONE;
             return;
         }

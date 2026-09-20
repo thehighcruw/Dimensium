@@ -54,6 +54,9 @@ public class MoveToolState
     /** Rotation snapshot at the start of a rotation drag. */
     public Vec3DFloat rotDragBase = Vec3DFloat.ZERO;
 
+    /** Per-axis scale factors applied to ghost block offsets from center of mass. */
+    public Vec3DFloat scale = Vec3DFloat.ONE;
+
     /**
      * Own snapshot of blocks being moved: world-packed key → BlockData.
      * Captured from world on activation; does NOT touch sel.clipboard.
@@ -97,6 +100,7 @@ public class MoveToolState
     // Cache keys for ghost rebuild
     private Vec3DFloat lastDelta = Vec3DFloat.from(Float.NaN, Float.NaN, Float.NaN);
     private Vec3DFloat lastRot = Vec3DFloat.from(Float.NaN, Float.NaN, Float.NaN);
+    private Vec3DFloat lastScale = Vec3DFloat.from(Float.NaN, Float.NaN, Float.NaN);
     private int snapshotVersion = -1;
     private int currentSnapshotVersion = 0;
 
@@ -126,11 +130,7 @@ public class MoveToolState
     public void cancel() {
         active = false;
         preview = null;
-        viewPlaneGizmo.reset();
-        planeGizmo.reset();
-        scalingGizmo.reset();
-        gizmo.reset();
-        rotGizmo.reset();
+        reset();
     }
 
     /** World-space gizmo anchor = center of mass + translation delta. */
@@ -149,10 +149,14 @@ public class MoveToolState
      */
     public void rebuildIfNeeded() {
         if (snapshot == null || snapshot.isEmpty()) return;
-        if (lastDelta.equals(delta) && lastRot.equals(rot) && snapshotVersion == currentSnapshotVersion) return;
+        if (lastDelta.equals(delta)
+                && lastRot.equals(rot)
+                && lastScale.equals(scale)
+                && snapshotVersion == currentSnapshotVersion) return;
 
         lastDelta = delta;
         lastRot = rot;
+        lastScale = scale;
         snapshotVersion = currentSnapshotVersion;
 
         Mat3DFloat R = ShapeMath.buildRotationMatrix(rot.x(), rot.y(), rot.z());
@@ -161,7 +165,8 @@ public class MoveToolState
         for (Map.Entry<Long, SelectionState.BlockData> e : snapshot.entrySet()) {
             long k = e.getKey();
             Vec3DInt wv = SelectionState.unpack(k);
-            Vec3DFloat rv = R.mul(wv.toFloat().plus(0.5f).minus(cm));
+            Vec3DFloat centered = wv.toFloat().plus(0.5f).minus(cm);
+            Vec3DFloat rv = R.mul(centered.times(scale));
             Vec3DFloat nPos = cm.plus(delta).plus(rv);
 
             Vec3DInt nCoord = Vec3DInt.floor(nPos);
@@ -205,6 +210,7 @@ public class MoveToolState
     private void reset() {
         delta = Vec3DFloat.ZERO;
         rot = Vec3DFloat.ZERO;
+        scale = Vec3DFloat.ONE;
         viewPlaneGizmo.reset();
         planeGizmo.reset();
         scalingGizmo.reset();
@@ -213,11 +219,13 @@ public class MoveToolState
         ghostBlocks = null;
         lastDelta = Vec3DFloat.from(Float.NaN, Float.NaN, Float.NaN);
         lastRot = Vec3DFloat.from(Float.NaN, Float.NaN, Float.NaN);
+        lastScale = Vec3DFloat.from(Float.NaN, Float.NaN, Float.NaN);
     }
 
     public boolean isAnyGizmoDragging() {
         return getAxisTranslationGizmo().isDragging()
                 || getPlaneTranslationGizmo().isDragging()
-                || getRotationGizmo().isDragging();
+                || getRotationGizmo().isDragging()
+                || getScalingGizmo().isDragging();
     }
 }

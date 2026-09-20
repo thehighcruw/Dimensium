@@ -431,6 +431,16 @@ public class TickHandler {
                     ms.rot = angles;
                     ms.invalidateGhost();
                 }
+            } else if (ms.getScalingGizmo().isDragging()) {
+                float[] result = ms.getScalingGizmo().updateDrag(mx, my);
+                if (result != null) {
+                    ScalingGizmo.Axis axis = ms.getScalingGizmo().getDragAxis();
+                    if (axis == ScalingGizmo.Axis.X) ms.scale = Vec3DFloat.from(result[0], ms.scale.y(), ms.scale.z());
+                    else if (axis == ScalingGizmo.Axis.Y)
+                        ms.scale = Vec3DFloat.from(ms.scale.x(), result[0], ms.scale.z());
+                    else ms.scale = Vec3DFloat.from(ms.scale.x(), ms.scale.y(), result[0]);
+                    ms.invalidateGhost();
+                }
             }
         }
     }

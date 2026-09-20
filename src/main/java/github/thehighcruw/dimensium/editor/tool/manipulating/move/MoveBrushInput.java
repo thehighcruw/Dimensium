@@ -11,6 +11,7 @@ import github.thehighcruw.dimensium.editor.overlay.GuiDimensiumOverlay;
 import github.thehighcruw.dimensium.editor.tool.BrushInput;
 import github.thehighcruw.dimensium.editor.window.viewport.world.PlaneTranslationGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.RotationGizmo;
+import github.thehighcruw.dimensium.editor.window.viewport.world.ScalingGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.TranslationGizmo;
 import github.thehighcruw.dimensium.shared.KeyConstants;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
@@ -45,6 +46,12 @@ public class MoveBrushInput implements BrushInput {
             } else if (ms.getRotationGizmo().hoveredAxis != RotationGizmo.Axis.NONE) {
                 ms.rotDragBase = rot;
                 ms.getRotationGizmo().startDrag(mouseX, mouseY, gizmoPos, rot);
+            } else if (ms.getScalingGizmo().hoveredAxis != ScalingGizmo.Axis.NONE) {
+                ScalingGizmo.Axis axis = ms.getScalingGizmo().hoveredAxis;
+                float currentScale = axis == ScalingGizmo.Axis.X
+                        ? ms.scale.x()
+                        : axis == ScalingGizmo.Axis.Y ? ms.scale.y() : ms.scale.z();
+                ms.getScalingGizmo().startDrag(mouseX, mouseY, gizmoPos, currentScale, rot);
             }
         } else if (button == KeyConstants.RMB) {
             GuiDimensiumOverlay.confirmMove();
