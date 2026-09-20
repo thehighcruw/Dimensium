@@ -1,6 +1,12 @@
 - title: Getting Started
   url: /getting-started
 
+- title: Editor
+  url: /editor
+  children:
+    - title: Navigation
+      url: /editor/navigation
+
 - title: Tools
   url: /tools
   children:
