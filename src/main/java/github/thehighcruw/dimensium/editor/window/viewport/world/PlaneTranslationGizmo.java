@@ -55,6 +55,9 @@ public class PlaneTranslationGizmo {
 
     private final GizmoProjection proj = new GizmoProjection();
 
+    /** Per-axis sign, matching TranslationGizmo.axisFlip. Shifts squares into the correct quadrant. */
+    public final float[] axisFlip = {1f, 1f, 1f};
+
     public Plane hoveredPlane = Plane.NONE;
     private Plane dragPlane = Plane.NONE;
     private int dragStartMX;
@@ -94,7 +97,7 @@ public class PlaneTranslationGizmo {
             Plane plane = p == 0 ? Plane.XY : p == 1 ? Plane.XZ : Plane.YZ;
             boolean hot = hoveredPlane == plane;
             float[] col = PLANE_COL[p];
-            float cx = CENTERS[p][0], cy = CENTERS[p][1], cz = CENTERS[p][2];
+            float cx = CENTERS[p][0] * axisFlip[0], cy = CENTERS[p][1] * axisFlip[1], cz = CENTERS[p][2] * axisFlip[2];
             float[] a = PLANE_A[p], b = PLANE_B[p];
 
             float alpha = hot ? 0.85f : 0.45f;
@@ -166,7 +169,7 @@ public class PlaneTranslationGizmo {
         double bestDist = HIT_PX;
 
         for (int p = 0; p < 3; p++) {
-            float cx = CENTERS[p][0], cy = CENTERS[p][1], cz = CENTERS[p][2];
+            float cx = CENTERS[p][0] * axisFlip[0], cy = CENTERS[p][1] * axisFlip[1], cz = CENTERS[p][2] * axisFlip[2];
             float[] a = PLANE_A[p], b = PLANE_B[p];
             Vec3DFloat ha = rotatedAxis(R, a, SQ_HALF);
             Vec3DFloat hb = rotatedAxis(R, b, SQ_HALF);

@@ -445,6 +445,8 @@ public class SelectionRenderer {
                 boxPos2Gizmo.axisFlip[0] = -boxPos1Gizmo.axisFlip[0];
                 boxPos2Gizmo.axisFlip[1] = -boxPos1Gizmo.axisFlip[1];
                 boxPos2Gizmo.axisFlip[2] = -boxPos1Gizmo.axisFlip[2];
+                System.arraycopy(boxPos1Gizmo.axisFlip, 0, boxPos1PlaneGizmo.axisFlip, 0, 3);
+                System.arraycopy(boxPos2Gizmo.axisFlip, 0, boxPos2PlaneGizmo.axisFlip, 0, 3);
                 Vec3DDouble pos1Center = sel.pendingPos.toDouble().plus(0.5);
                 Vec3DDouble pos2Center = sel.pendingPos2.toDouble().plus(0.5);
                 boxPos1ViewPlaneGizmo.render(pos1Center, camPos);

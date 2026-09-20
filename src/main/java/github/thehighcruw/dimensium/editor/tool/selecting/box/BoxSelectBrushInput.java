@@ -90,8 +90,18 @@ public class BoxSelectBrushInput implements BrushInput {
             if (anchor != null) {
                 bxSel.pendingPos = snap ? Vec3DInt.round(anchor) : Vec3DInt.floor(anchor);
             }
+        } else if (SelectionRenderer.boxPos1PlaneGizmo.isDragging()) {
+            Vec3DDouble anchor = SelectionRenderer.boxPos1PlaneGizmo.updateDrag(mx, my);
+            if (anchor != null) {
+                bxSel.pendingPos = snap ? Vec3DInt.round(anchor) : Vec3DInt.floor(anchor);
+            }
         } else if (SelectionRenderer.boxPos2Gizmo.isDragging()) {
             Vec3DDouble anchor = SelectionRenderer.boxPos2Gizmo.updateDrag(mx, my);
+            if (anchor != null) {
+                bxSel.pendingPos2 = snap ? Vec3DInt.round(anchor) : Vec3DInt.floor(anchor);
+            }
+        } else if (SelectionRenderer.boxPos2PlaneGizmo.isDragging()) {
+            Vec3DDouble anchor = SelectionRenderer.boxPos2PlaneGizmo.updateDrag(mx, my);
             if (anchor != null) {
                 bxSel.pendingPos2 = snap ? Vec3DInt.round(anchor) : Vec3DInt.floor(anchor);
             }
@@ -102,6 +112,11 @@ public class BoxSelectBrushInput implements BrushInput {
             }
         } else if (SelectionRenderer.boxCenterGizmo.isDragging()) {
             Vec3DDouble anchor = SelectionRenderer.boxCenterGizmo.updateDrag(mx, my);
+            if (anchor != null) {
+                applyCenter(bxSel, anchor, snap);
+            }
+        } else if (SelectionRenderer.boxCenterPlaneGizmo.isDragging()) {
+            Vec3DDouble anchor = SelectionRenderer.boxCenterPlaneGizmo.updateDrag(mx, my);
             if (anchor != null) {
                 applyCenter(bxSel, anchor, snap);
             }

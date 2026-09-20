@@ -187,7 +187,6 @@ public class OverlayRenderer {
             if (cps.active && !cps.isAnyGizmoDragging() && mc.renderViewEntity != null) {
                 EntityLivingBase cEye = mc.renderViewEntity;
                 Vec3DDouble cpsCenter = cps.center();
-                cps.getAxisTranslationGizmo().updateHover(mx, my, cEye, cpsCenter, Vec3DFloat.ZERO);
                 handleGizmoHover(cps, mx, my, cEye, cpsCenter, cps.rot);
             }
 
@@ -195,7 +194,6 @@ public class OverlayRenderer {
             if (ms.active && !ms.isAnyGizmoDragging() && mc.renderViewEntity != null) {
                 EntityLivingBase eye = mc.renderViewEntity;
                 Vec3DDouble gizmoPos = ms.gizmoPos();
-                ms.getAxisTranslationGizmo().updateHover(mx, my, eye, gizmoPos, ms.rot);
                 handleGizmoHover(ms, mx, my, eye, gizmoPos, ms.rot);
             }
 
@@ -276,40 +274,41 @@ public class OverlayRenderer {
             ps.getPlaneTranslationGizmo().hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
             return;
         }
+        ps.getPlaneTranslationGizmo().updateHover(mx, my, eye, pos, ps.rot);
+        if (ps.getPlaneTranslationGizmo().hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
+            ps.getAxisTranslationGizmo().hoveredAxis = TranslationGizmo.Axis.NONE;
+            ps.getScalingGizmo().hoveredAxis = ScalingGizmo.Axis.NONE;
+            ps.getRotationGizmo().hoveredAxis = RotationGizmo.Axis.NONE;
+            return;
+        }
         ps.getAxisTranslationGizmo().updateHover(mx, my, eye, pos, ps.rot);
         if (ps.getAxisTranslationGizmo().hoveredAxis != TranslationGizmo.Axis.NONE) {
             ps.getScalingGizmo().hoveredAxis = ScalingGizmo.Axis.NONE;
             ps.getRotationGizmo().hoveredAxis = RotationGizmo.Axis.NONE;
-            ps.getPlaneTranslationGizmo().hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
             return;
         }
         ps.getScalingGizmo().updateHover(mx, my, eye, pos, ps.rot);
         if (ps.getScalingGizmo().hoveredAxis != ScalingGizmo.Axis.NONE) {
             ps.getRotationGizmo().hoveredAxis = RotationGizmo.Axis.NONE;
-            ps.getPlaneTranslationGizmo().hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
             return;
         }
         ps.getRotationGizmo().updateHover(mx, my, eye, pos, ps.rot);
-        if (ps.getRotationGizmo().hoveredAxis != RotationGizmo.Axis.NONE) {
-            ps.getPlaneTranslationGizmo().hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
-            return;
-        }
-        ps.getPlaneTranslationGizmo().updateHover(mx, my, eye, pos, ps.rot);
     }
 
     private static <T extends WithAxisTranslationGizmo & WithPlaneTranslationGizmo & WithRotationGizmo>
             void handleGizmoHover(T ms, int mx, int my, EntityLivingBase eye, Vec3DDouble pos, Vec3DFloat rot) {
-        if (ms.getAxisTranslationGizmo().hoveredAxis == TranslationGizmo.Axis.NONE) {
-            ms.getPlaneTranslationGizmo().updateHover(mx, my, eye, pos, rot);
-            if (ms.getPlaneTranslationGizmo().hoveredPlane == PlaneTranslationGizmo.Plane.NONE) {
-                ms.getRotationGizmo().updateHover(mx, my, eye, pos, rot);
-            } else {
-                ms.getRotationGizmo().hoveredAxis = RotationGizmo.Axis.NONE;
-            }
-        } else {
-            ms.getPlaneTranslationGizmo().hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
+        ms.getPlaneTranslationGizmo().updateHover(mx, my, eye, pos, rot);
+        if (ms.getPlaneTranslationGizmo().hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
+            ms.getAxisTranslationGizmo().hoveredAxis = TranslationGizmo.Axis.NONE;
             ms.getRotationGizmo().hoveredAxis = RotationGizmo.Axis.NONE;
+            return;
         }
+        ms.getAxisTranslationGizmo().updateHover(mx, my, eye, pos, rot);
+        if (ms.getAxisTranslationGizmo().hoveredAxis != TranslationGizmo.Axis.NONE) {
+            ms.getRotationGizmo().hoveredAxis = RotationGizmo.Axis.NONE;
+            return;
+        }
+        ms.getRotationGizmo().updateHover(mx, my, eye, pos, rot);
     }
 
     /**

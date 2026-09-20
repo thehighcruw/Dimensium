@@ -368,9 +368,12 @@ public final class GuiDimensiumOverlay {
         SelectionState sel = SelectionState.INSTANCE;
         if (sel.boxConfirmed
                 && (SelectionRenderer.boxPos1Gizmo.isDragging()
+                        || SelectionRenderer.boxPos1PlaneGizmo.isDragging()
                         || SelectionRenderer.boxPos2Gizmo.isDragging()
+                        || SelectionRenderer.boxPos2PlaneGizmo.isDragging()
                         || SelectionRenderer.boxCenterViewPlaneGizmo.isDragging()
-                        || SelectionRenderer.boxCenterGizmo.isDragging())) return true;
+                        || SelectionRenderer.boxCenterGizmo.isDragging()
+                        || SelectionRenderer.boxCenterPlaneGizmo.isDragging())) return true;
         if (PathToolState.INSTANCE.getAxisTranslationGizmo().isDragging()
                 || PathToolState.INSTANCE.getPlaneTranslationGizmo().isDragging()) return true;
         return ModellingToolState.INSTANCE.getAxisTranslationGizmo().isDragging()
