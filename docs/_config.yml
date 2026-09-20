@@ -1,6 +1,7 @@
 title: Dimensium
 description: A Minecraft 1.7.10 building mod
-url: ""
+url: "https://thehighcruw.github.io"
+baseurl: "/Dimensium"
 
 markdown: kramdown
 kramdown:
