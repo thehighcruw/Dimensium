@@ -1,43 +1,14 @@
 ---
-layout: page
+layout: docs
 title: Tools
 ---
 
-# Tools
+All tools are accessible from the editor overlay via the tool panel.
 
-Dimensium provides a variety of tools for building and sculpting.
-
-## Creating
-
-- Fill
-- Freehand
-- Shape
-- Path
-- Rock
-- Sculpt
-- Stamp
-
-## Manipulating
-
-- Move
-- Extrude
-- Elevation
-- Smooth
-- Roughen
-- Melt
-- Weld
-- Distort
-- Shatter
-
-## Painting
-
-- Painter
-- Gradient
-- Noise
-
-## Selecting
-
-- Box Select
-- Freehand Select
-- Lasso Select
-- Magic Select
+| Category | Purpose |
+|---|---|
+| [Creating](/tools/creating) | Place and generate new blocks |
+| [Manipulating](/tools/manipulating) | Transform an existing selection |
+| [Painting](/tools/painting) | Replace block types within a selection |
+| [Selecting](/tools/selecting) | Define a selection region |
+| [Utility](/tools/utility) | Measurement and reference helpers |

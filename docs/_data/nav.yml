@@ -1,0 +1,75 @@
+- title: Getting Started
+  url: /getting-started
+
+- title: Tools
+  url: /tools
+  children:
+    - title: Creating
+      url: /tools/creating
+      children:
+        - title: Fill
+          url: /tools/creating/fill
+        - title: Freehand
+          url: /tools/creating/freehand
+        - title: Modelling
+          url: /tools/creating/modelling
+        - title: Path
+          url: /tools/creating/path
+        - title: Rock
+          url: /tools/creating/rock
+        - title: Sculpt
+          url: /tools/creating/sculpt
+        - title: Shape
+          url: /tools/creating/shape
+        - title: Stamp
+          url: /tools/creating/stamp
+
+    - title: Manipulating
+      url: /tools/manipulating
+      children:
+        - title: Distort
+          url: /tools/manipulating/distort
+        - title: Elevation
+          url: /tools/manipulating/elevation
+        - title: Extrude
+          url: /tools/manipulating/extrude
+        - title: Melt
+          url: /tools/manipulating/melt
+        - title: Move
+          url: /tools/manipulating/move
+        - title: Roughen
+          url: /tools/manipulating/roughen
+        - title: Shatter
+          url: /tools/manipulating/shatter
+        - title: Smooth
+          url: /tools/manipulating/smooth
+        - title: Weld
+          url: /tools/manipulating/weld
+
+    - title: Painting
+      url: /tools/painting
+      children:
+        - title: Gradient
+          url: /tools/painting/gradient
+        - title: Noise
+          url: /tools/painting/noise
+        - title: Painter
+          url: /tools/painting/painter
+
+    - title: Selecting
+      url: /tools/selecting
+      children:
+        - title: Box
+          url: /tools/selecting/box
+        - title: Freehand
+          url: /tools/selecting/freehand
+        - title: Lasso
+          url: /tools/selecting/lasso
+        - title: Magic
+          url: /tools/selecting/magic
+
+    - title: Utility
+      url: /tools/utility
+      children:
+        - title: Ruler
+          url: /tools/utility/ruler

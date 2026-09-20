@@ -1,12 +1,15 @@
 title: Dimensium
 description: A Minecraft 1.7.10 building mod
-theme: minima
-
-plugins:
-  - jekyll-relative-links
-
-relative_links:
-  enabled: true
-  collections: true
+url: ""
 
 markdown: kramdown
+kramdown:
+  input: GFM
+
+sass:
+  sass_dir: _sass
+  style: compressed
+
+exclude:
+  - Gemfile
+  - Gemfile.lock

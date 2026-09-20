@@ -1,9 +1,7 @@
 ---
-layout: page
+layout: docs
 title: Getting Started
 ---
-
-# Getting Started
 
 ## Installation
 
@@ -11,6 +9,12 @@ title: Getting Started
 2. Drop the Dimensium `.jar` into your `mods/` folder
 3. Launch the game
 
-## First Steps
+## Opening the Editor
 
-Obtain the **Builder Tool** item and right-click to open the editor.
+Obtain the **Builder Tool** item and right-click to open the editor overlay.
+
+## Basic Workflow
+
+1. Select an area using a [selection tool](/tools/selecting)
+2. Apply a [creating](/tools/creating) or [manipulating](/tools/manipulating) tool
+3. Use undo (`Ctrl+Z`) to revert changes

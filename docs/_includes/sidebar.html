@@ -1,0 +1,22 @@
+{% assign items = include.items %}
+<ul class="nav-list">
+  {% for item in items %}
+    {% assign item_url = item.url | append: '/' %}
+    {% assign page_url = page.url %}
+    {% assign is_active = false %}
+    {% if page_url == item_url or page_url == item.url %}
+      {% assign is_active = true %}
+    {% endif %}
+    {% assign is_ancestor = false %}
+    {% if page_url contains item.url %}
+      {% assign is_ancestor = true %}
+    {% endif %}
+
+    <li class="nav-item{% if is_active %} active{% endif %}{% if is_ancestor and item.children %} open{% endif %}">
+      <a class="nav-link" href="{{ item.url | relative_url }}">{{ item.title }}</a>
+      {% if item.children %}
+        {% include sidebar.html items=item.children %}
+      {% endif %}
+    </li>
+  {% endfor %}
+</ul>
