@@ -20,8 +20,28 @@ layout: default
   document.querySelectorAll('.nav-toggle').forEach(function(btn) {
     btn.addEventListener('click', function(e) {
       e.preventDefault();
-      var item = btn.closest('.nav-item');
-      item.classList.toggle('open');
+      btn.closest('.nav-item').classList.toggle('open');
     });
+  });
+
+  document.querySelectorAll('.content h2').forEach(function(heading) {
+    if (!heading.textContent.trim().startsWith('How it works')) return;
+
+    var body = document.createElement('div');
+    body.className = 'collapsible-body';
+    var next = heading.nextElementSibling;
+    while (next && !/^H[1-6]$/.test(next.tagName)) {
+      var sibling = next.nextElementSibling;
+      body.appendChild(next);
+      next = sibling;
+    }
+
+    var details = document.createElement('details');
+    var summary = document.createElement('summary');
+    summary.textContent = heading.textContent;
+    details.appendChild(summary);
+    details.appendChild(body);
+
+    heading.replaceWith(details);
   });
 </script>
