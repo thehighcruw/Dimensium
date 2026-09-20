@@ -79,6 +79,11 @@ public class TickHandler {
         lastDragBlock = null;
     }
 
+    private void cancelDrag(BrushInput input, Minecraft mc) {
+        if (input != null) input.onBrushRelease(mc);
+        cancelDrag();
+    }
+
     /** Read-only view of accumulated SMOOTH drag positions. */
     public Set<Vec3DInt> getSmoothDragPositions() {
         return SmoothBrushInput.INSTANCE.getDragPositions();
@@ -277,13 +282,13 @@ public class TickHandler {
 
         if (!BrushInputRegistry.usesDragLoop(tool)) {
             // Tool switched mid-drag — discard any pending proposal.
-            cancelDrag();
+            cancelDrag(input, mc);
             return;
         }
         // Suppress paint during any camera movement (pan, orbit, LMB drag).
         // Cancel any in-progress stroke so it isn't flushed when the camera drag ends.
         if (fs.isMoving()) {
-            if (lastDragBlock != null) cancelDrag();
+            if (lastDragBlock != null) cancelDrag(input, mc);
             return;
         }
         if (!Mouse.isButtonDown(KeyConstants.RMB)) {

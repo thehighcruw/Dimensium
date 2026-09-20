@@ -170,30 +170,9 @@ public class SelectionRenderer {
             }
         }
 
-        // ── Gradient pos1 → cursor line ───────────────────────────────────────
+        // ── Gradient pos1 → cursor / pos2 line ───────────────────────────────
         if (DimensiumEditorMode.INSTANCE.isActive() && DimensiumEditorMode.INSTANCE.selectedTool == Tool.GRADIENT) {
-            GradientToolState gs = GradientToolState.INSTANCE;
-            if (gs.gradientHasPos1) {
-                MovingObjectPosition gmop = RenderUtils.raycastAtCursor();
-                if (gmop != null && gmop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-                    Vec3DDouble p1 = gs.gradientPos1.toDouble().plus(0.5).minus(camPos);
-                    Vec3DDouble p2 =
-                            WorldUtils.mopToCoord(gmop).toDouble().plus(0.5).minus(camPos);
-                    GL11.glColor4f(0.6f, 0.3f, 1.0f, 0.9f);
-                    WorldLines.setEye(Vec3DDouble.ZERO); // vertices already camera-relative
-                    Tessellator gTess = Tessellator.instance;
-                    gTess.startDrawingQuads();
-                    WorldLines.addSegment(gTess, p1, p2, WorldLines.W_SEL);
-                    gTess.draw();
-                    Vec3DDouble gradTrans = gs.gradientPos1.toDouble().minus(camPos);
-                    GL11.glPushMatrix();
-                    GL11.glTranslated(gradTrans.x(), gradTrans.y(), gradTrans.z());
-                    GL11.glColor4f(0.6f, 0.3f, 1.0f, 1.0f);
-                    WorldLines.setEyeForTranslation(gradTrans);
-                    drawBox(0, 0, 0, 1, 1, 1);
-                    GL11.glPopMatrix();
-                }
-            }
+            renderGradientOverlay(mc, player, camPos);
         }
 
         PerfTrace.pop();
@@ -670,6 +649,92 @@ public class SelectionRenderer {
         GL11.glVertex3d(rx, ry, rz - arm);
         GL11.glVertex3d(rx, ry, rz + arm);
         GL11.glEnd();
+    }
+    private static void renderGradientOverlay(Minecraft mc, EntityPlayer player, Vec3DDouble camPos) {
+        GradientToolState gs = GradientToolState.INSTANCE;
+        if (!gs.gradientHasPos1) return;
+
+        Vec3DDouble lineEnd;
+        String lineLabel;
+        float labelR, labelG, labelB;
+
+        if (gs.gradientHasPos2) {
+            lineEnd = gs.gradientPos2.toDouble().plus(0.5).minus(camPos);
+            MovingObjectPosition cursorMop = RenderUtils.raycastAtCursor();
+            Vec3DDouble axis = gs.gradientPos2.toDouble().minus(gs.gradientPos1.toDouble());
+            double axisLenSq = axis.lengthSq();
+            float percent = 0f;
+            if (cursorMop != null
+                    && cursorMop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK
+                    && axisLenSq > 0.001) {
+                Vec3DDouble cursorWorld = Vec3DDouble.from(cursorMop.blockX, cursorMop.blockY, cursorMop.blockZ);
+                double t = cursorWorld.minus(gs.gradientPos1.toDouble()).dot(axis) / axisLenSq;
+                percent = (float) Math.max(0.0, Math.min(1.0, t)) * 100f;
+            }
+            lineLabel = String.format("%.1f%%", percent);
+            labelR = 1.0f;
+            labelG = 0.8f;
+            labelB = 0.3f;
+        } else {
+            MovingObjectPosition gmop = RenderUtils.raycastAtCursor();
+            Vec3DDouble pos1Trans = gs.gradientPos1.toDouble().minus(camPos);
+            GL11.glPushMatrix();
+            GL11.glTranslated(pos1Trans.x(), pos1Trans.y(), pos1Trans.z());
+            GL11.glColor4f(0.6f, 0.3f, 1.0f, 1.0f);
+            WorldLines.setEyeForTranslation(pos1Trans);
+            drawBox(0, 0, 0, 1, 1, 1);
+            GL11.glPopMatrix();
+            if (gmop == null || gmop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return;
+            lineEnd = Vec3DDouble.from(
+                    gmop.blockX + 0.5 - camPos.x(), gmop.blockY + 0.5 - camPos.y(), gmop.blockZ + 0.5 - camPos.z());
+            double dist = gs.gradientPos1
+                    .toDouble()
+                    .minus(Vec3DDouble.from(gmop.blockX, gmop.blockY, gmop.blockZ))
+                    .length();
+            lineLabel = String.format("%.2f", dist);
+            labelR = 0.8f;
+            labelG = 0.5f;
+            labelB = 1.0f;
+        }
+
+        Vec3DDouble p1 = gs.gradientPos1.toDouble().plus(0.5).minus(camPos);
+        Vec3DDouble mid = p1.plus(lineEnd).times(0.5);
+        GL11.glColor4f(0.6f, 0.3f, 1.0f, 0.9f);
+        WorldLines.setEye(Vec3DDouble.ZERO);
+        Tessellator gTess = Tessellator.instance;
+        gTess.startDrawingQuads();
+        WorldLines.addSegment(gTess, p1, lineEnd, WorldLines.W_SEL);
+        gTess.draw();
+        Entity labelCam = mc.renderViewEntity != null ? mc.renderViewEntity : player;
+        float labelScale = 0.08f;
+        GL11.glPushMatrix();
+        GL11.glTranslated(mid.x(), mid.y(), mid.z());
+        GL11.glRotatef(-labelCam.rotationYaw, 0f, 1f, 0f);
+        GL11.glRotatef(labelCam.rotationPitch, 1f, 0f, 0f);
+        GL11.glScalef(-labelScale, -labelScale, labelScale);
+        GL11.glEnable(GL11.GL_TEXTURE_2D);
+        int labelWidth = mc.fontRenderer.getStringWidth(lineLabel);
+        int labelColor = ((int) (labelR * 255) << 16) | ((int) (labelG * 255) << 8) | (int) (labelB * 255);
+        mc.fontRenderer.drawStringWithShadow(lineLabel, -labelWidth / 2, -4, labelColor);
+        GL11.glDisable(GL11.GL_TEXTURE_2D);
+        GL11.glPopMatrix();
+        // pos1 marker box (drawn in idle branch above; draw here for drag branch too)
+        if (gs.gradientHasPos2) {
+            Vec3DDouble pos1Trans = gs.gradientPos1.toDouble().minus(camPos);
+            GL11.glPushMatrix();
+            GL11.glTranslated(pos1Trans.x(), pos1Trans.y(), pos1Trans.z());
+            GL11.glColor4f(0.6f, 0.3f, 1.0f, 1.0f);
+            WorldLines.setEyeForTranslation(pos1Trans);
+            drawBox(0, 0, 0, 1, 1, 1);
+            GL11.glPopMatrix();
+            Vec3DDouble pos2Trans = gs.gradientPos2.toDouble().minus(camPos);
+            GL11.glPushMatrix();
+            GL11.glTranslated(pos2Trans.x(), pos2Trans.y(), pos2Trans.z());
+            GL11.glColor4f(1.0f, 0.8f, 0.2f, 1.0f);
+            WorldLines.setEyeForTranslation(pos2Trans);
+            drawBox(0, 0, 0, 1, 1, 1);
+            GL11.glPopMatrix();
+        }
     }
 
     private static void renderPointBox(Vec3DInt worldPos, float r, float g, float b, Vec3DDouble camPos) {
