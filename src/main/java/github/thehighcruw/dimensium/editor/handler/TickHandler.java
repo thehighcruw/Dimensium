@@ -407,6 +407,17 @@ public class TickHandler {
             } else if (cps.getRotationGizmo().isDragging()) {
                 cps.rot = AnchorSnap.applyRotGizmo(cps.getRotationGizmo(), cps.rotDragBase, mx, my);
                 cps.rebuildPreview();
+            } else if (cps.getScalingGizmo().isDragging()) {
+                float[] result = cps.getScalingGizmo().updateDrag(mx, my);
+                if (result != null) {
+                    ScalingGizmo.Axis axis = cps.getScalingGizmo().getDragAxis();
+                    if (axis == ScalingGizmo.Axis.X)
+                        cps.scale = Vec3DFloat.from(Math.max(0.1f, result[0]), cps.scale.y(), cps.scale.z());
+                    else if (axis == ScalingGizmo.Axis.Y)
+                        cps.scale = Vec3DFloat.from(cps.scale.x(), Math.max(0.1f, result[0]), cps.scale.z());
+                    else cps.scale = Vec3DFloat.from(cps.scale.x(), cps.scale.y(), Math.max(0.1f, result[0]));
+                    cps.rebuildPreview();
+                }
             }
         }
 

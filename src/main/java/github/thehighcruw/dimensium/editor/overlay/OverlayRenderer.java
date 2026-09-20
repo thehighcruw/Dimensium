@@ -189,7 +189,7 @@ public class OverlayRenderer {
             if (cps.active && !cps.isAnyGizmoDragging() && mc.renderViewEntity != null) {
                 EntityLivingBase cEye = mc.renderViewEntity;
                 Vec3DDouble cpsCenter = cps.center();
-                handleGizmoHover(cps, mx, my, cEye, cpsCenter, cps.rot);
+                handleGizmoHoverWithScale(cps, mx, my, cEye, cpsCenter, cps.rot);
             }
 
             MoveToolState ms = MoveToolState.INSTANCE;

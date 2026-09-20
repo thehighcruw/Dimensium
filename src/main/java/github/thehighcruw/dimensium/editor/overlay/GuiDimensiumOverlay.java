@@ -30,6 +30,7 @@ import github.thehighcruw.dimensium.editor.window.viewport.ViewportState;
 import github.thehighcruw.dimensium.editor.window.viewport.world.GizmoProjection;
 import github.thehighcruw.dimensium.editor.window.viewport.world.PlaneTranslationGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.RotationGizmo;
+import github.thehighcruw.dimensium.editor.window.viewport.world.ScalingGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.SelectionRenderer;
 import github.thehighcruw.dimensium.editor.window.viewport.world.TranslationGizmo;
 import github.thehighcruw.dimensium.network.PacketHandler;
@@ -143,6 +144,12 @@ public final class GuiDimensiumOverlay {
                 } else if (eye != null && cps.getRotationGizmo().hoveredAxis != RotationGizmo.Axis.NONE) {
                     cps.rotDragBase = rot;
                     cps.getRotationGizmo().startDrag(mouseX, mouseY, cpsCenter, rot);
+                } else if (eye != null && cps.getScalingGizmo().hoveredAxis != ScalingGizmo.Axis.NONE) {
+                    ScalingGizmo.Axis axis = cps.getScalingGizmo().hoveredAxis;
+                    float currentScale = axis == ScalingGizmo.Axis.X
+                            ? cps.scale.x()
+                            : axis == ScalingGizmo.Axis.Y ? cps.scale.y() : cps.scale.z();
+                    cps.getScalingGizmo().startDrag(mouseX, mouseY, cpsCenter, currentScale, rot);
                 }
             } else if (button == KeyConstants.RMB) {
                 cps.cancel();
@@ -182,6 +189,7 @@ public final class GuiDimensiumOverlay {
                 if (cps.getPlaneTranslationGizmo().isDragging())
                     cps.getPlaneTranslationGizmo().endDrag();
                 if (cps.getRotationGizmo().isDragging()) cps.getRotationGizmo().endDrag();
+                if (cps.getScalingGizmo().isDragging()) cps.getScalingGizmo().endDrag();
             }
             MoveToolState ms = MoveToolState.INSTANCE;
             if (ms.active) {
