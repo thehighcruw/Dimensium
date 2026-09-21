@@ -26,10 +26,6 @@ The Noise tool replaces blocks within the selection according to a noise field. 
 | Surface only | When enabled, only surface blocks are painted |
 | 3D noise | When enabled, noise is sampled in 3D (varying by Y) rather than 2D (uniform column) |
 
-## How it works
-
-Each block position in the selection is fed into the selected noise function. The resulting value (0–1) is used to index into the active palette, selecting which block type to place. With multiple octaves, higher-frequency layers add progressively finer detail at reduced amplitude.
-
 ## Tips
 
 - Simplex/Perlin with 2–3 octaves produces natural-looking stone or dirt variation.
@@ -40,3 +36,7 @@ Each block position in the selection is fed into the selected noise function. Th
 ## See also
 
 - [Gradient](/tools/painting/gradient) — directional gradient painting along an axis
+
+## How it works
+
+Each block position in the selection is fed into the selected noise function. The resulting value (0–1) is used to index into the active palette, selecting which block type to place. With multiple octaves, higher-frequency layers add progressively finer detail at reduced amplitude.

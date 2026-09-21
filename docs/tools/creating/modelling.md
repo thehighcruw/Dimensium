@@ -22,6 +22,12 @@ The Modelling tool constructs block geometry by placing control points in the wo
 | Paste mode | `Paste Copy` — overwrite existing blocks; `Keep Existing` — only fill air |
 | Offset target point | When enabled, points land on the face outward from the clicked block rather than on the block itself |
 
+## Tips
+
+- Use Convex Hull for simple filled volumes like boulders or hills.
+- Catmull-Rom and Bézier give the smoothest results; add more rows for tighter control.
+- A live preview shows the result before placement.
+
 ## How it works
 
 Each mode computes block positions differently:
@@ -29,9 +35,3 @@ Each mode computes block positions differently:
 - **Triangle Strip / Fan** — tessellates surfaces from ordered point sequences.
 - **Catmull-Rom / Bézier** — fits smooth curves through rows of points to generate a smooth surface.
 - **Smart Surface** — automatically selects an appropriate interpolation based on point layout.
-
-## Tips
-
-- Use Convex Hull for simple filled volumes like boulders or hills.
-- Catmull-Rom and Bézier give the smoothest results; add more rows for tighter control.
-- A live preview shows the result before placement.

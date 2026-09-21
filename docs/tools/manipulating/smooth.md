@@ -20,10 +20,6 @@ The Smooth tool smooths jagged surfaces by redistributing blocks based on neighb
 | Modifier | `Stable` — preserve volume; `Melt` — shrink and round; `Grow` — expand while smoothing |
 | Fix edges | When enabled, boundary blocks at the selection edge are preserved |
 
-## How it works
-
-For each brush position accumulated during the drag, the neighbourhood density of each block is computed. Blocks below the density threshold are candidates for removal; air blocks above it are candidates for filling. The modifier biases whether additions or removals dominate, controlling the net volume change.
-
 ## Tips
 
 - Multiple smooth strengths stack — drag over an area several times for progressive smoothing.
@@ -33,3 +29,7 @@ For each brush position accumulated during the drag, the neighbourhood density o
 ## See also
 
 - [Melt](/tools/manipulating/melt) — dedicated erosion tool without a drag interface
+
+## How it works
+
+For each brush position accumulated during the drag, the neighbourhood density of each block is computed. Blocks below the density threshold are candidates for removal; air blocks above it are candidates for filling. The modifier biases whether additions or removals dominate, controlling the net volume change.

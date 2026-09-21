@@ -21,12 +21,12 @@ The Rock tool generates natural-looking rock formations by combining noise-based
 | Smoothing std dev | Gaussian smoothing applied after noise displacement — higher values produce rounder rocks |
 | Meld strength | How strongly the rock blends into surrounding terrain at its base |
 
-## How it works
-
-A spherical base volume is generated at the cursor position. Simplex noise displaces the surface outward or inward at each point, scaled by `noisiness`. A Gaussian blur with the given standard deviation is then applied to smooth the displaced surface. Finally, `meldStrength` controls a weighted blend at the rock's base to avoid hard flat edges where it meets the ground.
-
 ## Tips
 
 - Low noisiness with high smoothing produces boulders; high noisiness with low smoothing produces jagged crags.
 - Reseed to quickly iterate through different shapes at the same position.
 - Use meld strength 0 for floating or cliff-face rocks.
+
+## How it works
+
+A spherical base volume is generated at the cursor position. Simplex noise displaces the surface outward or inward at each point, scaled by `noisiness`. A Gaussian blur with the given standard deviation is then applied to smooth the displaced surface. Finally, `meldStrength` controls a weighted blend at the rock's base to avoid hard flat edges where it meets the ground.

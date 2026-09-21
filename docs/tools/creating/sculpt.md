@@ -23,10 +23,6 @@ Brush shape, radius, and height are shared with the global Brush state.
 | Mask Y | When enabled, displacement is restricted to a single Y level |
 | Denoise | Applies a smoothing pass to reduce single-block spikes in the result |
 
-## How it works
-
-The Gaussian kernel assigns each block in the brush a weight that decreases with distance from the center. Blocks with weights above a threshold are raised (or lowered) by one block, accumulating fractional displacement over multiple passes until the threshold is crossed.
-
 ## Tips
 
 - Use low strength with multiple strokes for gentle slope shaping.
@@ -36,3 +32,7 @@ The Gaussian kernel assigns each block in the brush a weight that decreases with
 ## See also
 
 - [Elevation](/tools/manipulating/elevation) — brush-based raise/lower on a selection with falloff curves
+
+## How it works
+
+The Gaussian kernel assigns each block in the brush a weight that decreases with distance from the center. Blocks with weights above a threshold are raised (or lowered) by one block, accumulating fractional displacement over multiple passes until the threshold is crossed.
