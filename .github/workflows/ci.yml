@@ -26,6 +26,16 @@ jobs:
           java-version: 25
           cache: gradle
 
+      - name: Validate changelog
+        if: github.ref == 'refs/heads/main'
+        run: |
+          section=$(awk '/^## \[Unreleased\]/{found=1; next} found && /^## /{exit} found{print}' CHANGELOG.md)
+          entries=$(echo "$section" | grep -v '^\s*$' | grep -v '^###' || true)
+          if [[ -z "$entries" ]]; then
+            echo "CHANGELOG.md [Unreleased] section is empty. Add at least one entry." >&2
+            exit 1
+          fi
+
       - name: Check formatting (Spotless)
         run: ./gradlew spotlessCheck
 

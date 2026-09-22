@@ -150,6 +150,36 @@ Those utility classes should not have mutable static state.
 
 ---
 
+## Changelog
+
+`CHANGELOG.md` follows [Keep a Changelog](https://keepachangelog.com) conventions.
+
+### Sections (in this order)
+
+| Section      | When to use                                      |
+|--------------|--------------------------------------------------|
+| `Added`      | New features                                     |
+| `Changed`    | Changes to existing behaviour                    |
+| `Deprecated` | Features that will be removed in a future release|
+| `Removed`    | Features removed in this release                 |
+| `Fixed`      | Bug fixes                                        |
+| `Security`   | Security-related fixes                           |
+
+Omit sections that have no entries for a given release.
+
+### Entry style
+
+- Imperative, present tense: "Add X", "Fix Y", not "Added X" or "Fixes Y"
+- One line per entry
+- Most impactful entries first within each section
+- Reference the tool or system affected: "Stamp tool: add multi-layer paste support"
+
+### Workflow
+
+Add entries to `[Unreleased]` as you work — one entry per meaningful change, alongside the code commit. At release, run `scripts/release.sh <version>` which promotes `[Unreleased]` to the versioned section and resets it.
+
+---
+
 ## Development Workflow
 
 ### Build & compile check
