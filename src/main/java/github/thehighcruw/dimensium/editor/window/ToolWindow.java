@@ -13,13 +13,14 @@ import github.thehighcruw.dimensium.editor.tool.Tool;
 import github.thehighcruw.dimensium.editor.tool.ToolRegistry;
 import github.thehighcruw.dimensium.editor.tool.ToolSection;
 import github.thehighcruw.dimensium.editor.tool.ToolStates;
+import github.thehighcruw.dimensium.editor.window.imgui.DeferredItemRender;
 import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
 import github.thehighcruw.dimensium.editor.window.imgui.ToggleableWindow;
+import github.thehighcruw.dimensium.editor.window.imgui.ToolIconCache;
 import imgui.ImGui;
 import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiStyleVar;
 import imgui.type.ImBoolean;
-import imgui.type.ImInt;
 import java.util.EnumMap;
 import java.util.Map;
 import net.minecraft.client.resources.I18n;
@@ -38,35 +39,42 @@ public class ToolWindow extends ToggleableWindow {
         DimensiumConfig.setWindowToolPanelOpen(value);
     }
 
-    // ── Tool categories ───────────────────────────────────────────────────────
+    // ── Tool grid ─────────────────────────────────────────────────────────────
 
-    private static String[] categoryNames() {
-        return new String[] {
-            I18n.format("dimensium.ui.category.selecting"),
-            I18n.format("dimensium.ui.category.creating"),
-            I18n.format("dimensium.ui.category.painting"),
-            I18n.format("dimensium.ui.category.manipulating"),
-            I18n.format("dimensium.ui.category.utility")
-        };
-    }
-
-    static final Tool[][] CATEGORY_TOOLS = {
-        {Tool.POINTER, Tool.SELECT, Tool.MAGIC_SELECT, Tool.FREEHAND_SELECT, Tool.LASSO_SELECT},
-        {Tool.FREEHAND_DRAW, Tool.SCULPT_DRAW, Tool.SHAPE, Tool.FILL, Tool.STAMP, Tool.PATH, Tool.MODELLING, Tool.ROCK},
-        {Tool.PAINTER, Tool.NOISE, Tool.GRADIENT},
-        {
-            Tool.SMOOTH,
-            Tool.WELD,
-            Tool.MELT,
-            Tool.ROUGHEN,
-            Tool.EXTRUDE,
-            Tool.MOVE,
-            Tool.ELEVATION,
-            Tool.SLOPE,
-            Tool.DISTORT,
-            Tool.SHATTER
-        },
-        {Tool.RULER}
+    // Display order — categories grouped. Column count from DimensiumConfig.toolGridColumns.
+    static final Tool[] GRID_TOOLS = {
+        // selecting
+        Tool.POINTER,
+        Tool.SELECT,
+        Tool.MAGIC_SELECT,
+        Tool.FREEHAND_SELECT,
+        Tool.LASSO_SELECT,
+        // creating
+        Tool.FREEHAND_DRAW,
+        Tool.SCULPT_DRAW,
+        Tool.SHAPE,
+        Tool.FILL,
+        Tool.STAMP,
+        Tool.PATH,
+        Tool.MODELLING,
+        Tool.ROCK,
+        // painting
+        Tool.PAINTER,
+        Tool.NOISE,
+        Tool.GRADIENT,
+        // manipulating
+        Tool.SMOOTH,
+        Tool.WELD,
+        Tool.MELT,
+        Tool.ROUGHEN,
+        Tool.EXTRUDE,
+        Tool.MOVE,
+        Tool.ELEVATION,
+        Tool.SLOPE,
+        Tool.DISTORT,
+        Tool.SHATTER,
+        // utility
+        Tool.RULER,
     };
 
     // ── Per-tool section cache ────────────────────────────────────────────────
@@ -82,8 +90,6 @@ public class ToolWindow extends ToggleableWindow {
     }
 
     final Map<Tool, ToolSection> sectionMap = buildSectionMap();
-    private final ImInt catIdx = new ImInt(0);
-    private final ImInt toolIdx = new ImInt(0);
 
     public void render(int sh) {
         if (!open) return;
@@ -104,38 +110,28 @@ public class ToolWindow extends ToggleableWindow {
             return;
         }
 
-        String[] cats = categoryNames();
-        int currentCat = categoryFor(DimensiumEditorMode.INSTANCE.selectedTool);
-        catIdx.set(currentCat);
-        ImGui.setNextItemWidth(-1);
-        if (ImGui.combo("##cat", catIdx, cats) && catIdx.get() != currentCat) {
-            DimensiumEditorMode.INSTANCE.selectedTool = CATEGORY_TOOLS[catIdx.get()][0];
-        }
-
-        int cat = categoryFor(DimensiumEditorMode.INSTANCE.selectedTool);
-        Tool[] tools = CATEGORY_TOOLS[cat];
-        String[] toolLabels = new String[tools.length];
-        int selTool = 0;
-        for (int i = 0; i < tools.length; i++) {
-            toolLabels[i] = I18n.format(tools[i].label);
-            if (tools[i] == DimensiumEditorMode.INSTANCE.selectedTool) selTool = i;
-        }
-        toolIdx.set(selTool);
-        ImGui.setNextItemWidth(-1);
-        if (ImGui.combo("##tool", toolIdx, toolLabels)) {
-            DimensiumEditorMode.INSTANCE.selectedTool = tools[toolIdx.get()];
-        }
+        renderToolGrid();
 
         ImGui.end();
         ImGui.popStyleVar();
     }
 
-    private static int categoryFor(Tool tool) {
-        for (int c = 0; c < CATEGORY_TOOLS.length; c++) {
-            for (Tool ct : CATEGORY_TOOLS[c]) {
-                if (ct == tool) return c;
+    private void renderToolGrid() {
+        float available = ImGui.getContentRegionAvailX();
+        int cols = DimensiumConfig.toolGridColumns;
+        float gap = 2f;
+        float iconSize = (available - gap * (cols - 1)) / cols - DeferredItemRender.ITEM_PAD * 2f;
+        Tool selectedTool = DimensiumEditorMode.INSTANCE.selectedTool;
+
+        for (int i = 0; i < GRID_TOOLS.length; i++) {
+            int col = i % cols;
+            if (col != 0) ImGui.sameLine(0f, gap);
+            Tool tool = GRID_TOOLS[i];
+            int texId = ToolIconCache.INSTANCE.getTexture(tool);
+            String tooltip = I18n.format(tool.label);
+            if (DeferredItemRender.placeIconButton("##tool" + i, texId, iconSize, tool == selectedTool, tooltip)) {
+                DimensiumEditorMode.INSTANCE.selectedTool = tool;
             }
         }
-        return 0;
     }
 }

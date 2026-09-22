@@ -50,6 +50,10 @@ public class DimensiumConfig {
     @Config.RangeFloat(min = 0.5f, max = 3.0f)
     public static float uiScale = 1.0f;
 
+    @Config.Comment("Number of columns in the tool icon grid.")
+    @Config.RangeInt(min = 3, max = 20)
+    public static int toolGridColumns = 9;
+
     @Config.Comment("Rotation gizmo snap increment in degrees. Set to 0 to disable snapping.")
     @Config.RangeFloat(min = 0.0f, max = 45.0f)
     public static float rotationSnapDegrees = 1.0f;
@@ -82,6 +86,11 @@ public class DimensiumConfig {
 
     public static void setRotationSnapDegrees(float value) {
         rotationSnapDegrees = value;
+        save();
+    }
+
+    public static void setToolGridColumns(int value) {
+        toolGridColumns = value;
         save();
     }
 

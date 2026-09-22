@@ -5,6 +5,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com). Run `scripts/rele
 
 ## [Unreleased]
 ### Added
+- Tool panel: replace category/tool comboboxes with single-click icon grid; column count configurable in Settings
 
 ### Changed
 

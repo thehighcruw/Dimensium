@@ -43,6 +43,7 @@ public class SettingsModal {
     private final float[] pendingMovementSpeed = {1.0f};
     private final ImBoolean pendingOrbitUseCursor = new ImBoolean(true);
     private final float[] pendingShapeThreshold = {0.75f};
+    private final int[] pendingToolGridColumns = {9};
 
     // Tool keybind capture: which Tool is being re-bound, null = not capturing a tool bind.
     private Tool capturingTool = null;
@@ -256,6 +257,7 @@ public class SettingsModal {
         pendingMovementSpeed[0] = DimensiumConfig.movementSpeedMultiplier;
         pendingOrbitUseCursor.set(DimensiumConfig.orbitUseCursor);
         pendingShapeThreshold[0] = DimensiumConfig.shapeThreshold;
+        pendingToolGridColumns[0] = DimensiumConfig.toolGridColumns;
         capturingTool = null;
         capturingActionIndex = -1;
     }
@@ -531,7 +533,8 @@ public class SettingsModal {
                     || pendingRotationSnap[0] != DimensiumConfig.rotationSnapDegrees
                     || pendingMovementSpeed[0] != DimensiumConfig.movementSpeedMultiplier
                     || pendingOrbitUseCursor.get() != DimensiumConfig.orbitUseCursor
-                    || pendingShapeThreshold[0] != DimensiumConfig.shapeThreshold;
+                    || pendingShapeThreshold[0] != DimensiumConfig.shapeThreshold
+                    || pendingToolGridColumns[0] != DimensiumConfig.toolGridColumns;
             ImGui.setCursorPosX(modalW - applyW - closeW - gap - 16f * scale);
             if (hasChanges) {
                 ImGui.pushStyleColor(ImGuiCol.Button, 0.18f, 0.42f, 0.90f, 1.00f);
@@ -546,6 +549,7 @@ public class SettingsModal {
                 DimensiumConfig.setMovementSpeedMultiplier(pendingMovementSpeed[0]);
                 DimensiumConfig.setOrbitUseCursor(pendingOrbitUseCursor.get());
                 DimensiumConfig.setShapeThreshold(pendingShapeThreshold[0]);
+                DimensiumConfig.setToolGridColumns(pendingToolGridColumns[0]);
                 try {
                     ConfigurationManager.save(DimensiumConfig.class);
                 } catch (Exception e) {
@@ -588,6 +592,11 @@ public class SettingsModal {
         ImGui.text(I18n.format("dimensium.settings.general.shape_threshold"));
         ImGui.setNextItemWidth(width - 4f);
         ImGui.sliderFloat("##shape_threshold_slider", pendingShapeThreshold, 0.0f, 1.0f, "%.2f");
+
+        ImGui.spacing();
+        ImGui.text(I18n.format("dimensium.settings.general.tool_grid_columns"));
+        ImGui.setNextItemWidth(width - 4f);
+        ImGui.sliderInt("##tool_grid_columns_slider", pendingToolGridColumns, 3, 20, "%d");
     }
 
     private void renderNavigationSettings(float width) {

@@ -28,6 +28,7 @@ public final class DeferredItemRender {
 
     // Padding around the icon inside the button cell, in screen pixels.
     public static final float ITEM_PAD = 2f;
+    private static final float BUTTON_CORNER_RADIUS = 3f;
 
     // Background colors in 0xAABBGGRR format.
     private static final int COL_BG_NORMAL = 0xCC1A2840; // dark navy, 80% alpha
@@ -35,10 +36,7 @@ public final class DeferredItemRender {
     private static final int COL_BG_SELECTED = 0x8CFF803D; // accent blue, 55% alpha
     private static final int COL_BG_SELECTED_HOVERED = 0xCCFF803D; // accent blue, 80% alpha
 
-    /**
-     * Draw an item icon at the given ImGui screen-space position.
-     * Must be called from within an active ImGui Begin/End block.
-     */
+    /** Draw an item icon at the given ImGui screen-space position. */
     public static void schedule(ItemStack stack, float x, float y, float size) {
         if (stack == null) return;
         int texId = ItemIconCache.INSTANCE.getTexture(stack);
@@ -46,7 +44,6 @@ public final class DeferredItemRender {
         ImGui.getWindowDrawList().addImage(texId, x, y, x + size, y + size, 0f, 1f, 1f, 0f);
     }
 
-    /** Reserve a dummy widget at the cursor and draw the icon there. */
     public static void placeDummy(ItemStack stack, float size) {
         float renderSize = size * 2f;
         ImVec2 pos = new ImVec2();
@@ -55,19 +52,10 @@ public final class DeferredItemRender {
         ImGui.dummy(renderSize, renderSize);
     }
 
-    /**
-     * Place an invisible button at the cursor and draw the icon on top.
-     * Returns true if the button was clicked this frame.
-     */
     public static boolean placeButton(String id, ItemStack stack, float size) {
         return placeButton(id, stack, size, false);
     }
 
-    /**
-     * Place an invisible button at the cursor and draw the icon on top,
-     * with a blue background that brightens on hover and highlights when selected.
-     * Returns true if the button was clicked this frame.
-     */
     public static boolean placeButton(String id, ItemStack stack, float size, boolean selected) {
         float renderSize = size * 2f;
         float btnSize = renderSize + ITEM_PAD * 2f;
@@ -83,7 +71,8 @@ public final class DeferredItemRender {
         else if (hovered) bg = COL_BG_HOVERED;
         else bg = COL_BG_NORMAL;
 
-        ImGui.getWindowDrawList().addRectFilled(pos.x, pos.y, pos.x + btnSize, pos.y + btnSize, bg, 3f);
+        ImGui.getWindowDrawList()
+                .addRectFilled(pos.x, pos.y, pos.x + btnSize, pos.y + btnSize, bg, BUTTON_CORNER_RADIUS);
         schedule(stack, pos.x + ITEM_PAD, pos.y + ITEM_PAD, renderSize);
 
         if (hovered && stack != null) {
@@ -94,6 +83,39 @@ public final class DeferredItemRender {
                 ImGui.text(name);
                 ImGui.endTooltip();
             }
+        }
+
+        return clicked;
+    }
+
+    /** Like placeButton but for a raw GL texture (PNG icon). UV is 0,0→1,1, no FBO flip needed. */
+    public static boolean placeIconButton(String id, int texId, float size, boolean selected, String tooltip) {
+        float btnSize = size + ITEM_PAD * 2f;
+        ImVec2 pos = new ImVec2();
+        ImGui.getCursorScreenPos(pos);
+        ImGui.invisibleButton(id, btnSize, btnSize);
+        boolean clicked = ImGui.isItemClicked();
+        boolean hovered = ImGui.isItemHovered();
+
+        int bg;
+        if (selected && hovered) bg = COL_BG_SELECTED_HOVERED;
+        else if (selected) bg = COL_BG_SELECTED;
+        else if (hovered) bg = COL_BG_HOVERED;
+        else bg = COL_BG_NORMAL;
+
+        ImGui.getWindowDrawList()
+                .addRectFilled(pos.x, pos.y, pos.x + btnSize, pos.y + btnSize, bg, BUTTON_CORNER_RADIUS);
+        if (texId != 0) {
+            float ix = pos.x + ITEM_PAD;
+            float iy = pos.y + ITEM_PAD;
+            ImGui.getWindowDrawList().addImage(texId, ix, iy, ix + size, iy + size, 0f, 0f, 1f, 1f);
+        }
+
+        if (hovered && tooltip != null && !tooltip.isEmpty()) {
+            ImGui.setNextWindowPos(pos.x + btnSize * 0.5f, pos.y - 4f, 0, 0.5f, 1.0f);
+            ImGui.beginTooltip();
+            ImGui.text(tooltip);
+            ImGui.endTooltip();
         }
 
         return clicked;
