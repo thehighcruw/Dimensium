@@ -27,13 +27,20 @@ jobs:
           cache: gradle
 
       - name: Validate changelog
-        if: github.ref == 'refs/heads/main'
         run: |
-          section=$(awk '/^## \[Unreleased\]/{found=1; next} found && /^## /{exit} found{print}' CHANGELOG.md)
-          entries=$(echo "$section" | grep -v '^\s*$' | grep -v '^###' || true)
-          if [[ -z "$entries" ]]; then
-            echo "CHANGELOG.md [Unreleased] section is empty. Add at least one entry." >&2
-            exit 1
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            version="${GITHUB_REF#refs/tags/v}"
+            section=$(awk "/^## \[${version}\]/{found=1; next} found && /^## /{exit} found{print}" CHANGELOG.md)
+            entries=$(echo "$section" | grep -v '^\s*$' | grep -v '^###' || true)
+            if [[ -z "$entries" ]]; then
+              echo "CHANGELOG.md [${version}] section is empty. Add at least one entry." >&2
+              exit 1
+            fi
+          else
+            if ! grep -q '^## \[Unreleased\]' CHANGELOG.md; then
+              echo "CHANGELOG.md is missing the [Unreleased] section." >&2
+              exit 1
+            fi
           fi
 
       - name: Check formatting (Spotless)
