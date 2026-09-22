@@ -22,11 +22,31 @@ if git tag | grep -q "^v$VERSION$"; then
 fi
 
 python3 - "$CHANGELOG" "$VERSION" "$DATE" <<'EOF'
-import sys
+import re, sys
 
 changelog, version, date = sys.argv[1], sys.argv[2], sys.argv[3]
 with open(changelog) as f:
     content = f.read()
+
+# Extract the [Unreleased] section body
+match = re.search(r'## \[Unreleased\](.*?)(?=^## \[|\Z)', content, re.DOTALL | re.MULTILINE)
+unreleased_body = match.group(1) if match else ""
+
+# Strip subsections that have no entries
+def strip_empty_sections(body):
+    parts = re.split(r'(?=^### )', body, flags=re.MULTILINE)
+    result = []
+    for part in parts:
+        if part.startswith("### "):
+            # Keep only if it has non-blank, non-heading content
+            body_lines = re.sub(r'^### [^\n]*\n', '', part).strip()
+            if body_lines:
+                result.append(part)
+        else:
+            result.append(part)
+    return "".join(result)
+
+versioned_body = strip_empty_sections(unreleased_body)
 
 fresh_unreleased = (
     "## [Unreleased]\n"
@@ -37,8 +57,12 @@ fresh_unreleased = (
     "### Fixed\n\n"
     "### Security\n"
 )
-versioned = f"## [{version}] — {date}"
-content = content.replace("## [Unreleased]", f"{fresh_unreleased}\n{versioned}", 1)
+versioned = f"## [{version}] — {date}{versioned_body}"
+content = re.sub(
+    r'## \[Unreleased\].*?(?=^## \[|\Z)',
+    f"{fresh_unreleased}\n{versioned}",
+    content, count=1, flags=re.DOTALL | re.MULTILINE
+)
 
 with open(changelog, "w") as f:
     f.write(content)
