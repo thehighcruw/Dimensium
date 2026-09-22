@@ -6,5 +6,6 @@
     "mcversion": "${minecraftVersion}",
     "url": "",
     "authorList": [],
+    "logoFile": "pack.png",
     "dependencies": []
 }]
