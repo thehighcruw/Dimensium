@@ -11,6 +11,7 @@ import github.thehighcruw.dimensium.editor.tool.creating.freehand.FreehandBrush;
 import github.thehighcruw.dimensium.editor.tool.creating.rock.RockBrush;
 import github.thehighcruw.dimensium.editor.tool.creating.sculpt.SculptBrush;
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeBrush;
+import github.thehighcruw.dimensium.editor.tool.creating.tree.TreeBrush;
 import github.thehighcruw.dimensium.editor.tool.manipulating.distort.DistortBrush;
 import github.thehighcruw.dimensium.editor.tool.manipulating.elevation.ElevationBrush;
 import github.thehighcruw.dimensium.editor.tool.manipulating.melt.MeltBrush;
@@ -39,6 +40,7 @@ public class BrushApplicator {
         BRUSHES.put(Tool.SCULPT_DRAW, new SculptBrush());
         BRUSHES.put(Tool.NOISE, new NoiseBrush());
         BRUSHES.put(Tool.ROCK, new RockBrush());
+        BRUSHES.put(Tool.TREE, new TreeBrush());
         BRUSHES.put(Tool.GRADIENT, new GradientBrush());
         BRUSHES.put(Tool.SMOOTH, new SmoothBrush());
         BRUSHES.put(Tool.WELD, new WeldBrush());

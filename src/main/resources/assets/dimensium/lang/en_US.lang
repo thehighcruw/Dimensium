@@ -825,3 +825,27 @@ dimensium.gui.gradient_helper=Gradient Helper
 dimensium.gui.gradient.inputs=Inputs
 dimensium.gui.gradient.outputs=Outputs
 dimensium.gui.gradient.copy_hotbar=Copy to Hotbar
+
+# Tree Tool
+dimensium.tool.tree=Tree
+dimensium.ui.section.tree=Tree
+dimensium.ui.section.tree_params=Parameters
+dimensium.ui.tree.preset=Preset
+dimensium.ui.tree.randomize=Randomize
+dimensium.ui.tree.trunk_height=Trunk Height
+dimensium.ui.tree.trunk_radius=Trunk Radius
+dimensium.ui.tree.trunk_taper=Trunk Taper
+dimensium.ui.tree.levels=Branch Levels
+dimensium.ui.tree.branch_count=Branches
+dimensium.ui.tree.branch_angle_spread=Angle Spread
+dimensium.ui.tree.branch_length_ratio=Length Ratio
+dimensium.ui.tree.branch_start_height=Start Height
+dimensium.ui.tree.branch_radius_factor=Radius Factor
+dimensium.ui.tree.seed=Seed
+dimensium.ui.tree.log_block=Log Block
+dimensium.ui.tree.log_meta=Log Meta
+dimensium.ui.tree.leaf_block=Leaf Block
+dimensium.ui.tree.leaf_meta=Leaf Meta
+dimensium.ui.tree.leaf_radius=Leaf Radius
+dimensium.ui.tree.leaf_noisiness=Leaf Noisiness
+dimensium.ui.tree.leaf_seed=Leaf Seed

@@ -23,6 +23,7 @@ import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeBrushInput;
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeSection;
 import github.thehighcruw.dimensium.editor.tool.creating.stamp.StampBrushInput;
 import github.thehighcruw.dimensium.editor.tool.creating.stamp.StampSection;
+import github.thehighcruw.dimensium.editor.tool.creating.tree.TreeSection;
 import github.thehighcruw.dimensium.editor.tool.manipulating.distort.DistortSection;
 import github.thehighcruw.dimensium.editor.tool.manipulating.elevation.ElevationBrushInput;
 import github.thehighcruw.dimensium.editor.tool.manipulating.elevation.ElevationSection;
@@ -216,6 +217,8 @@ public final class ToolRegistry {
                 ToolRenderer.DEFAULT_BRUSH);
 
         register(Tool.SLOPE, s -> new SlopeSection(s.slope), SlopeBrushInput.INSTANCE, SlopeToolRenderer.INSTANCE);
+
+        register(Tool.TREE, s -> new TreeSection(s.tree), PaintBrushInput.INSTANCE, ToolRenderer.DEFAULT_BRUSH);
 
         register(Tool.RULER, s -> new RulerSection(s.ruler), new RulerBrushInput(), new RulerToolRenderer());
 

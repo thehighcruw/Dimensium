@@ -13,6 +13,7 @@ import github.thehighcruw.dimensium.editor.tool.creating.rock.RockToolState;
 import github.thehighcruw.dimensium.editor.tool.creating.sculpt.SculptToolState;
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeToolState;
 import github.thehighcruw.dimensium.editor.tool.creating.stamp.StampToolState;
+import github.thehighcruw.dimensium.editor.tool.creating.tree.TreeToolState;
 import github.thehighcruw.dimensium.editor.tool.manipulating.distort.DistortToolState;
 import github.thehighcruw.dimensium.editor.tool.manipulating.elevation.ElevationToolState;
 import github.thehighcruw.dimensium.editor.tool.manipulating.extrude.ExtrudeToolState;
@@ -55,6 +56,7 @@ public final class ToolStates {
     public final GradientToolState gradient = GradientToolState.INSTANCE;
     public final NoiseToolState noise = NoiseToolState.INSTANCE;
     public final RockToolState rock = RockToolState.INSTANCE;
+    public final TreeToolState tree = TreeToolState.INSTANCE;
     public final SmoothToolState smooth = SmoothToolState.INSTANCE;
     public final ShapeToolState shape = ShapeToolState.INSTANCE;
     public final FloodfillToolState floodfill = FloodfillToolState.INSTANCE;
