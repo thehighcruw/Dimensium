@@ -16,10 +16,39 @@ Dimensium brings powerful in-game world editing tools — selection, clipboard, 
 
 ## Features
 
-- Selection box with clipboard (copy / paste / fill)
-- Brush tool with configurable shape and radius
-- Shape placement (sphere, cylinder, etc.)
-- Noise brush for organic terrain
+### Selection
+- Box, freehand, lasso, and magic-wand selection tools
+- Boolean operations (add, subtract, intersect)
+- Clipboard: copy, paste, fill
+
+### Manipulation tools
+- **Move** — translate selection with optional scaling
+- **Extrude** — push faces outward
+- **Distort** — warp geometry
+- **Slope** — apply a linear slope to a selection
+- **Elevation** — raise/lower terrain with custom or preconfigured heightmaps
+- **Melt / Smooth / Roughen / Weld / Shatter** — surface refinement brushes
+
+### Creation tools
+- Shape placement (sphere, cylinder, and more)
+- Fill, freehand, path, rock, sculpt, stamp, modelling brushes
+- Brush with configurable shape, radius, and Gaussian falloff
+
+### Painting
+- Painter, gradient, and noise paint tools
+
+### Gizmo
+- Translate, rotate, and scale gizmo for pastes and moved selections
+
+### Blueprints
+- Save, load, and browse named blueprints with thumbnail previews
+
+### Other
+- Mask system for filtering block operations
+- Undo / redo history
+- Freecam for unrestricted camera movement
+- Ruler utility
+- Noise preview renderer
 - ImGui-based floating panel UI
 - Full client–server authority: all block operations go through server-side packets
 
@@ -59,4 +88,4 @@ If you are playing GT:NH, both are already included.
 
 ## License
 
-Source available. No license file yet — contact the author before redistributing.
+MIT — see [LICENSE](LICENSE).
