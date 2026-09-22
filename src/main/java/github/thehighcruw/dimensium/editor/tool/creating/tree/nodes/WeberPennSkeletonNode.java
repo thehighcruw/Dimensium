@@ -6,6 +6,7 @@ package github.thehighcruw.dimensium.editor.tool.creating.tree.nodes;
 
 import github.thehighcruw.dimensium.editor.tool.creating.tree.pipeline.NodeParams;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.pipeline.NodeSchema;
+import github.thehighcruw.dimensium.editor.tool.creating.tree.pipeline.PipelineContext;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.pipeline.PipelineNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.pipeline.Skeleton;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.pipeline.SkeletonNode;
@@ -26,11 +27,10 @@ public class WeberPennSkeletonNode implements PipelineNode<Vec3DInt, Skeleton> {
             .floatParam("wp.branchAngleSpread", 45.0f, 5.0f, 80.0f, "dimensium.ui.tree.branch_angle_spread")
             .floatParam("wp.branchLengthRatio", 0.55f, 0.2f, 0.9f, "dimensium.ui.tree.branch_length_ratio")
             .floatParam("wp.branchStartHeight", 0.55f, 0.1f, 0.9f, "dimensium.ui.tree.branch_start_height")
-            .floatParam("wp.branchRadiusFactor", 0.5f, 0.2f, 0.8f, "dimensium.ui.tree.branch_radius_factor")
-            .longParam("wp.seed", 12345L, "dimensium.ui.tree.seed");
+            .floatParam("wp.branchRadiusFactor", 0.5f, 0.2f, 0.8f, "dimensium.ui.tree.branch_radius_factor");
 
     @Override
-    public Skeleton apply(Vec3DInt origin, NodeParams params) {
+    public Skeleton apply(Vec3DInt origin, NodeParams params, PipelineContext context) {
         int trunkHeight = params.getInt("wp.trunkHeight", 12);
         float trunkRadius = params.getFloat("wp.trunkRadius", 2.0f);
         float trunkTaper = params.getFloat("wp.trunkTaper", 0.7f);
@@ -40,9 +40,8 @@ public class WeberPennSkeletonNode implements PipelineNode<Vec3DInt, Skeleton> {
         float branchLengthRatio = params.getFloat("wp.branchLengthRatio", 0.55f);
         float branchStartHeight = params.getFloat("wp.branchStartHeight", 0.55f);
         float branchRadiusFactor = params.getFloat("wp.branchRadiusFactor", 0.5f);
-        long seed = params.getLong("wp.seed", 12345L);
 
-        Random rand = new Random(seed);
+        Random rand = new Random(context.nodeSeed(0));
 
         SkeletonNode root = buildTrunk(origin, trunkHeight, trunkRadius, trunkTaper);
 
@@ -60,7 +59,9 @@ public class WeberPennSkeletonNode implements PipelineNode<Vec3DInt, Skeleton> {
                 branchRadiusFactor,
                 rand);
 
-        return new Skeleton(root);
+        Skeleton skeleton = new Skeleton(root);
+        context.put(Skeleton.class, skeleton);
+        return skeleton;
     }
 
     private static SkeletonNode buildTrunk(Vec3DInt origin, int height, float baseRadius, float taper) {

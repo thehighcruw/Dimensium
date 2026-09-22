@@ -5,6 +5,7 @@
 package github.thehighcruw.dimensium.editor.tool.creating.tree;
 
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.CylinderVoxelizerNode;
+import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.DepthPaletteNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.LeafClusterNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.WeberPennSkeletonNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.pipeline.NodeParams;
@@ -14,6 +15,7 @@ import github.thehighcruw.dimensium.editor.tool.creating.tree.pipeline.PipelineP
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class TreeToolState {
 
@@ -23,19 +25,22 @@ public class TreeToolState {
         NodeRegistry.register(WeberPennSkeletonNode.ID, WeberPennSkeletonNode::new);
         NodeRegistry.register(CylinderVoxelizerNode.ID, CylinderVoxelizerNode::new);
         NodeRegistry.register(LeafClusterNode.ID, LeafClusterNode::new);
+        NodeRegistry.register(DepthPaletteNode.ID, DepthPaletteNode::new);
     }
 
     private static final List<String> OAK_NODE_IDS =
-            Arrays.asList(WeberPennSkeletonNode.ID, CylinderVoxelizerNode.ID, LeafClusterNode.ID);
+            Arrays.asList(WeberPennSkeletonNode.ID, CylinderVoxelizerNode.ID, LeafClusterNode.ID, DepthPaletteNode.ID);
 
     private static final List<String> PINE_NODE_IDS =
-            Arrays.asList(WeberPennSkeletonNode.ID, CylinderVoxelizerNode.ID, LeafClusterNode.ID);
+            Arrays.asList(WeberPennSkeletonNode.ID, CylinderVoxelizerNode.ID, LeafClusterNode.ID, DepthPaletteNode.ID);
 
     public final List<PipelinePreset> presets = new ArrayList<>();
     public int selectedPresetIndex = 0;
+    public long seed;
     private Pipeline activePipeline;
 
     private TreeToolState() {
+        seed = ThreadLocalRandom.current().nextLong();
         buildPresets();
         rebuildPipeline();
     }
@@ -49,12 +54,11 @@ public class TreeToolState {
                 .withParam("wp.branchAngleSpread", 50.0f)
                 .withParam("wp.branchLengthRatio", 0.55f)
                 .withParam("wp.branchStartHeight", 0.55f)
-                .withParam("vox.logBlockId", 17)
-                .withParam("vox.logMeta", 0)
-                .withParam("leaf.leafBlockId", 18)
-                .withParam("leaf.leafMeta", 4)
+                .withParam("vox.logPalette", Arrays.asList(new int[] {17, 0}))
+                .withParam("leaf.leafPalette", Arrays.asList(new int[] {18, 4}))
                 .withParam("leaf.clusterRadius", 4.5f)
-                .withParam("leaf.noisiness", 0.55f);
+                .withParam("leaf.noisiness", 0.55f)
+                .withParam("dp.palette", Arrays.asList(new int[] {17, 0}, new int[] {17, 0}, new int[] {18, 4}));
         presets.add(oak);
 
         PipelinePreset pine = new PipelinePreset("Pine", PINE_NODE_IDS)
@@ -66,12 +70,11 @@ public class TreeToolState {
                 .withParam("wp.branchAngleSpread", 25.0f)
                 .withParam("wp.branchLengthRatio", 0.6f)
                 .withParam("wp.branchStartHeight", 0.3f)
-                .withParam("vox.logBlockId", 17)
-                .withParam("vox.logMeta", 1)
-                .withParam("leaf.leafBlockId", 18)
-                .withParam("leaf.leafMeta", 5)
+                .withParam("vox.logPalette", Arrays.asList(new int[] {17, 1}))
+                .withParam("leaf.leafPalette", Arrays.asList(new int[] {18, 5}))
                 .withParam("leaf.clusterRadius", 2.5f)
-                .withParam("leaf.noisiness", 0.35f);
+                .withParam("leaf.noisiness", 0.35f)
+                .withParam("dp.palette", Arrays.asList(new int[] {17, 1}, new int[] {17, 1}, new int[] {18, 5}));
         presets.add(pine);
     }
 

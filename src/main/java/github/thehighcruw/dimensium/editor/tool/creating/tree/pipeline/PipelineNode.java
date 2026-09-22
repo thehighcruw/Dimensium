@@ -6,7 +6,7 @@ package github.thehighcruw.dimensium.editor.tool.creating.tree.pipeline;
 
 public interface PipelineNode<I, O> {
 
-    O apply(I input, NodeParams params);
+    O apply(I input, NodeParams params, PipelineContext context);
 
     NodeSchema schema();
 }

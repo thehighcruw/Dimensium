@@ -5,6 +5,7 @@
 package github.thehighcruw.dimensium.editor.tool.creating.tree.pipeline;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class NodeParams {
@@ -33,6 +34,12 @@ public class NodeParams {
     public long getLong(String key, long defaultValue) {
         Object value = values.get(key);
         return value instanceof Number ? ((Number) value).longValue() : defaultValue;
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<int[]> getPalette(String key, List<int[]> defaultValue) {
+        Object value = values.get(key);
+        return value instanceof List ? (List<int[]>) value : defaultValue;
     }
 
     public NodeParams copy() {

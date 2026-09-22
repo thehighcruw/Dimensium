@@ -16,6 +16,7 @@ import github.thehighcruw.dimensium.editor.tool.creating.tree.pipeline.PipelineP
 import imgui.ImGui;
 import imgui.type.ImBoolean;
 import imgui.type.ImInt;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import net.minecraft.client.resources.I18n;
 
@@ -44,6 +45,10 @@ public class TreeSection implements ToolSection {
         if (ImGui.combo(I18n.format("dimensium.ui.tree.preset") + "##tree_preset", presetIdx, presetNames)) {
             state.selectedPresetIndex = presetIdx.get();
             state.rebuildPipeline();
+        }
+
+        if (ImGui.button(I18n.format("dimensium.ui.tree.randomize_seed") + "##tree_seed")) {
+            state.seed = ThreadLocalRandom.current().nextLong();
         }
 
         ImGui.spacing();
@@ -87,12 +92,17 @@ public class TreeSection implements ToolSection {
                 }
                 break;
             }
-            case LONG: {
-                if (ImGui.button(I18n.format("dimensium.ui.tree.randomize") + "##tree_rand_" + def.key)) {
-                    params.set(def.key, ThreadLocalRandom.current().nextLong());
-                }
+            case PALETTE: {
+                @SuppressWarnings("unchecked")
+                List<int[]> palette = params.getPalette(def.key, (List<int[]>) def.defaultValue);
+                ImGui.text(I18n.format(def.labelKey) + ": "
+                        + palette.size()
+                        + " "
+                        + I18n.format("dimensium.ui.tree.palette_blocks"));
                 break;
             }
+            default:
+                break;
         }
     }
 }

@@ -4,7 +4,6 @@
  */
 package github.thehighcruw.dimensium.editor.tool.creating.tree.pipeline;
 
-import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import java.util.List;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
@@ -18,10 +17,10 @@ public class Pipeline {
         this.params = params;
     }
 
-    public BlockMap execute(Vec3DInt origin) {
-        Object current = origin;
+    public BlockMap execute(PipelineContext context) {
+        Object current = context.origin;
         for (PipelineNode node : nodes) {
-            current = node.apply(current, params);
+            current = node.apply(current, params, context);
         }
         return (BlockMap) current;
     }

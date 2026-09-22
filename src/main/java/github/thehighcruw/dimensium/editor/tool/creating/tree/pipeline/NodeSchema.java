@@ -14,7 +14,8 @@ public class NodeSchema {
         FLOAT,
         INT,
         BOOL,
-        LONG
+        LONG,
+        PALETTE
     }
 
     public static final class ParamDef {
@@ -55,6 +56,11 @@ public class NodeSchema {
 
     public NodeSchema longParam(String key, long defaultValue, String labelKey) {
         paramList.add(new ParamDef(key, ParamType.LONG, defaultValue, 0f, 0f, labelKey));
+        return this;
+    }
+
+    public NodeSchema paletteParam(String key, List<int[]> defaultValue, String labelKey) {
+        paramList.add(new ParamDef(key, ParamType.PALETTE, new ArrayList<>(defaultValue), 0f, 0f, labelKey));
         return this;
     }
 
