@@ -86,7 +86,7 @@ public final class DeferredItemRender {
         ImGui.getWindowDrawList().addRectFilled(pos.x, pos.y, pos.x + btnSize, pos.y + btnSize, bg, 3f);
         schedule(stack, pos.x + ITEM_PAD, pos.y + ITEM_PAD, renderSize);
 
-        if (hovered) {
+        if (hovered && stack != null) {
             String name = stack.getDisplayName();
             if (name != null && !name.isEmpty()) {
                 ImGui.setNextWindowPos(pos.x + btnSize * 0.5f, pos.y - 4f, 0, 0.5f, 1.0f);

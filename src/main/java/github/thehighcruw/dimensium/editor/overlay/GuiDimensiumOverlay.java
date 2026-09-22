@@ -334,7 +334,7 @@ public final class GuiDimensiumOverlay {
         ChangeProposal p = PathToolState.INSTANCE.preview;
         if (p != null && !p.proposed.isEmpty()) {
             String pathAction =
-                    I18n.format("dimensium.action.path", I18n.format(PathToolState.INSTANCE.curveType.label));
+                    I18n.format("dimensium.action.path", I18n.format(PathToolState.INSTANCE.curveType.labelKey));
             BlockSender.sendChunked(p.toOps(), pathAction);
         }
         PathToolState.INSTANCE.clear();

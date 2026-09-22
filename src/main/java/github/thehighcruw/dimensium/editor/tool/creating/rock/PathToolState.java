@@ -4,6 +4,8 @@
  */
 package github.thehighcruw.dimensium.editor.tool.creating.rock;
 
+import github.thehighcruw.dimensium.editor.blueprint.Blueprint;
+import github.thehighcruw.dimensium.editor.clipboard.ClipboardBlock;
 import github.thehighcruw.dimensium.editor.tool.creating.path.PathMath;
 import github.thehighcruw.dimensium.editor.tool.gizmo.WithAxisTranslationGizmo;
 import github.thehighcruw.dimensium.editor.tool.gizmo.WithPlaneTranslationGizmo;
@@ -34,29 +36,40 @@ public class PathToolState implements WithAxisTranslationGizmo, WithPlaneTransla
         }
     }
 
+    public enum PathFillMode {
+        BLOCKS("dimensium.ui.path.fill_mode.blocks"),
+        STAMP("dimensium.ui.path.fill_mode.stamp");
+
+        public final String labelKey;
+
+        PathFillMode(String labelKey) {
+            this.labelKey = labelKey;
+        }
+    }
+
     public enum CurveType {
-        BRESENHAM("Bresenham"),
-        DDA("DDA"),
-        CATENARY("Catenary"),
-        CATMULL_ROM("Catmull-Rom"),
-        BEZIER("Bezier");
+        BRESENHAM("dimensium.ui.path.curve.bresenham"),
+        DDA("dimensium.ui.path.curve.dda"),
+        CATENARY("dimensium.ui.path.curve.catenary"),
+        CATMULL_ROM("dimensium.ui.path.curve.catmull_rom"),
+        BEZIER("dimensium.ui.path.curve.bezier");
 
-        public final String label;
+        public final String labelKey;
 
-        CurveType(String label) {
-            this.label = label;
+        CurveType(String labelKey) {
+            this.labelKey = labelKey;
         }
     }
 
     public enum PathInterp {
-        NEAREST("Nearest"),
-        LINEAR("Linear"),
-        BEZIER("Bezier");
+        NEAREST("dimensium.ui.path.interp.nearest"),
+        LINEAR("dimensium.ui.path.interp.linear"),
+        BEZIER("dimensium.ui.path.interp.bezier");
 
-        public final String label;
+        public final String labelKey;
 
-        PathInterp(String label) {
-            this.label = label;
+        PathInterp(String labelKey) {
+            this.labelKey = labelKey;
         }
     }
 
@@ -67,6 +80,16 @@ public class PathToolState implements WithAxisTranslationGizmo, WithPlaneTransla
     public float catenarySlack = 0.5f;
     public PathInterp interp = PathInterp.NEAREST;
     public long interpSeed = ThreadLocalRandom.current().nextLong();
+
+    public PathFillMode fillMode = PathFillMode.BLOCKS;
+    /** Blueprint to stamp along path. Null means use current clipboard. */
+    public Blueprint stampBlueprint = null;
+    /** Arc-length distance between stamp placements in blocks. */
+    public int stampSpacing = 4;
+    /** Rotate stamp around Y axis to align with path tangent direction. */
+    public boolean orientYaw = false;
+    /** Also rotate stamp around X axis to follow vertical slope of path. Only applied when orientYaw is true. */
+    public boolean orientPitch = false;
 
     public ChangeProposal preview = null;
 
@@ -126,17 +149,19 @@ public class PathToolState implements WithAxisTranslationGizmo, WithPlaneTransla
         invalidatePath();
     }
 
-    public void rebuildIfNeeded(ItemStack activeBlock) {
+    public void rebuildIfNeeded(ItemStack activeBlock, List<ClipboardBlock> activeClipboard, Vec3DInt activeClipDim) {
         if (points.size() < 2) {
             preview = null;
             cachedKey = "";
             return;
         }
-        String key = buildKey(activeBlock);
+        String key = buildKey(activeBlock, activeClipboard, activeClipDim);
         if (key.equals(cachedKey) && preview != null) return;
         cachedKey = key;
 
-        List<int[]> blocks = PathMath.computePathBlocks(this, activeBlock);
+        List<int[]> blocks = fillMode == PathFillMode.STAMP
+                ? PathMath.computeStampPathBlocks(this, activeClipboard, activeClipDim)
+                : PathMath.computePathBlocks(this, activeBlock);
         if (blocks.isEmpty()) {
             preview = null;
             return;
@@ -144,7 +169,7 @@ public class PathToolState implements WithAxisTranslationGizmo, WithPlaneTransla
         preview = ChangeProposal.fromBlockList(blocks);
     }
 
-    private String buildKey(ItemStack activeBlock) {
+    private String buildKey(ItemStack activeBlock, List<ClipboardBlock> activeClipboard, Vec3DInt activeClipDim) {
         StringBuilder sb = new StringBuilder();
         sb.append(curveType.ordinal())
                 .append(',')
@@ -155,7 +180,32 @@ public class PathToolState implements WithAxisTranslationGizmo, WithPlaneTransla
                 .append(interp.ordinal())
                 .append(',')
                 .append(interpSeed)
+                .append(',')
+                .append(fillMode.ordinal())
+                .append(',')
+                .append(stampSpacing)
+                .append(',')
+                .append(orientYaw)
+                .append(',')
+                .append(orientPitch)
                 .append(',');
+        if (fillMode == PathFillMode.STAMP) {
+            List<ClipboardBlock> source = stampBlueprint != null ? stampBlueprint.offsets() : activeClipboard;
+            if (source != null) {
+                for (ClipboardBlock cb : source) {
+                    sb.append(cb.offset().x())
+                            .append(',')
+                            .append(cb.offset().y())
+                            .append(',')
+                            .append(cb.offset().z())
+                            .append(',')
+                            .append(cb.blockId())
+                            .append(',')
+                            .append(cb.meta())
+                            .append(';');
+                }
+            }
+        }
         for (PathPoint pt : points) {
             sb.append(pt.pos.x())
                     .append(',')

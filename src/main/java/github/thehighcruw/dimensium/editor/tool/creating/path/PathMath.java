@@ -4,9 +4,14 @@
  */
 package github.thehighcruw.dimensium.editor.tool.creating.path;
 
+import github.thehighcruw.dimensium.editor.clipboard.ClipboardBlock;
 import github.thehighcruw.dimensium.editor.tool.creating.modelling.ModellingMath;
 import github.thehighcruw.dimensium.editor.tool.creating.rock.PathToolState;
+import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeMath;
+import github.thehighcruw.dimensium.shared.math.Mat3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
+import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.BlockUtils;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 import java.util.ArrayList;
@@ -349,6 +354,115 @@ public class PathMath {
                 }
             }
         }
+    }
+
+    /**
+     * Stamps a blueprint (or clipboard) at evenly-spaced arc-length intervals along the path.
+     * Null or empty offsets → returns empty list.
+     */
+    public static List<int[]> computeStampPathBlocks(
+            PathToolState state, List<ClipboardBlock> offsets, Vec3DInt clipDim) {
+        if (offsets == null || offsets.isEmpty() || state.points.size() < 2) return new ArrayList<>();
+
+        List<SplinePoint> spline = buildFullSpline(state);
+        if (spline.isEmpty()) return new ArrayList<>();
+
+        Map<Long, int[]> out = new HashMap<>();
+        double arcSoFar = 0;
+        double nextStamp = 0;
+        SplinePoint prev = spline.get(0);
+        Mat3DFloat rotation = state.orientYaw ? tangentRotation(spline, 0, state.orientPitch) : null;
+        placeStamp(out, offsets, clipDim, prev, rotation);
+
+        for (int i = 1; i < spline.size(); i++) {
+            SplinePoint cur = spline.get(i);
+            arcSoFar += prev.pos().minus(cur.pos()).length();
+            if (arcSoFar >= nextStamp + state.stampSpacing) {
+                nextStamp = arcSoFar;
+                rotation = state.orientYaw ? tangentRotation(spline, i, state.orientPitch) : null;
+                placeStamp(out, offsets, clipDim, cur, rotation);
+            }
+            prev = cur;
+        }
+
+        return ChangeProposal.mapToOps(out);
+    }
+
+    /**
+     * Computes a rotation matrix aligning the stamp's +Z axis with the path tangent at index i.
+     * If orientPitch is true also tilts around X to follow vertical slope.
+     */
+    private static Mat3DFloat tangentRotation(List<SplinePoint> spline, int i, boolean orientPitch) {
+        int prev = Math.max(0, i - 1);
+        int next = Math.min(spline.size() - 1, i + 1);
+        Vec3DDouble tangent = spline.get(next).pos().minus(spline.get(prev).pos());
+        double length = tangent.length();
+        if (length < 1e-6) return Mat3DFloat.IDENTITY;
+
+        double dx = tangent.x() / length;
+        double dy = tangent.y() / length;
+        double dz = tangent.z() / length;
+
+        float yawDeg = (float) Math.toDegrees(Math.atan2(dx, dz));
+        float pitchDeg = 0f;
+        if (orientPitch) {
+            double horizLen = Math.sqrt(dx * dx + dz * dz);
+            pitchDeg = (float) Math.toDegrees(Math.atan2(-dy, horizLen));
+        }
+        return ShapeMath.buildRotationMatrix(pitchDeg, yawDeg, 0f);
+    }
+
+    private static void placeStamp(
+            Map<Long, int[]> out,
+            List<ClipboardBlock> offsets,
+            Vec3DInt clipDim,
+            SplinePoint center,
+            Mat3DFloat rotation) {
+        int cx = (int) Math.round(center.x());
+        int cy = (int) Math.round(center.y());
+        int cz = (int) Math.round(center.z());
+        Vec3DInt anchor = Vec3DInt.from(cx, cy, cz);
+
+        if (rotation == null) {
+            for (ClipboardBlock cb : offsets) {
+                Vec3DInt worldPos = anchor.plus(cb.offset());
+                out.put(ChangeProposal.packKey(worldPos), new int[] {cb.blockId(), cb.meta()});
+            }
+        } else {
+            Vec3DFloat blueprintCenter = clipDim.toFloat().divide(2f);
+            for (ClipboardBlock cb : offsets) {
+                Vec3DFloat local = cb.offset().toFloat().plus(0.5f).minus(blueprintCenter);
+                Vec3DInt worldPos =
+                        anchor.plus(Vec3DInt.floor(rotation.mul(local).plus(blueprintCenter)));
+                out.put(ChangeProposal.packKey(worldPos), new int[] {cb.blockId(), cb.meta()});
+            }
+        }
+    }
+
+    /** Builds the full spline as a single list of SplinePoints for the entire path. */
+    private static List<SplinePoint> buildFullSpline(PathToolState state) {
+        List<PathToolState.PathPoint> pts = state.points;
+        if (state.curveType == PathToolState.CurveType.CATMULL_ROM) {
+            return densify(catmullRomAll(pts, state.looped));
+        }
+        if (state.curveType == PathToolState.CurveType.BEZIER) {
+            return densify(bezierAll(pts, state.looped));
+        }
+        List<SplinePoint> result = new ArrayList<>();
+        int segCount = state.looped ? pts.size() : pts.size() - 1;
+        for (int seg = 0; seg < segCount; seg++) {
+            PathToolState.PathPoint a = pts.get(seg);
+            PathToolState.PathPoint b = pts.get((seg + 1) % pts.size());
+            List<SplinePoint> segment =
+                    switch (state.curveType) {
+                        case BRESENHAM, CATMULL_ROM, BEZIER -> bresenhamSegment(a, b);
+                        case DDA -> densify(ddaSegment(a, b));
+                        case CATENARY -> densify(catenarySegment(a, b, state.catenarySlack));
+                    };
+            if (seg > 0 && !segment.isEmpty()) segment = segment.subList(1, segment.size());
+            result.addAll(segment);
+        }
+        return result;
     }
 
     private PathMath() {}

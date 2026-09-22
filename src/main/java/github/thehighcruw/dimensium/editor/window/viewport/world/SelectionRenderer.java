@@ -9,6 +9,8 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.DimensiumConfig;
 import github.thehighcruw.dimensium.DimensiumEditorMode;
+import github.thehighcruw.dimensium.editor.clipboard.ClipboardBlock;
+import github.thehighcruw.dimensium.editor.clipboard.ClipboardUtils;
 import github.thehighcruw.dimensium.editor.freecam.FreecamState;
 import github.thehighcruw.dimensium.editor.freecam.FreecamUtils;
 import github.thehighcruw.dimensium.editor.handler.ExtrudeHelper;
@@ -239,7 +241,20 @@ public class SelectionRenderer {
 
             if (tool == Tool.PATH) {
                 PathToolState pathState = PathToolState.INSTANCE;
-                pathState.rebuildIfNeeded(SelectedBlockState.INSTANCE.selectedBlock);
+                SelectionState sel = SelectionState.INSTANCE;
+                List<ClipboardBlock> activeClipboard;
+                Vec3DInt activeClipDim;
+                if (pathState.stampBlueprint != null) {
+                    activeClipboard = pathState.stampBlueprint.offsets();
+                    activeClipDim = pathState.stampBlueprint.clipDim();
+                } else if (sel.clipboard != null) {
+                    activeClipboard = ClipboardUtils.toOffsets(sel.clipboard);
+                    activeClipDim = sel.clipDim;
+                } else {
+                    activeClipboard = null;
+                    activeClipDim = Vec3DInt.ZERO;
+                }
+                pathState.rebuildIfNeeded(SelectedBlockState.INSTANCE.selectedBlock, activeClipboard, activeClipDim);
             }
 
             if (tool == Tool.MODELLING) {
