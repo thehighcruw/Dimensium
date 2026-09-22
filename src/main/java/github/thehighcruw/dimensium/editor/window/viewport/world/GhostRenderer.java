@@ -14,8 +14,13 @@ import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.init.Blocks;
 import net.minecraft.util.IIcon;
+import net.minecraft.world.IBlockAccess;
+import org.lwjgl.opengl.GL11;
 
 /**
  * Static utility for rendering a translucent ghost preview of a block list.
@@ -23,7 +28,7 @@ import net.minecraft.util.IIcon;
  */
 public class GhostRenderer {
 
-    private static final int BATCH_SIZE = 2048;
+    static final int BATCH_SIZE = 2048;
 
     // ── Exterior wireframe constants ──────────────────────────────────────────
 
@@ -380,6 +385,32 @@ public class GhostRenderer {
     public interface BlockFilter {
 
         boolean accept(int[] bm);
+    }
+
+    /**
+     * Renders blocks using Minecraft's RenderBlocks so non-full blocks (slabs, stairs, etc.)
+     * display with their correct geometry instead of a full cube. Caller must set up GL state
+     * (texture atlas bound, cull face, depth test, color tint) before calling.
+     * Ambient occlusion is temporarily disabled to avoid artifacts in the ghost render context.
+     */
+    static void renderBlocksPass(Tessellator t, IBlockAccess world, Iterable<Vec3DInt> positions) {
+        Minecraft mc = Minecraft.getMinecraft();
+        int savedAO = mc.gameSettings.ambientOcclusion;
+        mc.gameSettings.ambientOcclusion = 0;
+        // RenderBlocks emits CCW winding (standard Minecraft); callers set GL_CW for manual emission.
+        GL11.glFrontFace(GL11.GL_CCW);
+        RenderBlocks rb = new RenderBlocks(world);
+        rb.useInventoryTint = false;
+        t.startDrawingQuads();
+        for (Vec3DInt pos : positions) {
+            Block block = world.getBlock(pos.x(), pos.y(), pos.z());
+            if (block != null && block != Blocks.air) {
+                rb.renderBlockByRenderType(block, pos.x(), pos.y(), pos.z());
+            }
+        }
+        t.draw();
+        GL11.glFrontFace(GL11.GL_CW);
+        mc.gameSettings.ambientOcclusion = savedAO;
     }
 
     /** Renders exterior faces (untextured, batched) for entries matching filter. Caller sets GL color first. */

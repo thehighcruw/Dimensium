@@ -313,55 +313,9 @@ public class SelectionRenderer {
 
                 Tessellator t = Tessellator.instance;
                 Set<Long> selBlocks = sel.getSelectedBlocks();
-                t.startDrawingQuads();
-                int batched = 0;
-                for (long key : selBlocks) {
-                    Vec3DInt bv = SelectionState.unpack(key);
-                    Block b = WorldUtils.getBlock(mc.theWorld, bv);
-                    if (b == null || b == Blocks.air || b.getRenderType() != 0) continue;
-                    int meta = WorldUtils.getBlockMetadata(mc.theWorld, bv);
-                    int tint = 0xFFFFFF;
-                    try {
-                        tint = b.colorMultiplier(mc.theWorld, bv.x(), bv.y(), bv.z());
-                    } catch (Exception ignored) {
-                    }
-                    for (int face = 0; face < 6; face++) {
-                        long nk = SelectionState.pack(
-                                bv.plus(GhostRenderer.NX[face], GhostRenderer.NY[face], GhostRenderer.NZ[face]));
-                        if (!selBlocks.contains(nk)) {
-                            GhostRenderer.addTexturedFace(t, bv, b, meta, face, tint);
-                            if (++batched % 2048 == 0) {
-                                t.draw();
-                                t.startDrawingQuads();
-                            }
-                        }
-                    }
-                }
-                t.draw();
-
-                // Non-standard render type blocks: colored solid boxes.
-                GL11.glDisable(GL11.GL_TEXTURE_2D);
-                GL11.glColor4f(0.65f, 0.80f, 1.0f, 1.0f);
-                t.startDrawingQuads();
-                batched = 0;
-                for (long key : selBlocks) {
-                    Vec3DInt bv = SelectionState.unpack(key);
-                    Block b = WorldUtils.getBlock(mc.theWorld, bv);
-                    if (b != null && b != Blocks.air && b.getRenderType() != 0) {
-                        for (int face = 0; face < 6; face++) {
-                            long nk = SelectionState.pack(
-                                    bv.plus(GhostRenderer.NX[face], GhostRenderer.NY[face], GhostRenderer.NZ[face]));
-                            if (!selBlocks.contains(nk)) {
-                                GhostRenderer.addSingleFace(t, bv, face);
-                                if (++batched % 2048 == 0) {
-                                    t.draw();
-                                    t.startDrawingQuads();
-                                }
-                            }
-                        }
-                    }
-                }
-                t.draw();
+                List<Vec3DInt> selPositions = new ArrayList<>(count);
+                for (long key : selBlocks) selPositions.add(SelectionState.unpack(key));
+                GhostRenderer.renderBlocksPass(t, mc.theWorld, selPositions);
 
                 // Glow pass — slightly more negative offset than opaque so no z-fighting.
                 // glDepthMask(false): glow quads never occlude each other at crease edges.
@@ -371,7 +325,7 @@ public class SelectionRenderer {
                 GL11.glDepthMask(false);
                 GL11.glColor4f(0.30f, 1.0f, 0.80f, 0.06f + 0.08f * pulse);
                 t.startDrawingQuads();
-                batched = 0;
+                int batched = 0;
                 for (long key : selBlocks) {
                     Vec3DInt bv = SelectionState.unpack(key);
                     Block b = WorldUtils.getBlock(mc.theWorld, bv);
@@ -381,7 +335,7 @@ public class SelectionRenderer {
                                 bv.plus(GhostRenderer.NX[face], GhostRenderer.NY[face], GhostRenderer.NZ[face]));
                         if (!selBlocks.contains(nk)) {
                             GhostRenderer.addSingleFace(t, bv, face, 0.02f);
-                            if (++batched % 2048 == 0) {
+                            if (++batched % GhostRenderer.BATCH_SIZE == 0) {
                                 t.draw();
                                 t.startDrawingQuads();
                             }
@@ -851,9 +805,14 @@ public class SelectionRenderer {
         beginProposalRender(mc, camPos);
         Tessellator t = Tessellator.instance;
 
-        // Textured pass — fully opaque, exterior faces only.
+        // Textured pass — fully opaque using RenderBlocks for correct non-full-block geometry.
         GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-        drawBatchedTexturedFaces(t, preview.proposed, mc);
+        GhostBlockAccess magicAccess = new GhostBlockAccess(preview.proposed);
+        List<Vec3DInt> magicPositions = new ArrayList<>(preview.proposed.size());
+        for (Map.Entry<Long, int[]> e : preview.proposed.entrySet()) {
+            if (e.getValue()[0] != 0) magicPositions.add(ChangeProposal.unpackKey(e.getKey()));
+        }
+        GhostRenderer.renderBlocksPass(t, magicAccess, magicPositions);
 
         // Glow — slightly more negative offset so no z-fighting with opaque pass.
         GL11.glPolygonOffset(-2.0f, -2.0f);
@@ -959,24 +918,20 @@ public class SelectionRenderer {
         GL11.glColor4f(1.0f, 0.40f, 0.10f, 0.70f);
         GhostRenderer.drawExteriorFacesSingleColor(t, drag.proposed, bm -> bm[0] == 0);
 
-        // Pass 1: textured additions fully opaque, exterior faces only.
+        // Pass 1: additions fully opaque using RenderBlocks for correct non-full-block geometry.
         GL11.glEnable(GL11.GL_TEXTURE_2D);
         mc.getTextureManager().bindTexture(TextureMap.locationBlocksTexture);
         GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-        drawBatchedTexturedFaces(t, drag.proposed, mc);
-
-        // Pass 2: colored fallback for non-standard render type additions only, exterior faces only.
-        GL11.glDisable(GL11.GL_TEXTURE_2D);
-        GL11.glColor4f(0.6f, 0.85f, 1.0f, 1.0f);
-        GhostRenderer.drawExteriorFacesSingleColor(
-                t,
-                drag.proposed,
-                bm -> bm[0] != 0
-                        && (Block.getBlockById(bm[0]) == null
-                                || Block.getBlockById(bm[0]).getRenderType() != 0));
+        GhostBlockAccess proposalAccess = new GhostBlockAccess(drag.proposed);
+        List<Vec3DInt> addPositions = new ArrayList<>();
+        for (Map.Entry<Long, int[]> e : drag.proposed.entrySet()) {
+            if (e.getValue()[0] != 0) addPositions.add(ChangeProposal.unpackKey(e.getKey()));
+        }
+        GhostRenderer.renderBlocksPass(t, proposalAccess, addPositions);
 
         // Glow passes — slightly more negative offset so no z-fighting with opaque pass.
         // glDepthMask(false): glow quads never occlude each other at crease edges.
+        GL11.glDisable(GL11.GL_TEXTURE_2D);
         GL11.glPolygonOffset(-2.0f, -2.0f);
         GL11.glDepthFunc(GL11.GL_LEQUAL);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
@@ -1177,39 +1132,5 @@ public class SelectionRenderer {
         WorldLines.setEye(camPos.minus(proposal.wireOrigin.toDouble()));
         GhostRenderer.drawWireframeCache(t, proposal.cachedWire);
         GL11.glPopMatrix();
-    }
-
-    /**
-     * Draws standard-render-type blocks in a proposal map as textured exterior faces,
-     * batching flushes every 2048 quads. Computes and applies per-block color tint.
-     * Caller must bind the block texture atlas and set GL color before calling.
-     */
-    private static void drawBatchedTexturedFaces(Tessellator t, Map<Long, int[]> proposed, Minecraft mc) {
-        t.startDrawingQuads();
-        int batched = 0;
-        for (Map.Entry<Long, int[]> e : proposed.entrySet()) {
-            long key = e.getKey();
-            int[] bm = e.getValue();
-            Block blk = Block.getBlockById(bm[0]);
-            if (blk == null || blk == Blocks.air || blk.getRenderType() != 0) continue;
-            Vec3DInt bv = ChangeProposal.unpackKey(key);
-            int tint = 0xFFFFFF;
-            try {
-                tint = blk.colorMultiplier(mc.theWorld, bv.x(), bv.y(), bv.z());
-            } catch (Exception ignored) {
-            }
-            for (int face = 0; face < 6; face++) {
-                long nk = ChangeProposal.packKey(
-                        bv.plus(GhostRenderer.NX[face], GhostRenderer.NY[face], GhostRenderer.NZ[face]));
-                if (!proposed.containsKey(nk)) {
-                    GhostRenderer.addTexturedFace(t, bv, blk, bm[1], face, tint);
-                    if (++batched % 2048 == 0) {
-                        t.draw();
-                        t.startDrawingQuads();
-                    }
-                }
-            }
-        }
-        t.draw();
     }
 }

@@ -6,7 +6,6 @@ package github.thehighcruw.dimensium.editor.window.viewport.world;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import github.thehighcruw.dimensium.shared.BlockColorCache;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.SelectionState.BlockData;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
@@ -15,8 +14,9 @@ import github.thehighcruw.dimensium.shared.util.PerfTrace;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
 import github.thehighcruw.dimensium.tool.BuilderTool;
 import github.thehighcruw.dimensium.tool.BuilderToolState;
+import java.util.ArrayList;
 import java.util.HashSet;
-import net.minecraft.block.Block;
+import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.TextureMap;
@@ -138,58 +138,26 @@ class HologramRenderer {
             GL11.glTranslated(hPos.x(), hPos.y(), hPos.z());
 
             Tessellator t = Tessellator.instance;
-            PerfTrace.push("texturedPass " + clipDims);
-            t.startDrawingQuads();
-            int[] batched = {0};
+            PerfTrace.push("renderBlocksPass " + clipDims);
+            ClipboardBlockAccess bAccess = new ClipboardBlockAccess(sel.clipboard, clipDims);
+            List<Vec3DInt> clipPositions = new ArrayList<>();
             Vec3DInt.forEachInclusive(Vec3DInt.ZERO, clipDims.minus(1), pos -> {
-                BlockData bd = sel.clipboardGet(pos);
-                if (bd.block() == Blocks.air || bd.block().getRenderType() != 0) return;
-                for (int face = 0; face < 6; face++) {
-                    if (isFacingAir(sel, face, pos, clipDims)) {
-                        GhostRenderer.addTexturedFace(t, pos, bd.block(), bd.meta(), face);
-                        if (++batched[0] % 2048 == 0) {
-                            t.draw();
-                            t.startDrawingQuads();
-                        }
-                    }
-                }
+                if (sel.clipboardGet(pos).block() != Blocks.air) clipPositions.add(pos);
             });
-            t.draw();
-            PerfTrace.pop();
-            GL11.glDisable(GL11.GL_TEXTURE_2D);
-            PerfTrace.push("colorPass");
-            t.startDrawingQuads();
-            batched[0] = 0;
-            Vec3DInt.forEachInclusive(Vec3DInt.ZERO, clipDims.minus(1), pos -> {
-                BlockData bd = sel.clipboardGet(pos);
-                if (bd.block() == Blocks.air || bd.block().getRenderType() == 0) return;
-                int blockId = Block.getIdFromBlock(bd.block());
-                int rgb = BlockColorCache.INSTANCE.blockColor(blockId, bd.meta());
-                if (rgb < 0) rgb = 0x888888;
-                GL11.glColor4f(((rgb >> 16) & 0xFF) / 255f, ((rgb >> 8) & 0xFF) / 255f, (rgb & 0xFF) / 255f, 1.0f);
-                for (int face = 0; face < 6; face++) {
-                    if (isFacingAir(sel, face, pos, clipDims)) {
-                        GhostRenderer.addSingleFace(t, pos, face);
-                        if (++batched[0] % 2048 == 0) {
-                            t.draw();
-                            t.startDrawingQuads();
-                        }
-                    }
-                }
-            });
-            t.draw();
+            GhostRenderer.renderBlocksPass(t, bAccess, clipPositions);
             PerfTrace.pop();
 
             // Glow — slightly more negative offset so no z-fighting with opaque pass.
             // glDepthMask(false): glow quads never occlude each other at crease edges.
+            GL11.glDisable(GL11.GL_TEXTURE_2D);
             GL11.glPolygonOffset(-2.0f, -2.0f);
             GL11.glDepthFunc(GL11.GL_LEQUAL);
             GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
             GL11.glDepthMask(false);
             GL11.glColor4f(0.20f, 1.0f, 0.45f, 0.05f + 0.07f * pulse);
             PerfTrace.push("glowPass");
+            int[] batched = {0};
             t.startDrawingQuads();
-            batched[0] = 0;
             Vec3DInt.forEachInclusive(Vec3DInt.ZERO, clipDims.minus(1), pos -> {
                 BlockData bd = sel.clipboardGet(pos);
                 if (bd.block() == Blocks.air) return;
@@ -200,7 +168,7 @@ class HologramRenderer {
                             && sel.clipboardGet(neighbor).block() != Blocks.air;
                     if (!neighborOccupied) {
                         GhostRenderer.addSingleFace(t, pos, face, 0.02f);
-                        if (++batched[0] % 2048 == 0) {
+                        if (++batched[0] % GhostRenderer.BATCH_SIZE == 0) {
                             t.draw();
                             t.startDrawingQuads();
                         }
