@@ -5,6 +5,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com). Run `scripts/rele
 
 ## [Unreleased]
 ### Added
+- Path tool: stamp blueprints and clipboard content along a path
 
 ### Changed
 
