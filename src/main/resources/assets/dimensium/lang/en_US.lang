@@ -409,6 +409,7 @@ dimensium.ui.path.stamp_use_clipboard=Use Clipboard
 dimensium.ui.path.stamp_spacing=Spacing
 dimensium.ui.path.stamp_orient_yaw=Orient to Path
 dimensium.ui.path.stamp_orient_pitch=Follow Slope
+dimensium.ui.path.use_stairs_and_slabs=Use Stairs and Slabs
 
 dimensium.ui.rock.meld=Meld Strength
 dimensium.ui.rock.noise_radius=Noise Radius

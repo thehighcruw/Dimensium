@@ -13,10 +13,13 @@ import github.thehighcruw.dimensium.editor.tool.creating.rock.PathToolState;
 import github.thehighcruw.dimensium.editor.tool.creating.rock.PathToolState.CurveType;
 import github.thehighcruw.dimensium.editor.tool.creating.rock.PathToolState.PathFillMode;
 import github.thehighcruw.dimensium.editor.tool.creating.rock.PathToolState.PathInterp;
+import github.thehighcruw.dimensium.editor.tool.selecting.SelectedBlockState;
 import github.thehighcruw.dimensium.editor.window.imgui.DeferredItemRender;
 import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
 import github.thehighcruw.dimensium.editor.window.popup.BlueprintBrowserPopup;
 import github.thehighcruw.dimensium.shared.SelectionState;
+import github.thehighcruw.dimensium.shared.util.BlockFamilyRegistry;
+import github.thehighcruw.dimensium.shared.util.BlockUtils;
 import imgui.ImGui;
 import imgui.flag.ImGuiCol;
 import imgui.type.ImBoolean;
@@ -37,6 +40,17 @@ public class PathSection implements ToolSection {
 
     public PathSection(PathToolState state) {
         this.state = state;
+    }
+
+    private boolean hasStairSlabSupport() {
+        for (PathToolState.PathPoint point : state.points) {
+            if (point.block != null) {
+                int[] idMeta = BlockUtils.blockToIdMeta(point.block);
+                if (idMeta != null && BlockFamilyRegistry.hasFamily(idMeta[0], idMeta[1])) return true;
+            }
+        }
+        int[] activeIdMeta = BlockUtils.blockToIdMeta(SelectedBlockState.INSTANCE.selectedBlock);
+        return activeIdMeta != null && BlockFamilyRegistry.hasFamily(activeIdMeta[0], activeIdMeta[1]);
     }
 
     @Override
@@ -91,6 +105,15 @@ public class PathSection implements ToolSection {
         if (ImGui.combo(I18n.format("dimensium.ui.path.fill_mode") + "##path_fill", fillModeIdx, fillModeLabels)) {
             state.fillMode = fillModes[fillModeIdx.get()];
             state.invalidatePath();
+        }
+
+        if (state.fillMode == PathFillMode.BLOCKS && hasStairSlabSupport()) {
+            ImBoolean useStairsAndSlabs = new ImBoolean(state.useStairsAndSlabs);
+            if (ImGui.checkbox(
+                    I18n.format("dimensium.ui.path.use_stairs_and_slabs") + "##path_stairs_slabs", useStairsAndSlabs)) {
+                state.useStairsAndSlabs = useStairsAndSlabs.get();
+                state.invalidatePath();
+            }
         }
 
         if (state.fillMode == PathFillMode.STAMP) {

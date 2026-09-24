@@ -4,6 +4,7 @@
  */
 package github.thehighcruw.dimensium.editor.tool.creating.path;
 
+import github.thehighcruw.dimensium.DimensiumConfig;
 import github.thehighcruw.dimensium.editor.clipboard.ClipboardBlock;
 import github.thehighcruw.dimensium.editor.tool.creating.modelling.ModellingMath;
 import github.thehighcruw.dimensium.editor.tool.creating.rock.PathToolState;
@@ -13,6 +14,8 @@ import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.BlockUtils;
+import github.thehighcruw.dimensium.shared.util.StairSlabSmoother;
+import github.thehighcruw.dimensium.shared.util.StairSlabSmoother.SphereSample;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,13 +31,14 @@ public class PathMath {
         if (pts.size() < 2) return new ArrayList<>();
 
         Map<Long, int[]> out = new HashMap<>();
+        List<SphereSample> sphereSamples = new ArrayList<>();
 
         if (state.curveType == PathToolState.CurveType.CATMULL_ROM) {
             List<SplinePoint> all = densify(catmullRomAll(pts, state.looped));
-            applySplinePositions(state, activeBlock, out, all, pts);
+            applySplinePositions(state, activeBlock, out, sphereSamples, all, pts);
         } else if (state.curveType == PathToolState.CurveType.BEZIER) {
             List<SplinePoint> all = densify(bezierAll(pts, state.looped));
-            applySplinePositions(state, activeBlock, out, all, pts);
+            applySplinePositions(state, activeBlock, out, sphereSamples, all, pts);
         } else {
             int segCount = state.looped ? pts.size() : pts.size() - 1;
             for (int seg = 0; seg < segCount; seg++) {
@@ -52,13 +56,16 @@ public class PathMath {
                     int cx = blockCoord(pos.x(), state.curveType);
                     int cy = blockCoord(pos.y(), state.curveType);
                     int cz = blockCoord(pos.z(), state.curveType);
-                    int r = Math.round((float) (a.radius * (1 - pos.t()) + b.radius * pos.t()));
+                    float r = (float) (a.radius * (1 - pos.t()) + b.radius * pos.t());
                     int[] bm = resolveBlock(state, activeBlock, seg, pos.t(), cx, cy, cz, a, b);
-                    if (bm != null) addSphere(out, cx, cy, cz, r, bm[0], bm[1]);
+                    if (bm != null) addSphere(out, sphereSamples, cx, cy, cz, r, bm[0], bm[1]);
                 }
             }
         }
 
+        if (state.useStairsAndSlabs) {
+            out = StairSlabSmoother.smooth(out, sphereSamples);
+        }
         return ChangeProposal.mapToOps(out);
     }
 
@@ -66,6 +73,7 @@ public class PathMath {
             PathToolState state,
             ItemStack activeBlock,
             Map<Long, int[]> out,
+            List<SphereSample> sphereSamples,
             List<SplinePoint> positions,
             List<PathToolState.PathPoint> pts) {
         if (positions.isEmpty()) return;
@@ -93,8 +101,8 @@ public class PathMath {
             PathToolState.PathPoint pb = pts.get(Math.min(segIdx + 1, pts.size() - 1));
             int wpx = (int) Math.round(pos.x()), wpy = (int) Math.round(pos.y()), wpz = (int) Math.round(pos.z());
             int[] bm = resolveBlock(state, activeBlock, segIdx, segT, wpx, wpy, wpz, pa, pb);
-            int r = Math.round((float) (pa.radius * (1 - segT) + pb.radius * segT));
-            if (bm != null) addSphere(out, wpx, wpy, wpz, r, bm[0], bm[1]);
+            float r = (float) (pa.radius * (1 - segT) + pb.radius * segT);
+            if (bm != null) addSphere(out, sphereSamples, wpx, wpy, wpz, r, bm[0], bm[1]);
         }
     }
 
@@ -339,21 +347,38 @@ public class PathMath {
         return result;
     }
 
-    static void addSphere(Map<Long, int[]> out, int cx, int cy, int cz, int radius, int blockId, int meta) {
-        if (radius <= 0) {
+    static void addSphere(
+            Map<Long, int[]> out,
+            List<SphereSample> sphereSamples,
+            int cx,
+            int cy,
+            int cz,
+            float radius,
+            int blockId,
+            int meta) {
+        if (radius <= 0f) {
             out.put(ChangeProposal.packKey(cx, cy, cz), new int[] {blockId, meta});
+            // Effective radius 0.5 means all 8 sub-voxels (±0.25 from center) are inside.
+            sphereSamples.add(new SphereSample(Vec3DFloat.from(cx, cy, cz), 0.5f));
             return;
         }
+        // Apply the global shape threshold (same passL2 logic as ShapeMath).
+        float voxelHalfR = (float) (Math.sqrt(3.0) / (2.0 * radius));
+        float cutoff = 1f - voxelHalfR * (1f - DimensiumConfig.shapeThreshold);
+        float effectiveRadius = radius * cutoff;
+        float effectiveRadiusSq = effectiveRadius * effectiveRadius;
+
+        sphereSamples.add(new SphereSample(Vec3DFloat.from(cx, cy, cz), effectiveRadius));
+
+        int iRadius = (int) Math.ceil(effectiveRadius);
+        Vec3DInt center = Vec3DInt.from(cx, cy, cz);
+        Vec3DInt radiusVec = Vec3DInt.from(iRadius);
         int[] bm = new int[] {blockId, meta};
-        for (int ox = -radius; ox <= radius; ox++) {
-            for (int oy = -radius; oy <= radius; oy++) {
-                for (int oz = -radius; oz <= radius; oz++) {
-                    if (ox * ox + oy * oy + oz * oz <= radius * radius) {
-                        out.put(ChangeProposal.packKey(cx + ox, cy + oy, cz + oz), bm);
-                    }
-                }
+        Vec3DInt.forEachInclusive(radiusVec.negate(), radiusVec, offset -> {
+            if (offset.toFloat().lengthSq() <= effectiveRadiusSq) {
+                out.put(ChangeProposal.packKey(center.plus(offset)), bm);
             }
-        }
+        });
     }
 
     /**
