@@ -35,6 +35,8 @@ public class TranslationGizmo {
 
     private final GizmoProjection proj = new GizmoProjection();
 
+    private static final Axis[] AXES = {Axis.X, Axis.Y, Axis.Z};
+
     private static final Vec3DFloat[] AXIS_DIR = {
         Vec3DFloat.from(1, 0, 0), Vec3DFloat.from(0, 1, 0), Vec3DFloat.from(0, 0, 1)
     };
@@ -45,10 +47,10 @@ public class TranslationGizmo {
     private static final Vec3DFloat[] CONE_P2 = {
         Vec3DFloat.from(0, 0, 1), Vec3DFloat.from(0, 0, 1), Vec3DFloat.from(0, 1, 0)
     };
-    private static final float[][] AXIS_COL = {
-        {1.0f, 0.25f, 0.25f}, // X: red
-        {0.25f, 1.0f, 0.25f}, // Y: green
-        {0.25f, 0.45f, 1.0f}, // Z: blue
+    private static final Vec3DFloat[] AXIS_COL = {
+        Vec3DFloat.from(1.0f, 0.25f, 0.25f), // X: red
+        Vec3DFloat.from(0.25f, 1.0f, 0.25f), // Y: green
+        Vec3DFloat.from(0.25f, 0.45f, 1.0f), // Z: blue
     };
 
     // Interaction state
@@ -92,49 +94,44 @@ public class TranslationGizmo {
      * @param rx/ry/rz interpolated player eye position (for glTranslated offset)
      */
     public void render(Vec3DDouble pos, Vec3DDouble camPos, Vec3DFloat rot) {
-        render(pos.x(), pos.y(), pos.z(), camPos, rot.x(), rot.y(), rot.z());
-    }
-
-    public void render(double gx, double gy, double gz, Vec3DDouble camPos, float rotX, float rotY, float rotZ) {
-        RotationGizmo.beginRender(proj, gx, gy, gz, camPos, rotX, rotY, rotZ);
-        Tessellator wt = Tessellator.instance;
+        RotationGizmo.beginRender(proj, pos, camPos, rot);
+        Tessellator tessellator = Tessellator.instance;
 
         for (int a = 0; a < 3; a++) {
-            Axis axis = a == 0 ? Axis.X : a == 1 ? Axis.Y : Axis.Z;
-            boolean hot = hoveredAxis == axis;
-            float[] col = AXIS_COL[a];
+            boolean hot = hoveredAxis == AXES[a];
+            Vec3DFloat color = AXIS_COL[a];
 
-            Vec3DFloat dir = AXIS_DIR[a];
-            float fx = dir.x() * axisFlip[a], fy = dir.y() * axisFlip[a], fz = dir.z() * axisFlip[a];
-            float sx = fx * ARM_LEN, sy = fy * ARM_LEN, sz = fz * ARM_LEN;
-            float tx = sx + fx * CONE_H, ty = sy + fy * CONE_H, tz = sz + fz * CONE_H;
+            Vec3DFloat flippedDir = AXIS_DIR[a].times(axisFlip[a]);
+            Vec3DFloat shaft = flippedDir.times(ARM_LEN);
+            Vec3DFloat tip = shaft.plus(flippedDir.times(CONE_H));
             Vec3DFloat p1 = CONE_P1[a], p2 = CONE_P2[a];
 
             if (hot) {
                 // White glow pass as a wider billboard quad
                 GL11.glColor4f(1.0f, 1.0f, 1.0f, 0.25f);
                 WorldLines.prepareSegmentBatch();
-                wt.startDrawingQuads();
-                WorldLines.addSegment(wt, 0, 0, 0, sx, sy, sz, WorldLines.W_HOT);
-                wt.draw();
+                tessellator.startDrawingQuads();
+                WorldLines.addSegment(tessellator, 0, 0, 0, shaft.x(), shaft.y(), shaft.z(), WorldLines.W_HOT);
+                tessellator.draw();
             }
 
             // Main arrow shaft
-            GL11.glColor4f(col[0], col[1], col[2], hot ? 1.0f : 0.55f);
+            GL11.glColor4f(color.x(), color.y(), color.z(), hot ? 1.0f : 0.55f);
             WorldLines.prepareSegmentBatch();
-            wt.startDrawingQuads();
-            WorldLines.addSegment(wt, 0, 0, 0, sx, sy, sz, hot ? WorldLines.W_GIZMO : WorldLines.W_SEL);
-            wt.draw();
+            tessellator.startDrawingQuads();
+            WorldLines.addSegment(
+                    tessellator, 0, 0, 0, shaft.x(), shaft.y(), shaft.z(), hot ? WorldLines.W_GIZMO : WorldLines.W_SEL);
+            tessellator.draw();
 
             // Cone tip
             GL11.glBegin(GL11.GL_TRIANGLE_FAN);
-            GL11.glVertex3f(tx, ty, tz);
+            GL11.glVertex3f(tip.x(), tip.y(), tip.z());
             for (int i = 0; i <= SEG; i++) {
                 double ang = 2.0 * Math.PI * i / SEG;
-                float c = (float) (Math.cos(ang) * CONE_R);
-                float s = (float) (Math.sin(ang) * CONE_R);
-                GL11.glVertex3f(
-                        sx + c * p1.x() + s * p2.x(), sy + c * p1.y() + s * p2.y(), sz + c * p1.z() + s * p2.z());
+                float cosVal = (float) (Math.cos(ang) * CONE_R);
+                float sinVal = (float) (Math.sin(ang) * CONE_R);
+                Vec3DFloat ringPt = shaft.plus(p1.times(cosVal)).plus(p2.times(sinVal));
+                GL11.glVertex3f(ringPt.x(), ringPt.y(), ringPt.z());
             }
             GL11.glEnd();
 
@@ -143,24 +140,26 @@ public class TranslationGizmo {
                 GL11.glColor4f(1.0f, 1.0f, 1.0f, 0.9f);
                 float ringR = CONE_R + 0.03f;
                 WorldLines.prepareSegmentBatch();
-                wt.startDrawingQuads();
-                float prevC = (float) (Math.cos(0) * ringR), prevS = (float) (Math.sin(0) * ringR);
+                tessellator.startDrawingQuads();
+                float prevCos = (float) (Math.cos(0) * ringR), prevSin = (float) (Math.sin(0) * ringR);
                 for (int i = 1; i <= SEG; i++) {
                     double ang = 2.0 * Math.PI * i / SEG;
-                    float c = (float) (Math.cos(ang) * ringR), s2 = (float) (Math.sin(ang) * ringR);
+                    float cosVal = (float) (Math.cos(ang) * ringR), sinVal = (float) (Math.sin(ang) * ringR);
+                    Vec3DFloat segStart = shaft.plus(p1.times(prevCos)).plus(p2.times(prevSin));
+                    Vec3DFloat segEnd = shaft.plus(p1.times(cosVal)).plus(p2.times(sinVal));
                     WorldLines.addSegment(
-                            wt,
-                            sx + prevC * p1.x() + prevS * p2.x(),
-                            sy + prevC * p1.y() + prevS * p2.y(),
-                            sz + prevC * p1.z() + prevS * p2.z(),
-                            sx + c * p1.x() + s2 * p2.x(),
-                            sy + c * p1.y() + s2 * p2.y(),
-                            sz + c * p1.z() + s2 * p2.z(),
+                            tessellator,
+                            segStart.x(),
+                            segStart.y(),
+                            segStart.z(),
+                            segEnd.x(),
+                            segEnd.y(),
+                            segEnd.z(),
                             WorldLines.W_THIN);
-                    prevC = c;
-                    prevS = s2;
+                    prevCos = cosVal;
+                    prevSin = sinVal;
                 }
-                wt.draw();
+                tessellator.draw();
             }
         }
 
@@ -174,22 +173,9 @@ public class TranslationGizmo {
      * Call every frame from drawScreen (when not dragging).
      */
     public void updateHover(int mouseX, int mouseY, EntityLivingBase player, Vec3DDouble pos, Vec3DFloat rot) {
-        updateHover(mouseX, mouseY, player, pos.x(), pos.y(), pos.z(), rot.x(), rot.y(), rot.z());
-    }
-
-    public void updateHover(
-            int mouseX,
-            int mouseY,
-            EntityLivingBase player,
-            double gx,
-            double gy,
-            double gz,
-            float rotX,
-            float rotY,
-            float rotZ) {
-        RotationGizmo.HoverState hs = RotationGizmo.hoverState(player, gx, gy, gz, rotX, rotY, rotZ);
+        RotationGizmo.HoverState hs = RotationGizmo.hoverState(player, pos, rot);
         float scaledArm = (ARM_LEN + CONE_H) * hs.scale();
-        double[] origin = proj.project(gx, gy, gz);
+        Vec2DDouble origin = proj.project(pos);
         if (origin == null) {
             hoveredAxis = Axis.NONE;
             return;
@@ -201,13 +187,13 @@ public class TranslationGizmo {
 
         for (int a = 0; a < 3; a++) {
             Vec3DFloat dir = rotatedAxis(R, a);
-            double[] tip = proj.project(gx + dir.x() * scaledArm, gy + dir.y() * scaledArm, gz + dir.z() * scaledArm);
+            Vec2DDouble tip = proj.project(pos.plus(dir.toDouble().times(scaledArm)));
             if (tip == null) continue;
 
-            double dist = RotationGizmo.segDist(origin[0], origin[1], tip[0], tip[1], mouseX, mouseY);
+            double dist = RotationGizmo.segDist(origin, tip, Vec2DDouble.from(mouseX, mouseY));
             if (dist < bestDist) {
                 bestDist = dist;
-                best = a == 0 ? Axis.X : a == 1 ? Axis.Y : Axis.Z;
+                best = AXES[a];
             }
         }
         hoveredAxis = best;
@@ -218,40 +204,14 @@ public class TranslationGizmo {
      * anchorX/Y/Z is the shape anchor (not center).
      */
     public void startDrag(int mouseX, int mouseY, Vec3DDouble gizmoPos, Vec3DDouble anchor, Vec3DFloat rot) {
-        startDrag(
-                mouseX,
-                mouseY,
-                gizmoPos.x(),
-                gizmoPos.y(),
-                gizmoPos.z(),
-                anchor.x(),
-                anchor.y(),
-                anchor.z(),
-                rot.x(),
-                rot.y(),
-                rot.z());
-    }
-
-    public void startDrag(
-            int mouseX,
-            int mouseY,
-            double gx,
-            double gy,
-            double gz,
-            double anchorX,
-            double anchorY,
-            double anchorZ,
-            float rotX,
-            float rotY,
-            float rotZ) {
         if (hoveredAxis == Axis.NONE) return;
         dragAxis = hoveredAxis;
         dragStartMX = mouseX;
         dragStartMY = mouseY;
-        startAnchor = Vec3DDouble.from(anchorX, anchorY, anchorZ);
-        dragGizmo = Vec3DDouble.from(gx, gy, gz);
+        startAnchor = anchor;
+        dragGizmo = gizmoPos;
 
-        Mat3DFloat R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
+        Mat3DFloat R = ShapeMath.buildRotationMatrix(rot.x(), rot.y(), rot.z());
         int a = dragAxis == Axis.X ? 0 : dragAxis == Axis.Y ? 1 : 2;
         rotatedAxisDir = rotatedAxis(R, a);
 
@@ -261,7 +221,7 @@ public class TranslationGizmo {
         pixelsPerBlock = sa.pixelsPerUnit();
 
         // Ray-based drag: find initial parameter along axis
-        double[] ray = proj.unprojectRay(mouseX, mouseY);
+        GizmoProjection.Ray ray = proj.unprojectRay(mouseX, mouseY);
         if (ray != null) {
             dragStartT = closestAxisT(ray, dragGizmo, rotatedAxisDir);
             useRayDrag = true;
@@ -276,17 +236,15 @@ public class TranslationGizmo {
     }
 
     /** Returns t such that gizmoCenter + t*axisDir is closest to the ray. */
-    private static double closestAxisT(double[] ray, Vec3DDouble gizmoCenter, Vec3DFloat axisDir) {
-        Vec3DDouble rayOrigin = Vec3DDouble.from(ray[0], ray[1], ray[2]);
-        Vec3DDouble rayDir = Vec3DDouble.from(ray[3], ray[4], ray[5]);
+    private static double closestAxisT(GizmoProjection.Ray ray, Vec3DDouble gizmoCenter, Vec3DFloat axisDir) {
         Vec3DDouble axis = axisDir.toDouble();
-        double dDotA = rayDir.dot(axis);
+        double dDotA = ray.dir().dot(axis);
         double aDoA = axis.dot(axis);
         double denom = aDoA - dDotA * dDotA; // = 1 - cos²θ = sin²θ
         if (Math.abs(denom) < 1e-10) return 0; // ray parallel to axis
-        Vec3DDouble e = gizmoCenter.minus(rayOrigin);
+        Vec3DDouble e = gizmoCenter.minus(ray.origin());
         double eDotA = e.dot(axis);
-        double eDotD = e.dot(rayDir);
+        double eDotD = e.dot(ray.dir());
         return (dDotA * eDotD - eDotA) / denom;
     }
 
@@ -294,7 +252,7 @@ public class TranslationGizmo {
     public Vec3DDouble updateDrag(int mouseX, int mouseY) {
         if (dragAxis == Axis.NONE) return null;
         if (useRayDrag) {
-            double[] ray = proj.unprojectRay(mouseX, mouseY);
+            GizmoProjection.Ray ray = proj.unprojectRay(mouseX, mouseY);
             if (ray != null) {
                 double t = closestAxisT(ray, dragGizmo, rotatedAxisDir);
                 return anchorPlusDelta(t - dragStartT);

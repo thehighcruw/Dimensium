@@ -41,6 +41,9 @@ public final class GizmoProjection {
         static final ScreenAxis FALLBACK = new ScreenAxis(Vec2DDouble.from(1, 0), 50);
     }
 
+    @Desugar
+    public record Ray(Vec3DDouble origin, Vec3DDouble dir) {}
+
     /**
      * Project gizmo origin and axis tip to screen to get drag direction + scale.
      * Falls back to (1,0) direction and 50 px/unit when projection fails.
@@ -50,10 +53,11 @@ public final class GizmoProjection {
     }
 
     public ScreenAxis computeAxisScreenDir(double gx, double gy, double gz, Vec3DFloat axisDir) {
-        double[] os = project(gx, gy, gz);
-        double[] ts = project(gx + axisDir.x(), gy + axisDir.y(), gz + axisDir.z());
-        if (os == null || ts == null) return ScreenAxis.FALLBACK;
-        return new ScreenAxis(Vec2DDouble.screenDir(os, ts), Vec2DDouble.screenScale(os, ts));
+        Vec2DDouble originScreen = project(gx, gy, gz);
+        Vec2DDouble tipScreen = project(gx + axisDir.x(), gy + axisDir.y(), gz + axisDir.z());
+        if (originScreen == null || tipScreen == null) return ScreenAxis.FALLBACK;
+        return new ScreenAxis(
+                Vec2DDouble.screenDir(originScreen, tipScreen), Vec2DDouble.screenScale(originScreen, tipScreen));
     }
 
     private final FloatBuffer modelview = BufferUtils.createFloatBuffer(16);
@@ -84,11 +88,11 @@ public final class GizmoProjection {
      * Returns null if the point is behind the camera or projection failed.
      *
      */
-    public double[] project(Vec3DDouble pos) {
+    public Vec2DDouble project(Vec3DDouble pos) {
         return project(pos.x(), pos.y(), pos.z());
     }
 
-    public double[] project(double wx, double wy, double wz) {
+    public Vec2DDouble project(double wx, double wy, double wz) {
         modelview.rewind();
         projection.rewind();
         viewport.rewind();
@@ -111,16 +115,16 @@ public final class GizmoProjection {
         // contentW×contentH portion (UV-cropped, centered at displayW/2, displayH/2).
         // Map GL window coords (physical pixels, origin bottom-left) to panel GUI coords.
         Minecraft mc = Minecraft.getMinecraft();
-        int sf = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight).getScaleFactor();
+        int scaleFactor = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight).getScaleFactor();
         int displayW = mc.displayWidth;
         int displayH = mc.displayHeight;
-        ViewportState vp = ViewportRegistry.INSTANCE.active();
-        if (vp != null && vp.contentW > 1 && vp.contentH > 1) {
-            double guiX = (vp.contentX + winX - displayW / 2.0 + vp.contentW / 2.0) / sf;
-            double guiY = (vp.contentY + vp.contentH / 2.0 + displayH / 2.0 - winY) / sf;
-            return new double[] {guiX, guiY};
+        ViewportState viewportState = ViewportRegistry.INSTANCE.active();
+        if (viewportState != null && viewportState.contentW > 1 && viewportState.contentH > 1) {
+            double guiX = (viewportState.contentX + winX - displayW / 2.0 + viewportState.contentW / 2.0) / scaleFactor;
+            double guiY = (viewportState.contentY + viewportState.contentH / 2.0 + displayH / 2.0 - winY) / scaleFactor;
+            return Vec2DDouble.from(guiX, guiY);
         }
-        return new double[] {winX / sf, (displayH - winY) / sf};
+        return Vec2DDouble.from(winX / scaleFactor, (displayH - winY) / scaleFactor);
     }
 
     /**
@@ -131,21 +135,23 @@ public final class GizmoProjection {
      *
      * @param mouseX/mouseY GUI screen coordinates (same space as cursor3d)
      */
-    public double[] unprojectRay(int mouseX, int mouseY) {
+    public Ray unprojectRay(int mouseX, int mouseY) {
         Minecraft mc = Minecraft.getMinecraft();
-        int sf = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight).getScaleFactor();
+        int scaleFactor = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight).getScaleFactor();
         int displayW = mc.displayWidth;
         int displayH = mc.displayHeight;
 
         // Convert GUI coords back to GL window coords (physical pixels, origin bottom-left).
         float winX, winY;
-        ViewportState vp = ViewportRegistry.INSTANCE.active();
-        if (vp != null && vp.contentW > 1 && vp.contentH > 1) {
-            winX = (float) ((mouseX * sf - vp.contentX) + displayW / 2.0 - vp.contentW / 2.0);
-            winY = (float) (vp.contentY + vp.contentH / 2.0 + displayH / 2.0 - mouseY * sf);
+        ViewportState viewportState = ViewportRegistry.INSTANCE.active();
+        if (viewportState != null && viewportState.contentW > 1 && viewportState.contentH > 1) {
+            winX = (float)
+                    ((mouseX * scaleFactor - viewportState.contentX) + displayW / 2.0 - viewportState.contentW / 2.0);
+            winY = (float)
+                    (viewportState.contentY + viewportState.contentH / 2.0 + displayH / 2.0 - mouseY * scaleFactor);
         } else {
-            winX = mouseX * sf;
-            winY = displayH - mouseY * sf;
+            winX = mouseX * scaleFactor;
+            winY = displayH - mouseY * scaleFactor;
         }
 
         // Unproject at near plane (winZ=0) and far plane (winZ=1) to get ray endpoints.
@@ -173,7 +179,6 @@ public final class GizmoProjection {
         Vec3DDouble dir = Vec3DDouble.from(fx - nx, fy - ny, fz - nz);
         double len = dir.length();
         if (len < 1e-10) return null;
-        Vec3DDouble dirN = dir.divide(len);
-        return new double[] {nx, ny, nz, dirN.x(), dirN.y(), dirN.z()};
+        return new Ray(Vec3DDouble.from(nx, ny, nz), dir.divide(len));
     }
 }

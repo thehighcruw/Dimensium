@@ -34,13 +34,26 @@ public class ScalingGizmo {
     private static final float BOX_HALF = 0.10f;
     private static final double HIT_PX = 10.0;
 
+    private static final Axis[] AXES = {Axis.X, Axis.Y, Axis.Z};
+
     private static final Vec3DFloat[] AXIS_DIR = {
         Vec3DFloat.from(1, 0, 0), Vec3DFloat.from(0, 1, 0), Vec3DFloat.from(0, 0, 1)
     };
-    private static final float[][] AXIS_COL = {
-        {1.0f, 0.25f, 0.25f}, // X: red
-        {0.25f, 1.0f, 0.25f}, // Y: green
-        {0.25f, 0.45f, 1.0f}, // Z: blue
+    private static final Vec3DFloat[] AXIS_COL = {
+        Vec3DFloat.from(1.0f, 0.25f, 0.25f), // X: red
+        Vec3DFloat.from(0.25f, 1.0f, 0.25f), // Y: green
+        Vec3DFloat.from(0.25f, 0.45f, 1.0f), // Z: blue
+    };
+    // Perpendicular half-extent basis per axis: BOX_HALF-scaled unit vecs in the 2 orthogonal dirs
+    private static final Vec3DFloat[] PERP_1 = {
+        Vec3DFloat.from(0, 1, 0), // X axis: p1 = Y
+        Vec3DFloat.from(1, 0, 0), // Y axis: p1 = X
+        Vec3DFloat.from(1, 0, 0), // Z axis: p1 = X
+    };
+    private static final Vec3DFloat[] PERP_2 = {
+        Vec3DFloat.from(0, 0, 1), // X axis: p2 = Z
+        Vec3DFloat.from(0, 0, 1), // Y axis: p2 = Z
+        Vec3DFloat.from(0, 1, 0), // Z axis: p2 = Y
     };
 
     private final GizmoProjection proj = new GizmoProjection();
@@ -68,39 +81,20 @@ public class ScalingGizmo {
     // ── Rendering ─────────────────────────────────────────────────────────────
 
     public void render(Vec3DDouble pos, Vec3DDouble camPos, Vec3DFloat rot) {
-        render(pos.x(), pos.y(), pos.z(), camPos, rot.x(), rot.y(), rot.z());
-    }
-
-    public void render(double gx, double gy, double gz, Vec3DDouble camPos, float rotX, float rotY, float rotZ) {
-        RotationGizmo.beginRender(proj, gx, gy, gz, camPos, rotX, rotY, rotZ);
+        RotationGizmo.beginRender(proj, pos, camPos, rot);
 
         for (int a = 0; a < 3; a++) {
-            Axis axis = a == 0 ? Axis.X : a == 1 ? Axis.Y : Axis.Z;
-            boolean hot = hoveredAxis == axis;
-            float[] col = AXIS_COL[a];
+            boolean hot = hoveredAxis == AXES[a];
+            Vec3DFloat color = AXIS_COL[a];
             Vec3DFloat dir = AXIS_DIR[a];
 
-            // Box center along this axis
             Vec3DFloat bc = dir.times(BOX_CENTER);
-            float h = BOX_HALF;
-
-            // Per-axis perpendicular half-extents: for X axis, box extends in Y and Z, etc.
-            Vec3DFloat p1, p2;
-            if (a == 0) { // X axis: perp = Y, Z
-                p1 = Vec3DFloat.from(0, h, 0);
-                p2 = Vec3DFloat.from(0, 0, h);
-            } else if (a == 1) { // Y axis: perp = X, Z
-                p1 = Vec3DFloat.from(h, 0, 0);
-                p2 = Vec3DFloat.from(0, 0, h);
-            } else { // Z axis: perp = X, Y
-                p1 = Vec3DFloat.from(h, 0, 0);
-                p2 = Vec3DFloat.from(0, h, 0);
-            }
-            // Along-axis half extent
-            Vec3DFloat p3 = dir.times(h);
+            Vec3DFloat p1 = PERP_1[a].times(BOX_HALF);
+            Vec3DFloat p2 = PERP_2[a].times(BOX_HALF);
+            Vec3DFloat p3 = dir.times(BOX_HALF);
 
             float alpha = hot ? 0.95f : 0.6f;
-            GL11.glColor4f(col[0], col[1], col[2], alpha);
+            GL11.glColor4f(color.x(), color.y(), color.z(), alpha);
 
             // 6 faces of the box
             renderBoxFace(bc.minus(p3), p1, p2); // back face
@@ -114,7 +108,7 @@ public class ScalingGizmo {
             if (hot) {
                 GL11.glColor4f(1f, 1f, 1f, 0.9f);
             } else {
-                GL11.glColor4f(col[0] * 0.7f, col[1] * 0.7f, col[2] * 0.7f, 0.9f);
+                GL11.glColor4f(color.x() * 0.7f, color.y() * 0.7f, color.z() * 0.7f, 0.9f);
             }
             renderBoxEdges(bc, p1, p2, p3);
         }
@@ -132,48 +126,15 @@ public class ScalingGizmo {
     }
 
     private static void renderBoxEdges(Vec3DFloat center, Vec3DFloat p1, Vec3DFloat p2, Vec3DFloat p3) {
-        // 8 corners
-        float[][] v = {
-            {
-                center.x() - p1.x() - p2.x() - p3.x(),
-                center.y() - p1.y() - p2.y() - p3.y(),
-                center.z() - p1.z() - p2.z() - p3.z()
-            },
-            {
-                center.x() + p1.x() - p2.x() - p3.x(),
-                center.y() + p1.y() - p2.y() - p3.y(),
-                center.z() + p1.z() - p2.z() - p3.z()
-            },
-            {
-                center.x() + p1.x() + p2.x() - p3.x(),
-                center.y() + p1.y() + p2.y() - p3.y(),
-                center.z() + p1.z() + p2.z() - p3.z()
-            },
-            {
-                center.x() - p1.x() + p2.x() - p3.x(),
-                center.y() - p1.y() + p2.y() - p3.y(),
-                center.z() - p1.z() + p2.z() - p3.z()
-            },
-            {
-                center.x() - p1.x() - p2.x() + p3.x(),
-                center.y() - p1.y() - p2.y() + p3.y(),
-                center.z() - p1.z() - p2.z() + p3.z()
-            },
-            {
-                center.x() + p1.x() - p2.x() + p3.x(),
-                center.y() + p1.y() - p2.y() + p3.y(),
-                center.z() + p1.z() - p2.z() + p3.z()
-            },
-            {
-                center.x() + p1.x() + p2.x() + p3.x(),
-                center.y() + p1.y() + p2.y() + p3.y(),
-                center.z() + p1.z() + p2.z() + p3.z()
-            },
-            {
-                center.x() - p1.x() + p2.x() + p3.x(),
-                center.y() - p1.y() + p2.y() + p3.y(),
-                center.z() - p1.z() + p2.z() + p3.z()
-            }
+        Vec3DFloat[] v = {
+            center.minus(p1).minus(p2).minus(p3),
+            center.plus(p1).minus(p2).minus(p3),
+            center.plus(p1).plus(p2).minus(p3),
+            center.minus(p1).plus(p2).minus(p3),
+            center.minus(p1).minus(p2).plus(p3),
+            center.plus(p1).minus(p2).plus(p3),
+            center.plus(p1).plus(p2).plus(p3),
+            center.minus(p1).plus(p2).plus(p3),
         };
         GL11.glBegin(GL11.GL_LINES);
         // Bottom ring
@@ -194,28 +155,15 @@ public class ScalingGizmo {
         GL11.glEnd();
     }
 
-    private static void edge(float[][] v, int i, int j) {
-        GL11.glVertex3f(v[i][0], v[i][1], v[i][2]);
-        GL11.glVertex3f(v[j][0], v[j][1], v[j][2]);
+    private static void edge(Vec3DFloat[] v, int i, int j) {
+        GL11.glVertex3f(v[i].x(), v[i].y(), v[i].z());
+        GL11.glVertex3f(v[j].x(), v[j].y(), v[j].z());
     }
 
     // ── Hover ──────────────────────────────────────────────────────────────────
 
     public void updateHover(int mouseX, int mouseY, EntityLivingBase player, Vec3DDouble pos, Vec3DFloat rot) {
-        updateHover(mouseX, mouseY, player, pos.x(), pos.y(), pos.z(), rot.x(), rot.y(), rot.z());
-    }
-
-    public void updateHover(
-            int mouseX,
-            int mouseY,
-            EntityLivingBase player,
-            double gx,
-            double gy,
-            double gz,
-            float rotX,
-            float rotY,
-            float rotZ) {
-        RotationGizmo.HoverState hs = RotationGizmo.hoverState(player, gx, gy, gz, rotX, rotY, rotZ);
+        RotationGizmo.HoverState hs = RotationGizmo.hoverState(player, pos, rot);
         float scale = hs.scale();
         Mat3DFloat R = hs.R();
 
@@ -223,16 +171,13 @@ public class ScalingGizmo {
         double bestDist = HIT_PX;
 
         for (int a = 0; a < 3; a++) {
-            Vec3DFloat dirRot = R.mul(AXIS_DIR[a]);
-            double wcx = gx + dirRot.x() * BOX_CENTER * scale;
-            double wcy = gy + dirRot.y() * BOX_CENTER * scale;
-            double wcz = gz + dirRot.z() * BOX_CENTER * scale;
-            double[] sc = proj.project(wcx, wcy, wcz);
+            Vec3DDouble wc = pos.plus(R.mul(AXIS_DIR[a]).toDouble().times(BOX_CENTER * scale));
+            Vec2DDouble sc = proj.project(wc);
             if (sc == null) continue;
-            double dist = Math.max(Math.abs(sc[0] - mouseX), Math.abs(sc[1] - mouseY));
+            double dist = Math.max(Math.abs(sc.x() - mouseX), Math.abs(sc.y() - mouseY));
             if (dist < bestDist) {
                 bestDist = dist;
-                best = a == 0 ? Axis.X : a == 1 ? Axis.Y : Axis.Z;
+                best = AXES[a];
             }
         }
         hoveredAxis = best;
@@ -244,11 +189,6 @@ public class ScalingGizmo {
      * startScale is the current scale value for the hovered axis.
      */
     public void startDrag(int mouseX, int mouseY, Vec3DDouble pos, float scale, Vec3DFloat rot) {
-        startDrag(mouseX, mouseY, pos.x(), pos.y(), pos.z(), scale, rot.x(), rot.y(), rot.z());
-    }
-
-    public void startDrag(
-            int mouseX, int mouseY, double gx, double gy, double gz, float scale, float rotX, float rotY, float rotZ) {
         if (hoveredAxis == Axis.NONE) return;
         dragAxis = hoveredAxis;
         dragStartMX = mouseX;
@@ -256,10 +196,10 @@ public class ScalingGizmo {
         startScale = scale;
 
         int a = dragAxis == Axis.X ? 0 : dragAxis == Axis.Y ? 1 : 2;
-        Mat3DFloat R = ShapeMath.buildRotationMatrix(rotX, rotY, rotZ);
+        Mat3DFloat R = ShapeMath.buildRotationMatrix(rot.x(), rot.y(), rot.z());
         Vec3DFloat dir = R.mul(AXIS_DIR[a]);
 
-        GizmoProjection.ScreenAxis sa = proj.computeAxisScreenDir(gx, gy, gz, dir);
+        GizmoProjection.ScreenAxis sa = proj.computeAxisScreenDir(pos, dir);
         screenDir = sa.dir();
         pixelsPerUnit = sa.pixelsPerUnit();
     }

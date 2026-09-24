@@ -137,7 +137,7 @@ public final class GuiDimensiumOverlay {
                 Vec3DDouble anchor = cps.anchorF.toDouble();
                 Vec3DFloat rot = cps.rot;
                 if (eye != null && cps.getAxisTranslationGizmo().hoveredAxis != TranslationGizmo.Axis.NONE) {
-                    cps.getAxisTranslationGizmo().startDrag(mouseX, mouseY, cpsCenter, anchor, Vec3DFloat.ZERO);
+                    cps.getAxisTranslationGizmo().startDrag(mouseX, mouseY, cpsCenter, anchor, rot);
                 } else if (eye != null
                         && cps.getPlaneTranslationGizmo().hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
                     cps.getPlaneTranslationGizmo().startDrag(mouseX, mouseY, cpsCenter, anchor, rot);
@@ -184,6 +184,7 @@ public final class GuiDimensiumOverlay {
             }
             ClipboardPlacementState cps = ClipboardPlacementState.INSTANCE;
             if (cps.active) {
+                if (cps.viewPlaneGizmo.isDragging()) cps.viewPlaneGizmo.endDrag();
                 if (cps.getAxisTranslationGizmo().isDragging())
                     cps.getAxisTranslationGizmo().endDrag();
                 if (cps.getPlaneTranslationGizmo().isDragging())
@@ -231,9 +232,14 @@ public final class GuiDimensiumOverlay {
                         sel.pendingPos2 = Vec3DInt.from(mop.blockX, mop.blockY, mop.blockZ);
                         sel.pendingPos1 = false;
                         sel.boxConfirmed = true;
+                        SelectionRenderer.boxPos1ViewPlaneGizmo.reset();
+                        SelectionRenderer.boxPos1PlaneGizmo.reset();
                         SelectionRenderer.boxPos1Gizmo.reset();
+                        SelectionRenderer.boxPos2ViewPlaneGizmo.reset();
+                        SelectionRenderer.boxPos2PlaneGizmo.reset();
                         SelectionRenderer.boxPos2Gizmo.reset();
                         SelectionRenderer.boxCenterViewPlaneGizmo.reset();
+                        SelectionRenderer.boxCenterPlaneGizmo.reset();
                         SelectionRenderer.boxCenterGizmo.reset();
                     }
                 }
@@ -319,9 +325,9 @@ public final class GuiDimensiumOverlay {
         double bestD2 = thresholdPx * thresholdPx;
         for (int i = 0; i < positions.size(); i++) {
             if (i == skipIndex) continue;
-            double[] s = proj.project(positions.get(i).toDouble().plus(0.5));
+            Vec2DDouble s = proj.project(positions.get(i).toDouble().plus(0.5));
             if (s == null) continue;
-            double d2 = Vec2DDouble.from(s[0] - mouseX, s[1] - mouseY).lengthSq();
+            double d2 = s.minus(Vec2DDouble.from(mouseX, mouseY)).lengthSq();
             if (d2 < bestD2) {
                 bestD2 = d2;
                 best = i;
@@ -393,9 +399,14 @@ public final class GuiDimensiumOverlay {
     public static void commitBoxSelection(SelectionState sel, BoxSelectToolState ts) {
         sel.applyOp(SelectionState.aabbBlocks(sel.pendingPos, sel.pendingPos2), ts.booleanOp);
         sel.boxConfirmed = false;
+        SelectionRenderer.boxPos1ViewPlaneGizmo.reset();
+        SelectionRenderer.boxPos1PlaneGizmo.reset();
         SelectionRenderer.boxPos1Gizmo.reset();
+        SelectionRenderer.boxPos2ViewPlaneGizmo.reset();
+        SelectionRenderer.boxPos2PlaneGizmo.reset();
         SelectionRenderer.boxPos2Gizmo.reset();
         SelectionRenderer.boxCenterViewPlaneGizmo.reset();
+        SelectionRenderer.boxCenterPlaneGizmo.reset();
         SelectionRenderer.boxCenterGizmo.reset();
     }
 }

@@ -520,7 +520,7 @@ public class SelectionRenderer {
                 Vec3DDouble cpsCenter = cps.center();
                 cps.viewPlaneGizmo.render(cpsCenter, camPos);
                 cps.getPlaneTranslationGizmo().render(cpsCenter, camPos, cps.rot);
-                cps.getAxisTranslationGizmo().render(cpsCenter, camPos, Vec3DFloat.ZERO);
+                cps.getAxisTranslationGizmo().render(cpsCenter, camPos, cps.rot);
                 cps.getScalingGizmo().render(cpsCenter, camPos, cps.rot);
                 cps.getRotationGizmo().render(cpsCenter, camPos, cps.rot);
             }
