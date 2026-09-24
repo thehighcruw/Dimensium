@@ -316,6 +316,7 @@ public class SelectionRenderer {
                 List<Vec3DInt> selPositions = new ArrayList<>(count);
                 for (long key : selBlocks) selPositions.add(SelectionState.unpack(key));
                 GhostRenderer.renderBlocksPass(t, mc.theWorld, selPositions);
+                GL11.glDisable(GL11.GL_TEXTURE_2D);
 
                 // Glow pass — slightly more negative offset than opaque so no z-fighting.
                 // glDepthMask(false): glow quads never occlude each other at crease edges.
