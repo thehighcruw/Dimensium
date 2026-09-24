@@ -38,6 +38,7 @@ public class EditorMouseHandler {
         float pmx = fs.cursorX * sf;
         float pmy = fs.cursorY * sf;
         boolean onPanel = ImGuiManager.INSTANCE.anyModalOpen()
+                || ImGuiManager.INSTANCE.wantCaptureMouse()
                 || MenuBar.INSTANCE.containsMouse(pmx, pmy, mc.displayWidth)
                 || ImGuiWindowRegistry.INSTANCE.anyContainsMouse(pmx, pmy);
 

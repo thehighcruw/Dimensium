@@ -17,6 +17,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com). Run `scripts/rele
 ### Fixed
 - Gizmo: single-axis translation arrows now rotate with the shape's rotation
 - Ghost renderer: non-full blocks (slabs, stairs, fences, etc.) now render with correct geometry instead of a full cube
+- Camera: LMB drag inside an ImGui window (including tab bars and resize handles) no longer rotates the camera
 
 ### Security
 
