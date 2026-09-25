@@ -13,6 +13,7 @@ import github.thehighcruw.dimensium.editor.overlay.MenuBar;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushState;
 import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
 import github.thehighcruw.dimensium.editor.window.imgui.ImGuiWindowRegistry;
+import github.thehighcruw.dimensium.editor.window.viewport.ViewportPanel;
 import github.thehighcruw.dimensium.shared.InputHandler;
 import github.thehighcruw.dimensium.shared.KeyConstants;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
@@ -38,7 +39,7 @@ public class EditorMouseHandler {
         float pmx = fs.cursorX * sf;
         float pmy = fs.cursorY * sf;
         boolean onPanel = ImGuiManager.INSTANCE.anyModalOpen()
-                || ImGuiManager.INSTANCE.wantCaptureMouse()
+                || (ImGuiManager.INSTANCE.wantCaptureMouse() && !ViewportPanel.INSTANCE.isHovered())
                 || MenuBar.INSTANCE.containsMouse(pmx, pmy, mc.displayWidth)
                 || ImGuiWindowRegistry.INSTANCE.anyContainsMouse(pmx, pmy);
 
