@@ -48,12 +48,14 @@ import github.thehighcruw.dimensium.tool.ChangeProposal;
 import java.util.List;
 import java.util.Set;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiIngameMenu;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
+import org.lwjgl.opengl.Display;
 
 @SideOnly(Side.CLIENT)
 public class TickHandler {
@@ -189,6 +191,12 @@ public class TickHandler {
             ImGuiManager.INSTANCE.ensureInit();
         }
         BlockSender.flushSendQueue();
+
+        if (DimensiumEditorMode.INSTANCE.isActive() && !Display.isActive()) {
+            Minecraft mc = Minecraft.getMinecraft();
+            DimensiumEditorMode.INSTANCE.deactivate();
+            mc.displayGuiScreen(new GuiIngameMenu());
+        }
 
         FreecamState fs = FreecamState.INSTANCE;
         if (!fs.active || fs.cameraEntity == null) return;

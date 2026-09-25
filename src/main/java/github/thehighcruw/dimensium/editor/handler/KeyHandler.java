@@ -29,8 +29,6 @@ import github.thehighcruw.dimensium.editor.window.popup.BlueprintBrowserPopup;
 import github.thehighcruw.dimensium.editor.window.popup.ConflictPopup;
 import github.thehighcruw.dimensium.editor.window.popup.CreateBlueprintPopup;
 import github.thehighcruw.dimensium.editor.window.popup.SettingsModal;
-import github.thehighcruw.dimensium.editor.window.viewport.ViewportRegistry;
-import github.thehighcruw.dimensium.editor.window.viewport.ViewportState;
 import github.thehighcruw.dimensium.shared.BlockSender;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
@@ -96,21 +94,7 @@ public class KeyHandler {
             if (OverlayRenderer.isNotCreative()) return;
             OverlayRenderer.picker.close();
             if (DimensiumEditorMode.INSTANCE.isActive()) {
-                // Teleport player to the active viewport's camera position before deactivating.
-                ViewportState activeViewport = ViewportRegistry.INSTANCE.active();
-                if (activeViewport != null && mc.thePlayer != null) {
-                    double cameraX = activeViewport.cameraEntity.posX;
-                    double cameraY = activeViewport.cameraEntity.posY;
-                    double cameraZ = activeViewport.cameraEntity.posZ;
-                    mc.thePlayer.setPosition(cameraX, cameraY - mc.thePlayer.getEyeHeight(), cameraZ);
-                    mc.thePlayer.rotationYaw = activeViewport.cameraEntity.rotationYaw;
-                    mc.thePlayer.rotationPitch = activeViewport.cameraEntity.rotationPitch;
-                }
-                FreecamState.INSTANCE.deactivate();
-                ShapePlacementState.INSTANCE.cancel();
-                ClipboardPlacementState.INSTANCE.cancel();
-                DimensiumEditorMode.INSTANCE.toggle();
-                if (mc.thePlayer != null) mc.thePlayer.setInvisible(false);
+                DimensiumEditorMode.INSTANCE.deactivate();
                 mc.displayGuiScreen(null);
             } else {
                 DimensiumEditorMode.INSTANCE.toggle();

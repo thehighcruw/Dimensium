@@ -8,7 +8,9 @@ import github.thehighcruw.dimensium.editor.freecam.FreecamState;
 import github.thehighcruw.dimensium.editor.overlay.OverlayRenderer;
 import github.thehighcruw.dimensium.editor.tool.Tool;
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapePlacementState;
+import github.thehighcruw.dimensium.editor.tool.state.ClipboardPlacementState;
 import github.thehighcruw.dimensium.editor.window.viewport.ViewportRegistry;
+import github.thehighcruw.dimensium.editor.window.viewport.ViewportState;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.tool.BuilderToolState;
 import net.minecraft.client.Minecraft;
@@ -40,6 +42,30 @@ public class DimensiumEditorMode {
             sel.pendingPos1 = false;
             sel.boxConfirmed = false;
         }
+    }
+
+    /**
+     * Tears down the overlay: teleports the player to the active camera position, deactivates
+     * freecam and in-progress placements, and clears the active flag. The caller is responsible
+     * for calling {@code mc.displayGuiScreen()} with the desired follow-up screen.
+     */
+    public void deactivate() {
+        if (!active) return;
+        Minecraft mc = Minecraft.getMinecraft();
+        ViewportState activeViewport = ViewportRegistry.INSTANCE.active();
+        if (activeViewport != null && mc.thePlayer != null) {
+            mc.thePlayer.setPosition(
+                    activeViewport.cameraEntity.posX,
+                    activeViewport.cameraEntity.posY - mc.thePlayer.getEyeHeight(),
+                    activeViewport.cameraEntity.posZ);
+            mc.thePlayer.rotationYaw = activeViewport.cameraEntity.rotationYaw;
+            mc.thePlayer.rotationPitch = activeViewport.cameraEntity.rotationPitch;
+        }
+        FreecamState.INSTANCE.deactivate();
+        ShapePlacementState.INSTANCE.cancel();
+        ClipboardPlacementState.INSTANCE.cancel();
+        toggle();
+        if (mc.thePlayer != null) mc.thePlayer.setInvisible(false);
     }
 
     public void activateBuilderTools() {

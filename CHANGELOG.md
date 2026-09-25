@@ -15,6 +15,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com). Run `scripts/rele
 ### Removed
 
 ### Fixed
+- Editor: close overlay and open pause menu when the game window loses focus
 - Move, paste, path, and stamp tools: rotate block metadata (stairs, furnaces, dispensers, logs, etc.) to match the applied rotation
 - Stamp tool: mirror block metadata when flipX or flipZ is active
 - Gizmo: single-axis translation arrows now rotate with the shape's rotation
