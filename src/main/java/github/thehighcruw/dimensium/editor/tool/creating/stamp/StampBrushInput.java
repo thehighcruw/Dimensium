@@ -16,6 +16,8 @@ import github.thehighcruw.dimensium.shared.BlockSender;
 import github.thehighcruw.dimensium.shared.math.Mat3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import github.thehighcruw.dimensium.shared.util.BlockMetaMirror;
+import github.thehighcruw.dimensium.shared.util.BlockMetaRotator;
 import github.thehighcruw.dimensium.shared.util.WorldUtils;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 import java.util.ArrayList;
@@ -146,7 +148,14 @@ public final class StampBrushInput implements BrushInput {
                     if (existing != null && existing != Blocks.air) continue;
                 }
 
-                ops.add(worldPos.toBlockOp(o.blockId(), o.meta()));
+                Block blk = Block.getBlockById(o.blockId());
+                int meta = o.meta();
+                if (blk != null) {
+                    if (inst.flipX) meta = BlockMetaMirror.mirrorX(blk, meta);
+                    if (inst.flipZ) meta = BlockMetaMirror.mirrorZ(blk, meta);
+                    if (rotated) meta = BlockMetaRotator.rotate(blk, meta, R);
+                }
+                ops.add(worldPos.toBlockOp(o.blockId(), meta));
             }
         }
         return ops;

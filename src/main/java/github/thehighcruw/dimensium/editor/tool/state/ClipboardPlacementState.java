@@ -21,11 +21,13 @@ import github.thehighcruw.dimensium.shared.math.Mat3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import github.thehighcruw.dimensium.shared.util.BlockMetaRotator;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import net.minecraft.block.Block;
 
 public class ClipboardPlacementState
         implements WithAxisTranslationGizmo, WithPlaneTranslationGizmo, WithRotationGizmo, WithScalingGizmo {
@@ -139,14 +141,19 @@ public class ClipboardPlacementState
                     if (blockData == null) continue;
 
                     Vec3DInt world;
+                    int[] placedData;
                     if (R == null) {
                         world = anchor.plus(Vec3DInt.from(sx, sy, sz));
+                        placedData = blockData;
                     } else {
                         Vec3DFloat local =
                                 Vec3DFloat.from(sx + 0.5f, sy + 0.5f, sz + 0.5f).minus(scaledCenter);
                         world = anchor.plus(R.mul(local).plus(scaledCenter).floor());
+                        Block blk = Block.getBlockById(blockData[0]);
+                        int rotatedMeta = blk == null ? blockData[1] : BlockMetaRotator.rotate(blk, blockData[1], R);
+                        placedData = rotatedMeta == blockData[1] ? blockData : new int[] {blockData[0], rotatedMeta};
                     }
-                    p.proposed.put(ChangeProposal.packKey(world), blockData);
+                    p.proposed.put(ChangeProposal.packKey(world), placedData);
                 }
             }
         }

@@ -19,6 +19,7 @@ import github.thehighcruw.dimensium.shared.math.Mat3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import github.thehighcruw.dimensium.shared.util.BlockMetaRotator;
 import github.thehighcruw.dimensium.shared.util.WorldUtils;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 import java.util.ArrayList;
@@ -211,7 +212,8 @@ public class MoveToolState
                     Vec3DFloat offset =
                             Vec3DFloat.from(sx + 0.5f, sy + 0.5f, sz + 0.5f).minus(scaledCenter);
                     Vec3DInt nCoord = Vec3DInt.floor(gizmoPos.plus(R.mul(bboxFloatCenter.plus(offset))));
-                    blocks.add(nCoord.toBlockOp(Block.getIdFromBlock(bd.block()), bd.meta()));
+                    int rotatedMeta = BlockMetaRotator.rotate(bd.block(), bd.meta(), R);
+                    blocks.add(nCoord.toBlockOp(Block.getIdFromBlock(bd.block()), rotatedMeta));
                 }
             }
         }

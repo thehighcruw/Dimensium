@@ -13,6 +13,7 @@ import github.thehighcruw.dimensium.shared.math.Mat3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import github.thehighcruw.dimensium.shared.util.BlockMetaRotator;
 import github.thehighcruw.dimensium.shared.util.BlockUtils;
 import github.thehighcruw.dimensium.shared.util.StairSlabSmoother;
 import github.thehighcruw.dimensium.shared.util.StairSlabSmoother.SphereSample;
@@ -22,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
 
 public class PathMath {
@@ -459,7 +461,9 @@ public class PathMath {
                 Vec3DFloat local = cb.offset().toFloat().plus(0.5f).minus(blueprintCenter);
                 Vec3DInt worldPos =
                         anchor.plus(Vec3DInt.floor(rotation.mul(local).plus(blueprintCenter)));
-                out.put(ChangeProposal.packKey(worldPos), new int[] {cb.blockId(), cb.meta()});
+                Block blk = Block.getBlockById(cb.blockId());
+                int meta = blk == null ? cb.meta() : BlockMetaRotator.rotate(blk, cb.meta(), rotation);
+                out.put(ChangeProposal.packKey(worldPos), new int[] {cb.blockId(), meta});
             }
         }
     }
