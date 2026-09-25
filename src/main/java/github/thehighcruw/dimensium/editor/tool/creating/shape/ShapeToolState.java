@@ -30,8 +30,8 @@ public class ShapeToolState {
 
         public final String label;
 
-        ShapeType(String l) {
-            label = l;
+        ShapeType(String labelKey) {
+            label = labelKey;
         }
     }
 
@@ -59,6 +59,7 @@ public class ShapeToolState {
     public boolean shapeHollow = false;
     public float shapeExponent = 2.0f;
     public boolean shapeKeepExisting = false;
+    public boolean useStairsAndSlabs = false;
     public int torusRingRadius = 6;
     public int torusRingRadiusZ = 6;
     public int torusTubeRadius = 2;

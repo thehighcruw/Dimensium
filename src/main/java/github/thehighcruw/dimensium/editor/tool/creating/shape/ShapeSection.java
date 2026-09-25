@@ -74,10 +74,16 @@ public class ShapeSection implements ToolSection {
 
         ShapeType[] currentShapes = is3D ? SHAPES_3D : SHAPES_2D;
         String[] shapeLabels = new String[currentShapes.length];
-        for (int i = 0; i < currentShapes.length; i++) shapeLabels[i] = I18n.format(currentShapes[i].label);
-        int curIdx = 0;
-        for (int i = 0; i < currentShapes.length; i++) if (currentShapes[i] == state.shapeType) curIdx = i;
-        shapeIdx.set(curIdx);
+        for (int index = 0; index < currentShapes.length; index++)
+            shapeLabels[index] = I18n.format(currentShapes[index].label);
+        int currentIndex = 0;
+        for (int index = 0; index < currentShapes.length; index++) {
+            if (currentShapes[index] == state.shapeType) {
+                currentIndex = index;
+                break;
+            }
+        }
+        shapeIdx.set(currentIndex);
         if (ImGui.combo(I18n.format("dimensium.ui.shape.type") + "##shape_type", shapeIdx, shapeLabels)) {
             state.shapeType = currentShapes[shapeIdx.get()];
         }
@@ -243,6 +249,12 @@ public class ShapeSection implements ToolSection {
         ImBoolean cbKeepExisting = new ImBoolean(state.shapeKeepExisting);
         if (ImGui.checkbox(I18n.format("dimensium.ui.shape.keep_existing") + "##shape_keep", cbKeepExisting)) {
             state.shapeKeepExisting = cbKeepExisting.get();
+        }
+
+        ImBoolean cbUseStairs = new ImBoolean(state.useStairsAndSlabs);
+        if (ImGui.checkbox(I18n.format("dimensium.ui.shape.use_stairs_and_slabs") + "##shape_stairs", cbUseStairs)) {
+            state.useStairsAndSlabs = cbUseStairs.get();
+            ShapePlacementState.INSTANCE.invalidateGhost();
         }
     }
 }

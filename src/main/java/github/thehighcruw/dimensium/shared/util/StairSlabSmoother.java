@@ -65,6 +65,16 @@ public final class StairSlabSmoother {
     @Desugar
     public record SphereSample(Vec3DFloat center, float effectiveRadius) {}
 
+    /**
+     * Tests whether a float-coordinate point is inside the shape. Used by
+     * {@link #smooth(Map, InsidePredicate)} as the SDF for sub-voxel evaluation.
+     */
+    @FunctionalInterface
+    public interface InsidePredicate {
+
+        boolean test(Vec3DFloat pos);
+    }
+
     enum PlacementKind {
         AIR,
         FULL,
@@ -185,27 +195,27 @@ public final class StairSlabSmoother {
             int best = SHAPE_IDX_FULL;
             int bestDist = Integer.MAX_VALUE;
             // Skip index 0 (air) — non-zero masks never map to air.
-            for (int s = 1; s < SHAPES.length; s++) {
-                int shapeMask = SHAPES[s].mask();
+            for (int shapeIndex = 1; shapeIndex < SHAPES.length; shapeIndex++) {
+                int shapeMask = SHAPES[shapeIndex].mask();
                 int dist = Integer.bitCount(mask ^ shapeMask);
                 if (dist < bestDist) {
                     bestDist = dist;
-                    best = s;
+                    best = shapeIndex;
                 } else if (dist == bestDist) {
                     // Tiebreak 1: y-orientation match.
-                    int sTopCount = Integer.bitCount(shapeMask & TOP_BITS);
-                    int sBottomCount = Integer.bitCount(shapeMask & BOTTOM_BITS);
+                    int shapeTopCount = Integer.bitCount(shapeMask & TOP_BITS);
+                    int shapeBottomCount = Integer.bitCount(shapeMask & BOTTOM_BITS);
                     int bestTopCount = Integer.bitCount(SHAPES[best].mask() & TOP_BITS);
                     int bestBottomCount = Integer.bitCount(SHAPES[best].mask() & BOTTOM_BITS);
-                    int sScore = yOrientationMatch(maskTopCount, maskBottomCount, sTopCount, sBottomCount);
+                    int shapeScore = yOrientationMatch(maskTopCount, maskBottomCount, shapeTopCount, shapeBottomCount);
                     int bestScore = yOrientationMatch(maskTopCount, maskBottomCount, bestTopCount, bestBottomCount);
-                    if (sScore > bestScore) {
-                        best = s;
-                    } else if (sScore == bestScore) {
+                    if (shapeScore > bestScore) {
+                        best = shapeIndex;
+                    } else if (shapeScore == bestScore) {
                         // Tiebreak 2: popcount proximity.
                         if (Math.abs(Integer.bitCount(shapeMask) - Integer.bitCount(mask))
                                 < Math.abs(Integer.bitCount(SHAPES[best].mask()) - Integer.bitCount(mask))) {
-                            best = s;
+                            best = shapeIndex;
                         }
                     }
                 }
@@ -356,12 +366,14 @@ public final class StairSlabSmoother {
      */
     static int subVoxelMask(Vec3DFloat blockPos, List<SphereSample> spheres) {
         int mask = 0;
-        for (int i = 0; i < 8; i++) {
+        for (int subVoxelIndex = 0; subVoxelIndex < 8; subVoxelIndex++) {
             Vec3DFloat subVoxel = blockPos.plus(Vec3DFloat.from(
-                    (i & 1) != 0 ? 0.25f : -0.25f, (i & 2) != 0 ? 0.25f : -0.25f, (i & 4) != 0 ? 0.25f : -0.25f));
+                    (subVoxelIndex & 1) != 0 ? 0.25f : -0.25f,
+                    (subVoxelIndex & 2) != 0 ? 0.25f : -0.25f,
+                    (subVoxelIndex & 4) != 0 ? 0.25f : -0.25f));
             for (SphereSample sphere : spheres) {
                 if (subVoxel.minus(sphere.center()).lengthSq() <= sphere.effectiveRadius() * sphere.effectiveRadius()) {
-                    mask |= (1 << i);
+                    mask |= (1 << subVoxelIndex);
                     break;
                 }
             }
@@ -372,6 +384,122 @@ public final class StairSlabSmoother {
     /** Returns the shape selected for {@code subMask}. Package-private for testing. */
     static BlockShape shapeForMask(int subMask) {
         return SHAPES[SHAPE_LOOKUP[subMask]];
+    }
+
+    /**
+     * Variant of {@link #smooth(Map, List)} for analytically-defined shapes.
+     *
+     * <p>
+     * Instead of sphere samples, accepts an {@link InsidePredicate} that can test any float-
+     * coordinate point. The "closer to spine" concept is replaced by sub-voxel popcount: a
+     * face-neighbour is considered deeper inside the shape when its sub-voxel inside-count
+     * exceeds that of the current block.
+     *
+     * @param blocks   generated block map (full blocks, world coordinates as keys)
+     * @param insideFn SDF predicate; returns true for points inside the shape
+     */
+    public static Map<Long, int[]> smooth(Map<Long, int[]> blocks, InsidePredicate insideFn) {
+        Map<Long, int[]> result = new HashMap<>(blocks);
+        Map<String, Integer> shapeFrequency = debugLogging ? new TreeMap<>() : null;
+
+        for (Map.Entry<Long, int[]> entry : blocks.entrySet()) {
+            long key = entry.getKey();
+            int[] bm = entry.getValue();
+
+            Vec3DInt blockPos = ChangeProposal.unpackKey(key);
+            BlockFamilyRegistry.BlockFamily family = BlockFamilyRegistry.lookup(bm[0], bm[1]);
+            if (family == null) continue;
+
+            int subMask = subVoxelMask(blockPos.toFloat(), insideFn);
+            int subVoxelsInside = Integer.bitCount(subMask);
+
+            if (subVoxelsInside < 3) {
+                if (hasNeighborWithMoreCoverage(blockPos, subVoxelsInside, blocks, insideFn)) {
+                    result.remove(key);
+                }
+                if (!debugLogging) continue;
+            }
+
+            if (subVoxelsInside >= 7 && !debugLogging) continue;
+
+            BlockShape shape = SHAPES[SHAPE_LOOKUP[subMask]];
+            int hamming = Integer.bitCount(subMask ^ shape.mask());
+
+            if (debugLogging) {
+                String label = shape.kind() == PlacementKind.STAIR
+                        ? shape.name() + " [meta " + shape.stairMeta() + "]"
+                        : shape.name();
+                LOG.info(
+                        "({},{},{})  mask=0x{} hamming={}  {}{}",
+                        blockPos.x(),
+                        blockPos.y(),
+                        blockPos.z(),
+                        Integer.toHexString(subMask).toUpperCase(),
+                        hamming,
+                        label,
+                        hamming > 0 ? "  (fallback)" : "");
+                shapeFrequency.merge(label, 1, Integer::sum);
+            }
+
+            if (hamming > 0) {
+                if (subVoxelsInside <= 4 && hasNeighborWithMoreCoverage(blockPos, subVoxelsInside, blocks, insideFn)) {
+                    result.remove(key);
+                }
+                continue;
+            }
+
+            switch (shape.kind()) {
+                case AIR:
+                    result.remove(key);
+                    break;
+                case FULL:
+                    break;
+                case SLAB_BOTTOM:
+                    result.put(key, new int[] {Block.getIdFromBlock(family.slab()), family.slabMetaBottom()});
+                    break;
+                case SLAB_TOP:
+                    result.put(key, new int[] {Block.getIdFromBlock(family.slab()), family.slabMetaTop()});
+                    break;
+                case STAIR:
+                    result.put(key, new int[] {Block.getIdFromBlock(family.stairs()), shape.stairMeta()});
+                    break;
+            }
+        }
+
+        if (debugLogging) {
+            LOG.info("=== smooth() summary: {} blocks in, {} out ===", blocks.size(), result.size());
+            shapeFrequency.forEach((name, count) -> LOG.info("  {}x  {}", count, name));
+        }
+
+        return result;
+    }
+
+    /**
+     * Returns true if any 6-connected neighbour of {@code blockPos} that exists in {@code blocks}
+     * has strictly more sub-voxels inside the shape than {@code myCount}.
+     */
+    private static boolean hasNeighborWithMoreCoverage(
+            Vec3DInt blockPos, int myCount, Map<Long, int[]> blocks, InsidePredicate insideFn) {
+        for (Vec3DFloat offset : FACE_NEIGHBORS) {
+            Vec3DFloat neighborF = blockPos.toFloat().plus(offset);
+            long neighborKey = ChangeProposal.packKey((int) neighborF.x(), (int) neighborF.y(), (int) neighborF.z());
+            if (!blocks.containsKey(neighborKey)) continue;
+            int neighborCount = Integer.bitCount(subVoxelMask(neighborF, insideFn));
+            if (neighborCount > myCount) return true;
+        }
+        return false;
+    }
+
+    static int subVoxelMask(Vec3DFloat blockPos, InsidePredicate insideFn) {
+        int mask = 0;
+        for (int subVoxelIndex = 0; subVoxelIndex < 8; subVoxelIndex++) {
+            Vec3DFloat subVoxel = blockPos.plus(Vec3DFloat.from(
+                    (subVoxelIndex & 1) != 0 ? 0.25f : -0.25f,
+                    (subVoxelIndex & 2) != 0 ? 0.25f : -0.25f,
+                    (subVoxelIndex & 4) != 0 ? 0.25f : -0.25f));
+            if (insideFn.test(subVoxel)) mask |= (1 << subVoxelIndex);
+        }
+        return mask;
     }
 
     private StairSlabSmoother() {}

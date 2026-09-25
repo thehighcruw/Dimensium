@@ -19,9 +19,12 @@ import github.thehighcruw.dimensium.shared.math.Mat3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import github.thehighcruw.dimensium.shared.util.StairSlabSmoother;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
@@ -136,48 +139,71 @@ public class ShapePlacementState
         if (key.equals(shapeKey) && ghostBlocks != null) return;
         shapeKey = key;
 
-        int rawW = Math.max(1, Math.round(s.shapeWidth * scale.x()));
-        int rawH = Math.max(1, Math.round(s.shapeHeight * scale.y()));
-        int rawD = Math.max(1, Math.round(s.shapeDepth * scale.z()));
-        baseDims = s.effectiveDimensions(rawW, rawH, rawD);
+        int rawWidth = Math.max(1, Math.round(s.shapeWidth * scale.x()));
+        int rawHeight = Math.max(1, Math.round(s.shapeHeight * scale.y()));
+        int rawDepth = Math.max(1, Math.round(s.shapeDepth * scale.z()));
+        baseDims = s.effectiveDimensions(rawWidth, rawHeight, rawDepth);
 
         Mat3DFloat R = ShapeMath.buildRotationMatrix(rot.x(), rot.y(), rot.z());
 
         Vec3DInt[] bounds = ShapeMath.computeRotatedBounds(R, baseDims);
 
         ghostBlocks = buildGhostBlocks(s, baseDims, R, bounds[0], bounds[1]);
-        rebuildShapeProposal();
+        rebuildShapeProposal(R);
     }
 
-    private void rebuildShapeProposal() {
+    private void rebuildShapeProposal(Mat3DFloat R) {
         if (ghostBlocks == null || ghostBlocks.isEmpty()) {
             preview = null;
             return;
         }
-        Block blk = null;
+        Block block = null;
         int meta = 0;
         SelectedBlockState sbs = SelectedBlockState.INSTANCE;
         ItemStack sel = sbs.selectedBlock;
         if (sel != null) {
-            Block b = Block.getBlockFromItem(sel.getItem());
-            if (b != null && b != Blocks.air) {
-                blk = b;
+            Block retrievedBlock = Block.getBlockFromItem(sel.getItem());
+            if (retrievedBlock != null && retrievedBlock != Blocks.air) {
+                block = retrievedBlock;
                 meta = sel.getItemDamage();
             }
         }
-        if (blk == null) blk = sbs.getPaintBlock();
-        if (blk == null) {
+        if (block == null) block = sbs.getPaintBlock();
+        if (block == null) {
             preview = null;
             return;
         }
 
-        int blockId = Block.getIdFromBlock(blk);
-        ChangeProposal p = ChangeProposal.forPreview();
+        int blockId = Block.getIdFromBlock(block);
+        Map<Long, int[]> blockMap = new HashMap<>();
         for (Vec3DInt offset : ghostBlocks) {
             Vec3DInt pos = anchor.plus(offset);
-            long key = ChangeProposal.packKey(pos);
-            p.proposed.put(key, new int[] {blockId, meta});
+            blockMap.put(ChangeProposal.packKey(pos), new int[] {blockId, meta});
         }
+
+        ShapeToolState s = ShapeToolState.INSTANCE;
+        if (s.useStairsAndSlabs) {
+            StairSlabSmoother.InsidePredicate insideFn = ShapeMath.buildInsidePredicate(
+                    s.shapeType,
+                    baseDims,
+                    s.shapeHollow,
+                    s.shapeExponent,
+                    s.torusRingRadius,
+                    s.torusRingRadiusZ,
+                    s.torusTubeRadius,
+                    s.tubeWallThickness,
+                    s.shapeSupersphereExp,
+                    s.shapePolygonSides,
+                    s.shapeSpiralSpacing,
+                    s.shapeSpiralTurns,
+                    DimensiumConfig.shapeThreshold,
+                    R,
+                    anchor);
+            blockMap = StairSlabSmoother.smooth(blockMap, insideFn);
+        }
+
+        ChangeProposal p = ChangeProposal.forPreview();
+        p.proposed.putAll(blockMap);
         preview = p;
     }
 
@@ -242,6 +268,8 @@ public class ShapePlacementState
                 + s.shapeSpiralTurns
                 + ","
                 + s.tubeWallThickness
+                + ","
+                + s.useStairsAndSlabs
                 + ","
                 + rx
                 + ","

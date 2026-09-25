@@ -7,6 +7,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com). Run `scripts/rele
 ### Added
 - Tool panel: replace category/tool comboboxes with single-click icon grid; column count configurable in Settings
 - Path tool: "Use Stairs and Slabs" option smooths sloped paths with correctly oriented stair blocks when using a supported block material
+- Shape tool: "Use Stairs and Slabs" option smooths shape surfaces with correctly oriented stair and slab blocks when using a supported block material
 
 ### Changed
 

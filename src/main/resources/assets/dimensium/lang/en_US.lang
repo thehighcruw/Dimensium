@@ -459,6 +459,7 @@ dimensium.ui.shape.exponent=Exponent
 dimensium.ui.shape.height=Height
 dimensium.ui.shape.hollow=Hollow
 dimensium.ui.shape.keep_existing=Keep Existing
+dimensium.ui.shape.use_stairs_and_slabs=Use Stairs and Slabs
 dimensium.ui.shape.polygon_sides=Polygon Sides
 dimensium.ui.shape.separate_axes=Separate Axes
 dimensium.ui.shape.spiral_spacing=Spiral Spacing

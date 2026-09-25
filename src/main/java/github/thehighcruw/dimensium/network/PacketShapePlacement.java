@@ -15,10 +15,14 @@ import github.thehighcruw.dimensium.editor.tool.selecting.SelectedBlockState;
 import github.thehighcruw.dimensium.shared.math.Mat3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import github.thehighcruw.dimensium.shared.util.StairSlabSmoother;
 import github.thehighcruw.dimensium.shared.util.WorldUtils;
+import github.thehighcruw.dimensium.tool.ChangeProposal;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import net.minecraft.block.Block;
@@ -43,6 +47,7 @@ public class PacketShapePlacement implements IPacket {
     private float supersphereExp;
     private int polygonSides;
     private float spiralSpacing, spiralTurns;
+    private boolean useStairsAndSlabs;
     private int paletteCount;
     private int[] blockIds;
     private int[] metas;
@@ -57,6 +62,7 @@ public class PacketShapePlacement implements IPacket {
         shapeTypeOrd = s.shapeType.ordinal();
         hollow = s.shapeHollow;
         keepExisting = s.shapeKeepExisting;
+        useStairsAndSlabs = s.useStairsAndSlabs;
         exponent = s.shapeExponent;
         torusRingR = s.torusRingRadius;
         torusRingRZ = s.torusRingRadiusZ;
@@ -93,6 +99,7 @@ public class PacketShapePlacement implements IPacket {
         buf.writeByte(shapeTypeOrd);
         buf.writeBoolean(hollow);
         buf.writeBoolean(keepExisting);
+        buf.writeBoolean(useStairsAndSlabs);
         buf.writeFloat(exponent);
         buf.writeInt(torusRingR);
         buf.writeInt(torusRingRZ);
@@ -118,6 +125,7 @@ public class PacketShapePlacement implements IPacket {
         shapeTypeOrd = buf.readByte() & 0xFF;
         hollow = buf.readBoolean();
         keepExisting = buf.readBoolean();
+        useStairsAndSlabs = buf.readBoolean();
         exponent = buf.readFloat();
         torusRingR = buf.readInt();
         torusRingRZ = buf.readInt();
@@ -149,9 +157,9 @@ public class PacketShapePlacement implements IPacket {
         EntityPlayerMP player = handler.playerEntity;
         World world = player.worldObj;
 
-        int tw = 0;
-        for (int wt : weights) tw += wt;
-        final int totalWeight = tw;
+        int weightSum = 0;
+        for (int weight : weights) weightSum += weight;
+        final int totalWeight = weightSum;
         if (totalWeight == 0 || paletteCount == 0) return null;
 
         ShapeToolState.ShapeType type = ShapeToolState.ShapeType.values()[shapeTypeOrd];
@@ -173,7 +181,7 @@ public class PacketShapePlacement implements IPacket {
         }
 
         Random rand = new Random();
-        List<int[]> ops = new ArrayList<>();
+        List<int[]> rawOps = new ArrayList<>();
         ShapeMath.iterateRotatedShape(
                 type,
                 dims,
@@ -195,20 +203,52 @@ public class PacketShapePlacement implements IPacket {
                     Vec3DInt pos = anchor.plus(offset);
                     if (pos.y() < 0 || pos.y() >= world.getHeight()) return true;
                     if (keepExisting && WorldUtils.getBlock(world, pos) != Blocks.air) return true;
-                    int roll = rand.nextInt(totalWeight), cum = 0, chosen = 0;
-                    for (int i = 0; i < weights.length; i++) {
-                        cum += weights[i];
-                        if (roll < cum) {
-                            chosen = i;
+                    int roll = rand.nextInt(totalWeight), cumulativeWeight = 0, chosen = 0;
+                    for (int weightIndex = 0; weightIndex < weights.length; weightIndex++) {
+                        cumulativeWeight += weights[weightIndex];
+                        if (roll < cumulativeWeight) {
+                            chosen = weightIndex;
                             break;
                         }
                     }
-                    Block blk = Block.getBlockById(blockIds[chosen]);
-                    if (blk != null && blk != Blocks.air) ops.add(pos.toBlockOp(blockIds[chosen], metas[chosen]));
+                    Block block = Block.getBlockById(blockIds[chosen]);
+                    if (block != null && block != Blocks.air)
+                        rawOps.add(pos.toBlockOp(blockIds[chosen], metas[chosen]));
                     return true;
                 });
 
+        List<int[]> ops = rawOps;
         if (!ops.isEmpty()) {
+            if (useStairsAndSlabs) {
+                Map<Long, int[]> blockMap = new HashMap<>();
+                for (int[] op : ops) {
+                    blockMap.put(ChangeProposal.packKey(op[0], op[1], op[2]), new int[] {op[3], op[4]});
+                }
+                StairSlabSmoother.InsidePredicate insideFn = ShapeMath.buildInsidePredicate(
+                        type,
+                        dims,
+                        hollow,
+                        exponent,
+                        torusRingR,
+                        torusRingRZ,
+                        torusTubeR,
+                        tubeWallThickness,
+                        supersphereExp,
+                        polygonSides,
+                        spiralSpacing,
+                        spiralTurns,
+                        DimensiumConfig.shapeThreshold,
+                        R,
+                        anchor);
+                blockMap = StairSlabSmoother.smooth(blockMap, insideFn);
+                List<int[]> smoothedOps = new ArrayList<>();
+                for (Map.Entry<Long, int[]> entry : blockMap.entrySet()) {
+                    Vec3DInt pos = ChangeProposal.unpackKey(entry.getKey());
+                    int[] bm = entry.getValue();
+                    smoothedOps.add(pos.toBlockOp(bm[0], bm[1]));
+                }
+                ops = smoothedOps;
+            }
             String action = (hollow ? "Hollow " : "") + type.label;
             int txId = ThreadLocalRandom.current().nextInt(Integer.MIN_VALUE, 0);
             int[][] after = ops.toArray(new int[0][]);
