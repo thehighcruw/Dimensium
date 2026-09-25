@@ -60,7 +60,19 @@ public class PathMath {
                     int cz = blockCoord(pos.z(), state.curveType);
                     float r = (float) (a.radius * (1 - pos.t()) + b.radius * pos.t());
                     int[] bm = resolveBlock(state, activeBlock, seg, pos.t(), cx, cy, cz, a, b);
-                    if (bm != null) addSphere(out, sphereSamples, cx, cy, cz, r, bm[0], bm[1]);
+                    if (bm != null)
+                        addSphere(
+                                out,
+                                sphereSamples,
+                                cx,
+                                cy,
+                                cz,
+                                (float) pos.x(),
+                                (float) pos.y(),
+                                (float) pos.z(),
+                                r,
+                                bm[0],
+                                bm[1]);
                 }
             }
         }
@@ -104,7 +116,19 @@ public class PathMath {
             int wpx = (int) Math.round(pos.x()), wpy = (int) Math.round(pos.y()), wpz = (int) Math.round(pos.z());
             int[] bm = resolveBlock(state, activeBlock, segIdx, segT, wpx, wpy, wpz, pa, pb);
             float r = (float) (pa.radius * (1 - segT) + pb.radius * segT);
-            if (bm != null) addSphere(out, sphereSamples, wpx, wpy, wpz, r, bm[0], bm[1]);
+            if (bm != null)
+                addSphere(
+                        out,
+                        sphereSamples,
+                        wpx,
+                        wpy,
+                        wpz,
+                        (float) pos.x(),
+                        (float) pos.y(),
+                        (float) pos.z(),
+                        r,
+                        bm[0],
+                        bm[1]);
         }
     }
 
@@ -355,13 +379,16 @@ public class PathMath {
             int cx,
             int cy,
             int cz,
+            float fx,
+            float fy,
+            float fz,
             float radius,
             int blockId,
             int meta) {
         if (radius <= 0f) {
             out.put(ChangeProposal.packKey(cx, cy, cz), new int[] {blockId, meta});
             // Effective radius 0.5 means all 8 sub-voxels (±0.25 from center) are inside.
-            sphereSamples.add(new SphereSample(Vec3DFloat.from(cx, cy, cz), 0.5f));
+            sphereSamples.add(new SphereSample(Vec3DFloat.from(fx, fy, fz), 0.5f));
             return;
         }
         // Apply the global shape threshold (same passL2 logic as ShapeMath).
@@ -370,7 +397,12 @@ public class PathMath {
         float effectiveRadius = radius * cutoff;
         float effectiveRadiusSq = effectiveRadius * effectiveRadius;
 
-        sphereSamples.add(new SphereSample(Vec3DFloat.from(cx, cy, cz), effectiveRadius));
+        // Clamp so the sphere sample always covers all 8 sub-voxels of the center block.
+        // Without this, small interpolated radii produce a SphereSample so small that smooth()
+        // marks the center block as air and removes it, creating gaps in the path.
+        float sphereSampleRadius = Math.max(effectiveRadius, (float) (Math.sqrt(3.0) / 4.0));
+        // Use true float position so sub-voxel SDF is accurate for diagonal path segments.
+        sphereSamples.add(new SphereSample(Vec3DFloat.from(fx, fy, fz), sphereSampleRadius));
 
         int iRadius = (int) Math.ceil(effectiveRadius);
         Vec3DInt center = Vec3DInt.from(cx, cy, cz);

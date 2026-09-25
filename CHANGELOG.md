@@ -19,6 +19,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com). Run `scripts/rele
 - Move, paste, path, and stamp tools: rotate block metadata (stairs, furnaces, dispensers, logs, etc.) to match the applied rotation
 - Stamp tool: mirror block metadata when flipX or flipZ is active
 - Gizmo: single-axis translation arrows now rotate with the shape's rotation
+- Path tool: fix jaggedness in stair/slab-smoothed paths caused by integer-snapped sphere centers; spine blocks now always stay solid to prevent gaps in thin paths
 - Ghost renderer: non-full blocks (slabs, stairs, fences, etc.) now render with correct geometry instead of a full cube
 - Camera: LMB drag inside an ImGui window (including tab bars and resize handles) no longer rotates the camera
 
