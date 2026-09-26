@@ -34,6 +34,9 @@ import github.thehighcruw.dimensium.editor.window.LayoutPresetManageWindow;
 import github.thehighcruw.dimensium.editor.window.OperationsWindow;
 import github.thehighcruw.dimensium.editor.window.PaletteEditorWindow;
 import github.thehighcruw.dimensium.editor.window.PaletteWindow;
+import github.thehighcruw.dimensium.editor.window.PipelineEditorWindow;
+import github.thehighcruw.dimensium.editor.window.PipelineManageWindow;
+import github.thehighcruw.dimensium.editor.window.PipelinePreviewWindow;
 import github.thehighcruw.dimensium.editor.window.ReplaceSelectionWindow;
 import github.thehighcruw.dimensium.editor.window.SelectionWindow;
 import github.thehighcruw.dimensium.editor.window.SmoothSelectionWindow;
@@ -49,6 +52,7 @@ import github.thehighcruw.dimensium.editor.window.popup.BlueprintBrowserPopup;
 import github.thehighcruw.dimensium.editor.window.popup.ConflictPopup;
 import github.thehighcruw.dimensium.editor.window.popup.CreateBlueprintPopup;
 import github.thehighcruw.dimensium.editor.window.popup.HeightmapBrowserPopup;
+import github.thehighcruw.dimensium.editor.window.popup.PipelineLibraryPopup;
 import github.thehighcruw.dimensium.editor.window.popup.SettingsModal;
 import github.thehighcruw.dimensium.editor.window.viewport.ViewportCapture;
 import github.thehighcruw.dimensium.editor.window.viewport.ViewportPanel;
@@ -241,6 +245,7 @@ public class OverlayRenderer {
             ConflictPopup.INSTANCE.renderImGui();
             CreateBlueprintPopup.INSTANCE.renderImGui();
             BlueprintBrowserPopup.INSTANCE.renderImGui();
+            PipelineLibraryPopup.INSTANCE.renderImGui();
             HeightmapBrowserPopup.INSTANCE.renderImGui();
             SettingsModal.INSTANCE.renderImGui();
             FilterSelectionWindow.INSTANCE.renderImGui();
@@ -260,6 +265,8 @@ public class OverlayRenderer {
             ToolMaskEditorWindow.INSTANCE.renderImGui();
             PaletteWindow.INSTANCE.renderImGui();
             PaletteEditorWindow.INSTANCE.renderImGui();
+            PipelineManageWindow.INSTANCE.renderImGui();
+            PipelineEditorWindow.INSTANCE.renderImGui();
             HistoryWindow.INSTANCE.renderImGui();
             LayoutPresetManageWindow.INSTANCE.renderImGui();
             MenuBar.INSTANCE.renderPopups();
@@ -270,6 +277,7 @@ public class OverlayRenderer {
             // Rebake clipboard FBO after ImGui has rendered — result used next frame.
             // Running before endFrame() risks corrupting GL state that renderDrawData() needs.
             ClipboardWindow.INSTANCE.prebake();
+            PipelinePreviewWindow.INSTANCE.prebake();
 
             // ── Per-tool overlay (gizmos, 2D overlays) ────────────────────────
             // Rendered after ImGui so the overlay is not captured into the viewport texture.

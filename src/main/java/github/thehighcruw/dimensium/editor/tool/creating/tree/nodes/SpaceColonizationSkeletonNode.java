@@ -4,12 +4,14 @@
  */
 package github.thehighcruw.dimensium.editor.tool.creating.tree.nodes;
 
-import github.thehighcruw.dimensium.editor.tool.creating.tree.pipeline.NodeParams;
-import github.thehighcruw.dimensium.editor.tool.creating.tree.pipeline.NodeSchema;
-import github.thehighcruw.dimensium.editor.tool.creating.tree.pipeline.PipelineContext;
-import github.thehighcruw.dimensium.editor.tool.creating.tree.pipeline.PipelineNode;
-import github.thehighcruw.dimensium.editor.tool.creating.tree.pipeline.Skeleton;
-import github.thehighcruw.dimensium.editor.tool.creating.tree.pipeline.SkeletonNode;
+import github.thehighcruw.dimensium.editor.pipeline.NodeParams;
+import github.thehighcruw.dimensium.editor.pipeline.NodeSchema;
+import github.thehighcruw.dimensium.editor.pipeline.PipelineContext;
+import github.thehighcruw.dimensium.editor.pipeline.PipelineNode;
+import github.thehighcruw.dimensium.editor.pipeline.PortType;
+import github.thehighcruw.dimensium.editor.pipeline.PortValues;
+import github.thehighcruw.dimensium.editor.pipeline.Skeleton;
+import github.thehighcruw.dimensium.editor.pipeline.SkeletonNode;
 import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import java.util.ArrayList;
@@ -17,25 +19,30 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
-public class SpaceColonizationSkeletonNode implements PipelineNode<Vec3DInt, Skeleton> {
+public class SpaceColonizationSkeletonNode implements PipelineNode {
 
     public static final String ID = "space_colonization_skeleton";
 
     private static final NodeSchema SCHEMA = new NodeSchema()
-            .intParam("sc.attractorCount", 200, 50, 1000, "dimensium.ui.tree.sc_attractor_count")
-            .floatParam("sc.crownRadiusX", 8.0f, 2.0f, 20.0f, "dimensium.ui.tree.sc_crown_radius_x")
-            .floatParam("sc.crownRadiusY", 6.0f, 2.0f, 20.0f, "dimensium.ui.tree.sc_crown_radius_y")
-            .floatParam("sc.crownRadiusZ", 8.0f, 2.0f, 20.0f, "dimensium.ui.tree.sc_crown_radius_z")
-            .floatParam("sc.crownOffsetY", 10.0f, 2.0f, 30.0f, "dimensium.ui.tree.sc_crown_offset_y")
-            .floatParam("sc.influenceRadius", 6.0f, 1.0f, 15.0f, "dimensium.ui.tree.sc_influence_radius")
-            .floatParam("sc.killRadius", 2.0f, 0.5f, 5.0f, "dimensium.ui.tree.sc_kill_radius")
-            .floatParam("sc.stepSize", 1.0f, 0.5f, 3.0f, "dimensium.ui.tree.sc_step_size")
-            .intParam("sc.maxIterations", 80, 10, 200, "dimensium.ui.tree.sc_max_iterations")
-            .intParam("sc.trunkHeight", 6, 1, 20, "dimensium.ui.tree.sc_trunk_height")
-            .floatParam("sc.branchRadius", 0.8f, 0.2f, 3.0f, "dimensium.ui.tree.sc_branch_radius");
+            .intParam("sc.attractorCount", 200, 50, 1000, "dimensium.ui.pipeline.sc_attractor_count")
+            .floatParam("sc.crownRadiusX", 8.0f, 2.0f, 20.0f, "dimensium.ui.pipeline.sc_crown_radius_x")
+            .floatParam("sc.crownRadiusY", 6.0f, 2.0f, 20.0f, "dimensium.ui.pipeline.sc_crown_radius_y")
+            .floatParam("sc.crownRadiusZ", 8.0f, 2.0f, 20.0f, "dimensium.ui.pipeline.sc_crown_radius_z")
+            .floatParam("sc.crownOffsetY", 10.0f, 2.0f, 30.0f, "dimensium.ui.pipeline.sc_crown_offset_y")
+            .floatParam("sc.influenceRadius", 6.0f, 1.0f, 15.0f, "dimensium.ui.pipeline.sc_influence_radius")
+            .floatParam("sc.killRadius", 2.0f, 0.5f, 5.0f, "dimensium.ui.pipeline.sc_kill_radius")
+            .floatParam("sc.stepSize", 1.0f, 0.5f, 3.0f, "dimensium.ui.pipeline.sc_step_size")
+            .intParam("sc.maxIterations", 80, 10, 200, "dimensium.ui.pipeline.sc_max_iterations")
+            .intParam("sc.trunkHeight", 6, 1, 20, "dimensium.ui.pipeline.sc_trunk_height")
+            .floatParam("sc.branchRadius", 0.8f, 0.2f, 3.0f, "dimensium.ui.pipeline.sc_branch_radius")
+            .description("dimensium.ui.pipeline.node.space_colonization_skeleton.desc")
+            .outputPort("skeleton", PortType.SKELETON);
 
     @Override
-    public Skeleton apply(Vec3DInt origin, NodeParams params, PipelineContext context) {
+    public void apply(PortValues inputs, PortValues outputs, NodeParams params, PipelineContext context) {
+        Vec3DInt origin = inputs.get("origin", Vec3DInt.class);
+        if (origin == null) origin = context.origin;
+
         int attractorCount = params.getInt("sc.attractorCount", 200);
         float crownRX = params.getFloat("sc.crownRadiusX", 8.0f);
         float crownRY = params.getFloat("sc.crownRadiusY", 6.0f);
@@ -50,11 +57,9 @@ public class SpaceColonizationSkeletonNode implements PipelineNode<Vec3DInt, Ske
 
         Random rand = new Random(context.nodeSeed(0));
 
-        // Build pre-trunk
         SkeletonNode root = buildTrunk(origin, trunkHeight, branchRadius);
         List<SkeletonNode> allNodes = collectAllNodes(root);
 
-        // Scatter attractors inside ellipsoid
         Vec3DFloat crownCenter = Vec3DFloat.from(origin.x(), origin.y() + crownOffsetY, origin.z());
         List<Vec3DFloat> attractors = scatterAttractors(attractorCount, crownCenter, crownRX, crownRY, crownRZ, rand);
 
@@ -62,7 +67,6 @@ public class SpaceColonizationSkeletonNode implements PipelineNode<Vec3DInt, Ske
         float killRadSq = killRadius * killRadius;
 
         for (int iteration = 0; iteration < maxIterations && !attractors.isEmpty(); iteration++) {
-            // For each attractor find nearest node within influence radius
             int[] nearestIndex = new int[attractors.size()];
             float[] nearestDist = new float[attractors.size()];
             for (int ai = 0; ai < attractors.size(); ai++) {
@@ -81,9 +85,7 @@ public class SpaceColonizationSkeletonNode implements PipelineNode<Vec3DInt, Ske
                 }
             }
 
-            // Accumulate growth directions per node
             Vec3DFloat[] growthDirs = new Vec3DFloat[allNodes.size()];
-            int[] attractorCounts = new int[allNodes.size()];
             for (int ai = 0; ai < attractors.size(); ai++) {
                 int ni = nearestIndex[ai];
                 if (ni < 0) continue;
@@ -96,10 +98,8 @@ public class SpaceColonizationSkeletonNode implements PipelineNode<Vec3DInt, Ske
                 } else {
                     growthDirs[ni] = growthDirs[ni].plus(dir);
                 }
-                attractorCounts[ni]++;
             }
 
-            // Grow new nodes
             boolean grew = false;
             int prevSize = allNodes.size();
             for (int ni = 0; ni < prevSize; ni++) {
@@ -113,7 +113,6 @@ public class SpaceColonizationSkeletonNode implements PipelineNode<Vec3DInt, Ske
             }
             if (!grew) break;
 
-            // Remove attractors within kill radius of any node
             Iterator<Vec3DFloat> it = attractors.iterator();
             while (it.hasNext()) {
                 Vec3DFloat attractor = it.next();
@@ -126,9 +125,7 @@ public class SpaceColonizationSkeletonNode implements PipelineNode<Vec3DInt, Ske
             }
         }
 
-        Skeleton skeleton = new Skeleton(root);
-        context.put(Skeleton.class, skeleton);
-        return skeleton;
+        outputs.set("skeleton", new Skeleton(root));
     }
 
     private static SkeletonNode buildTrunk(Vec3DInt origin, int height, float radius) {

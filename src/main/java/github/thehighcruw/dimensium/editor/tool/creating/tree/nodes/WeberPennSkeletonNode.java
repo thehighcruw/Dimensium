@@ -4,33 +4,40 @@
  */
 package github.thehighcruw.dimensium.editor.tool.creating.tree.nodes;
 
-import github.thehighcruw.dimensium.editor.tool.creating.tree.pipeline.NodeParams;
-import github.thehighcruw.dimensium.editor.tool.creating.tree.pipeline.NodeSchema;
-import github.thehighcruw.dimensium.editor.tool.creating.tree.pipeline.PipelineContext;
-import github.thehighcruw.dimensium.editor.tool.creating.tree.pipeline.PipelineNode;
-import github.thehighcruw.dimensium.editor.tool.creating.tree.pipeline.Skeleton;
-import github.thehighcruw.dimensium.editor.tool.creating.tree.pipeline.SkeletonNode;
+import github.thehighcruw.dimensium.editor.pipeline.NodeParams;
+import github.thehighcruw.dimensium.editor.pipeline.NodeSchema;
+import github.thehighcruw.dimensium.editor.pipeline.PipelineContext;
+import github.thehighcruw.dimensium.editor.pipeline.PipelineNode;
+import github.thehighcruw.dimensium.editor.pipeline.PortType;
+import github.thehighcruw.dimensium.editor.pipeline.PortValues;
+import github.thehighcruw.dimensium.editor.pipeline.Skeleton;
+import github.thehighcruw.dimensium.editor.pipeline.SkeletonNode;
 import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import java.util.Random;
 
-public class WeberPennSkeletonNode implements PipelineNode<Vec3DInt, Skeleton> {
+public class WeberPennSkeletonNode implements PipelineNode {
 
     public static final String ID = "weber_penn_skeleton";
 
     private static final NodeSchema SCHEMA = new NodeSchema()
-            .intParam("wp.trunkHeight", 12, 4, 40, "dimensium.ui.tree.trunk_height")
-            .floatParam("wp.trunkRadius", 2.0f, 0.5f, 6.0f, "dimensium.ui.tree.trunk_radius")
-            .floatParam("wp.trunkTaper", 0.7f, 0.1f, 1.0f, "dimensium.ui.tree.trunk_taper")
-            .intParam("wp.levels", 2, 1, 4, "dimensium.ui.tree.levels")
-            .intParam("wp.branchCount", 4, 1, 8, "dimensium.ui.tree.branch_count")
-            .floatParam("wp.branchAngleSpread", 45.0f, 5.0f, 80.0f, "dimensium.ui.tree.branch_angle_spread")
-            .floatParam("wp.branchLengthRatio", 0.55f, 0.2f, 0.9f, "dimensium.ui.tree.branch_length_ratio")
-            .floatParam("wp.branchStartHeight", 0.55f, 0.1f, 0.9f, "dimensium.ui.tree.branch_start_height")
-            .floatParam("wp.branchRadiusFactor", 0.5f, 0.2f, 0.8f, "dimensium.ui.tree.branch_radius_factor");
+            .intParam("wp.trunkHeight", 12, 4, 40, "dimensium.ui.pipeline.trunk_height")
+            .floatParam("wp.trunkRadius", 2.0f, 0.5f, 6.0f, "dimensium.ui.pipeline.trunk_radius")
+            .floatParam("wp.trunkTaper", 0.7f, 0.1f, 1.0f, "dimensium.ui.pipeline.trunk_taper")
+            .intParam("wp.levels", 2, 1, 4, "dimensium.ui.pipeline.levels")
+            .intParam("wp.branchCount", 4, 1, 8, "dimensium.ui.pipeline.branch_count")
+            .floatParam("wp.branchAngleSpread", 45.0f, 5.0f, 80.0f, "dimensium.ui.pipeline.branch_angle_spread")
+            .floatParam("wp.branchLengthRatio", 0.55f, 0.2f, 0.9f, "dimensium.ui.pipeline.branch_length_ratio")
+            .floatParam("wp.branchStartHeight", 0.55f, 0.1f, 0.9f, "dimensium.ui.pipeline.branch_start_height")
+            .floatParam("wp.branchRadiusFactor", 0.5f, 0.2f, 0.8f, "dimensium.ui.pipeline.branch_radius_factor")
+            .description("dimensium.ui.pipeline.node.weber_penn_skeleton.desc")
+            .outputPort("skeleton", PortType.SKELETON);
 
     @Override
-    public Skeleton apply(Vec3DInt origin, NodeParams params, PipelineContext context) {
+    public void apply(PortValues inputs, PortValues outputs, NodeParams params, PipelineContext context) {
+        Vec3DInt origin = inputs.get("origin", Vec3DInt.class);
+        if (origin == null) origin = context.origin;
+
         int trunkHeight = params.getInt("wp.trunkHeight", 12);
         float trunkRadius = params.getFloat("wp.trunkRadius", 2.0f);
         float trunkTaper = params.getFloat("wp.trunkTaper", 0.7f);
@@ -59,9 +66,7 @@ public class WeberPennSkeletonNode implements PipelineNode<Vec3DInt, Skeleton> {
                 branchRadiusFactor,
                 rand);
 
-        Skeleton skeleton = new Skeleton(root);
-        context.put(Skeleton.class, skeleton);
-        return skeleton;
+        outputs.set("skeleton", new Skeleton(root));
     }
 
     private static SkeletonNode buildTrunk(Vec3DInt origin, int height, float baseRadius, float taper) {

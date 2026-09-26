@@ -2,7 +2,7 @@
  * Copyright (c) 2026 TheHighcruw
  * SPDX-License-Identifier: MIT
  */
-package github.thehighcruw.dimensium.editor.tool.creating.tree.pipeline;
+package github.thehighcruw.dimensium.editor.pipeline;
 
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import java.util.ArrayList;

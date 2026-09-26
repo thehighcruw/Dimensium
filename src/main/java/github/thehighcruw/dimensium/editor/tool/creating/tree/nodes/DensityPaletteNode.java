@@ -4,43 +4,44 @@
  */
 package github.thehighcruw.dimensium.editor.tool.creating.tree.nodes;
 
-import github.thehighcruw.dimensium.editor.tool.creating.tree.pipeline.BlockMap;
-import github.thehighcruw.dimensium.editor.tool.creating.tree.pipeline.NodeParams;
-import github.thehighcruw.dimensium.editor.tool.creating.tree.pipeline.NodeSchema;
-import github.thehighcruw.dimensium.editor.tool.creating.tree.pipeline.PipelineContext;
-import github.thehighcruw.dimensium.editor.tool.creating.tree.pipeline.PipelineNode;
+import github.thehighcruw.dimensium.editor.pipeline.BlockMap;
+import github.thehighcruw.dimensium.editor.pipeline.NodeParams;
+import github.thehighcruw.dimensium.editor.pipeline.NodeSchema;
+import github.thehighcruw.dimensium.editor.pipeline.PipelineContext;
+import github.thehighcruw.dimensium.editor.pipeline.PipelineNode;
+import github.thehighcruw.dimensium.editor.pipeline.PortType;
+import github.thehighcruw.dimensium.editor.pipeline.PortValues;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
-import github.thehighcruw.dimensium.tool.ChangeProposal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import net.minecraft.block.Block;
 
-public class DensityPaletteNode implements PipelineNode<BlockMap, BlockMap> {
+public class DensityPaletteNode implements PipelineNode {
 
     public static final String ID = "density_palette";
 
     private static final List<int[]> DEFAULT_PALETTE = Arrays.asList(new int[] {18, 4}, new int[] {18, 0});
 
-    private static final Vec3DInt[] OFFSETS_6 = {
-        Vec3DInt.from(1, 0, 0),
-        Vec3DInt.from(-1, 0, 0),
-        Vec3DInt.from(0, 1, 0),
-        Vec3DInt.from(0, -1, 0),
-        Vec3DInt.from(0, 0, 1),
-        Vec3DInt.from(0, 0, -1)
-    };
-
     private static final NodeSchema SCHEMA = new NodeSchema()
-            .paletteParam("dp2.palette", DEFAULT_PALETTE, "dimensium.ui.tree.density_palette")
-            .intParam("dp2.sampleRadius", 2, 1, 4, "dimensium.ui.tree.density_sample_radius")
-            .boolParam("dp2.onlyLeaves", true, "dimensium.ui.tree.density_only_leaves");
+            .paletteParam("dp2.palette", DEFAULT_PALETTE, "dimensium.ui.pipeline.density_palette")
+            .intParam("dp2.sampleRadius", 2, 1, 4, "dimensium.ui.pipeline.density_sample_radius")
+            .boolParam("dp2.onlyLeaves", true, "dimensium.ui.pipeline.density_only_leaves")
+            .description("dimensium.ui.pipeline.node.density_palette.desc")
+            .inputPort("blocks", PortType.BLOCK_MAP)
+            .outputPort("blocks", PortType.BLOCK_MAP);
 
     @Override
-    public BlockMap apply(BlockMap blockMap, NodeParams params, PipelineContext context) {
+    public void apply(PortValues inputs, PortValues outputs, NodeParams params, PipelineContext context) {
+        BlockMap blockMap = inputs.get("blocks", BlockMap.class);
+        if (blockMap == null) return;
+
         List<int[]> palette = params.getPalette("dp2.palette", DEFAULT_PALETTE);
-        if (palette.isEmpty()) return blockMap;
+        if (palette.isEmpty()) {
+            outputs.set("blocks", blockMap);
+            return;
+        }
 
         int sampleRadius = params.getInt("dp2.sampleRadius", 2);
         boolean onlyLeaves = params.getBool("dp2.onlyLeaves", true);
@@ -51,7 +52,7 @@ public class DensityPaletteNode implements PipelineNode<BlockMap, BlockMap> {
             int blockId = entry.getValue()[0];
             if (onlyLeaves && !isLeaf(blockId)) continue;
 
-            Vec3DInt pos = ChangeProposal.unpackKey(entry.getKey());
+            Vec3DInt pos = BlockMap.unpackKey(entry.getKey());
             int filled = countFilledNeighbors(blockMap, pos, sampleRadius);
             float density = maxNeighbors > 0 ? (float) filled / maxNeighbors : 0f;
 
@@ -60,12 +61,11 @@ public class DensityPaletteNode implements PipelineNode<BlockMap, BlockMap> {
             blockMap.put(pos, Block.getBlockById(chosen[0]), chosen[1]);
         }
 
-        return blockMap;
+        outputs.set("blocks", blockMap);
     }
 
     private static int countFilledNeighbors(BlockMap map, Vec3DInt center, int radius) {
         int count = 0;
-        Vec3DInt rVec = Vec3DInt.from(radius, radius, radius);
         for (int dx = -radius; dx <= radius; dx++) {
             for (int dy = -radius; dy <= radius; dy++) {
                 for (int dz = -radius; dz <= radius; dz++) {

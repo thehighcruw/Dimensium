@@ -31,6 +31,10 @@ import github.thehighcruw.dimensium.editor.window.LayoutPresetManageWindow;
 import github.thehighcruw.dimensium.editor.window.OperationsWindow;
 import github.thehighcruw.dimensium.editor.window.PaletteEditorWindow;
 import github.thehighcruw.dimensium.editor.window.PaletteWindow;
+import github.thehighcruw.dimensium.editor.window.PipelineEditorWindow;
+import github.thehighcruw.dimensium.editor.window.PipelineManageWindow;
+import github.thehighcruw.dimensium.editor.window.PipelineNodeDetailsWindow;
+import github.thehighcruw.dimensium.editor.window.PipelinePreviewWindow;
 import github.thehighcruw.dimensium.editor.window.ReplaceSelectionWindow;
 import github.thehighcruw.dimensium.editor.window.SelectionWindow;
 import github.thehighcruw.dimensium.editor.window.SmoothSelectionWindow;
@@ -111,6 +115,10 @@ public class ClientProxy implements IProxy {
         if (DimensiumConfig.windowSelectionOpen) SelectionWindow.INSTANCE.open();
         if (DimensiumConfig.windowOperationsOpen) OperationsWindow.INSTANCE.open();
         if (DimensiumConfig.windowClipboardOpen) ClipboardWindow.INSTANCE.open();
+        if (DimensiumConfig.windowPipelineManageOpen) PipelineManageWindow.INSTANCE.open();
+        if (DimensiumConfig.windowPipelineEditorOpen) PipelineEditorWindow.INSTANCE.toggle();
+        if (DimensiumConfig.windowPipelinePreviewOpen) PipelinePreviewWindow.INSTANCE.setOpen(true);
+        if (DimensiumConfig.windowPipelineNodeDetailsOpen) PipelineNodeDetailsWindow.INSTANCE.setOpen(true);
         if (!DimensiumConfig.windowToolPanelOpen) OverlayRenderer.TOOL_WINDOW.setOpen(false);
         if (!DimensiumConfig.windowToolOptionsPanelOpen) OverlayRenderer.TOOL_OPTIONS_WINDOW.setOpen(false);
 
@@ -135,5 +143,19 @@ public class ClientProxy implements IProxy {
         reg.registerWindow("history", HistoryWindow.INSTANCE::isOpen, HistoryWindow.INSTANCE::setOpen, true);
         reg.registerWindow("analyze", AnalyzeWindow.INSTANCE::isOpen, AnalyzeWindow.INSTANCE::setOpen, false);
         reg.registerWindow("autoshade", AutoshadeWindow.INSTANCE::isOpen, AutoshadeWindow.INSTANCE::setOpen, false);
+        reg.registerWindow(
+                "pipelineManage", PipelineManageWindow.INSTANCE::isOpen, PipelineManageWindow.INSTANCE::setOpen, false);
+        reg.registerWindow(
+                "pipelineEditor", PipelineEditorWindow.INSTANCE::isOpen, PipelineEditorWindow.INSTANCE::setOpen, false);
+        reg.registerWindow(
+                "pipelineNodeDetails",
+                PipelineNodeDetailsWindow.INSTANCE::isOpen,
+                PipelineNodeDetailsWindow.INSTANCE::setOpen,
+                false);
+        reg.registerWindow(
+                "pipelinePreview",
+                PipelinePreviewWindow.INSTANCE::isOpen,
+                PipelinePreviewWindow.INSTANCE::setOpen,
+                false);
     }
 }

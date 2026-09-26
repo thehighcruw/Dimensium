@@ -19,6 +19,7 @@ import github.thehighcruw.dimensium.editor.overlay.GuiDimensiumOverlay;
 import github.thehighcruw.dimensium.editor.overlay.MenuBar;
 import github.thehighcruw.dimensium.editor.overlay.OverlayRenderer;
 import github.thehighcruw.dimensium.editor.overlay.ViewState;
+import github.thehighcruw.dimensium.editor.pipeline.PipelinePreviewState;
 import github.thehighcruw.dimensium.editor.tool.ActiveDragState;
 import github.thehighcruw.dimensium.editor.tool.Tool;
 import github.thehighcruw.dimensium.editor.tool.ToolRegistry;
@@ -277,6 +278,8 @@ public class SelectionRenderer {
                 renderProposalPreview(mc, camPos, ModellingToolState.INSTANCE.preview);
             if (tool == Tool.STAMP && StampBrushInput.INSTANCE.dragPreview != null)
                 renderProposalPreview(mc, camPos, StampBrushInput.INSTANCE.dragPreview);
+            if (PipelinePreviewState.INSTANCE.preview != null)
+                renderProposalPreview(mc, camPos, PipelinePreviewState.INSTANCE.preview);
         }
 
         PerfTrace.pop();

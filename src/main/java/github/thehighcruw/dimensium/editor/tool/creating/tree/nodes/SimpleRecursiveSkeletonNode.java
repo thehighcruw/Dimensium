@@ -4,31 +4,38 @@
  */
 package github.thehighcruw.dimensium.editor.tool.creating.tree.nodes;
 
-import github.thehighcruw.dimensium.editor.tool.creating.tree.pipeline.NodeParams;
-import github.thehighcruw.dimensium.editor.tool.creating.tree.pipeline.NodeSchema;
-import github.thehighcruw.dimensium.editor.tool.creating.tree.pipeline.PipelineContext;
-import github.thehighcruw.dimensium.editor.tool.creating.tree.pipeline.PipelineNode;
-import github.thehighcruw.dimensium.editor.tool.creating.tree.pipeline.Skeleton;
-import github.thehighcruw.dimensium.editor.tool.creating.tree.pipeline.SkeletonNode;
+import github.thehighcruw.dimensium.editor.pipeline.NodeParams;
+import github.thehighcruw.dimensium.editor.pipeline.NodeSchema;
+import github.thehighcruw.dimensium.editor.pipeline.PipelineContext;
+import github.thehighcruw.dimensium.editor.pipeline.PipelineNode;
+import github.thehighcruw.dimensium.editor.pipeline.PortType;
+import github.thehighcruw.dimensium.editor.pipeline.PortValues;
+import github.thehighcruw.dimensium.editor.pipeline.Skeleton;
+import github.thehighcruw.dimensium.editor.pipeline.SkeletonNode;
 import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import java.util.Random;
 
-public class SimpleRecursiveSkeletonNode implements PipelineNode<Vec3DInt, Skeleton> {
+public class SimpleRecursiveSkeletonNode implements PipelineNode {
 
     public static final String ID = "simple_recursive_skeleton";
 
     private static final NodeSchema SCHEMA = new NodeSchema()
-            .intParam("sr.trunkHeight", 8, 2, 30, "dimensium.ui.tree.sr_trunk_height")
-            .floatParam("sr.trunkRadius", 1.5f, 0.3f, 5.0f, "dimensium.ui.tree.sr_trunk_radius")
-            .intParam("sr.levels", 3, 1, 5, "dimensium.ui.tree.sr_levels")
-            .intParam("sr.branchCount", 3, 1, 6, "dimensium.ui.tree.sr_branch_count")
-            .floatParam("sr.branchAngle", 35.0f, 5.0f, 70.0f, "dimensium.ui.tree.sr_branch_angle")
-            .floatParam("sr.lengthDecay", 0.6f, 0.2f, 0.9f, "dimensium.ui.tree.sr_length_decay")
-            .floatParam("sr.radiusDecay", 0.5f, 0.1f, 0.9f, "dimensium.ui.tree.sr_radius_decay");
+            .intParam("sr.trunkHeight", 8, 2, 30, "dimensium.ui.pipeline.sr_trunk_height")
+            .floatParam("sr.trunkRadius", 1.5f, 0.3f, 5.0f, "dimensium.ui.pipeline.sr_trunk_radius")
+            .intParam("sr.levels", 3, 1, 5, "dimensium.ui.pipeline.sr_levels")
+            .intParam("sr.branchCount", 3, 1, 6, "dimensium.ui.pipeline.sr_branch_count")
+            .floatParam("sr.branchAngle", 35.0f, 5.0f, 70.0f, "dimensium.ui.pipeline.sr_branch_angle")
+            .floatParam("sr.lengthDecay", 0.6f, 0.2f, 0.9f, "dimensium.ui.pipeline.sr_length_decay")
+            .floatParam("sr.radiusDecay", 0.5f, 0.1f, 0.9f, "dimensium.ui.pipeline.sr_radius_decay")
+            .description("dimensium.ui.pipeline.node.simple_recursive_skeleton.desc")
+            .outputPort("skeleton", PortType.SKELETON);
 
     @Override
-    public Skeleton apply(Vec3DInt origin, NodeParams params, PipelineContext context) {
+    public void apply(PortValues inputs, PortValues outputs, NodeParams params, PipelineContext context) {
+        Vec3DInt origin = inputs.get("origin", Vec3DInt.class);
+        if (origin == null) origin = context.origin;
+
         int trunkHeight = params.getInt("sr.trunkHeight", 8);
         float trunkRadius = params.getFloat("sr.trunkRadius", 1.5f);
         int levels = params.getInt("sr.levels", 3);
@@ -54,9 +61,7 @@ public class SimpleRecursiveSkeletonNode implements PipelineNode<Vec3DInt, Skele
                 radiusDecay,
                 rand);
 
-        Skeleton skeleton = new Skeleton(root);
-        context.put(Skeleton.class, skeleton);
-        return skeleton;
+        outputs.set("skeleton", new Skeleton(root));
     }
 
     private static SkeletonNode buildTrunk(Vec3DInt origin, int height, float radius) {

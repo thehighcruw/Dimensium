@@ -2,7 +2,7 @@
  * Copyright (c) 2026 TheHighcruw
  * SPDX-License-Identifier: MIT
  */
-package github.thehighcruw.dimensium.editor.tool.creating.tree.pipeline;
+package github.thehighcruw.dimensium.editor.pipeline;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,7 +37,34 @@ public class NodeSchema {
         }
     }
 
+    public static final class InputPortDef {
+
+        public final String name;
+        public final PortType type;
+        public final boolean required;
+
+        public InputPortDef(String name, PortType type, boolean required) {
+            this.name = name;
+            this.type = type;
+            this.required = required;
+        }
+    }
+
+    public static final class OutputPortDef {
+
+        public final String name;
+        public final PortType type;
+
+        public OutputPortDef(String name, PortType type) {
+            this.name = name;
+            this.type = type;
+        }
+    }
+
     private final List<ParamDef> paramList = new ArrayList<>();
+    private final List<InputPortDef> inputPorts = new ArrayList<>();
+    private final List<OutputPortDef> outputPorts = new ArrayList<>();
+    private String descriptionKey = null;
 
     public NodeSchema floatParam(String key, float defaultValue, float min, float max, String labelKey) {
         paramList.add(new ParamDef(key, ParamType.FLOAT, defaultValue, min, max, labelKey));
@@ -64,13 +91,56 @@ public class NodeSchema {
         return this;
     }
 
+    public NodeSchema description(String key) {
+        this.descriptionKey = key;
+        return this;
+    }
+
+    public String descriptionKey() {
+        return descriptionKey;
+    }
+
+    public NodeSchema inputPort(String name, PortType type) {
+        inputPorts.add(new InputPortDef(name, type, true));
+        return this;
+    }
+
+    public NodeSchema optionalInputPort(String name, PortType type) {
+        inputPorts.add(new InputPortDef(name, type, false));
+        return this;
+    }
+
+    public NodeSchema outputPort(String name, PortType type) {
+        outputPorts.add(new OutputPortDef(name, type));
+        return this;
+    }
+
+    public List<InputPortDef> inputPorts() {
+        return Collections.unmodifiableList(inputPorts);
+    }
+
+    public List<OutputPortDef> outputPorts() {
+        return Collections.unmodifiableList(outputPorts);
+    }
+
+    public InputPortDef primaryInput() {
+        return inputPorts.isEmpty() ? null : inputPorts.get(0);
+    }
+
+    public OutputPortDef primaryOutput() {
+        return outputPorts.isEmpty() ? null : outputPorts.get(0);
+    }
+
     public List<ParamDef> params() {
         return Collections.unmodifiableList(paramList);
     }
 
+    @SuppressWarnings("unchecked")
     public void applyDefaults(NodeParams target) {
         for (ParamDef def : paramList) {
-            target.set(def.key, def.defaultValue);
+            Object value =
+                    def.type == ParamType.PALETTE ? new ArrayList<>((List<int[]>) def.defaultValue) : def.defaultValue;
+            target.set(def.key, value);
         }
     }
 }

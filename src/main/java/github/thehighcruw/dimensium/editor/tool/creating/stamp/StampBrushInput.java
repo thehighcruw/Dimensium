@@ -7,6 +7,8 @@ package github.thehighcruw.dimensium.editor.tool.creating.stamp;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.clipboard.ClipboardBlock;
+import github.thehighcruw.dimensium.editor.pipeline.BlockMap;
+import github.thehighcruw.dimensium.editor.pipeline.PipelineContext;
 import github.thehighcruw.dimensium.editor.tool.BrushInput;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushState;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushUtil;
@@ -23,6 +25,7 @@ import github.thehighcruw.dimensium.tool.ChangeProposal;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import net.minecraft.block.Block;
@@ -122,6 +125,21 @@ public final class StampBrushInput implements BrushInput {
         List<int[]> ops = new ArrayList<>();
         for (StampInstance inst : instances) {
             StampEntry entry = state.blueprints.get(inst.entryIdx);
+
+            if (entry.isPipeline()) {
+                PipelineContext context = new PipelineContext(inst.anchor, entry.seed);
+                BlockMap blockMap = entry.pipeline.execute(context);
+                for (Map.Entry<Long, int[]> e : blockMap.entries().entrySet()) {
+                    Vec3DInt worldPos = BlockMap.unpackKey(e.getKey());
+                    if (state.keepExisting) {
+                        Block existing = WorldUtils.getBlock(worldPos);
+                        if (existing != null && existing != Blocks.air) continue;
+                    }
+                    ops.add(worldPos.toBlockOp(e.getValue()[0], e.getValue()[1]));
+                }
+                continue;
+            }
+
             List<ClipboardBlock> offsets = entry.blueprint.offsets();
             Vec3DInt dim = entry.blueprint.clipDim();
 

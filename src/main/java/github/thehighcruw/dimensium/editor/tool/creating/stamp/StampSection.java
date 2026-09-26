@@ -10,11 +10,15 @@ import github.thehighcruw.dimensium.editor.blueprint.Blueprint;
 import github.thehighcruw.dimensium.editor.tool.ToolSection;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushSection;
 import github.thehighcruw.dimensium.editor.tool.brushes.BrushState;
+import github.thehighcruw.dimensium.editor.tool.creating.tree.PipelinePresets;
+import github.thehighcruw.dimensium.editor.window.PipelineEditorWindow;
 import github.thehighcruw.dimensium.editor.window.popup.BlueprintBrowserPopup;
+import github.thehighcruw.dimensium.editor.window.popup.PipelineLibraryPopup;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import imgui.ImGui;
 import imgui.type.ImBoolean;
 import java.util.ArrayList;
+import java.util.concurrent.ThreadLocalRandom;
 import net.minecraft.client.resources.I18n;
 
 @SideOnly(Side.CLIENT)
@@ -30,6 +34,7 @@ public class StampSection implements ToolSection {
     public StampSection(StampToolState state) {
         this.state = state;
         this.brushSection = new BrushSection(BrushState.INSTANCE);
+        PipelinePresets.registerNodes();
     }
 
     @Override
@@ -44,11 +49,20 @@ public class StampSection implements ToolSection {
             StampEntry entry = state.blueprints.get(i);
             ImGui.pushID(i);
 
-            String label =
-                    entry.blueprint.name().isEmpty() ? I18n.format("dimensium.stamp.unnamed") : entry.blueprint.name();
-            ImGui.text(label);
+            ImGui.text(entry.displayName());
             ImGui.sameLine();
             if (ImGui.smallButton(I18n.format("dimensium.stamp.remove") + "##rm")) removeIdx = i;
+
+            if (entry.isPipeline()) {
+                ImGui.sameLine();
+                if (ImGui.smallButton(I18n.format("dimensium.stamp.reseed") + "##rs")) {
+                    entry.seed = ThreadLocalRandom.current().nextLong();
+                }
+                ImGui.sameLine();
+                if (ImGui.smallButton(I18n.format("dimensium.stamp.edit_pipeline") + "##ep")) {
+                    PipelineEditorWindow.INSTANCE.open(entry.pipeline);
+                }
+            }
 
             entryChanBuf[0] = entry.chance;
             if (ImGui.sliderFloat(
@@ -80,6 +94,10 @@ public class StampSection implements ToolSection {
         ImGui.sameLine();
         if (ImGui.button(I18n.format("dimensium.stamp.add_clipboard") + "##ac")) {
             addFromClipboard();
+        }
+        ImGui.sameLine();
+        if (ImGui.button(I18n.format("dimensium.stamp.add_pipeline") + "##ap")) {
+            PipelineLibraryPopup.INSTANCE.open(graph -> state.blueprints.add(new StampEntry(graph)));
         }
 
         ImGui.spacing();

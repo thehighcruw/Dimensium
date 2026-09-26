@@ -29,6 +29,10 @@ import github.thehighcruw.dimensium.editor.window.LayoutPresetManageWindow;
 import github.thehighcruw.dimensium.editor.window.OperationsWindow;
 import github.thehighcruw.dimensium.editor.window.PaletteEditorWindow;
 import github.thehighcruw.dimensium.editor.window.PaletteWindow;
+import github.thehighcruw.dimensium.editor.window.PipelineEditorWindow;
+import github.thehighcruw.dimensium.editor.window.PipelineManageWindow;
+import github.thehighcruw.dimensium.editor.window.PipelineNodeDetailsWindow;
+import github.thehighcruw.dimensium.editor.window.PipelinePreviewWindow;
 import github.thehighcruw.dimensium.editor.window.ReplaceSelectionWindow;
 import github.thehighcruw.dimensium.editor.window.SelectionWindow;
 import github.thehighcruw.dimensium.editor.window.SmoothSelectionWindow;
@@ -119,6 +123,27 @@ public final class MenuBar {
                 if (ImGui.menuItem(
                         I18n.format("dimensium.menu.window.history"), null, HistoryWindow.INSTANCE.isOpen())) {
                     HistoryWindow.INSTANCE.setOpen(!HistoryWindow.INSTANCE.isOpen());
+                }
+                if (ImGui.menuItem(I18n.format("dimensium.menu.window.pipeline_manage"))) {
+                    PipelineManageWindow.INSTANCE.open();
+                }
+                if (ImGui.menuItem(
+                        I18n.format("dimensium.menu.window.pipeline_editor"),
+                        null,
+                        PipelineEditorWindow.INSTANCE.isOpen())) {
+                    PipelineEditorWindow.INSTANCE.toggle();
+                }
+                if (ImGui.menuItem(
+                        I18n.format("dimensium.menu.window.pipeline_node_details"),
+                        null,
+                        PipelineNodeDetailsWindow.INSTANCE.isOpen())) {
+                    PipelineNodeDetailsWindow.INSTANCE.setOpen(!PipelineNodeDetailsWindow.INSTANCE.isOpen());
+                }
+                if (ImGui.menuItem(
+                        I18n.format("dimensium.menu.window.pipeline_preview"),
+                        null,
+                        PipelinePreviewWindow.INSTANCE.isOpen())) {
+                    PipelinePreviewWindow.INSTANCE.setOpen(!PipelinePreviewWindow.INSTANCE.isOpen());
                 }
                 if (ImGui.menuItem(
                         I18n.format("dimensium.menu.window.palette"), null, PaletteWindow.INSTANCE.isOpen())) {

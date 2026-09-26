@@ -409,6 +409,18 @@ public class DimensiumConfig {
     @Config.Comment("Clipboard window open state.")
     public static boolean windowClipboardOpen = true;
 
+    @Config.Comment("Pipeline Manage window open state.")
+    public static boolean windowPipelineManageOpen = false;
+
+    @Config.Comment("Pipeline Editor window open state.")
+    public static boolean windowPipelineEditorOpen = false;
+
+    @Config.Comment("Pipeline Preview window open state.")
+    public static boolean windowPipelinePreviewOpen = false;
+
+    @Config.Comment("Pipeline Node Details window open state.")
+    public static boolean windowPipelineNodeDetailsOpen = false;
+
     // ── Window state setters — call these instead of writing fields directly ──
 
     public static void setWindowHistoryOpen(boolean v) {
@@ -473,6 +485,26 @@ public class DimensiumConfig {
 
     public static void setWindowClipboardOpen(boolean v) {
         windowClipboardOpen = v;
+        save();
+    }
+
+    public static void setWindowPipelineManageOpen(boolean v) {
+        windowPipelineManageOpen = v;
+        save();
+    }
+
+    public static void setWindowPipelineEditorOpen(boolean v) {
+        windowPipelineEditorOpen = v;
+        save();
+    }
+
+    public static void setWindowPipelinePreviewOpen(boolean v) {
+        windowPipelinePreviewOpen = v;
+        save();
+    }
+
+    public static void setWindowPipelineNodeDetailsOpen(boolean v) {
+        windowPipelineNodeDetailsOpen = v;
         save();
     }
 

@@ -4,13 +4,15 @@
  */
 package github.thehighcruw.dimensium.editor.tool.creating.tree.nodes;
 
-import github.thehighcruw.dimensium.editor.tool.creating.tree.pipeline.BlockMap;
-import github.thehighcruw.dimensium.editor.tool.creating.tree.pipeline.NodeParams;
-import github.thehighcruw.dimensium.editor.tool.creating.tree.pipeline.NodeSchema;
-import github.thehighcruw.dimensium.editor.tool.creating.tree.pipeline.PipelineContext;
-import github.thehighcruw.dimensium.editor.tool.creating.tree.pipeline.PipelineNode;
-import github.thehighcruw.dimensium.editor.tool.creating.tree.pipeline.Skeleton;
-import github.thehighcruw.dimensium.editor.tool.creating.tree.pipeline.SkeletonNode;
+import github.thehighcruw.dimensium.editor.pipeline.BlockMap;
+import github.thehighcruw.dimensium.editor.pipeline.NodeParams;
+import github.thehighcruw.dimensium.editor.pipeline.NodeSchema;
+import github.thehighcruw.dimensium.editor.pipeline.PipelineContext;
+import github.thehighcruw.dimensium.editor.pipeline.PipelineNode;
+import github.thehighcruw.dimensium.editor.pipeline.PortType;
+import github.thehighcruw.dimensium.editor.pipeline.PortValues;
+import github.thehighcruw.dimensium.editor.pipeline.Skeleton;
+import github.thehighcruw.dimensium.editor.pipeline.SkeletonNode;
 import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import java.util.Arrays;
@@ -18,23 +20,30 @@ import java.util.List;
 import java.util.Random;
 import net.minecraft.block.Block;
 
-public class CylinderVoxelizerNode implements PipelineNode<Skeleton, BlockMap> {
+/** Converts a Skeleton into a BlockMap by stamping spheres along each segment. */
+public class SkeletonVoxelizerNode implements PipelineNode {
 
-    public static final String ID = "cylinder_voxelizer";
+    public static final String ID = "skeleton_voxelizer";
 
-    private static final List<int[]> DEFAULT_LOG_PALETTE = Arrays.asList(new int[] {17, 0});
+    private static final List<int[]> DEFAULT_PALETTE = Arrays.asList(new int[] {17, 0});
 
-    private static final NodeSchema SCHEMA =
-            new NodeSchema().paletteParam("vox.logPalette", DEFAULT_LOG_PALETTE, "dimensium.ui.tree.log_palette");
+    private static final NodeSchema SCHEMA = new NodeSchema()
+            .paletteParam("vox.palette", DEFAULT_PALETTE, "dimensium.ui.pipeline.vox_palette")
+            .description("dimensium.ui.pipeline.node.skeleton_voxelizer.desc")
+            .inputPort("skeleton", PortType.SKELETON)
+            .outputPort("blocks", PortType.BLOCK_MAP);
 
     @Override
-    public BlockMap apply(Skeleton skeleton, NodeParams params, PipelineContext context) {
-        List<int[]> logPalette = params.getPalette("vox.logPalette", DEFAULT_LOG_PALETTE);
+    public void apply(PortValues inputs, PortValues outputs, NodeParams params, PipelineContext context) {
+        Skeleton skeleton = inputs.get("skeleton", Skeleton.class);
+        if (skeleton == null) return;
+
+        List<int[]> palette = params.getPalette("vox.palette", DEFAULT_PALETTE);
         Random rand = new Random(context.nodeSeed(1));
 
         BlockMap map = new BlockMap();
-        voxelizeNode(skeleton.root, map, logPalette, rand);
-        return map;
+        voxelizeNode(skeleton.root, map, palette, rand);
+        outputs.set("blocks", map);
     }
 
     private static void voxelizeNode(SkeletonNode node, BlockMap map, List<int[]> palette, Random rand) {
@@ -71,7 +80,7 @@ public class CylinderVoxelizerNode implements PipelineNode<Skeleton, BlockMap> {
         Vec3DInt max = center.plus(r);
         float rSq = radius * radius;
 
-        int[] entry = samplePalette(palette, rand);
+        int[] entry = palette.get(rand.nextInt(palette.size()));
         Block block = Block.getBlockById(entry[0]);
         int meta = entry[1];
 
@@ -83,11 +92,6 @@ public class CylinderVoxelizerNode implements PipelineNode<Skeleton, BlockMap> {
                 map.put(pos, block, meta);
             }
         });
-    }
-
-    private static int[] samplePalette(List<int[]> palette, Random rand) {
-        if (palette.isEmpty()) return new int[] {17, 0};
-        return palette.get(rand.nextInt(palette.size()));
     }
 
     @Override

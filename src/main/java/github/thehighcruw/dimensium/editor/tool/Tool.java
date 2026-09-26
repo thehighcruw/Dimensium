@@ -30,7 +30,6 @@ public enum Tool {
     ROUGHEN("dimensium.tool.roughen"),
     SHATTER("dimensium.tool.shatter"),
     SLOPE("dimensium.tool.slope"),
-    TREE("dimensium.tool.tree"),
     RULER("dimensium.tool.ruler"),
     MODELLING("dimensium.tool.modelling"),
     MODIFY("dimensium.tool.modify");
