@@ -107,11 +107,21 @@ public class PathSection implements ToolSection {
             state.invalidatePath();
         }
 
-        if (state.fillMode == PathFillMode.BLOCKS && hasStairSlabSupport()) {
-            ImBoolean useStairsAndSlabs = new ImBoolean(state.useStairsAndSlabs);
+        if (state.fillMode == PathFillMode.BLOCKS) {
+            if (hasStairSlabSupport()) {
+                ImBoolean useStairsAndSlabs = new ImBoolean(state.useStairsAndSlabs);
+                if (ImGui.checkbox(
+                        I18n.format("dimensium.ui.path.use_stairs_and_slabs") + "##path_stairs_slabs",
+                        useStairsAndSlabs)) {
+                    state.useStairsAndSlabs = useStairsAndSlabs.get();
+                    state.invalidatePath();
+                }
+            }
+
+            ImBoolean extendToGround = new ImBoolean(state.extendToGround);
             if (ImGui.checkbox(
-                    I18n.format("dimensium.ui.path.use_stairs_and_slabs") + "##path_stairs_slabs", useStairsAndSlabs)) {
-                state.useStairsAndSlabs = useStairsAndSlabs.get();
+                    I18n.format("dimensium.ui.path.extend_to_ground") + "##path_extend_ground", extendToGround)) {
+                state.extendToGround = extendToGround.get();
                 state.invalidatePath();
             }
         }

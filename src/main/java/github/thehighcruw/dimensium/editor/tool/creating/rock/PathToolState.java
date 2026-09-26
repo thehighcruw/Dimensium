@@ -84,6 +84,8 @@ public class PathToolState implements WithAxisTranslationGizmo, WithPlaneTransla
     public PathFillMode fillMode = PathFillMode.BLOCKS;
     /** Replace eligible slope blocks with correctly oriented stairs. Only applied in BLOCKS fill mode. */
     public boolean useStairsAndSlabs = false;
+    /** Extend each path column downward until a solid surface is reached. Only applied in BLOCKS fill mode. */
+    public boolean extendToGround = false;
     /** Blueprint to stamp along path. Null means use current clipboard. */
     public Blueprint stampBlueprint = null;
     /** Arc-length distance between stamp placements in blocks. */
@@ -192,6 +194,8 @@ public class PathToolState implements WithAxisTranslationGizmo, WithPlaneTransla
                 .append(orientPitch)
                 .append(',')
                 .append(useStairsAndSlabs)
+                .append(',')
+                .append(extendToGround)
                 .append(',');
         if (fillMode == PathFillMode.STAMP) {
             List<ClipboardBlock> source = stampBlueprint != null ? stampBlueprint.offsets() : activeClipboard;

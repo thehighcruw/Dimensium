@@ -7,6 +7,7 @@ package github.thehighcruw.dimensium.shared.util;
 import com.github.bsideup.jabel.Desugar;
 import java.util.HashMap;
 import java.util.Map;
+import javax.annotation.Nullable;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 
@@ -32,6 +33,8 @@ public final class BlockFamilyRegistry {
     }
 
     private static final Map<Integer, BlockFamily> REGISTRY = new HashMap<>();
+    // Maps stair/slab block+meta back to {baseBlockId, baseMeta}.
+    private static final Map<Integer, int[]> REVERSE_REGISTRY = new HashMap<>();
 
     static {
         registerVanilla();
@@ -66,7 +69,13 @@ public final class BlockFamilyRegistry {
      * @param slabMeta  material bits for the slab (bits 0-2 only; top/bottom bit is set automatically)
      */
     public static void register(Block fullBlock, int meta, Block stairs, Block slab, int slabMeta) {
-        REGISTRY.put(packKey(Block.getIdFromBlock(fullBlock), meta), new BlockFamily(stairs, slab, slabMeta));
+        int fullId = Block.getIdFromBlock(fullBlock);
+        int[] base = {fullId, meta};
+        REGISTRY.put(packKey(fullId, meta), new BlockFamily(stairs, slab, slabMeta));
+        // Reverse: stair block id (orientation meta ignored, using 0)
+        REVERSE_REGISTRY.put(packKey(Block.getIdFromBlock(stairs), 0), base);
+        // Reverse: slab block id + material meta (bit 3 is top/bottom, mask it out)
+        REVERSE_REGISTRY.put(packKey(Block.getIdFromBlock(slab), slabMeta & 7), base);
     }
 
     /** Returns the family for the given block, or null if none is registered. */
@@ -77,6 +86,18 @@ public final class BlockFamilyRegistry {
     /** Returns true if the given block has a registered stair/slab family. */
     public static boolean hasFamily(int blockId, int meta) {
         return REGISTRY.containsKey(packKey(blockId, meta));
+    }
+
+    /**
+     * If blockId/meta is a stair or slab variant, returns {baseBlockId, baseMeta}.
+     * Returns null if the block is not a known stair or slab.
+     */
+    public static @Nullable int[] resolveToBase(int blockId, int meta) {
+        // Stair blocks ignore orientation meta — look up with meta=0
+        int[] fromStair = REVERSE_REGISTRY.get(packKey(blockId, 0));
+        if (fromStair != null) return fromStair;
+        // Slab blocks use material meta only (strip top/bottom bit)
+        return REVERSE_REGISTRY.get(packKey(blockId, meta & 7));
     }
 
     private static int packKey(int blockId, int meta) {

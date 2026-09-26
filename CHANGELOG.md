@@ -5,6 +5,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com). Run `scripts/rele
 
 ## [Unreleased]
 ### Added
+- Path tool: add "Extend to Ground" option that fills each path column downward until a solid surface is reached
 
 ### Changed
 

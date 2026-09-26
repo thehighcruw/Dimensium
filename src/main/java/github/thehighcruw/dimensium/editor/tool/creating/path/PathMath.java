@@ -13,10 +13,12 @@ import github.thehighcruw.dimensium.shared.math.Mat3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import github.thehighcruw.dimensium.shared.util.BlockFamilyRegistry;
 import github.thehighcruw.dimensium.shared.util.BlockMetaRotator;
 import github.thehighcruw.dimensium.shared.util.BlockUtils;
 import github.thehighcruw.dimensium.shared.util.StairSlabSmoother;
 import github.thehighcruw.dimensium.shared.util.StairSlabSmoother.SphereSample;
+import github.thehighcruw.dimensium.shared.util.WorldUtils;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import net.minecraft.block.Block;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 
 public class PathMath {
@@ -79,6 +82,9 @@ public class PathMath {
 
         if (state.useStairsAndSlabs) {
             out = StairSlabSmoother.smooth(out, sphereSamples);
+        }
+        if (state.extendToGround) {
+            extendToGround(out);
         }
         return ChangeProposal.mapToOps(out);
     }
@@ -524,6 +530,45 @@ public class PathMath {
             result.addAll(segment);
         }
         return result;
+    }
+
+    /**
+     * For each (x, z) column in the output map, finds the lowest path block and fills downward
+     * until a solid block is found in the world, using the same block type as the lowest path block.
+     */
+    private static void extendToGround(Map<Long, int[]> out) {
+        // Find the lowest out-key per (x,z) column.
+        Map<Long, Long> columnMinKey = new HashMap<>();
+        for (long key : out.keySet()) {
+            int x = ChangeProposal.unpackX(key);
+            int y = ChangeProposal.unpackY(key);
+            int z = ChangeProposal.unpackZ(key);
+            long columnKey = ((long) x) << 32 | (z & 0xFFFFFFFFL);
+            Long currentMin = columnMinKey.get(columnKey);
+            if (currentMin == null || y < ChangeProposal.unpackY(currentMin)) {
+                columnMinKey.put(columnKey, key);
+            }
+        }
+        // Extend each column downward with a solid block.
+        for (Map.Entry<Long, Long> entry : columnMinKey.entrySet()) {
+            long columnKey = entry.getKey();
+            int x = (int) (columnKey >> 32);
+            int z = (int) (columnKey & 0xFFFFFFFFL);
+            long minOutKey = entry.getValue();
+            int minY = ChangeProposal.unpackY(minOutKey);
+            int[] bm = out.get(minOutKey);
+            // Stairs/slabs are not valid at the bottom when extending to ground — resolve to base solid.
+            int[] resolved = BlockFamilyRegistry.resolveToBase(bm[0], bm[1]);
+            int[] fillBlock = resolved != null ? resolved : bm;
+            if (resolved != null) {
+                out.put(minOutKey, fillBlock);
+            }
+            for (int y = minY - 1; y >= 0; y--) {
+                Block existing = WorldUtils.getBlock(Vec3DInt.from(x, y, z));
+                if (existing != null && existing != Blocks.air) break;
+                out.put(ChangeProposal.packKey(x, y, z), fillBlock);
+            }
+        }
     }
 
     private PathMath() {}
