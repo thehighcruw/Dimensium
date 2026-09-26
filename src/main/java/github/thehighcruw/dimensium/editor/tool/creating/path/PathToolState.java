@@ -2,11 +2,10 @@
  * Copyright (c) 2026 TheHighcruw
  * SPDX-License-Identifier: MIT
  */
-package github.thehighcruw.dimensium.editor.tool.creating.rock;
+package github.thehighcruw.dimensium.editor.tool.creating.path;
 
 import github.thehighcruw.dimensium.editor.blueprint.Blueprint;
 import github.thehighcruw.dimensium.editor.clipboard.ClipboardBlock;
-import github.thehighcruw.dimensium.editor.tool.creating.path.PathMath;
 import github.thehighcruw.dimensium.editor.tool.gizmo.WithAxisTranslationGizmo;
 import github.thehighcruw.dimensium.editor.tool.gizmo.WithPlaneTranslationGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.PlaneTranslationGizmo;
@@ -86,6 +85,8 @@ public class PathToolState implements WithAxisTranslationGizmo, WithPlaneTransla
     public boolean useStairsAndSlabs = false;
     /** Extend each path column downward until a solid surface is reached. Only applied in BLOCKS fill mode. */
     public boolean extendToGround = false;
+    /** When true, existing non-air blocks are not overridden. */
+    public boolean keepExisting = false;
     /** Blueprint to stamp along path. Null means use current clipboard. */
     public Blueprint stampBlueprint = null;
     /** Arc-length distance between stamp placements in blocks. */

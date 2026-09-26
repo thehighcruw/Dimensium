@@ -8,7 +8,7 @@ import github.thehighcruw.dimensium.editor.tool.brushes.BrushState;
 import github.thehighcruw.dimensium.editor.tool.creating.fill.FloodfillToolState;
 import github.thehighcruw.dimensium.editor.tool.creating.freehand.FreehandToolState;
 import github.thehighcruw.dimensium.editor.tool.creating.modelling.ModellingToolState;
-import github.thehighcruw.dimensium.editor.tool.creating.rock.PathToolState;
+import github.thehighcruw.dimensium.editor.tool.creating.path.PathToolState;
 import github.thehighcruw.dimensium.editor.tool.creating.rock.RockToolState;
 import github.thehighcruw.dimensium.editor.tool.creating.sculpt.SculptToolState;
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeToolState;

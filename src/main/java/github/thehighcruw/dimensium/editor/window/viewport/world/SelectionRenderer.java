@@ -23,7 +23,7 @@ import github.thehighcruw.dimensium.editor.tool.ActiveDragState;
 import github.thehighcruw.dimensium.editor.tool.Tool;
 import github.thehighcruw.dimensium.editor.tool.ToolRegistry;
 import github.thehighcruw.dimensium.editor.tool.creating.modelling.ModellingToolState;
-import github.thehighcruw.dimensium.editor.tool.creating.rock.PathToolState;
+import github.thehighcruw.dimensium.editor.tool.creating.path.PathToolState;
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapePlacementState;
 import github.thehighcruw.dimensium.editor.tool.creating.stamp.StampBrushInput;
 import github.thehighcruw.dimensium.editor.tool.manipulating.elevation.ElevationBrush;

@@ -9,10 +9,9 @@ import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.blueprint.Blueprint;
 import github.thehighcruw.dimensium.editor.overlay.OverlayRenderer;
 import github.thehighcruw.dimensium.editor.tool.ToolSection;
-import github.thehighcruw.dimensium.editor.tool.creating.rock.PathToolState;
-import github.thehighcruw.dimensium.editor.tool.creating.rock.PathToolState.CurveType;
-import github.thehighcruw.dimensium.editor.tool.creating.rock.PathToolState.PathFillMode;
-import github.thehighcruw.dimensium.editor.tool.creating.rock.PathToolState.PathInterp;
+import github.thehighcruw.dimensium.editor.tool.creating.path.PathToolState.CurveType;
+import github.thehighcruw.dimensium.editor.tool.creating.path.PathToolState.PathFillMode;
+import github.thehighcruw.dimensium.editor.tool.creating.path.PathToolState.PathInterp;
 import github.thehighcruw.dimensium.editor.tool.selecting.SelectedBlockState;
 import github.thehighcruw.dimensium.editor.window.imgui.DeferredItemRender;
 import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
@@ -105,6 +104,11 @@ public class PathSection implements ToolSection {
         if (ImGui.combo(I18n.format("dimensium.ui.path.fill_mode") + "##path_fill", fillModeIdx, fillModeLabels)) {
             state.fillMode = fillModes[fillModeIdx.get()];
             state.invalidatePath();
+        }
+
+        ImBoolean keepExisting = new ImBoolean(state.keepExisting);
+        if (ImGui.checkbox(I18n.format("dimensium.ui.path.keep_existing") + "##path_keep", keepExisting)) {
+            state.keepExisting = keepExisting.get();
         }
 
         if (state.fillMode == PathFillMode.BLOCKS) {

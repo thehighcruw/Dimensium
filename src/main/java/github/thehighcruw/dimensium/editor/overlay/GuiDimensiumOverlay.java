@@ -13,7 +13,7 @@ import github.thehighcruw.dimensium.editor.tool.BrushInput;
 import github.thehighcruw.dimensium.editor.tool.BrushInputRegistry;
 import github.thehighcruw.dimensium.editor.tool.Tool;
 import github.thehighcruw.dimensium.editor.tool.creating.modelling.ModellingToolState;
-import github.thehighcruw.dimensium.editor.tool.creating.rock.PathToolState;
+import github.thehighcruw.dimensium.editor.tool.creating.path.PathToolState;
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapePlacementState;
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeToolState;
 import github.thehighcruw.dimensium.editor.tool.manipulating.move.MoveToolState;
@@ -336,14 +336,27 @@ public final class GuiDimensiumOverlay {
         return best;
     }
 
-    public static void applyPath() {
-        ChangeProposal p = PathToolState.INSTANCE.preview;
-        if (p != null && !p.proposed.isEmpty()) {
-            String pathAction =
-                    I18n.format("dimensium.action.path", I18n.format(PathToolState.INSTANCE.curveType.labelKey));
-            BlockSender.sendChunked(p.toOps(), pathAction);
+    private static List<int[]> proposalToOps(ChangeProposal proposal, boolean keepExisting) {
+        if (!keepExisting) return proposal.toOps();
+        List<int[]> ops = new ArrayList<>();
+        for (Map.Entry<Long, int[]> e : proposal.proposed.entrySet()) {
+            Vec3DInt wc = ChangeProposal.unpackKey(e.getKey());
+            if (WorldUtils.getBlock(Minecraft.getMinecraft().theWorld, wc) == Blocks.air) {
+                ops.add(wc.toBlockOp(e.getValue()[0], e.getValue()[1]));
+            }
         }
-        PathToolState.INSTANCE.clear();
+        return ops;
+    }
+
+    public static void applyPath() {
+        PathToolState pts = PathToolState.INSTANCE;
+        ChangeProposal p = pts.preview;
+        if (p != null && !p.proposed.isEmpty()) {
+            String pathAction = I18n.format("dimensium.action.path", I18n.format(pts.curveType.labelKey));
+            List<int[]> ops = proposalToOps(p, pts.keepExisting);
+            if (!ops.isEmpty()) BlockSender.sendChunked(ops, pathAction);
+        }
+        pts.clear();
     }
 
     public static void applyModelling() {
@@ -353,16 +366,7 @@ public final class GuiDimensiumOverlay {
         if (mts.preview == null || mts.preview.proposed.isEmpty()) return;
 
         boolean keepExisting = mts.pasteMode == ModellingToolState.PasteMode.KEEP_EXISTING;
-        List<int[]> ops = new ArrayList<>(mts.preview.proposed.size());
-        for (Map.Entry<Long, int[]> e : mts.preview.proposed.entrySet()) {
-            long key = e.getKey();
-            int[] bm = e.getValue();
-            Vec3DInt wc = ChangeProposal.unpackKey(key);
-            if (keepExisting) {
-                if (WorldUtils.getBlock(Minecraft.getMinecraft().theWorld, wc) != Blocks.air) continue;
-            }
-            ops.add(wc.toBlockOp(bm[0], bm[1]));
-        }
+        List<int[]> ops = proposalToOps(mts.preview, keepExisting);
         if (!ops.isEmpty()) {
             BlockSender.sendChunked(ops, I18n.format("dimensium.action.modelling"));
         }

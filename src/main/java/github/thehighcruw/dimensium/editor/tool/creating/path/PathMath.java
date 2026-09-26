@@ -7,7 +7,6 @@ package github.thehighcruw.dimensium.editor.tool.creating.path;
 import github.thehighcruw.dimensium.DimensiumConfig;
 import github.thehighcruw.dimensium.editor.clipboard.ClipboardBlock;
 import github.thehighcruw.dimensium.editor.tool.creating.modelling.ModellingMath;
-import github.thehighcruw.dimensium.editor.tool.creating.rock.PathToolState;
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeMath;
 import github.thehighcruw.dimensium.shared.math.Mat3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
@@ -30,6 +29,11 @@ import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 
 public class PathMath {
+
+    private static final double MAX_SEGMENT_VOXEL_DISTANCE = 1.0;
+    private static final double INTERP_DITHER_AMPLITUDE = 0.25;
+    private static final double CATENARY_SAG_COEFFICIENT = 4.0;
+    static final int POINT_SELECTION_THRESHOLD_PX = 18;
 
     public static List<int[]> computePathBlocks(PathToolState state, ItemStack activeBlock) {
         List<PathToolState.PathPoint> pts = state.points;
@@ -158,7 +162,7 @@ public class PathMath {
                 adjT = t;
                 break;
             case LINEAR:
-                adjT = t + voxelHash(wx, wy, wz, state.interpSeed) * 0.25;
+                adjT = t + voxelHash(wx, wy, wz, state.interpSeed) * INTERP_DITHER_AMPLITUDE;
                 break;
             case BEZIER: {
                 // Seeded per-segment bezier S-curve, then dither
@@ -167,7 +171,7 @@ public class PathMath {
                 float tc = (float) Math.max(0, Math.min(1, t));
                 float inv = 1f - tc;
                 float remapped = 3f * inv * inv * tc * bp1 + 3f * inv * tc * tc * bp2 + tc * tc * tc;
-                adjT = remapped + voxelHash(wx, wy, wz, state.interpSeed) * 0.25;
+                adjT = remapped + voxelHash(wx, wy, wz, state.interpSeed) * INTERP_DITHER_AMPLITUDE;
                 break;
             }
         }
@@ -175,6 +179,10 @@ public class PathMath {
                 adjT < 0.5 ? (a.block != null ? a.block : activeBlock) : (b.block != null ? b.block : activeBlock));
     }
 
+    /**
+     * Spatially-seeded hash using Knuth multiplicative constants for axis mixing,
+     * followed by the splitmix64 finalizer for avalanche. Returns a value in [-0.5, 0.5).
+     */
     public static double voxelHash(int x, int y, int z, long seed) {
         long h = seed ^ (x * 2654435761L) ^ (y * 805459861L) ^ (z * 3266489917L);
         h = (h ^ (h >>> 30)) * 0xbf58476d1ce4e5b9L;
@@ -267,7 +275,8 @@ public class PathMath {
         for (int i = 0; i <= preSamples; i++) {
             double t = (double) i / preSamples;
             Vec3DDouble base = origin.plus(delta.times(t));
-            SplinePoint p = SplinePoint.of(base.x(), base.y() - 4.0 * slack * dHoriz * t * (1 - t), base.z(), t);
+            SplinePoint p = SplinePoint.of(
+                    base.x(), base.y() - CATENARY_SAG_COEFFICIENT * slack * dHoriz * t * (1 - t), base.z(), t);
             if (prev != null) arcLen += prev.pos().minus(p.pos()).length();
             prev = p;
         }
@@ -276,7 +285,7 @@ public class PathMath {
         for (int i = 0; i <= steps; i++) {
             double t = (double) i / steps;
             Vec3DDouble base = origin.plus(delta.times(t));
-            double sagY = -4.0 * slack * dHoriz * t * (1 - t);
+            double sagY = -CATENARY_SAG_COEFFICIENT * slack * dHoriz * t * (1 - t);
             result.add(SplinePoint.of(base.x(), base.y() + sagY, base.z(), t));
         }
         return result;
@@ -307,7 +316,7 @@ public class PathMath {
             for (int i = 0; i <= samples; i++) {
                 double t = (double) i / samples;
                 Vec3DDouble b = ModellingMath.catmullRomInterp(v0, v1, v2, v3, t);
-                if (i > 0 || seg == 0) result.add(SplinePoint.of(b.x(), b.y(), b.z(), 0));
+                if (i > 0 || seg == 0) result.add(SplinePoint.of(b, 0));
             }
         }
         return result;
@@ -343,7 +352,7 @@ public class PathMath {
                     work[j] = work[j].lerp(work[j + 1], t);
                 }
             }
-            result.add(SplinePoint.of(work[0].x(), work[0].y(), work[0].z(), t));
+            result.add(SplinePoint.of(work[0], t));
         }
         return result;
     }
@@ -362,7 +371,7 @@ public class PathMath {
             SplinePoint a = raw.get(i - 1), b = raw.get(i);
             Vec3DDouble delta = b.pos().minus(a.pos());
             double dist = delta.length();
-            if (dist > 1.0) {
+            if (dist > MAX_SEGMENT_VOXEL_DISTANCE) {
                 int extra = (int) Math.ceil(dist);
                 for (int j = 1; j <= extra; j++) {
                     double ft = (double) j / extra;
