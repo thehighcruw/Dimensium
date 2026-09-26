@@ -51,6 +51,8 @@ public class ShapeToolState {
     public static final float SPIRAL_SPACING_MAX = 10f;
     public static final float SPIRAL_TURNS_MIN = 1f;
     public static final float SPIRAL_TURNS_MAX = 20f;
+    public static final int METABALL_BLEND_RADIUS_MIN = 1;
+    public static final int METABALL_BLEND_RADIUS_MAX = 8;
 
     public ShapeType shapeType = ShapeType.CUBOID;
     public int shapeWidth = 5;
@@ -70,6 +72,8 @@ public class ShapeToolState {
     public float shapeSpiralSpacing = 1.0f;
     public float shapeSpiralTurns = 3.0f;
     public final float shapeSupersphereExp = 2.0f;
+    public boolean metaballBlend = false;
+    public int metaballBlendRadius = 2;
 
     public Vec3DInt effectiveDimensions(int w, int h, int d) {
         if (shapeType == ShapeType.TORUS) {

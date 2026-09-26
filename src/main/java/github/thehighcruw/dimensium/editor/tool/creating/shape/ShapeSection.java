@@ -47,6 +47,7 @@ public class ShapeSection implements ToolSection {
     private final int[] torusRingZ = new int[1];
     private final int[] torusTube = new int[1];
     private final int[] wallThickness = new int[1];
+    private final int[] metaballBlendRadius = new int[1];
 
     public ShapeSection(ShapeToolState state) {
         this.state = state;
@@ -255,6 +256,21 @@ public class ShapeSection implements ToolSection {
         if (ImGui.checkbox(I18n.format("dimensium.ui.shape.use_stairs_and_slabs") + "##shape_stairs", cbUseStairs)) {
             state.useStairsAndSlabs = cbUseStairs.get();
             ShapePlacementState.INSTANCE.invalidateGhost();
+        }
+
+        ImBoolean cbMetaballBlend = new ImBoolean(state.metaballBlend);
+        if (ImGui.checkbox(I18n.format("dimensium.ui.shape.metaball_blend") + "##shape_metaball", cbMetaballBlend)) {
+            state.metaballBlend = cbMetaballBlend.get();
+        }
+        if (state.metaballBlend) {
+            metaballBlendRadius[0] = state.metaballBlendRadius;
+            if (ImGui.sliderInt(
+                    I18n.format("dimensium.ui.shape.metaball_blend_radius") + "##shape_metaball_r",
+                    metaballBlendRadius,
+                    ShapeToolState.METABALL_BLEND_RADIUS_MIN,
+                    ShapeToolState.METABALL_BLEND_RADIUS_MAX)) {
+                state.metaballBlendRadius = metaballBlendRadius[0];
+            }
         }
     }
 }

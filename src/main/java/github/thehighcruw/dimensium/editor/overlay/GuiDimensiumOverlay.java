@@ -14,6 +14,8 @@ import github.thehighcruw.dimensium.editor.tool.BrushInputRegistry;
 import github.thehighcruw.dimensium.editor.tool.Tool;
 import github.thehighcruw.dimensium.editor.tool.creating.modelling.ModellingToolState;
 import github.thehighcruw.dimensium.editor.tool.creating.path.PathToolState;
+import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeBlendUtil;
+import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeMath;
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapePlacementState;
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeToolState;
 import github.thehighcruw.dimensium.editor.tool.manipulating.modify.ModifyToolState;
@@ -34,11 +36,10 @@ import github.thehighcruw.dimensium.editor.window.viewport.world.RotationGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.ScalingGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.SelectionRenderer;
 import github.thehighcruw.dimensium.editor.window.viewport.world.TranslationGizmo;
-import github.thehighcruw.dimensium.network.PacketHandler;
-import github.thehighcruw.dimensium.network.PacketShapePlacement;
 import github.thehighcruw.dimensium.shared.BlockSender;
 import github.thehighcruw.dimensium.shared.KeyConstants;
 import github.thehighcruw.dimensium.shared.SelectionState;
+import github.thehighcruw.dimensium.shared.math.Mat3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec2DDouble;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
@@ -61,6 +62,7 @@ import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
+import net.minecraft.world.World;
 
 /**
  * Static helpers for overlay mouse interaction.
@@ -293,11 +295,103 @@ public final class GuiDimensiumOverlay {
     public static void confirmPlacement() {
         ShapePlacementState ps = ShapePlacementState.INSTANCE;
         if (!ps.active) return;
-        ShapeToolState s = ShapeToolState.INSTANCE;
+        ShapeToolState toolState = ShapeToolState.INSTANCE;
         SelectedBlockState sbs = SelectedBlockState.INSTANCE;
-        if (sbs.selectedBlock != null) {
-            PacketHandler.CHANNEL.sendToServer(new PacketShapePlacement(ps, s, sbs));
+        if (sbs.selectedBlock == null) {
+            ps.cancel();
+            return;
         }
+
+        // Snapshot all mutable state on the main thread before handing off to background.
+        final Vec3DInt anchor = Vec3DInt.floor(ps.anchorF);
+        final Vec3DInt dims = ps.baseDims;
+        final ShapeToolState.ShapeType shapeType = toolState.shapeType;
+        final boolean hollow = toolState.shapeHollow;
+        final boolean keepExisting = toolState.shapeKeepExisting;
+        final float exponent = toolState.shapeExponent;
+        final int torusRingRadius = toolState.torusRingRadius;
+        final int torusRingRadiusZ = toolState.torusRingRadiusZ;
+        final int torusTubeRadius = toolState.torusTubeRadius;
+        final int tubeWallThickness = toolState.tubeWallThickness;
+        final float supersphereExp = toolState.shapeSupersphereExp;
+        final int polygonSides = toolState.shapePolygonSides;
+        final float spiralSpacing = toolState.shapeSpiralSpacing;
+        final float spiralTurns = toolState.shapeSpiralTurns;
+        final float threshold = DimensiumConfig.shapeThreshold;
+        final int blockId = Block.getIdFromBlock(Block.getBlockFromItem(sbs.selectedBlock.getItem()));
+        final int meta = sbs.selectedBlock.getItemDamage();
+        final boolean metaballBlend = toolState.metaballBlend;
+        final int metaballBlendRadius = toolState.metaballBlendRadius;
+        final String action =
+                (hollow ? I18n.format("dimensium.ui.shape.hollow") + " " : "") + I18n.format(shapeType.label);
+
+        final Mat3DFloat rotation = ShapeMath.buildRotationMatrix(ps.rot.x(), ps.rot.y(), ps.rot.z());
+        final Vec3DInt[] bounds = ShapeMath.computeRotatedBounds(rotation, dims);
+
+        // World queries must happen on the main thread; snapshot the result for the background supplier.
+        final Set<Vec3DInt> existingNonAir;
+        if (keepExisting || metaballBlend) {
+            int blendRadius = metaballBlend ? metaballBlendRadius : 0;
+            Vec3DInt scanMin = anchor.plus(bounds[0]).minus(Vec3DInt.from(blendRadius, blendRadius, blendRadius));
+            Vec3DInt scanMax = anchor.plus(bounds[1]).plus(Vec3DInt.from(blendRadius, blendRadius, blendRadius));
+            existingNonAir = new HashSet<>();
+            World world = Minecraft.getMinecraft().theWorld;
+            if (world != null) {
+                Vec3DInt.forEachInclusive(scanMin, scanMax, pos -> {
+                    if (WorldUtils.getBlock(world, pos) != Blocks.air) existingNonAir.add(pos);
+                });
+            }
+        } else {
+            existingNonAir = null;
+        }
+
+        BlockSender.sendChunkedLazy(
+                () -> {
+                    List<int[]> ops = new ArrayList<>();
+                    ShapeMath.iterateRotatedShape(
+                            shapeType,
+                            dims,
+                            hollow,
+                            exponent,
+                            torusRingRadius,
+                            torusRingRadiusZ,
+                            torusTubeRadius,
+                            tubeWallThickness,
+                            supersphereExp,
+                            polygonSides,
+                            spiralSpacing,
+                            spiralTurns,
+                            threshold,
+                            rotation,
+                            bounds[0],
+                            bounds[1],
+                            offset -> {
+                                Vec3DInt pos = anchor.plus(offset);
+                                if (keepExisting && existingNonAir != null && existingNonAir.contains(pos)) return true;
+                                ops.add(pos.toBlockOp(blockId, meta));
+                                return true;
+                            });
+
+                    if (metaballBlend && metaballBlendRadius > 0 && !ops.isEmpty() && existingNonAir != null) {
+                        Set<Vec3DInt> shapeVoxels = new HashSet<>(ops.size());
+                        for (int[] op : ops) shapeVoxels.add(Vec3DInt.from(op[0], op[1], op[2]));
+                        Set<Vec3DInt> terrain = new HashSet<>(existingNonAir);
+                        terrain.removeAll(shapeVoxels);
+                        if (!terrain.isEmpty()) {
+                            Vec3DInt blendMin = anchor.plus(bounds[0])
+                                    .minus(Vec3DInt.from(
+                                            metaballBlendRadius, metaballBlendRadius, metaballBlendRadius));
+                            Vec3DInt blendMax = anchor.plus(bounds[1])
+                                    .plus(Vec3DInt.from(metaballBlendRadius, metaballBlendRadius, metaballBlendRadius));
+                            for (Vec3DInt pos : ShapeBlendUtil.computeBlendPositions(
+                                    shapeVoxels, terrain, blendMin, blendMax, metaballBlendRadius)) {
+                                ops.add(pos.toBlockOp(blockId, meta));
+                            }
+                        }
+                    }
+                    return ops;
+                },
+                action);
         ps.cancel();
     }
 

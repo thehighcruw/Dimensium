@@ -20,14 +20,19 @@ import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.StairSlabSmoother;
+import github.thehighcruw.dimensium.shared.util.WorldUtils;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
+import net.minecraft.world.World;
 
 /**
  * Client-side state for interactive shape placement.
@@ -56,6 +61,11 @@ public class ShapePlacementState
      * Null = exceeds maxGhostBlocks, use bbox fallback.
      */
     public List<Vec3DInt> ghostBlocks = null;
+
+    /** Rotated bounding box offsets relative to anchor; updated alongside ghostBlocks. */
+    public Vec3DInt boundsMin = Vec3DInt.ZERO;
+
+    public Vec3DInt boundsMax = Vec3DInt.ZERO;
 
     public ChangeProposal preview = null;
 
@@ -147,12 +157,14 @@ public class ShapePlacementState
         Mat3DFloat R = ShapeMath.buildRotationMatrix(rot.x(), rot.y(), rot.z());
 
         Vec3DInt[] bounds = ShapeMath.computeRotatedBounds(R, baseDims);
+        boundsMin = bounds[0];
+        boundsMax = bounds[1];
 
-        ghostBlocks = buildGhostBlocks(s, baseDims, R, bounds[0], bounds[1]);
+        ghostBlocks = buildGhostBlocks(s, baseDims, R, boundsMin, boundsMax);
         rebuildShapeProposal(R);
     }
 
-    private void rebuildShapeProposal(Mat3DFloat R) {
+    private void rebuildShapeProposal(Mat3DFloat rotation) {
         if (ghostBlocks == null || ghostBlocks.isEmpty()) {
             preview = null;
             return;
@@ -181,29 +193,51 @@ public class ShapePlacementState
             blockMap.put(ChangeProposal.packKey(pos), new int[] {blockId, meta});
         }
 
-        ShapeToolState s = ShapeToolState.INSTANCE;
-        if (s.useStairsAndSlabs) {
+        ShapeToolState toolState = ShapeToolState.INSTANCE;
+        if (toolState.useStairsAndSlabs) {
             StairSlabSmoother.InsidePredicate insideFn = ShapeMath.buildInsidePredicate(
-                    s.shapeType,
+                    toolState.shapeType,
                     baseDims,
-                    s.shapeHollow,
-                    s.shapeExponent,
-                    s.torusRingRadius,
-                    s.torusRingRadiusZ,
-                    s.torusTubeRadius,
-                    s.tubeWallThickness,
-                    s.shapeSupersphereExp,
-                    s.shapePolygonSides,
-                    s.shapeSpiralSpacing,
-                    s.shapeSpiralTurns,
+                    toolState.shapeHollow,
+                    toolState.shapeExponent,
+                    toolState.torusRingRadius,
+                    toolState.torusRingRadiusZ,
+                    toolState.torusTubeRadius,
+                    toolState.tubeWallThickness,
+                    toolState.shapeSupersphereExp,
+                    toolState.shapePolygonSides,
+                    toolState.shapeSpiralSpacing,
+                    toolState.shapeSpiralTurns,
                     DimensiumConfig.shapeThreshold,
-                    R,
+                    rotation,
                     anchor);
             blockMap = StairSlabSmoother.smooth(blockMap, insideFn);
         }
 
         ChangeProposal p = ChangeProposal.forPreview();
         p.proposed.putAll(blockMap);
+
+        if (toolState.metaballBlend && toolState.metaballBlendRadius > 0) {
+            int blendRadius = toolState.metaballBlendRadius;
+            Vec3DInt blendMin = anchor.plus(boundsMin).minus(Vec3DInt.from(blendRadius, blendRadius, blendRadius));
+            Vec3DInt blendMax = anchor.plus(boundsMax).plus(Vec3DInt.from(blendRadius, blendRadius, blendRadius));
+
+            Set<Vec3DInt> shapeVoxels = new HashSet<>();
+            for (Vec3DInt offset : ghostBlocks) shapeVoxels.add(anchor.plus(offset));
+
+            Set<Vec3DInt> terrain = new HashSet<>();
+            World world = Minecraft.getMinecraft().theWorld;
+            if (world != null) {
+                Vec3DInt.forEachInclusive(blendMin, blendMax, pos -> {
+                    if (!shapeVoxels.contains(pos) && WorldUtils.getBlock(world, pos) != Blocks.air) terrain.add(pos);
+                });
+                for (Vec3DInt pos :
+                        ShapeBlendUtil.computeBlendPositions(shapeVoxels, terrain, blendMin, blendMax, blendRadius)) {
+                    p.proposed.put(ChangeProposal.packKey(pos), new int[] {blockId, meta});
+                }
+            }
+        }
+
         preview = p;
     }
 
@@ -289,7 +323,11 @@ public class ShapePlacementState
                 + ","
                 + Math.round(scale.z() * 100)
                 + ","
-                + Math.round(DimensiumConfig.shapeThreshold * 1000);
+                + Math.round(DimensiumConfig.shapeThreshold * 1000)
+                + ","
+                + s.metaballBlend
+                + ","
+                + s.metaballBlendRadius;
     }
 
     public boolean isAnyGizmoDragging() {

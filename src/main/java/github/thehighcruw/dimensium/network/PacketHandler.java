@@ -13,7 +13,6 @@ public class PacketHandler {
     public static void init() {
         CHANNEL.toServer(new PacketSelectionOp());
         CHANNEL.toServer(new PacketPaste());
-        CHANNEL.toServer(new PacketShapePlacement());
         CHANNEL.toServer(new PacketBlockList());
         CHANNEL.toServer(new PacketBrushUse());
         CHANNEL.toServer(new PacketCaptureRequest());
