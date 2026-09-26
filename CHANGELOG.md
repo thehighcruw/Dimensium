@@ -11,8 +11,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com). Run `scripts/rele
 - Path tool: add "Extend to Ground" option that fills each path column downward until a solid surface is reached
 - Tool panel: replace category/tool comboboxes with single-click icon grid; column count configurable in Settings
 - Path tool: "Use Stairs and Slabs" option smooths sloped paths with correctly oriented stair blocks when using a supported block material
-- Tree tool: procedural pipeline-based voxel tree generator with Weber-Penn skeleton and leaf cluster nodes
-- Tree tool: DepthPaletteNode for Y-depth driven block palette variation
+- Pipelines: procedural pipeline-based voxel tree generator with Weber-Penn skeleton and leaf cluster nodes
+- Pipelines: DepthPaletteNode for Y-depth driven block palette variation
 
 ### Changed
 - Shape tool: cuboid defaults to cube with optional separate axes toggle; uniform shapes (sphere, octahedron, supersphere, dodecahedron, icosahedron) show single size slider by default; XZ-symmetric shapes (cylinder, cone, pyramid) link depth to width by default; 2D radial shapes show single radius slider by default
