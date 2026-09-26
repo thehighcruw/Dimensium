@@ -135,6 +135,10 @@ public class KeyHandler {
                     GuiDimensiumOverlay.applyModelling();
                     return;
                 }
+                if (DimensiumEditorMode.INSTANCE.selectedTool == Tool.MODIFY) {
+                    GuiDimensiumOverlay.confirmModify();
+                    return;
+                }
             }
 
             // Escape — close conflict popup first if open.

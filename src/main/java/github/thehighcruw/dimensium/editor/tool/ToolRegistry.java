@@ -29,6 +29,8 @@ import github.thehighcruw.dimensium.editor.tool.manipulating.elevation.Elevation
 import github.thehighcruw.dimensium.editor.tool.manipulating.extrude.ExtrudeBrushInput;
 import github.thehighcruw.dimensium.editor.tool.manipulating.extrude.ExtrudeSection;
 import github.thehighcruw.dimensium.editor.tool.manipulating.melt.MeltSection;
+import github.thehighcruw.dimensium.editor.tool.manipulating.modify.ModifyBrushInput;
+import github.thehighcruw.dimensium.editor.tool.manipulating.modify.ModifySection;
 import github.thehighcruw.dimensium.editor.tool.manipulating.move.MoveBrushInput;
 import github.thehighcruw.dimensium.editor.tool.manipulating.move.MoveSection;
 import github.thehighcruw.dimensium.editor.tool.manipulating.roughen.RoughenSection;
@@ -216,6 +218,8 @@ public final class ToolRegistry {
         register(Tool.SLOPE, s -> new SlopeSection(s.slope), SlopeBrushInput.INSTANCE, SlopeToolRenderer.INSTANCE);
 
         register(Tool.RULER, s -> new RulerSection(s.ruler), new RulerBrushInput(), new RulerToolRenderer());
+
+        register(Tool.MODIFY, s -> new ModifySection(s.modify), ModifyBrushInput.INSTANCE, ToolRenderer.NONE);
 
         register(
                 Tool.MODELLING,

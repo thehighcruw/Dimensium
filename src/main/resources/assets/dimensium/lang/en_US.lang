@@ -225,6 +225,7 @@ dimensium.shatter.axis.z=Flat (Z axis)
 dimensium.tool.slope=Slope
 dimensium.tool.ruler=Ruler
 dimensium.tool.modelling=Modelling
+dimensium.tool.modify=Modify
 dimensium.ui.category.utility=Utility
 dimensium.ruler.mode.default=Default
 dimensium.ruler.mode.circle=Circle
@@ -240,6 +241,21 @@ dimensium.modelling.mode.smart_surface=Smart Surface
 dimensium.modelling.paste.paste_copy=Paste Copy
 dimensium.modelling.paste.keep_existing=Keep Existing
 dimensium.action.modelling=Modelling
+
+# Modify tool
+dimensium.modify_mode.translate_copies=Translate Copies
+dimensium.modify.offset_type.relative=Relative
+dimensium.modify.offset_type.absolute=Absolute
+dimensium.ui.section.modify=Modify
+dimensium.ui.section.translate_copies=Translate Copies
+dimensium.ui.modify.mode=Mode
+dimensium.ui.modify.offset_type=Offset Type
+dimensium.ui.modify.offset_x=Offset X
+dimensium.ui.modify.offset_y=Offset Y
+dimensium.ui.modify.offset_z=Offset Z
+dimensium.ui.modify.count=Count
+dimensium.ui.modify.hint=Right-click or Enter to apply
+dimensium.action.translate_copies=Translate Copies
 
 # Blueprint system
 dimensium.blueprint.save=Save Blueprint

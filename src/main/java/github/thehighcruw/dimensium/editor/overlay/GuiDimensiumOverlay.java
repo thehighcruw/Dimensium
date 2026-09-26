@@ -16,6 +16,7 @@ import github.thehighcruw.dimensium.editor.tool.creating.modelling.ModellingTool
 import github.thehighcruw.dimensium.editor.tool.creating.path.PathToolState;
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapePlacementState;
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeToolState;
+import github.thehighcruw.dimensium.editor.tool.manipulating.modify.ModifyToolState;
 import github.thehighcruw.dimensium.editor.tool.manipulating.move.MoveToolState;
 import github.thehighcruw.dimensium.editor.tool.selecting.BooleanOp;
 import github.thehighcruw.dimensium.editor.tool.selecting.SelectedBlockState;
@@ -357,6 +358,13 @@ public final class GuiDimensiumOverlay {
             if (!ops.isEmpty()) BlockSender.sendChunked(ops, pathAction);
         }
         pts.clear();
+    }
+
+    public static void confirmModify() {
+        ModifyToolState mods = ModifyToolState.INSTANCE;
+        if (mods.ghostBlocks == null || mods.ghostBlocks.isEmpty()) return;
+        BlockSender.sendChunked(mods.ghostBlocks, I18n.format("dimensium.action.translate_copies"));
+        mods.clearAfterConfirm();
     }
 
     public static void applyModelling() {

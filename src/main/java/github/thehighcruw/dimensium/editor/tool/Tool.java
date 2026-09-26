@@ -31,7 +31,8 @@ public enum Tool {
     SHATTER("dimensium.tool.shatter"),
     SLOPE("dimensium.tool.slope"),
     RULER("dimensium.tool.ruler"),
-    MODELLING("dimensium.tool.modelling");
+    MODELLING("dimensium.tool.modelling"),
+    MODIFY("dimensium.tool.modify");
 
     public final String label;
 

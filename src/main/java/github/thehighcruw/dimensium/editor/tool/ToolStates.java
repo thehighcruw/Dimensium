@@ -17,6 +17,7 @@ import github.thehighcruw.dimensium.editor.tool.manipulating.distort.DistortTool
 import github.thehighcruw.dimensium.editor.tool.manipulating.elevation.ElevationToolState;
 import github.thehighcruw.dimensium.editor.tool.manipulating.extrude.ExtrudeToolState;
 import github.thehighcruw.dimensium.editor.tool.manipulating.melt.MeltToolState;
+import github.thehighcruw.dimensium.editor.tool.manipulating.modify.ModifyToolState;
 import github.thehighcruw.dimensium.editor.tool.manipulating.roughen.RoughenToolState;
 import github.thehighcruw.dimensium.editor.tool.manipulating.shatter.ShatterToolState;
 import github.thehighcruw.dimensium.editor.tool.manipulating.slope.SlopeToolState;
@@ -64,6 +65,7 @@ public final class ToolStates {
     public final SlopeToolState slope = SlopeToolState.INSTANCE;
     public final RulerToolState ruler = RulerToolState.INSTANCE;
     public final StampToolState stamp = StampToolState.INSTANCE;
+    public final ModifyToolState modify = ModifyToolState.INSTANCE;
 
     private ToolStates() {}
 }

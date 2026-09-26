@@ -28,6 +28,7 @@ import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapePlacementSta
 import github.thehighcruw.dimensium.editor.tool.creating.stamp.StampBrushInput;
 import github.thehighcruw.dimensium.editor.tool.manipulating.elevation.ElevationBrush;
 import github.thehighcruw.dimensium.editor.tool.manipulating.elevation.ElevationToolState;
+import github.thehighcruw.dimensium.editor.tool.manipulating.modify.ModifyToolState;
 import github.thehighcruw.dimensium.editor.tool.manipulating.move.MoveToolState;
 import github.thehighcruw.dimensium.editor.tool.manipulating.slope.SlopeToolState;
 import github.thehighcruw.dimensium.editor.tool.painting.gradient.GradientToolState;
@@ -557,6 +558,15 @@ public class SelectionRenderer {
             }
         } else if (ms.active) {
             ms.cancel();
+        }
+
+        // ── Modify tool preview ───────────────────────────────────────────────
+        ModifyToolState mods = ModifyToolState.INSTANCE;
+        if (DimensiumEditorMode.INSTANCE.isActive() && DimensiumEditorMode.INSTANCE.selectedTool == Tool.MODIFY) {
+            mods.rebuildIfNeeded(sel, mc.theWorld);
+            if (mods.preview != null) renderProposalPreview(mc, camPos, mods.preview);
+        } else {
+            mods.cancel();
         }
 
         // ── Modelling tool point rendering ────────────────────────────────────

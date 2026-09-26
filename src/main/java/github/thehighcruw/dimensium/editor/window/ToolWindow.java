@@ -73,6 +73,7 @@ public class ToolWindow extends ToggleableWindow {
         Tool.SLOPE,
         Tool.DISTORT,
         Tool.SHATTER,
+        Tool.MODIFY,
         // utility
         Tool.RULER,
     };
