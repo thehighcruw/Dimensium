@@ -32,6 +32,7 @@ import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.SplinePathNo
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.SubtractBlocksNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.TipClusterFillNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.WeberPennBranchesNode;
+import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.WhorlBranchesNode;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -45,6 +46,7 @@ public final class PipelinePresets {
         NodeRegistry.register(RandomWalkPathNode.ID, NodeGroup.PATH, RandomWalkPathNode::new);
         NodeRegistry.register(SplinePathNode.ID, NodeGroup.PATH, SplinePathNode::new);
         // Branch nodes
+        NodeRegistry.register(WhorlBranchesNode.ID, NodeGroup.BRANCH, WhorlBranchesNode::new);
         NodeRegistry.register(SimpleRecursiveBranchesNode.ID, NodeGroup.BRANCH, SimpleRecursiveBranchesNode::new);
         NodeRegistry.register(SpaceColonizationBranchesNode.ID, NodeGroup.BRANCH, SpaceColonizationBranchesNode::new);
         NodeRegistry.register(WeberPennBranchesNode.ID, NodeGroup.BRANCH, WeberPennBranchesNode::new);
@@ -112,47 +114,44 @@ public final class PipelinePresets {
         cluster.params.set("cluster.palette", Arrays.asList(new int[] {18, 4}));
         cluster.params.set("cluster.radius", 2.8f);
         cluster.params.set("cluster.noisiness", 0.8f);
-        PipelineGraph.NodeInstance depth = g.addNode(DepthPaletteNode.ID, 1040, 40);
-        depth.params.set("dp.palette", Arrays.asList(new int[] {17, 0}, new int[] {17, 0}, new int[] {18, 4}));
         g.connect(trunk.instanceId, "skeleton", branches.instanceId, "skeleton");
         g.connect(branches.instanceId, "skeleton", vox.instanceId, "skeleton");
         g.connect(vox.instanceId, "blocks", cluster.instanceId, "blocks");
         g.connect(branches.instanceId, "skeleton", cluster.instanceId, "skeleton");
-        g.connect(cluster.instanceId, "blocks", depth.instanceId, "blocks");
         return g;
     }
 
-    /** Pine: straight trunk + WP branches (shallow angle) + tip clusters + depth repaint. */
+    /** Pine: straight trunk + whorled conifer branches tapering into a cone. */
     private static PipelineGraph buildPine() {
         PipelineGraph g = new PipelineGraph("Pine");
         PipelineGraph.NodeInstance trunk = g.addNode(LinePathNode.ID, 0, 40);
-        trunk.params.set("line.height", 16);
-        trunk.params.set("line.baseRadius", 1.0f);
-        trunk.params.set("line.taper", 0.3f);
-        PipelineGraph.NodeInstance branches = g.addNode(WeberPennBranchesNode.ID, 260, 40);
-        branches.params.set("wp.levels", 3);
-        branches.params.set("wp.branchCount", 5);
-        branches.params.set("wp.branchAngleSpread", 25.0f);
-        branches.params.set("wp.initialLength", 5);
-        branches.params.set("wp.lengthRatio", 0.6f);
-        branches.params.set("wp.radiusFactor", 0.45f);
+        trunk.params.set("line.height", 20);
+        trunk.params.set("line.baseRadius", 1.2f);
+        trunk.params.set("line.taper", 0.5f);
+        PipelineGraph.NodeInstance branches = g.addNode(WhorlBranchesNode.ID, 260, 40);
+        branches.params.set("whorl.branchesPerWhorl", 6);
+        branches.params.set("whorl.baseAngle", 82.0f);
+        branches.params.set("whorl.tipAngle", 22.0f);
+        branches.params.set("whorl.baseLength", 9);
+        branches.params.set("whorl.tipLength", 2);
+        branches.params.set("whorl.branchRadius", 0.35f);
+        branches.params.set("whorl.spacing", 2);
+        branches.params.set("whorl.skipBase", 2);
+        branches.params.set("whorl.spiralOffset", 0.618f);
         PipelineGraph.NodeInstance vox = g.addNode(SkeletonVoxelizerNode.ID, 520, 40);
         vox.params.set("vox.palette", Arrays.asList(new int[] {17, 1}));
         PipelineGraph.NodeInstance cluster = g.addNode(TipClusterFillNode.ID, 780, 40);
         cluster.params.set("cluster.palette", Arrays.asList(new int[] {18, 5}));
-        cluster.params.set("cluster.radius", 2.2f);
-        cluster.params.set("cluster.noisiness", 0.7f);
-        PipelineGraph.NodeInstance depth = g.addNode(DepthPaletteNode.ID, 1040, 40);
-        depth.params.set("dp.palette", Arrays.asList(new int[] {17, 1}, new int[] {17, 1}, new int[] {18, 5}));
+        cluster.params.set("cluster.radius", 1.4f);
+        cluster.params.set("cluster.noisiness", 0.5f);
         g.connect(trunk.instanceId, "skeleton", branches.instanceId, "skeleton");
         g.connect(branches.instanceId, "skeleton", vox.instanceId, "skeleton");
         g.connect(vox.instanceId, "blocks", cluster.instanceId, "blocks");
         g.connect(branches.instanceId, "skeleton", cluster.instanceId, "skeleton");
-        g.connect(cluster.instanceId, "blocks", depth.instanceId, "blocks");
         return g;
     }
 
-    /** Willow: curved trunk + WP wide branches + large noisy clusters + erode + depth repaint. */
+    /** Willow: curved trunk + WP wide branches + large noisy clusters. */
     private static PipelineGraph buildWillow() {
         PipelineGraph g = new PipelineGraph("Willow");
         PipelineGraph.NodeInstance trunk = g.addNode(CurvedPathNode.ID, 0, 40);
@@ -173,17 +172,10 @@ public final class PipelinePresets {
         cluster.params.set("cluster.palette", Arrays.asList(new int[] {18, 5}));
         cluster.params.set("cluster.radius", 5.0f);
         cluster.params.set("cluster.noisiness", 0.7f);
-        PipelineGraph.NodeInstance erode = g.addNode(NoiseErodeNode.ID, 1040, 40);
-        erode.params.set("erode.strength", 0.45f);
-        erode.params.set("erode.noiseScale", 0.12f);
-        PipelineGraph.NodeInstance depth = g.addNode(DepthPaletteNode.ID, 1300, 40);
-        depth.params.set("dp.palette", Arrays.asList(new int[] {17, 1}, new int[] {18, 5}, new int[] {18, 5}));
         g.connect(trunk.instanceId, "skeleton", branches.instanceId, "skeleton");
         g.connect(branches.instanceId, "skeleton", vox.instanceId, "skeleton");
         g.connect(vox.instanceId, "blocks", cluster.instanceId, "blocks");
         g.connect(branches.instanceId, "skeleton", cluster.instanceId, "skeleton");
-        g.connect(cluster.instanceId, "blocks", erode.instanceId, "blocks");
-        g.connect(erode.instanceId, "blocks", depth.instanceId, "blocks");
         return g;
     }
 
@@ -239,14 +231,11 @@ public final class PipelinePresets {
         mask.params.set("mask.radiusY", 4.0f);
         mask.params.set("mask.radiusZ", 12.0f);
         mask.params.set("mask.centerOffsetY", 13.0f);
-        PipelineGraph.NodeInstance depth = g.addNode(DepthPaletteNode.ID, 1300, 40);
-        depth.params.set("dp.palette", Arrays.asList(new int[] {17, 3}, new int[] {17, 3}, new int[] {18, 4}));
         g.connect(trunk.instanceId, "skeleton", branches.instanceId, "skeleton");
         g.connect(branches.instanceId, "skeleton", vox.instanceId, "skeleton");
         g.connect(vox.instanceId, "blocks", cluster.instanceId, "blocks");
         g.connect(branches.instanceId, "skeleton", cluster.instanceId, "skeleton");
         g.connect(cluster.instanceId, "blocks", mask.instanceId, "blocks");
-        g.connect(mask.instanceId, "blocks", depth.instanceId, "blocks");
         return g;
     }
 
@@ -276,19 +265,10 @@ public final class PipelinePresets {
         cluster.params.set("cluster.palette", Arrays.asList(new int[] {18, 4}, new int[] {18, 5}));
         cluster.params.set("cluster.radius", 6.0f);
         cluster.params.set("cluster.noisiness", 0.6f);
-        PipelineGraph.NodeInstance noise = g.addNode(NoisePaletteNode.ID, 1040, 40);
-        noise.params.set("np.palette", Arrays.asList(new int[] {18, 4}, new int[] {18, 0}));
-        noise.params.set("np.noiseScale", 0.08f);
-        PipelineGraph.NodeInstance depth = g.addNode(DepthPaletteNode.ID, 1300, 40);
-        depth.params.set(
-                "dp.palette",
-                Arrays.asList(new int[] {17, 0}, new int[] {17, 0}, new int[] {18, 4}, new int[] {18, 4}));
         g.connect(trunk.instanceId, "skeleton", crown.instanceId, "skeleton");
         g.connect(crown.instanceId, "skeleton", vox.instanceId, "skeleton");
         g.connect(vox.instanceId, "blocks", cluster.instanceId, "blocks");
         g.connect(crown.instanceId, "skeleton", cluster.instanceId, "skeleton");
-        g.connect(cluster.instanceId, "blocks", noise.instanceId, "blocks");
-        g.connect(noise.instanceId, "blocks", depth.instanceId, "blocks");
         return g;
     }
 

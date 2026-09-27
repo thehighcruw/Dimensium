@@ -415,11 +415,19 @@ public class PipelinePreviewRenderer {
             }
             GL11.glEnd();
 
-            // Draw node spheres as small crosses
-            GL11.glPointSize(4f);
-            GL11.glBegin(GL11.GL_POINTS);
+            // Billboard vectors for circles
+            Vec3DFloat forward = eye.minus(center).normalize();
+            Vec3DFloat forwardCrossUp = forward.cross(Vec3DFloat.from(0f, 1f, 0f));
+            Vec3DFloat billboardRight = forwardCrossUp.length() < 0.001f
+                    ? forward.cross(Vec3DFloat.from(1f, 0f, 0f)).normalize()
+                    : forwardCrossUp.normalize();
+            Vec3DFloat billboardUp = billboardRight.cross(forward).normalize();
+
+            // Draw circles at each node to visualise branch radius
+            GL11.glLineWidth(1.0f);
+            GL11.glBegin(GL11.GL_LINES);
             for (SkeletonNode root : localSkeleton.roots) {
-                drawSkeletonPoints(root, 0);
+                drawSkeletonCircles(root, billboardRight, billboardUp);
             }
             GL11.glEnd();
         } catch (Exception e) {
@@ -444,10 +452,29 @@ public class PipelinePreviewRenderer {
         }
     }
 
-    private static void drawSkeletonPoints(SkeletonNode node, int depth) {
-        float t = Math.max(0f, 1f - depth * 0.08f);
-        GL11.glColor3f(1.0f, 0.8f + t * 0.2f, 0.4f);
-        GL11.glVertex3f(node.position.x(), node.position.y(), node.position.z());
-        for (SkeletonNode child : node.children) drawSkeletonPoints(child, depth + 1);
+    private static void drawSkeletonCircles(SkeletonNode node, Vec3DFloat right, Vec3DFloat up) {
+        float cx = node.position.x();
+        float cy = node.position.y();
+        float cz = node.position.z();
+        float r = node.radius;
+        GL11.glColor3f(1.0f, 0.75f, 0.35f);
+        int segments = 10;
+        float prevX = cx + right.x() * r;
+        float prevY = cy + right.y() * r;
+        float prevZ = cz + right.z() * r;
+        for (int seg = 1; seg <= segments; seg++) {
+            double angle = 2 * Math.PI * seg / segments;
+            float cos = (float) Math.cos(angle);
+            float sin = (float) Math.sin(angle);
+            float nextX = cx + (right.x() * cos + up.x() * sin) * r;
+            float nextY = cy + (right.y() * cos + up.y() * sin) * r;
+            float nextZ = cz + (right.z() * cos + up.z() * sin) * r;
+            GL11.glVertex3f(prevX, prevY, prevZ);
+            GL11.glVertex3f(nextX, nextY, nextZ);
+            prevX = nextX;
+            prevY = nextY;
+            prevZ = nextZ;
+        }
+        for (SkeletonNode child : node.children) drawSkeletonCircles(child, right, up);
     }
 }

@@ -124,8 +124,11 @@ public final class MenuBar {
                         I18n.format("dimensium.menu.window.history"), null, HistoryWindow.INSTANCE.isOpen())) {
                     HistoryWindow.INSTANCE.setOpen(!HistoryWindow.INSTANCE.isOpen());
                 }
-                if (ImGui.menuItem(I18n.format("dimensium.menu.window.pipeline_manage"))) {
-                    PipelineManageWindow.INSTANCE.open();
+                if (ImGui.menuItem(
+                        I18n.format("dimensium.menu.window.pipeline_manage"),
+                        null,
+                        PipelineManageWindow.INSTANCE.isOpen())) {
+                    PipelineManageWindow.INSTANCE.setOpen(!PipelineManageWindow.INSTANCE.isOpen());
                 }
                 if (ImGui.menuItem(
                         I18n.format("dimensium.menu.window.pipeline_editor"),
