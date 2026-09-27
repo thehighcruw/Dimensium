@@ -6,6 +6,7 @@ package github.thehighcruw.dimensium.editor.window.viewport;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import github.thehighcruw.dimensium.DimensiumConfig;
 import github.thehighcruw.dimensium.editor.overlay.MenuBar;
 import github.thehighcruw.dimensium.editor.overlay.ViewState;
 import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
@@ -26,16 +27,23 @@ public final class ViewportPanel {
 
     private ViewportPanel() {}
 
+    private boolean open = true;
     private boolean hovered = false;
     private int pendingSelectIndex = -1;
+
+    public boolean isOpen() {
+        return open;
+    }
+
+    public void setOpen(boolean value) {
+        open = value;
+        DimensiumConfig.setWindowViewportOpen(value);
+    }
 
     /** Request that the tab at the given index is shown as selected on the next frame. */
     public void requestSelectIndex(int index) {
         pendingSelectIndex = index;
     }
-
-    /** Always false; kept for API compatibility with OverlayRenderer cursor logic. */
-    public boolean resizeCursorActive = false;
 
     /** True if the mouse was hovering the viewport in the last rendered frame. */
     public boolean isHovered() {
@@ -46,6 +54,7 @@ public final class ViewportPanel {
      * sw/sh are physical pixels (matching ImGui display units).
      */
     public void render(int sw, int sh) {
+        if (!open) return;
         if (ViewportRegistry.INSTANCE.viewports.isEmpty()) return;
 
         float menuH = MenuBar.INSTANCE.height();
@@ -156,7 +165,5 @@ public final class ViewportPanel {
 
         ImGui.popStyleColor(5); // Tab + TabHovered + TabActive + TabUnfocused + TabUnfocusedActive
         ImGui.popStyleVar(3); // WindowPadding + WindowBorderSize + ItemSpacing
-
-        resizeCursorActive = false;
     }
 }

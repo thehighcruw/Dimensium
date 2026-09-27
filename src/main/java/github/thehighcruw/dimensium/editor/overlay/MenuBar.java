@@ -105,6 +105,10 @@ public final class MenuBar {
         if (ImGui.beginMenu(I18n.format("dimensium.menu.window"))) {
             if (ImGui.beginMenu(I18n.format("dimensium.menu.window.panels"))) {
                 if (ImGui.menuItem(
+                        I18n.format("dimensium.menu.window.viewport"), null, ViewportPanel.INSTANCE.isOpen())) {
+                    ViewportPanel.INSTANCE.setOpen(!ViewportPanel.INSTANCE.isOpen());
+                }
+                if (ImGui.menuItem(
                         I18n.format("dimensium.menu.window.tool_panel"), null, OverlayRenderer.TOOL_WINDOW.isOpen())) {
                     OverlayRenderer.TOOL_WINDOW.setOpen(!OverlayRenderer.TOOL_WINDOW.isOpen());
                 }

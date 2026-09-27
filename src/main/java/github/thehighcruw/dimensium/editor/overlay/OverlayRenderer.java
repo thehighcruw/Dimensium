@@ -469,72 +469,32 @@ public class OverlayRenderer {
 
         Tessellator t = Tessellator.instance;
 
-        if (ViewportPanel.INSTANCE.resizeCursorActive) {
-            // E-W resize cursor: ←|→
-            // Shadow
-            GL11.glColor4f(0f, 0f, 0f, 0.6f);
-            t.startDrawing(GL11.GL_LINES);
-            // horizontal bar
-            t.addVertex(cx - 8, cy + 1, 0);
-            t.addVertex(cx + 9, cy + 1, 0);
-            // vertical tick
-            t.addVertex(cx + 1, cy - 3, 0);
-            t.addVertex(cx + 1, cy + 4, 0);
-            // left arrowhead
-            t.addVertex(cx - 8, cy + 1, 0);
-            t.addVertex(cx - 4, cy - 2, 0);
-            t.addVertex(cx - 8, cy + 1, 0);
-            t.addVertex(cx - 4, cy + 4, 0);
-            // right arrowhead
-            t.addVertex(cx + 9, cy + 1, 0);
-            t.addVertex(cx + 5, cy - 2, 0);
-            t.addVertex(cx + 9, cy + 1, 0);
-            t.addVertex(cx + 5, cy + 4, 0);
-            t.draw();
-            // White
-            GL11.glColor4f(1f, 1f, 1f, 0.95f);
-            t.startDrawing(GL11.GL_LINES);
-            t.addVertex(cx - 8, cy, 0);
-            t.addVertex(cx + 9, cy, 0);
-            t.addVertex(cx, cy - 3, 0);
-            t.addVertex(cx, cy + 4, 0);
-            t.addVertex(cx - 8, cy, 0);
-            t.addVertex(cx - 4, cy - 3, 0);
-            t.addVertex(cx - 8, cy, 0);
-            t.addVertex(cx - 4, cy + 3, 0);
-            t.addVertex(cx + 9, cy, 0);
-            t.addVertex(cx + 5, cy - 3, 0);
-            t.addVertex(cx + 9, cy, 0);
-            t.addVertex(cx + 5, cy + 3, 0);
-            t.draw();
-        } else {
-            // Drop shadow for visibility on any background.
-            GL11.glColor4f(0f, 0f, 0f, 0.6f);
-            t.startDrawing(GL11.GL_LINES);
-            t.addVertex(cx - 7, cy + 1, 0);
-            t.addVertex(cx + 7, cy + 1, 0);
-            t.addVertex(cx + 1, cy - 7, 0);
-            t.addVertex(cx + 1, cy + 7, 0);
-            t.draw();
+        // Drop shadow for visibility on any background.
+        GL11.glColor4f(0f, 0f, 0f, 0.6f);
+        t.startDrawing(GL11.GL_LINES);
+        t.addVertex(cx - 7, cy + 1, 0);
+        t.addVertex(cx + 7, cy + 1, 0);
+        t.addVertex(cx + 1, cy - 7, 0);
+        t.addVertex(cx + 1, cy + 7, 0);
+        t.draw();
 
-            // White crosshair.
-            GL11.glColor4f(1f, 1f, 1f, 0.95f);
-            t.startDrawing(GL11.GL_LINES);
-            t.addVertex(cx - 7, cy, 0);
-            t.addVertex(cx + 7, cy, 0);
-            t.addVertex(cx, cy - 7, 0);
-            t.addVertex(cx, cy + 7, 0);
-            t.draw();
+        // White crosshair.
+        GL11.glColor4f(1f, 1f, 1f, 0.95f);
+        t.startDrawing(GL11.GL_LINES);
+        t.addVertex(cx - 7, cy, 0);
+        t.addVertex(cx + 7, cy, 0);
+        t.addVertex(cx, cy - 7, 0);
+        t.addVertex(cx, cy + 7, 0);
+        t.draw();
 
-            // Centre dot — 3×3, symmetric around (cx, cy).
-            GL11.glColor4f(1f, 1f, 1f, 1f);
-            t.startDrawingQuads();
-            t.addVertex(cx - 1, cy - 1, 0);
-            t.addVertex(cx + 2, cy - 1, 0);
-            t.addVertex(cx + 2, cy + 2, 0);
-            t.addVertex(cx - 1, cy + 2, 0);
-            t.draw();
-        }
+        // Centre dot — 3×3, symmetric around (cx, cy).
+        GL11.glColor4f(1f, 1f, 1f, 1f);
+        t.startDrawingQuads();
+        t.addVertex(cx - 1, cy - 1, 0);
+        t.addVertex(cx + 2, cy - 1, 0);
+        t.addVertex(cx + 2, cy + 2, 0);
+        t.addVertex(cx - 1, cy + 2, 0);
+        t.draw();
 
         GL11.glPopAttrib();
     }

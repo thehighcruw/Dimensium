@@ -421,6 +421,9 @@ public class DimensiumConfig {
     @Config.Comment("Pipeline Node Details window open state.")
     public static boolean windowPipelineNodeDetailsOpen = false;
 
+    @Config.Comment("Viewport window open state.")
+    public static boolean windowViewportOpen = true;
+
     // ── Window state setters — call these instead of writing fields directly ──
 
     public static void setWindowHistoryOpen(boolean v) {
@@ -505,6 +508,11 @@ public class DimensiumConfig {
 
     public static void setWindowPipelineNodeDetailsOpen(boolean v) {
         windowPipelineNodeDetailsOpen = v;
+        save();
+    }
+
+    public static void setWindowViewportOpen(boolean v) {
+        windowViewportOpen = v;
         save();
     }
 

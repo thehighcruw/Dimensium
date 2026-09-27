@@ -41,6 +41,7 @@ import github.thehighcruw.dimensium.editor.window.SmoothSelectionWindow;
 import github.thehighcruw.dimensium.editor.window.ToolMaskEditorWindow;
 import github.thehighcruw.dimensium.editor.window.ToolMaskListWindow;
 import github.thehighcruw.dimensium.editor.window.TypeReplaceSelectionWindow;
+import github.thehighcruw.dimensium.editor.window.viewport.ViewportPanel;
 import github.thehighcruw.dimensium.editor.window.viewport.world.SelectionRenderer;
 import github.thehighcruw.dimensium.shared.BlockColorCache;
 import github.thehighcruw.dimensium.shared.InputHandler;
@@ -121,6 +122,7 @@ public class ClientProxy implements IProxy {
         if (DimensiumConfig.windowPipelineNodeDetailsOpen) PipelineNodeDetailsWindow.INSTANCE.setOpen(true);
         if (!DimensiumConfig.windowToolPanelOpen) OverlayRenderer.TOOL_WINDOW.setOpen(false);
         if (!DimensiumConfig.windowToolOptionsPanelOpen) OverlayRenderer.TOOL_OPTIONS_WINDOW.setOpen(false);
+        if (!DimensiumConfig.windowViewportOpen) ViewportPanel.INSTANCE.setOpen(false);
 
         LayoutPresetRegistry reg = LayoutPresetRegistry.INSTANCE;
         reg.registerWindow("tools", OverlayRenderer.TOOL_WINDOW::isOpen, OverlayRenderer.TOOL_WINDOW::setOpen, true);
@@ -157,5 +159,6 @@ public class ClientProxy implements IProxy {
                 PipelinePreviewWindow.INSTANCE::isOpen,
                 PipelinePreviewWindow.INSTANCE::setOpen,
                 false);
+        reg.registerWindow("viewport", ViewportPanel.INSTANCE::isOpen, ViewportPanel.INSTANCE::setOpen, true);
     }
 }

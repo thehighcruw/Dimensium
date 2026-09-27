@@ -769,6 +769,7 @@ dimensium.menu.window.palette_editor=Palette Editor...
 dimensium.menu.window.operations=Operations
 dimensium.menu.window.analyze=Analyze
 dimensium.menu.window.autoshade=Autoshade
+dimensium.menu.window.viewport=Viewport
 dimensium.menu.window.tool_panel=Tools
 dimensium.menu.window.properties=Properties
 dimensium.menu.window.block_info=Block Info

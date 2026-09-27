@@ -7,6 +7,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com). Run `scripts/rele
 ### Added
 - Modify tool: add Twist mode that redistributes selection blocks in-place by rotating each block around the AABB center by an angle proportional to its normalized position along each axis; X, Y, and Z twist angles can be combined simultaneously
 - Modify tool: add Revolve mode that rotates a selection N times around a chosen axis by a configurable angle, with optional helix translation; stairs, slabs, and orientable blocks rotate with each copy
+- Viewport window: add toggle via Window > Panels menu; state persisted across restarts
 - Modify tool: add Translate Copies mode that clones a selection N times along a configurable offset (relative or absolute)
 - Path tool: add "Extend to Ground" option that fills each path column downward until a solid surface is reached
 - Tool panel: replace category/tool comboboxes with single-click icon grid; column count configurable in Settings
