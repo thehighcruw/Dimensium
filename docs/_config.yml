@@ -3,6 +3,8 @@ description: A Minecraft 1.7.10 building mod
 url: "https://thehighcruw.github.io"
 baseurl: "/Dimensium"
 
+permalink: pretty
+
 markdown: kramdown
 kramdown:
   input: GFM
