@@ -963,11 +963,6 @@ dimensium.ui.pipeline.node.tip_cluster_fill.desc=Fills noisy spherical clusters 
 dimensium.ui.pipeline.node.noise_erode.desc=Removes blocks based on 3D Simplex noise, carving an irregular eroded surface.
 dimensium.ui.pipeline.node.noise_palette.desc=Repaints blocks by sampling 3D Simplex noise, distributing palette entries across noise bands.
 
-# Tree Tool (section labels, kept for ToolSection panel)
-dimensium.tool.tree=Tree
-dimensium.ui.section.tree=Tree
-dimensium.ui.section.tree_params=Parameters
-
 dimensium.ui.pipeline.editor=Pipeline Editor
 dimensium.ui.pipeline.new=New
 dimensium.ui.pipeline.save=Save
@@ -981,7 +976,7 @@ dimensium.ui.pipeline.group.transform=Transform
 dimensium.ui.pipeline.group.filter=Filter
 dimensium.ui.pipeline.group.paint=Paint
 dimensium.ui.pipeline.group.math=Math
-dimensium.ui.pipeline.subgroup.shape=Shape
+dimensium.ui.pipeline.subgroup.blocks=Blocks
 dimensium.ui.pipeline.subgroup.skeleton=Skeleton
 dimensium.ui.pipeline.subgroup.curve=Curve
 dimensium.ui.pipeline.subgroup.value=Value

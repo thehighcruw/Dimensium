@@ -49,11 +49,11 @@ public final class PipelinePresets {
 
     public static void registerNodes() {
         // Generate — creates data from nothing
-        final String sgShape = "dimensium.ui.pipeline.subgroup.shape";
+        final String sgBlocks = "dimensium.ui.pipeline.subgroup.blocks";
         final String sgSkeleton = "dimensium.ui.pipeline.subgroup.skeleton";
         final String sgCurve = "dimensium.ui.pipeline.subgroup.curve";
         final String sgValue = "dimensium.ui.pipeline.subgroup.value";
-        NodeRegistry.register(ShapeMaskNode.ID, NodeGroup.GENERATE, sgShape, ShapeMaskNode::new);
+        NodeRegistry.register(ShapeMaskNode.ID, NodeGroup.GENERATE, sgBlocks, ShapeMaskNode::new);
         NodeRegistry.register(BlueprintBlocksNode.ID, NodeGroup.GENERATE, null, BlueprintBlocksNode::new);
         NodeRegistry.register(LinePathNode.ID, NodeGroup.GENERATE, sgSkeleton, LinePathNode::new);
         NodeRegistry.register(CurvedPathNode.ID, NodeGroup.GENERATE, null, CurvedPathNode::new);
