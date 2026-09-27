@@ -111,73 +111,96 @@
     - title: Nodes
       url: /pipeline/nodes
       children:
-        - title: Arc Curve
-          url: /pipeline/nodes/arc-curve
-        - title: Branch Depth Painter
-          url: /pipeline/nodes/branch-depth-painter
-        - title: Circle Curve
-          url: /pipeline/nodes/circle-curve
-        - title: Constant Float
-          url: /pipeline/nodes/constant-float
-        - title: Curve Fill
-          url: /pipeline/nodes/curve-fill
-        - title: Curve Scatter
-          url: /pipeline/nodes/curve-scatter
-        - title: Curved Path
-          url: /pipeline/nodes/curved-path
-        - title: Density Palette
-          url: /pipeline/nodes/density-palette
-        - title: Depth Palette
-          url: /pipeline/nodes/depth-palette
-        - title: Ellipse Curve
-          url: /pipeline/nodes/ellipse-curve
-        - title: Ellipsoid Mask
-          url: /pipeline/nodes/ellipsoid-mask
-        - title: Gaussian Blur
-          url: /pipeline/nodes/gaussian-blur
-        - title: Grid Blocks
-          url: /pipeline/nodes/grid-blocks
-        - title: Helix Curve
-          url: /pipeline/nodes/helix-curve
-        - title: Intersect Blocks
-          url: /pipeline/nodes/intersect-blocks
-        - title: Line Path
-          url: /pipeline/nodes/line-path
-        - title: Map Range
-          url: /pipeline/nodes/map-range
+        - title: Generate
+          children:
+            - title: Shape
+              url: /pipeline/nodes/shape
+            - title: Line Path
+              url: /pipeline/nodes/line-path
+            - title: Curved Path
+              url: /pipeline/nodes/curved-path
+            - title: Random Walk Path
+              url: /pipeline/nodes/random-walk-path
+            - title: Arc Curve
+              url: /pipeline/nodes/arc-curve
+            - title: Circle Curve
+              url: /pipeline/nodes/circle-curve
+            - title: Ellipse Curve
+              url: /pipeline/nodes/ellipse-curve
+            - title: Helix Curve
+              url: /pipeline/nodes/helix-curve
+            - title: Constant Float
+              url: /pipeline/nodes/constant-float
+            - title: Random Float
+              url: /pipeline/nodes/random-float
+
+        - title: Branch
+          children:
+            - title: Whorl Branches
+              url: /pipeline/nodes/whorl-branches
+            - title: Simple Recursive Branches
+              url: /pipeline/nodes/simple-recursive-branches
+            - title: Space Colonization Branches
+              url: /pipeline/nodes/space-colonization-branches
+            - title: Weber-Penn Branches
+              url: /pipeline/nodes/weber-penn-branches
+
+        - title: Voxelize
+          children:
+            - title: Skeleton Voxelizer
+              url: /pipeline/nodes/skeleton-voxelizer
+            - title: Branch Depth Painter
+              url: /pipeline/nodes/branch-depth-painter
+            - title: Tip Cluster Fill
+              url: /pipeline/nodes/tip-cluster-fill
+            - title: Curve Fill
+              url: /pipeline/nodes/curve-fill
+
+        - title: Combine
+          children:
+            - title: Merge Blocks
+              url: /pipeline/nodes/merge-blocks
+            - title: Subtract Blocks
+              url: /pipeline/nodes/subtract-blocks
+            - title: Intersect Blocks
+              url: /pipeline/nodes/intersect-blocks
+
+        - title: Transform
+          children:
+            - title: Translate Blocks
+              url: /pipeline/nodes/translate-blocks
+            - title: Rotate Blocks
+              url: /pipeline/nodes/rotate-blocks
+            - title: Mirror Blocks
+              url: /pipeline/nodes/mirror-blocks
+            - title: Scatter Blocks
+              url: /pipeline/nodes/scatter-blocks
+            - title: Grid Blocks
+              url: /pipeline/nodes/grid-blocks
+            - title: Curve Scatter
+              url: /pipeline/nodes/curve-scatter
+
+        - title: Filter
+          children:
+            - title: Ellipsoid Mask
+              url: /pipeline/nodes/ellipsoid-mask
+            - title: Noise Erode
+              url: /pipeline/nodes/noise-erode
+            - title: Gaussian Blur
+              url: /pipeline/nodes/gaussian-blur
+
+        - title: Paint
+          children:
+            - title: Depth Palette
+              url: /pipeline/nodes/depth-palette
+            - title: Density Palette
+              url: /pipeline/nodes/density-palette
+            - title: Noise Palette
+              url: /pipeline/nodes/noise-palette
+
         - title: Math
-          url: /pipeline/nodes/math
-        - title: Merge Blocks
-          url: /pipeline/nodes/merge-blocks
-        - title: Mirror Blocks
-          url: /pipeline/nodes/mirror-blocks
-        - title: Noise Erode
-          url: /pipeline/nodes/noise-erode
-        - title: Noise Palette
-          url: /pipeline/nodes/noise-palette
-        - title: Random Float
-          url: /pipeline/nodes/random-float
-        - title: Random Walk Path
-          url: /pipeline/nodes/random-walk-path
-        - title: Rotate Blocks
-          url: /pipeline/nodes/rotate-blocks
-        - title: Scatter Blocks
-          url: /pipeline/nodes/scatter-blocks
-        - title: Shape
-          url: /pipeline/nodes/shape
-        - title: Simple Recursive Branches
-          url: /pipeline/nodes/simple-recursive-branches
-        - title: Skeleton Voxelizer
-          url: /pipeline/nodes/skeleton-voxelizer
-        - title: Space Colonization Branches
-          url: /pipeline/nodes/space-colonization-branches
-        - title: Subtract Blocks
-          url: /pipeline/nodes/subtract-blocks
-        - title: Tip Cluster Fill
-          url: /pipeline/nodes/tip-cluster-fill
-        - title: Translate Blocks
-          url: /pipeline/nodes/translate-blocks
-        - title: Weber-Penn Branches
-          url: /pipeline/nodes/weber-penn-branches
-        - title: Whorl Branches
-          url: /pipeline/nodes/whorl-branches
+          children:
+            - title: Map Range
+              url: /pipeline/nodes/map-range
+            - title: Math
+              url: /pipeline/nodes/math
