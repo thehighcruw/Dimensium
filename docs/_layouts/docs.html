@@ -25,6 +25,17 @@ layout: default
     }
   });
 
+  (function() {
+    var sidebar = document.querySelector('.sidebar');
+    var active = sidebar && sidebar.querySelector('.nav-item.active');
+    if (sidebar && active) {
+      var itemTop = active.getBoundingClientRect().top - sidebar.getBoundingClientRect().top + sidebar.scrollTop;
+      var target = itemTop - 32;
+      var maxScroll = sidebar.scrollHeight - sidebar.clientHeight;
+      sidebar.scrollTop = Math.min(Math.max(target, 0), maxScroll);
+    }
+  })();
+
   document.querySelectorAll('.nav-toggle').forEach(function(btn) {
     btn.addEventListener('click', function(e) {
       e.preventDefault();
