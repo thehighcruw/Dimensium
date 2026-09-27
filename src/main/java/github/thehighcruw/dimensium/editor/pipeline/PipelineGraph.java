@@ -165,7 +165,6 @@ public class PipelineGraph {
     public String toJson() {
         JsonObject root = new JsonObject();
         root.addProperty("name", name);
-        if (folder != null) root.addProperty("folder", folder);
         root.addProperty("nextNodeCounter", nextNodeCounter);
 
         JsonArray nodesArr = new JsonArray();
@@ -225,7 +224,6 @@ public class PipelineGraph {
     public static PipelineGraph fromJson(String json) {
         JsonObject root = new JsonParser().parse(json).getAsJsonObject();
         PipelineGraph graph = new PipelineGraph(root.get("name").getAsString());
-        if (root.has("folder")) graph.folder = root.get("folder").getAsString();
         if (root.has("nextNodeCounter")) {
             graph.nextNodeCounter = root.get("nextNodeCounter").getAsInt();
         }

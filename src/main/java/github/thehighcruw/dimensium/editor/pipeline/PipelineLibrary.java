@@ -26,7 +26,6 @@ public final class PipelineLibrary {
     private final List<PipelineGraph> graphs = new ArrayList<>();
     private final Set<String> builtinNames = new HashSet<>();
     private final Set<String> builtinFolders = new HashSet<>();
-    private final List<String> explicitFolders = new ArrayList<>();
     private File saveDir;
     private boolean initialized = false;
 
@@ -58,17 +57,27 @@ public final class PipelineLibrary {
 
     private void loadFromDisk() {
         if (saveDir == null || !saveDir.exists()) return;
-        File[] files = saveDir.listFiles((dir, name) -> name.endsWith(".json"));
+        loadDir(saveDir, null);
+    }
+
+    private void loadDir(File dir, String folderPath) {
+        File[] files = dir.listFiles();
         if (files == null) return;
         for (File file : files) {
-            try (Reader reader = new FileReader(file)) {
-                StringBuilder sb = new StringBuilder();
-                char[] buf = new char[4096];
-                int read;
-                while ((read = reader.read(buf)) != -1) sb.append(buf, 0, read);
-                PipelineGraph g = PipelineGraph.fromJson(sb.toString());
-                if (!builtinNames.contains(g.name)) graphs.add(g);
-            } catch (Exception ignored) {
+            if (file.isDirectory()) {
+                String childPath = folderPath == null ? file.getName() : folderPath + "/" + file.getName();
+                loadDir(file, childPath);
+            } else if (file.getName().endsWith(".json")) {
+                try (Reader reader = new FileReader(file)) {
+                    StringBuilder sb = new StringBuilder();
+                    char[] buf = new char[4096];
+                    int read;
+                    while ((read = reader.read(buf)) != -1) sb.append(buf, 0, read);
+                    PipelineGraph g = PipelineGraph.fromJson(sb.toString());
+                    g.folder = folderPath;
+                    if (!builtinNames.contains(g.name)) graphs.add(g);
+                } catch (Exception ignored) {
+                }
             }
         }
     }
@@ -82,19 +91,28 @@ public final class PipelineLibrary {
 
     private void writeFile(PipelineGraph graph) {
         if (saveDir == null) return;
-        String filename = toFilename(graph.name);
-        File file = new File(saveDir, filename);
+        File file = fileFor(graph);
+        file.getParentFile().mkdirs();
         try (Writer writer = new FileWriter(file)) {
             writer.write(graph.toJson());
         } catch (Exception ignored) {
         }
     }
 
+    private File fileFor(PipelineGraph graph) {
+        return new File(folderDir(graph.folder), toFilename(graph.name));
+    }
+
+    private File folderDir(String folder) {
+        if (folder == null) return saveDir;
+        return new File(saveDir, folder.replace('/', File.separatorChar));
+    }
+
     public void delete(PipelineGraph graph) {
         if (builtinNames.contains(graph.name)) return;
         graphs.remove(graph);
         if (saveDir != null) {
-            new File(saveDir, toFilename(graph.name)).delete();
+            fileFor(graph).delete();
         }
     }
 
@@ -107,7 +125,7 @@ public final class PipelineLibrary {
         if (trimmed.isEmpty()) return false;
         if (trimmed.equals(graph.name)) return true;
         if (hasName(trimmed)) return false;
-        if (saveDir != null) new File(saveDir, toFilename(graph.name)).delete();
+        if (saveDir != null) fileFor(graph).delete();
         graph.name = trimmed;
         save(graph);
         return true;
@@ -116,20 +134,23 @@ public final class PipelineLibrary {
     /** Moves a pipeline to the given folder (null = root). Saves the change immediately. */
     public void moveToFolder(PipelineGraph graph, String folder) {
         if (builtinNames.contains(graph.name)) return;
+        if (saveDir != null) fileFor(graph).delete();
         graph.folder = folder;
         save(graph);
     }
 
-    /** Creates an empty named folder. No-op if name already exists as a folder. */
+    /** Creates an empty named folder on disk. No-op if already exists. */
     public void createFolder(String name) {
+        ensureInit();
         String trimmed = name.trim();
         if (trimmed.isEmpty()) return;
-        if (!allFolders().contains(trimmed)) explicitFolders.add(trimmed);
+        folderDir(trimmed).mkdirs();
     }
 
-    /** Removes an explicit empty folder entry. Does not affect pipelines. */
+    /** Deletes an empty folder from disk. Does not affect pipelines. */
     public void removeExplicitFolder(String name) {
-        explicitFolders.remove(name);
+        if (saveDir == null) return;
+        folderDir(name).delete();
     }
 
     public boolean isBuiltinFolder(String name) {
@@ -175,15 +196,23 @@ public final class PipelineLibrary {
         return g;
     }
 
-    /** Returns all distinct non-null folder names, including builtin and explicit empty folders. */
+    /** Returns all distinct non-null folder paths, derived from loaded graphs and subdirectories on disk. */
     public List<String> allFolders() {
         List<String> folders = new ArrayList<>();
         for (PipelineGraph g : graphs) {
             if (g.folder != null && !folders.contains(g.folder)) folders.add(g.folder);
         }
-        for (String f : explicitFolders) {
-            if (!folders.contains(f)) folders.add(f);
-        }
+        if (saveDir != null && saveDir.exists()) collectDirs(saveDir, null, folders);
         return folders;
+    }
+
+    private void collectDirs(File dir, String path, List<String> result) {
+        File[] children = dir.listFiles(File::isDirectory);
+        if (children == null) return;
+        for (File child : children) {
+            String childPath = path == null ? child.getName() : path + "/" + child.getName();
+            if (!result.contains(childPath)) result.add(childPath);
+            collectDirs(child, childPath, result);
+        }
     }
 }
