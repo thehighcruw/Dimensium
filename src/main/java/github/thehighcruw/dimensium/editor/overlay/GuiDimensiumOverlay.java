@@ -462,10 +462,27 @@ public final class GuiDimensiumOverlay {
     public static void confirmModify() {
         ModifyToolState mods = ModifyToolState.INSTANCE;
         if (mods.ghostBlocks == null || mods.ghostBlocks.isEmpty()) return;
-        String actionKey = mods.mode == ModifyToolState.ModifyMode.REVOLVE
-                ? "dimensium.action.revolve"
-                : "dimensium.action.translate_copies";
-        BlockSender.sendChunked(mods.ghostBlocks, I18n.format(actionKey));
+        String actionKey;
+        switch (mods.mode) {
+            case REVOLVE:
+                actionKey = "dimensium.action.revolve";
+                break;
+            case TWIST:
+                actionKey = "dimensium.action.twist";
+                break;
+            default:
+                actionKey = "dimensium.action.translate_copies";
+                break;
+        }
+        if (mods.mode == ModifyToolState.ModifyMode.TWIST) {
+            SelectionState sel = SelectionState.INSTANCE;
+            List<int[]> ops = new ArrayList<>();
+            ops.addAll(SelectionOps.selectionToAirOps(sel));
+            ops.addAll(mods.ghostBlocks);
+            BlockSender.sendChunked(ops, I18n.format(actionKey));
+        } else {
+            BlockSender.sendChunked(mods.ghostBlocks, I18n.format(actionKey));
+        }
         mods.clearAfterConfirm();
     }
 

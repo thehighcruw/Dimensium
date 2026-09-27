@@ -34,6 +34,9 @@ public class ModifySection implements ToolSection {
     private final float[] revolveTranslationX = new float[1];
     private final float[] revolveTranslationY = new float[1];
     private final float[] revolveTranslationZ = new float[1];
+    private final float[] twistAngleX = new float[1];
+    private final float[] twistAngleY = new float[1];
+    private final float[] twistAngleZ = new float[1];
 
     public ModifySection(ModifyToolState state) {
         this.state = state;
@@ -60,6 +63,9 @@ public class ModifySection implements ToolSection {
                 break;
             case REVOLVE:
                 renderRevolve();
+                break;
+            case TWIST:
+                renderTwist();
                 break;
         }
     }
@@ -204,6 +210,51 @@ public class ModifySection implements ToolSection {
                 state.revolveTranslation = Vec3DFloat.from(
                         state.revolveTranslation.x(), state.revolveTranslation.y(), revolveTranslationZ[0]);
             }
+        }
+
+        ImGui.spacing();
+
+        if (!sel.hasSelection()) {
+            ImGui.textDisabled(I18n.format("dimensium.ui.hint.no_selection"));
+        } else {
+            ImGui.textDisabled(I18n.format("dimensium.ui.modify.hint"));
+        }
+    }
+
+    private void renderTwist() {
+        SelectionState sel = SelectionState.INSTANCE;
+
+        ImGui.text(I18n.format("dimensium.ui.section.twist"));
+        ImGui.separator();
+
+        twistAngleX[0] = state.twistAngleXDegrees;
+        if (ImGui.dragFloat(
+                I18n.format("dimensium.ui.modify.twist_angle_x") + "##twist_angle_x",
+                twistAngleX,
+                1f,
+                ModifyToolState.TWIST_ANGLE_MIN,
+                ModifyToolState.TWIST_ANGLE_MAX)) {
+            state.twistAngleXDegrees = twistAngleX[0];
+        }
+
+        twistAngleY[0] = state.twistAngleYDegrees;
+        if (ImGui.dragFloat(
+                I18n.format("dimensium.ui.modify.twist_angle_y") + "##twist_angle_y",
+                twistAngleY,
+                1f,
+                ModifyToolState.TWIST_ANGLE_MIN,
+                ModifyToolState.TWIST_ANGLE_MAX)) {
+            state.twistAngleYDegrees = twistAngleY[0];
+        }
+
+        twistAngleZ[0] = state.twistAngleZDegrees;
+        if (ImGui.dragFloat(
+                I18n.format("dimensium.ui.modify.twist_angle_z") + "##twist_angle_z",
+                twistAngleZ,
+                1f,
+                ModifyToolState.TWIST_ANGLE_MIN,
+                ModifyToolState.TWIST_ANGLE_MAX)) {
+            state.twistAngleZDegrees = twistAngleZ[0];
         }
 
         ImGui.spacing();

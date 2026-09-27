@@ -28,7 +28,8 @@ public class ModifyToolState implements WithAxisTranslationGizmo, WithPlaneTrans
 
     public enum ModifyMode {
         TRANSLATE_COPIES("dimensium.modify_mode.translate_copies"),
-        REVOLVE("dimensium.modify_mode.revolve");
+        REVOLVE("dimensium.modify_mode.revolve"),
+        TWIST("dimensium.modify_mode.twist");
 
         public final String label;
 
@@ -60,6 +61,9 @@ public class ModifyToolState implements WithAxisTranslationGizmo, WithPlaneTrans
         }
     }
 
+    public static final float TWIST_ANGLE_MIN = -360f;
+    public static final float TWIST_ANGLE_MAX = 360f;
+
     public static final int COUNT_MIN = 1;
     public static final int COUNT_MAX = 64;
     public static final float REVOLVE_ANGLE_MIN = 1f;
@@ -71,6 +75,11 @@ public class ModifyToolState implements WithAxisTranslationGizmo, WithPlaneTrans
     public Vec3DFloat translateCopiesOffset = Vec3DFloat.ZERO;
     public int translateCopiesCount = 1;
     public OffsetType translateCopiesOffsetType = OffsetType.RELATIVE;
+
+    // Twist params
+    public float twistAngleXDegrees = 0f;
+    public float twistAngleYDegrees = 0f;
+    public float twistAngleZDegrees = 0f;
 
     // Revolve params
     public Axis revolveAxis = Axis.Y;
@@ -107,6 +116,11 @@ public class ModifyToolState implements WithAxisTranslationGizmo, WithPlaneTrans
     private Vec3DFloat lastOffset = Vec3DFloat.from(Float.NaN, Float.NaN, Float.NaN);
     private int lastCount = -1;
     private OffsetType lastOffsetType = null;
+    // Twist staleness
+    private float lastTwistAngleX = Float.NaN;
+    private float lastTwistAngleY = Float.NaN;
+    private float lastTwistAngleZ = Float.NaN;
+
     // Revolve staleness
     private Axis lastRevolveAxis = null;
     private float lastRevolveAngle = Float.NaN;
@@ -183,6 +197,12 @@ public class ModifyToolState implements WithAxisTranslationGizmo, WithPlaneTrans
                     || !revolveTranslation.equals(lastRevolveTranslation)
                     || !Objects.equals(revolveCenter, lastRevolveCenter)
                     || sel.clipboardVersion != lastClipboardVersion;
+        } else if (mode == ModifyMode.TWIST) {
+            paramsChanged = mode != lastMode
+                    || twistAngleXDegrees != lastTwistAngleX
+                    || twistAngleYDegrees != lastTwistAngleY
+                    || twistAngleZDegrees != lastTwistAngleZ
+                    || sel.clipboardVersion != lastClipboardVersion;
         } else {
             paramsChanged = mode != lastMode
                     || !translateCopiesOffset.equals(lastOffset)
@@ -204,6 +224,11 @@ public class ModifyToolState implements WithAxisTranslationGizmo, WithPlaneTrans
             lastRevolveTranslation = revolveTranslation;
             lastRevolveCenter = revolveCenter;
             rebuildRevolvePreview(sel);
+        } else if (mode == ModifyMode.TWIST) {
+            lastTwistAngleX = twistAngleXDegrees;
+            lastTwistAngleY = twistAngleYDegrees;
+            lastTwistAngleZ = twistAngleZDegrees;
+            rebuildTwistPreview(sel);
         } else {
             lastOffset = translateCopiesOffset;
             lastCount = translateCopiesCount;
@@ -368,11 +393,66 @@ public class ModifyToolState implements WithAxisTranslationGizmo, WithPlaneTrans
         preview = proposal;
     }
 
+    private void rebuildTwistPreview(SelectionState sel) {
+        Vec3DInt selMin = sel.min();
+        int width = sel.width();
+        int height = sel.height();
+        int depth = sel.depth();
+
+        double centerX = selMin.x() + width * 0.5;
+        double centerY = selMin.y() + height * 0.5;
+        double centerZ = selMin.z() + depth * 0.5;
+
+        List<int[]> blocks = new ArrayList<>(sel.clipboard.size());
+        for (Map.Entry<Long, SelectionState.BlockData> entry : sel.clipboard.entrySet()) {
+            Vec3DInt rel = SelectionState.decodeClipboardKey(entry.getKey());
+            int blockX = selMin.x() + rel.x();
+            int blockY = selMin.y() + rel.y();
+            int blockZ = selMin.z() + rel.z();
+
+            float tx = width > 0 ? (float) rel.x() / width : 0.5f;
+            float ty = height > 0 ? (float) rel.y() / height : 0.5f;
+            float tz = depth > 0 ? (float) rel.z() / depth : 0.5f;
+
+            float angleX = twistAngleXDegrees * tx;
+            float angleY = twistAngleYDegrees * ty;
+            float angleZ = twistAngleZDegrees * tz;
+
+            Mat3DFloat rotation = ShapeMath.buildRotationMatrix(angleX, angleY, angleZ);
+
+            double relX = blockX + 0.5 - centerX;
+            double relY = blockY + 0.5 - centerY;
+            double relZ = blockZ + 0.5 - centerZ;
+
+            Vec3DFloat rotated = rotation.mul(Vec3DFloat.from((float) relX, (float) relY, (float) relZ));
+
+            int destX = (int) Math.round(centerX + rotated.x() - 0.5);
+            int destY = (int) Math.round(centerY + rotated.y() - 0.5);
+            int destZ = (int) Math.round(centerZ + rotated.z() - 0.5);
+
+            SelectionState.BlockData bd = entry.getValue();
+            int rotatedMeta = BlockMetaRotator.rotateOrKeep(bd.block(), bd.meta(), rotation);
+            blocks.add(new int[] {destX, destY, destZ, Block.getIdFromBlock(bd.block()), rotatedMeta});
+        }
+        ghostBlocks = blocks;
+
+        ChangeProposal proposal = ChangeProposal.forPreview();
+        for (int[] block : blocks) {
+            proposal.proposed.put(
+                    ChangeProposal.packKey(Vec3DInt.from(block[0], block[1], block[2])),
+                    new int[] {block[3], block[4]});
+        }
+        preview = proposal;
+    }
+
     private void invalidate() {
         lastMode = null;
         lastOffset = Vec3DFloat.from(Float.NaN, Float.NaN, Float.NaN);
         lastCount = -1;
         lastOffsetType = null;
+        lastTwistAngleX = Float.NaN;
+        lastTwistAngleY = Float.NaN;
+        lastTwistAngleZ = Float.NaN;
         lastRevolveAxis = null;
         lastRevolveAngle = Float.NaN;
         lastRevolveCount = -1;

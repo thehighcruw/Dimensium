@@ -24,6 +24,7 @@ import github.thehighcruw.dimensium.editor.tool.Tool;
 import github.thehighcruw.dimensium.editor.tool.ToolRegistry;
 import github.thehighcruw.dimensium.editor.tool.creating.modelling.ModellingToolState;
 import github.thehighcruw.dimensium.editor.tool.creating.path.PathToolState;
+import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeMath;
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapePlacementState;
 import github.thehighcruw.dimensium.editor.tool.creating.stamp.StampBrushInput;
 import github.thehighcruw.dimensium.editor.tool.manipulating.elevation.ElevationBrush;
@@ -44,6 +45,7 @@ import github.thehighcruw.dimensium.editor.window.viewport.ViewportPanel;
 import github.thehighcruw.dimensium.shared.BlockColorCache;
 import github.thehighcruw.dimensium.shared.KeyConstants;
 import github.thehighcruw.dimensium.shared.SelectionState;
+import github.thehighcruw.dimensium.shared.math.Mat3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec2DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec2DInt;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
@@ -565,7 +567,10 @@ public class SelectionRenderer {
         if (DimensiumEditorMode.INSTANCE.isActive() && DimensiumEditorMode.INSTANCE.selectedTool == Tool.MODIFY) {
             mods.rebuildIfNeeded(sel, mc.theWorld);
             if (mods.preview != null) renderProposalPreview(mc, camPos, mods.preview);
-            if (mods.mode == ModifyToolState.ModifyMode.REVOLVE) {
+            if (mods.mode == ModifyToolState.ModifyMode.TWIST && sel.hasSelection()) {
+                GL11.glDisable(GL11.GL_TEXTURE_2D);
+                renderTwistVisual(mods, sel, camPos);
+            } else if (mods.mode == ModifyToolState.ModifyMode.REVOLVE) {
                 mods.getAxisTranslationGizmo().getProjection().capture(camPos);
                 if (mods.revolveCenter != null) {
                     GL11.glDisable(GL11.GL_TEXTURE_2D);
@@ -1142,6 +1147,113 @@ public class SelectionRenderer {
         t.startDrawingQuads();
         GhostRenderer.addBoxFaces(t, x2, y2, z2);
         t.draw();
+    }
+
+    private static void renderTwistVisual(ModifyToolState mods, SelectionState sel, Vec3DDouble camPos) {
+        Vec3DInt selMin = sel.min();
+        int width = sel.width();
+        int height = sel.height();
+        int depth = sel.depth();
+
+        double centerX = selMin.x() + width * 0.5;
+        double centerY = selMin.y() + height * 0.5;
+        double centerZ = selMin.z() + depth * 0.5;
+
+        // Subdivide each AABB edge into segments so the twist curve is visible
+        int segments = 16;
+
+        GL11.glDisable(GL11.GL_DEPTH_TEST);
+        GL11.glLineWidth(1.5f);
+        GL11.glColor4f(0.25f, 0.55f, 1f, 0.85f);
+
+        // The 12 edges of the AABB, each described as (start corner index, end corner index).
+        // Corners indexed by (xi, yi, zi) bits: index = xi | (yi<<1) | (zi<<2)
+        int[][] edges = {
+            {0b000, 0b001},
+            {0b010, 0b011},
+            {0b100, 0b101},
+            {0b110, 0b111}, // along X
+            {0b000, 0b010},
+            {0b001, 0b011},
+            {0b100, 0b110},
+            {0b101, 0b111}, // along Y
+            {0b000, 0b100},
+            {0b001, 0b101},
+            {0b010, 0b110},
+            {0b011, 0b111}, // along Z
+        };
+
+        double[] scratch = new double[3];
+        for (int[] edge : edges) {
+            int aIdx = edge[0];
+            int bIdx = edge[1];
+            GL11.glBegin(GL11.GL_LINE_STRIP);
+            for (int step = 0; step <= segments; step++) {
+                twistCorner(
+                        aIdx,
+                        bIdx,
+                        (double) step / segments,
+                        selMin,
+                        width,
+                        height,
+                        depth,
+                        centerX,
+                        centerY,
+                        centerZ,
+                        mods,
+                        camPos,
+                        scratch);
+                GL11.glVertex3d(scratch[0], scratch[1], scratch[2]);
+            }
+            GL11.glEnd();
+        }
+
+        GL11.glEnable(GL11.GL_DEPTH_TEST);
+        GL11.glLineWidth(1f);
+    }
+
+    /**
+     * Interpolates a point along an AABB edge from corner aIdx to corner bIdx at parameter t,
+     * applies the twist transform, and writes the camera-relative position into {@code out}.
+     */
+    private static void twistCorner(
+            int aIdx,
+            int bIdx,
+            double t,
+            Vec3DInt selMin,
+            int width,
+            int height,
+            int depth,
+            double centerX,
+            double centerY,
+            double centerZ,
+            ModifyToolState mods,
+            Vec3DDouble camPos,
+            double[] out) {
+        double ax = ((aIdx & 1) == 0 ? selMin.x() : selMin.x() + width);
+        double ay = ((aIdx & 2) == 0 ? selMin.y() : selMin.y() + height);
+        double az = ((aIdx & 4) == 0 ? selMin.z() : selMin.z() + depth);
+        double bx = ((bIdx & 1) == 0 ? selMin.x() : selMin.x() + width);
+        double by = ((bIdx & 2) == 0 ? selMin.y() : selMin.y() + height);
+        double bz = ((bIdx & 4) == 0 ? selMin.z() : selMin.z() + depth);
+
+        double wx = ax + (bx - ax) * t;
+        double wy = ay + (by - ay) * t;
+        double wz = az + (bz - az) * t;
+
+        float tx = width > 0 ? (float) ((wx - selMin.x()) / width) : 0.5f;
+        float ty = height > 0 ? (float) ((wy - selMin.y()) / height) : 0.5f;
+        float tz = depth > 0 ? (float) ((wz - selMin.z()) / depth) : 0.5f;
+
+        Mat3DFloat rotation = ShapeMath.buildRotationMatrix(
+                mods.twistAngleXDegrees * tx, mods.twistAngleYDegrees * ty, mods.twistAngleZDegrees * tz);
+
+        Vec3DFloat rotated =
+                rotation.mul(Vec3DFloat.from((float) (wx - centerX), (float) (wy - centerY), (float) (wz - centerZ)));
+
+        out[0] = centerX + rotated.x() - camPos.x();
+        out[1] = centerY + rotated.y() - camPos.y();
+        out[2] = centerZ + rotated.z() - camPos.z();
     }
 
     private static void renderRevolveVisual(ModifyToolState mods, Vec3DDouble camPos) {
