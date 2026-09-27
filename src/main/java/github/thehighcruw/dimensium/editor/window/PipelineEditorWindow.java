@@ -7,11 +7,11 @@ package github.thehighcruw.dimensium.editor.window;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.DimensiumConfig;
-import github.thehighcruw.dimensium.editor.pipeline.NodeParams;
 import github.thehighcruw.dimensium.editor.pipeline.NodeRegistry;
 import github.thehighcruw.dimensium.editor.pipeline.NodeRegistry.NodeGroup;
 import github.thehighcruw.dimensium.editor.pipeline.NodeSchema;
-import github.thehighcruw.dimensium.editor.pipeline.NodeSchema.ParamDef;
+import github.thehighcruw.dimensium.editor.pipeline.NodeSchema.InputPortDef;
+import github.thehighcruw.dimensium.editor.pipeline.NodeSchema.OutputPortDef;
 import github.thehighcruw.dimensium.editor.pipeline.PipelineGraph;
 import github.thehighcruw.dimensium.editor.pipeline.PipelineLibrary;
 import github.thehighcruw.dimensium.editor.pipeline.PortType;
@@ -21,7 +21,6 @@ import github.thehighcruw.dimensium.editor.window.imgui.ToggleableWindow;
 import imgui.ImDrawList;
 import imgui.ImGui;
 import imgui.ImVec2;
-import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiKey;
 import imgui.flag.ImGuiStyleVar;
@@ -37,19 +36,24 @@ public class PipelineEditorWindow extends ToggleableWindow {
     public static final PipelineEditorWindow INSTANCE = new PipelineEditorWindow();
 
     // ── Layout constants ──────────────────────────────────────────────────────
-    private static final float NODE_W = 190f;
-    private static final float HEADER_H = 22f;
-    private static final float PARAM_H = 17f;
+    private static final float NODE_W = 200f;
+    private static final float HEADER_H = 24f;
+    private static final float PORT_ROW_H = 18f;
+    private static final float BODY_PAD = 5f;
     private static final float PORT_R = 5f;
+    /** Slack added to PORT_R for hit-testing. */
+    private static final float PORT_HIT_SLACK = 3f;
+
+    private static final float PORT_LABEL_PAD = 8f;
     private static final float WIRE_THICKNESS = 2f;
     private static final float ZOOM_MIN = 0.25f;
     private static final float ZOOM_MAX = 3.0f;
     private static final float ZOOM_STEP = 0.1f;
     private static final int BEZIER_SEGMENTS = 24;
-    /** Below this canvasZoom, skip per-param text to stay within the 16-bit vertex budget. */
-    private static final float LOD_PARAMS_ZOOM = 0.6f;
-    /** Below this canvasZoom, skip all text (title too). */
-    private static final float LOD_TITLE_ZOOM = 0.35f;
+    /** Below this zoom, skip port label text. */
+    private static final float LOD_PORT_LABELS = 0.5f;
+    /** Below this zoom, skip title text. */
+    private static final float LOD_TITLE = 0.3f;
 
     // ── Colors (ABGR) ─────────────────────────────────────────────────────────
     private static final int COLOR_BG = 0xFF_1A_1A_1A;
@@ -63,16 +67,12 @@ public class PipelineEditorWindow extends ToggleableWindow {
     private static final int COLOR_PORT_BLOCK_MAP = 0xFF_00_FF_88;
     private static final int COLOR_PORT_FLOAT = 0xFF_AA_AA_AA;
     private static final int COLOR_PORT_VEC3 = 0xFF_00_CC_FF;
+    private static final int COLOR_PORT_HIGHLIGHT = 0xFF_FF_FF_FF;
     private static final int COLOR_WIRE = 0xFF_CC_AA_55;
     private static final int COLOR_WIRE_HOVER = 0xFF_FF_CC_66;
     private static final int COLOR_TEXT = 0xFF_E0_E0_E0;
-    private static final int COLOR_TEXT_DIM = 0xFF_88_88_88;
-
-    private enum InteractionMode {
-        SELECT,
-        PAN,
-        WIRE
-    }
+    private static final int COLOR_TEXT_DIM = 0xFF_AA_AA_AA;
+    private static final int COLOR_TEXT_OPTIONAL = 0xFF_77_77_77;
 
     // ── State ─────────────────────────────────────────────────────────────────
     private PipelineGraph graph;
@@ -83,14 +83,20 @@ public class PipelineEditorWindow extends ToggleableWindow {
     private float panX = 0f;
     private float panY = 0f;
     private float canvasZoom = 1.0f;
-    private InteractionMode interactionMode = InteractionMode.SELECT;
 
-    // Wire dragging state
-    private String wireFromId = null;
+    // Wire drag state
+    private String wireFromNodeId = null;
+    private String wireFromPortName = null;
+    private boolean wireFromIsOutput = false;
     private float wireFromScreenX;
     private float wireFromScreenY;
 
-    // Hover detection for wires
+    // Hovered port — updated each frame before drawing
+    private String hoveredPortNodeId = null;
+    private String hoveredPortName = null;
+    private boolean hoveredPortIsOutput = false;
+
+    // Hovered wire
     private String hoveredWireToId = null;
     private String hoveredWireToPort = null;
 
@@ -98,7 +104,6 @@ public class PipelineEditorWindow extends ToggleableWindow {
 
     private PipelineEditorWindow() {}
 
-    /** Toggles the window. Creates a blank pipeline if none is loaded. */
     public void toggle() {
         if (open) {
             setOpen(false);
@@ -120,12 +125,11 @@ public class PipelineEditorWindow extends ToggleableWindow {
         DimensiumConfig.setWindowPipelineEditorOpen(value);
     }
 
-    /** Opens this window and sets the graph to edit. */
     public void open(PipelineGraph graphToEdit) {
         this.graph = graphToEdit;
         this.open = true;
         this.selectedNodeId = null;
-        this.wireFromId = null;
+        this.wireFromNodeId = null;
         PipelinePresets.registerNodes();
     }
 
@@ -160,7 +164,6 @@ public class PipelineEditorWindow extends ToggleableWindow {
         ImGui.end();
         ImGui.popStyleVar();
 
-        // Node details and preview in separate windows
         PipelineNodeDetailsWindow.INSTANCE.setContext(graph, selectedNodeId);
         PipelineNodeDetailsWindow.INSTANCE.renderImGui();
         PipelinePreviewWindow.INSTANCE.setGraph(graph);
@@ -200,8 +203,7 @@ public class PipelineEditorWindow extends ToggleableWindow {
         ImGui.sameLine();
 
         ImGui.setNextItemWidth(140 * uiScale);
-        String currentName = graph != null ? graph.name : "";
-        if (ImGui.beginCombo("##plib", currentName)) {
+        if (ImGui.beginCombo("##plib", graph.name)) {
             for (PipelineGraph g : PipelineLibrary.INSTANCE.all()) {
                 boolean selected = g == graph;
                 if (ImGui.selectable(g.name, selected)) {
@@ -218,35 +220,25 @@ public class PipelineEditorWindow extends ToggleableWindow {
         }
         ImGui.sameLine();
 
-        if (ImGui.button("1:1##pzoomreset")) {
-            canvasZoom = 1.0f;
-        }
+        if (ImGui.button("1:1##pzoomreset")) canvasZoom = 1.0f;
         ImGui.sameLine();
         ImGui.textDisabled(String.format("%.0f%%", canvasZoom * 100f));
-
         ImGui.sameLine();
         ImGui.separator();
         ImGui.sameLine();
 
-        // Interaction mode buttons
-        renderModeButton(
-                I18n.format("dimensium.ui.pipeline.mode.select") + "##modeSelect", InteractionMode.SELECT, uiScale);
-        ImGui.sameLine();
-        renderModeButton(I18n.format("dimensium.ui.pipeline.mode.pan") + "##modePan", InteractionMode.PAN, uiScale);
-        ImGui.sameLine();
-        renderModeButton(I18n.format("dimensium.ui.pipeline.mode.wire") + "##modeWire", InteractionMode.WIRE, uiScale);
-
-        // Second toolbar row: one button per node group, each opens a popup listing that group's nodes
+        // One button per node group — click opens popup listing that group's nodes
         for (NodeGroup group : NodeGroup.values()) {
-            String groupLabelKey = "dimensium.ui.pipeline.group." + group.name().toLowerCase();
+            String groupKey = "dimensium.ui.pipeline.group." + group.name().toLowerCase();
             String popupId = "##addNodeGroup_" + group.name();
-            if (ImGui.button(I18n.format(groupLabelKey) + popupId)) {
+            if (ImGui.button(I18n.format(groupKey) + popupId)) {
                 ImGui.openPopup(popupId);
             }
             if (ImGui.beginPopup(popupId)) {
                 for (String typeId : NodeRegistry.idsInGroup(group)) {
                     if (ImGui.menuItem(nodeDisplayName(typeId))) {
-                        graph.addNode(typeId, 40f + panX / canvasZoom, 40f + panY / canvasZoom);
+                        float canvasCenter = 40f + panX / canvasZoom;
+                        graph.addNode(typeId, canvasCenter, 40f + panY / canvasZoom);
                         ImGui.closeCurrentPopup();
                     }
                 }
@@ -256,26 +248,15 @@ public class PipelineEditorWindow extends ToggleableWindow {
         }
     }
 
-    private void renderModeButton(String label, InteractionMode mode, float uiScale) {
-        boolean active = interactionMode == mode;
-        if (active) {
-            ImGui.pushStyleColor(ImGuiCol.Button, 0.55f, 0.40f, 0.10f, 1.0f);
-            ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0.65f, 0.50f, 0.15f, 1.0f);
-        }
-        if (ImGui.button(label)) {
-            interactionMode = mode;
-            if (mode != InteractionMode.WIRE) wireFromId = null;
-        }
-        if (active) ImGui.popStyleColor(2);
-    }
-
     private void resetView() {
         panX = 0;
         panY = 0;
         canvasZoom = 1.0f;
         selectedNodeId = null;
-        wireFromId = null;
+        wireFromNodeId = null;
     }
+
+    // ── Canvas ────────────────────────────────────────────────────────────────
 
     private void renderCanvas(float uiScale) {
         float viewScale = uiScale * canvasZoom;
@@ -296,13 +277,13 @@ public class PipelineEditorWindow extends ToggleableWindow {
 
         ImDrawList dl = ImGui.getWindowDrawList();
         dl.addRectFilled(originX, originY, originX + canvasW, originY + canvasH, COLOR_BG);
-
-        // Dot grid — skip when too dense (high vertex count crashes 16-bit ImGui index buffer)
-        float gridStep = 20f * viewScale;
-        float gridOffX = panX % gridStep;
-        float gridOffY = panY % gridStep;
         dl.pushClipRect(originX, originY, originX + canvasW, originY + canvasH, true);
+
+        // Dot grid
+        float gridStep = 20f * viewScale;
         if (gridStep >= 16f) {
+            float gridOffX = panX % gridStep;
+            float gridOffY = panY % gridStep;
             for (float x = originX + gridOffX; x < originX + canvasW; x += gridStep) {
                 for (float y = originY + gridOffY; y < originY + canvasH; y += gridStep) {
                     dl.addRectFilled(x, y, x + 1.5f, y + 1.5f, COLOR_DOT);
@@ -310,76 +291,62 @@ public class PipelineEditorWindow extends ToggleableWindow {
             }
         }
 
+        float mouseX = ImGui.getMousePos().x;
+        float mouseY = ImGui.getMousePos().y;
+
+        // Update hovered port (before drawing so highlight renders correctly)
+        updateHoveredPort(graph.nodes(), originX, originY, viewScale, mouseX, mouseY);
+
         // Draw wires
         hoveredWireToId = null;
         hoveredWireToPort = null;
-        float mouseX = ImGui.getMousePos().x;
-        float mouseY = ImGui.getMousePos().y;
         for (PipelineGraph.Edge edge : graph.edges()) {
             PipelineGraph.NodeInstance fromNode = graph.findNode(edge.fromId);
             PipelineGraph.NodeInstance toNode = graph.findNode(edge.toId);
             if (fromNode == null || toNode == null) continue;
-            float fromX = nodeOutputPortX(fromNode, originX, viewScale);
-            float fromY = nodePortY(fromNode, originX, originY, viewScale);
-            float toX = nodeInputPortX(toNode, originX, viewScale);
-            float toY = nodePortY(toNode, originX, originY, viewScale);
-            // Skip wires fully outside the canvas viewport
-            float wireMinX = Math.min(fromX, toX);
-            float wireMaxX = Math.max(fromX, toX);
-            float wireMinY = Math.min(fromY, toY);
-            float wireMaxY = Math.max(fromY, toY);
-            if (wireMaxX < originX
-                    || wireMinX > originX + canvasW
-                    || wireMaxY < originY
-                    || wireMinY > originY + canvasH) continue;
-            float distToWire = distToWire(mouseX, mouseY, fromX, fromY, toX, toY);
-            boolean hover = distToWire < 8f;
+
+            NodeSchema fromSchema = NodeRegistry.create(fromNode.typeId).schema();
+            NodeSchema toSchema = NodeRegistry.create(toNode.typeId).schema();
+            int fromIdx = outputPortIndex(fromSchema, edge.fromPort);
+            int toIdx = inputPortIndex(toSchema, edge.toPort);
+
+            float fromNodeY = originY + panY + fromNode.posY * viewScale;
+            float toNodeY = originY + panY + toNode.posY * viewScale;
+            float fromX = originX + panX + fromNode.posX * viewScale + NODE_W * viewScale;
+            float fromY = portBodyY(fromIdx, fromNodeY, viewScale);
+            float toX = originX + panX + toNode.posX * viewScale;
+            float toY = portBodyY(toIdx, toNodeY, viewScale);
+
+            // Cull wires fully outside the viewport
+            if (Math.max(fromX, toX) < originX
+                    || Math.min(fromX, toX) > originX + canvasW
+                    || Math.max(fromY, toY) < originY
+                    || Math.min(fromY, toY) > originY + canvasH) continue;
+
+            boolean hover = distToWire(mouseX, mouseY, fromX, fromY, toX, toY) < 8f;
             if (hover) {
                 hoveredWireToId = edge.toId;
                 hoveredWireToPort = edge.toPort;
             }
-            int wireColor = hover ? COLOR_WIRE_HOVER : COLOR_WIRE;
-            float cpOffset = Math.abs(toX - fromX) * 0.5f;
-            dl.addBezierCubic(
-                    fromX,
-                    fromY,
-                    fromX + cpOffset,
-                    fromY,
-                    toX - cpOffset,
-                    toY,
-                    toX,
-                    toY,
-                    wireColor,
-                    WIRE_THICKNESS * uiScale,
-                    BEZIER_SEGMENTS);
+            drawWire(dl, fromX, fromY, toX, toY, hover ? COLOR_WIRE_HOVER : COLOR_WIRE, uiScale);
         }
 
         // Draw in-progress wire
-        if (wireFromId != null && ImGui.isMouseDown(0)) {
-            float cpOffset = Math.abs(mouseX - wireFromScreenX) * 0.5f;
-            dl.addBezierCubic(
-                    wireFromScreenX,
-                    wireFromScreenY,
-                    wireFromScreenX + cpOffset,
-                    wireFromScreenY,
-                    mouseX - cpOffset,
-                    mouseY,
-                    mouseX,
-                    mouseY,
-                    COLOR_WIRE,
-                    WIRE_THICKNESS * uiScale,
-                    BEZIER_SEGMENTS);
+        if (wireFromNodeId != null && ImGui.isMouseDown(0)) {
+            drawWire(dl, wireFromScreenX, wireFromScreenY, mouseX, mouseY, COLOR_WIRE, uiScale);
         }
 
-        // Draw nodes — skip those fully outside the canvas viewport
+        // Draw nodes
         List<PipelineGraph.NodeInstance> nodes = graph.nodes();
         for (PipelineGraph.NodeInstance node : nodes) {
             float nx = originX + panX + node.posX * viewScale;
             float ny = originY + panY + node.posY * viewScale;
             NodeSchema schema = NodeRegistry.create(node.typeId).schema();
-            float nh = (HEADER_H + schema.params().size() * PARAM_H + 4f) * viewScale;
-            float nw = NODE_W * viewScale;
-            if (nx + nw < originX || nx > originX + canvasW || ny + nh < originY || ny > originY + canvasH) continue;
+            float nh = nodeHeight(schema, viewScale);
+            if (nx + NODE_W * viewScale < originX
+                    || nx > originX + canvasW
+                    || ny + nh < originY
+                    || ny > originY + canvasH) continue;
             drawNode(dl, node, originX, originY, uiScale, viewScale);
         }
 
@@ -391,10 +358,138 @@ public class PipelineEditorWindow extends ToggleableWindow {
         boolean canvasActive = ImGui.isItemActive();
 
         handleMouse(nodes, originX, originY, canvasW, canvasH, uiScale, viewScale, canvasHovered, canvasActive);
-        handleContextMenus(nodes, originX, originY, viewScale, canvasHovered);
+        handleContextMenu(nodes, originX, originY, viewScale, canvasHovered, uiScale);
 
         ImGui.endChild();
     }
+
+    // ── Hovered port detection ────────────────────────────────────────────────
+
+    private void updateHoveredPort(
+            List<PipelineGraph.NodeInstance> nodes,
+            float originX,
+            float originY,
+            float viewScale,
+            float mouseX,
+            float mouseY) {
+        hoveredPortNodeId = null;
+        hoveredPortName = null;
+        float hitR = (PORT_R + PORT_HIT_SLACK) * viewScale;
+
+        for (PipelineGraph.NodeInstance node : nodes) {
+            NodeSchema schema = NodeRegistry.create(node.typeId).schema();
+            float nx = originX + panX + node.posX * viewScale;
+            float ny = originY + panY + node.posY * viewScale;
+            float nw = NODE_W * viewScale;
+
+            List<InputPortDef> inputs = schema.inputPorts();
+            for (int i = 0; i < inputs.size(); i++) {
+                float py = portBodyY(i, ny, viewScale);
+                if (dist2(mouseX, mouseY, nx, py) <= hitR * hitR) {
+                    hoveredPortNodeId = node.instanceId;
+                    hoveredPortName = inputs.get(i).name;
+                    hoveredPortIsOutput = false;
+                    return;
+                }
+            }
+
+            List<OutputPortDef> outputs = schema.outputPorts();
+            for (int i = 0; i < outputs.size(); i++) {
+                float py = portBodyY(i, ny, viewScale);
+                if (dist2(mouseX, mouseY, nx + nw, py) <= hitR * hitR) {
+                    hoveredPortNodeId = node.instanceId;
+                    hoveredPortName = outputs.get(i).name;
+                    hoveredPortIsOutput = true;
+                    return;
+                }
+            }
+        }
+    }
+
+    // ── Node drawing ──────────────────────────────────────────────────────────
+
+    private void drawNode(
+            ImDrawList dl,
+            PipelineGraph.NodeInstance node,
+            float originX,
+            float originY,
+            float uiScale,
+            float viewScale) {
+
+        float nx = originX + panX + node.posX * viewScale;
+        float ny = originY + panY + node.posY * viewScale;
+        float nw = NODE_W * viewScale;
+        NodeSchema schema = NodeRegistry.create(node.typeId).schema();
+        float nh = nodeHeight(schema, viewScale);
+
+        // Shadow
+        dl.addRectFilled(nx + 3, ny + 3, nx + nw + 3, ny + nh + 3, COLOR_SHADOW, 4f * uiScale);
+        // Body
+        dl.addRectFilled(nx, ny, nx + nw, ny + nh, COLOR_NODE_BODY, 4f * uiScale);
+        // Header
+        int headerColor = node.instanceId.equals(selectedNodeId) ? COLOR_NODE_SELECTED : COLOR_NODE_HEADER;
+        dl.addRectFilled(nx, ny, nx + nw, ny + HEADER_H * viewScale, headerColor, 4f * uiScale);
+        // Border
+        dl.addRect(nx, ny, nx + nw, ny + nh, COLOR_NODE_BORDER, 4f * uiScale);
+        // Separator below header
+        dl.addLine(nx + 1, ny + HEADER_H * viewScale, nx + nw - 1, ny + HEADER_H * viewScale, COLOR_NODE_BORDER);
+
+        // Title
+        if (canvasZoom >= LOD_TITLE) {
+            float fontSize = ImGui.getFontSize();
+            dl.addText(
+                    nx + 6 * uiScale,
+                    ny + (HEADER_H * viewScale - fontSize) * 0.5f,
+                    COLOR_TEXT,
+                    nodeDisplayName(node.typeId));
+        }
+
+        boolean showLabels = canvasZoom >= LOD_PORT_LABELS;
+        float fontSize = ImGui.getFontSize();
+
+        // Input ports
+        List<InputPortDef> inputs = schema.inputPorts();
+        for (int i = 0; i < inputs.size(); i++) {
+            InputPortDef port = inputs.get(i);
+            float px = nx;
+            float py = portBodyY(i, ny, viewScale);
+            boolean hovered = node.instanceId.equals(hoveredPortNodeId)
+                    && port.name.equals(hoveredPortName)
+                    && !hoveredPortIsOutput;
+            int color = hovered ? COLOR_PORT_HIGHLIGHT : portColor(port.type);
+            dl.addCircleFilled(px, py, PORT_R * viewScale, color);
+            dl.addCircle(px, py, PORT_R * viewScale, COLOR_NODE_BORDER);
+            if (showLabels) {
+                int labelColor = port.required ? COLOR_TEXT_DIM : COLOR_TEXT_OPTIONAL;
+                dl.addText(px + (PORT_R + PORT_LABEL_PAD) * uiScale, py - fontSize * 0.5f, labelColor, port.name);
+            }
+        }
+
+        // Output ports
+        List<OutputPortDef> outputs = schema.outputPorts();
+        for (int i = 0; i < outputs.size(); i++) {
+            OutputPortDef port = outputs.get(i);
+            float px = nx + nw;
+            float py = portBodyY(i, ny, viewScale);
+            boolean hovered = node.instanceId.equals(hoveredPortNodeId)
+                    && port.name.equals(hoveredPortName)
+                    && hoveredPortIsOutput;
+            int color = hovered ? COLOR_PORT_HIGHLIGHT : portColor(port.type);
+            dl.addCircleFilled(px, py, PORT_R * viewScale, color);
+            dl.addCircle(px, py, PORT_R * viewScale, COLOR_NODE_BORDER);
+            if (showLabels) {
+                float charW = fontSize * 0.6f;
+                float textW = port.name.length() * charW;
+                dl.addText(
+                        px - (PORT_R + PORT_LABEL_PAD) * uiScale - textW,
+                        py - fontSize * 0.5f,
+                        COLOR_TEXT_DIM,
+                        port.name);
+            }
+        }
+    }
+
+    // ── Mouse handling ────────────────────────────────────────────────────────
 
     private void handleMouse(
             List<PipelineGraph.NodeInstance> nodes,
@@ -409,10 +504,8 @@ public class PipelineEditorWindow extends ToggleableWindow {
 
         float mouseX = ImGui.getMousePos().x;
         float mouseY = ImGui.getMousePos().y;
-        float localX = mouseX - originX - panX;
-        float localY = mouseY - originY - panY;
 
-        // Scroll to zoom around mouse cursor
+        // Zoom toward cursor
         float scroll = ImGui.getIO().getMouseWheel();
         if (scroll != 0 && canvasHovered) {
             float mouseLocalX = (mouseX - originX - panX) / viewScale;
@@ -424,7 +517,7 @@ public class PipelineEditorWindow extends ToggleableWindow {
             canvasZoom = newZoom;
         }
 
-        // RMB drag always pans regardless of mode
+        // RMB drag — always pans
         if (canvasActive && ImGui.isMouseDragging(1, 3f * uiScale)) {
             ImVec2 delta = new ImVec2();
             ImGui.getMouseDragDelta(delta, 1);
@@ -433,41 +526,8 @@ public class PipelineEditorWindow extends ToggleableWindow {
             ImGui.resetMouseDragDelta(1);
         }
 
-        // PAN mode: LMB drag also pans
-        if (interactionMode == InteractionMode.PAN && canvasActive && ImGui.isMouseDragging(0, 3f * uiScale)) {
-            ImVec2 delta = new ImVec2();
-            ImGui.getMouseDragDelta(delta, 0);
-            panX += delta.x;
-            panY += delta.y;
-            ImGui.resetMouseDragDelta(0);
-        }
-
-        // LMB release: finish wire drag or commit node drag
-        if (ImGui.isMouseReleased(0)) {
-            if (wireFromId != null) {
-                String hitNode = hitTestNode(localX, localY, nodes, viewScale);
-                if (hitNode != null && !hitNode.equals(wireFromId)) {
-                    NodeSchema fromSchema = NodeRegistry.create(graph.findNode(wireFromId).typeId)
-                            .schema();
-                    NodeSchema toSchema =
-                            NodeRegistry.create(graph.findNode(hitNode).typeId).schema();
-                    NodeSchema.OutputPortDef fromOut = fromSchema.primaryOutput();
-                    NodeSchema.InputPortDef toIn = toSchema.primaryInput();
-                    if (toIn != null && fromOut != null && fromOut.type == toIn.type) {
-                        graph.connect(wireFromId, fromOut.name, hitNode, toIn.name);
-                    }
-                }
-                wireFromId = null;
-            }
-            draggingNodeId = null;
-
-            if (hoveredWireToId != null && hoveredWireToPort != null && !ImGui.isMouseDragging(0, 4f)) {
-                graph.disconnect(hoveredWireToId, hoveredWireToPort);
-            }
-        }
-
-        // SELECT mode: LMB drag moves node
-        if (interactionMode == InteractionMode.SELECT && ImGui.isMouseDragging(0, 2f) && draggingNodeId != null) {
+        // LMB drag — move node
+        if (draggingNodeId != null && ImGui.isMouseDragging(0, 2f)) {
             PipelineGraph.NodeInstance node = graph.findNode(draggingNodeId);
             if (node != null) {
                 ImVec2 delta = new ImVec2();
@@ -477,23 +537,61 @@ public class PipelineEditorWindow extends ToggleableWindow {
             }
         }
 
-        // LMB click
-        if (ImGui.isMouseClicked(0) && canvasHovered) {
-            String hitNode = hitTestNode(localX, localY, nodes, viewScale);
+        // Keep wire end updated this frame
+        if (wireFromNodeId != null) {
+            PipelineGraph.NodeInstance fromNode = graph.findNode(wireFromNodeId);
+            if (fromNode != null) {
+                if (wireFromIsOutput) {
+                    wireFromScreenX = originX + panX + fromNode.posX * viewScale + NODE_W * viewScale;
+                    int idx =
+                            outputPortIndex(NodeRegistry.create(fromNode.typeId).schema(), wireFromPortName);
+                    wireFromScreenY = portBodyY(idx, originY + panY + fromNode.posY * viewScale, viewScale);
+                } else {
+                    wireFromScreenX = originX + panX + fromNode.posX * viewScale;
+                    int idx =
+                            inputPortIndex(NodeRegistry.create(fromNode.typeId).schema(), wireFromPortName);
+                    wireFromScreenY = portBodyY(idx, originY + panY + fromNode.posY * viewScale, viewScale);
+                }
+            }
+        }
 
-            if (interactionMode == InteractionMode.WIRE) {
-                if (wireFromId == null) {
-                    // Start wire from any clicked node's output port
-                    if (hitNode != null) {
-                        NodeSchema schema = NodeRegistry.create(graph.findNode(hitNode).typeId)
-                                .schema();
-                        if (schema.primaryOutput() != null) {
-                            wireFromId = hitNode;
-                            selectedNodeId = hitNode;
-                        }
+        // LMB released
+        if (ImGui.isMouseReleased(0)) {
+            if (wireFromNodeId != null) {
+                // Try to complete wire
+                if (hoveredPortNodeId != null && !hoveredPortNodeId.equals(wireFromNodeId)) {
+                    if (wireFromIsOutput && !hoveredPortIsOutput) {
+                        // Output → Input: normal direction
+                        graph.connect(wireFromNodeId, wireFromPortName, hoveredPortNodeId, hoveredPortName);
+                    } else if (!wireFromIsOutput && hoveredPortIsOutput) {
+                        // Input → Output: reverse direction
+                        graph.connect(hoveredPortNodeId, hoveredPortName, wireFromNodeId, wireFromPortName);
                     }
                 }
-            } else if (interactionMode == InteractionMode.SELECT) {
+                wireFromNodeId = null;
+            }
+            draggingNodeId = null;
+
+            // Clicking a wire (not on a port) while not dragging disconnects it
+            if (hoveredWireToId != null
+                    && hoveredWireToPort != null
+                    && hoveredPortNodeId == null
+                    && !ImGui.isMouseDragging(0, 4f)) {
+                graph.disconnect(hoveredWireToId, hoveredWireToPort);
+            }
+        }
+
+        // LMB pressed
+        if (ImGui.isMouseClicked(0) && canvasHovered) {
+            if (hoveredPortNodeId != null) {
+                // Start wire drag from a port
+                wireFromNodeId = hoveredPortNodeId;
+                wireFromPortName = hoveredPortName;
+                wireFromIsOutput = hoveredPortIsOutput;
+                selectedNodeId = hoveredPortNodeId;
+            } else {
+                // Hit-test nodes for selection / drag start
+                String hitNode = hitTestNode(mouseX - originX - panX, mouseY - originY - panY, nodes, viewScale);
                 if (hitNode != null) {
                     selectedNodeId = hitNode;
                     draggingNodeId = hitNode;
@@ -505,33 +603,23 @@ public class PipelineEditorWindow extends ToggleableWindow {
                 }
             }
         }
-
-        // Recalculate wire-from screen position each frame
-        if (wireFromId != null) {
-            PipelineGraph.NodeInstance fromNode = graph.findNode(wireFromId);
-            if (fromNode != null) {
-                wireFromScreenX = originX + panX + fromNode.posX * viewScale + NODE_W * viewScale;
-                wireFromScreenY = originY + panY + fromNode.posY * viewScale + HEADER_H * viewScale / 2f;
-            }
-        }
     }
 
-    private void handleContextMenus(
+    // ── Context menu ──────────────────────────────────────────────────────────
+
+    private void handleContextMenu(
             List<PipelineGraph.NodeInstance> nodes,
             float originX,
             float originY,
             float viewScale,
-            boolean canvasHovered) {
+            boolean canvasHovered,
+            float uiScale) {
 
         float mouseX = ImGui.getMousePos().x;
         float mouseY = ImGui.getMousePos().y;
-        float localX = mouseX - originX - panX;
-        float localY = mouseY - originY - panY;
-
-        float uiScale = ImGuiManager.INSTANCE.getUIScale();
 
         if (canvasHovered && ImGui.isMouseClicked(1) && !ImGui.isMouseDragging(1, 3f * uiScale)) {
-            String hitNode = hitTestNode(localX, localY, nodes, viewScale);
+            String hitNode = hitTestNode(mouseX - originX - panX, mouseY - originY - panY, nodes, viewScale);
             if (hitNode != null) {
                 selectedNodeId = hitNode;
                 ImGui.openPopup("##nodeCtx");
@@ -562,64 +650,53 @@ public class PipelineEditorWindow extends ToggleableWindow {
         }
     }
 
-    private void drawNode(
-            ImDrawList dl,
-            PipelineGraph.NodeInstance node,
-            float originX,
-            float originY,
-            float uiScale,
-            float viewScale) {
+    // ── Wire drawing ──────────────────────────────────────────────────────────
 
-        float nx = originX + panX + node.posX * viewScale;
-        float ny = originY + panY + node.posY * viewScale;
-        float nw = NODE_W * viewScale;
-        NodeSchema schema = NodeRegistry.create(node.typeId).schema();
-        float paramCount = schema.params().size();
-        float nh = (HEADER_H + paramCount * PARAM_H + 4f) * viewScale;
-
-        dl.addRectFilled(nx + 3, ny + 3, nx + nw + 3, ny + nh + 3, COLOR_SHADOW, 4f * uiScale);
-        dl.addRectFilled(nx, ny, nx + nw, ny + nh, COLOR_NODE_BODY, 4f * uiScale);
-
-        int headerColor = node.instanceId.equals(selectedNodeId) ? COLOR_NODE_SELECTED : COLOR_NODE_HEADER;
-        dl.addRectFilled(nx, ny, nx + nw, ny + HEADER_H * viewScale, headerColor, 4f * uiScale);
-        dl.addRect(nx, ny, nx + nw, ny + nh, COLOR_NODE_BORDER, 4f * uiScale);
-
-        if (canvasZoom >= LOD_TITLE_ZOOM) {
-            dl.addText(nx + 6 * uiScale, ny + 5 * uiScale, COLOR_TEXT, nodeDisplayName(node.typeId));
-        }
-
-        if (canvasZoom >= LOD_PARAMS_ZOOM) {
-            float py = ny + (HEADER_H + 2f) * viewScale;
-            for (ParamDef def : schema.params()) {
-                String valStr = formatParamValue(def, node.params);
-                dl.addText(
-                        nx + 6 * uiScale, py + 1 * uiScale, COLOR_TEXT_DIM, I18n.format(def.labelKey) + ": " + valStr);
-                py += PARAM_H * viewScale;
-            }
-        }
-
-        NodeSchema.InputPortDef inputPort = schema.primaryInput();
-        if (inputPort != null) {
-            dl.addCircleFilled(nx, ny + HEADER_H * viewScale / 2f, PORT_R * viewScale, portColor(inputPort.type));
-            dl.addCircle(nx, ny + HEADER_H * viewScale / 2f, PORT_R * viewScale, COLOR_NODE_BORDER);
-        }
-
-        NodeSchema.OutputPortDef outputPort = schema.primaryOutput();
-        if (outputPort != null) {
-            dl.addCircleFilled(nx + nw, ny + HEADER_H * viewScale / 2f, PORT_R * viewScale, portColor(outputPort.type));
-            dl.addCircle(nx + nw, ny + HEADER_H * viewScale / 2f, PORT_R * viewScale, COLOR_NODE_BORDER);
-        }
+    private static void drawWire(ImDrawList dl, float x0, float y0, float x1, float y1, int color, float uiScale) {
+        float cpOffset = Math.abs(x1 - x0) * 0.5f + Math.abs(y1 - y0) * 0.1f;
+        dl.addBezierCubic(
+                x0, y0, x0 + cpOffset, y0, x1 - cpOffset, y1, x1, y1, color, WIRE_THICKNESS * uiScale, BEZIER_SEGMENTS);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
+
+    /**
+     * Y position (in screen space) of the port circle centre for a port at the given
+     * row index within the node's body area.
+     */
+    private float portBodyY(int portIndex, float nodeScreenTop, float viewScale) {
+        return nodeScreenTop + (HEADER_H + BODY_PAD + (portIndex + 0.5f) * PORT_ROW_H) * viewScale;
+    }
+
+    private static float nodeHeight(NodeSchema schema, float viewScale) {
+        int rows = Math.max(schema.inputPorts().size(), schema.outputPorts().size());
+        // Minimum 1 row so nodes with no ports still have a body
+        rows = Math.max(rows, 1);
+        return (HEADER_H + BODY_PAD * 2f + rows * PORT_ROW_H) * viewScale;
+    }
+
+    private static int inputPortIndex(NodeSchema schema, String portName) {
+        List<InputPortDef> ports = schema.inputPorts();
+        for (int i = 0; i < ports.size(); i++) {
+            if (ports.get(i).name.equals(portName)) return i;
+        }
+        return 0;
+    }
+
+    private static int outputPortIndex(NodeSchema schema, String portName) {
+        List<OutputPortDef> ports = schema.outputPorts();
+        for (int i = 0; i < ports.size(); i++) {
+            if (ports.get(i).name.equals(portName)) return i;
+        }
+        return 0;
+    }
 
     private String hitTestNode(float localX, float localY, List<PipelineGraph.NodeInstance> nodes, float viewScale) {
         for (int i = nodes.size() - 1; i >= 0; i--) {
             PipelineGraph.NodeInstance node = nodes.get(i);
             NodeSchema schema = NodeRegistry.create(node.typeId).schema();
-            float paramCount = schema.params().size();
             float nw = NODE_W * viewScale;
-            float nh = (HEADER_H + paramCount * PARAM_H + 4f) * viewScale;
+            float nh = nodeHeight(schema, viewScale);
             if (localX >= node.posX * viewScale
                     && localX <= node.posX * viewScale + nw
                     && localY >= node.posY * viewScale
@@ -630,36 +707,30 @@ public class PipelineEditorWindow extends ToggleableWindow {
         return null;
     }
 
-    private float nodeOutputPortX(PipelineGraph.NodeInstance node, float originX, float viewScale) {
-        return originX + panX + node.posX * viewScale + NODE_W * viewScale;
-    }
-
-    private float nodeInputPortX(PipelineGraph.NodeInstance node, float originX, float viewScale) {
-        return originX + panX + node.posX * viewScale;
-    }
-
-    private float nodePortY(PipelineGraph.NodeInstance node, float originX, float originY, float viewScale) {
-        return originY + panY + node.posY * viewScale + HEADER_H * viewScale / 2f;
-    }
-
-    /** Rough approximate distance from point to a cubic Bezier (9 sample points). */
+    /** Approximate distance from (px,py) to a Bezier wire (9 sample points). */
     private static float distToWire(float px, float py, float x0, float y0, float x3, float y3) {
         float minDist = Float.MAX_VALUE;
-        float cpOffset = Math.abs(x3 - x0) * 0.5f;
+        float cpOffset = Math.abs(x3 - x0) * 0.5f + Math.abs(y3 - y0) * 0.1f;
         for (int step = 0; step <= 8; step++) {
             float t = step / 8f;
             float mt = 1f - t;
-            float bx = mt * mt * mt * x0
-                    + 3 * mt * mt * t * (x0 + cpOffset)
-                    + 3 * mt * t * t * (x3 - cpOffset)
-                    + t * t * t * x3;
+            float x1 = x0 + cpOffset;
+            float x2 = x3 - cpOffset;
+            float bx = mt * mt * mt * x0 + 3 * mt * mt * t * x1 + 3 * mt * t * t * x2 + t * t * t * x3;
             float by = mt * mt * mt * y0 + 3 * mt * mt * t * y0 + 3 * mt * t * t * y3 + t * t * t * y3;
             float dx = px - bx;
             float dy = py - by;
-            float dist = (float) Math.sqrt(dx * dx + dy * dy);
-            if (dist < minDist) minDist = dist;
+            float dSq = dx * dx + dy * dy;
+            if (dSq < minDist) minDist = dSq;
         }
-        return minDist;
+        return (float) Math.sqrt(minDist);
+    }
+
+    /** Squared distance between two points (avoids sqrt in hot path). */
+    private static float dist2(float ax, float ay, float bx, float by) {
+        float dx = ax - bx;
+        float dy = ay - by;
+        return dx * dx + dy * dy;
     }
 
     private static int portColor(PortType type) {
@@ -687,23 +758,5 @@ public class PipelineEditorWindow extends ToggleableWindow {
             sb.append(' ');
         }
         return sb.toString().trim();
-    }
-
-    private static String formatParamValue(ParamDef def, NodeParams params) {
-        switch (def.type) {
-            case FLOAT:
-                return String.format("%.2f", params.getFloat(def.key, (Float) def.defaultValue));
-            case INT:
-                return String.valueOf(params.getInt(def.key, (Integer) def.defaultValue));
-            case BOOL:
-                return String.valueOf(params.getBool(def.key, (Boolean) def.defaultValue));
-            case LONG:
-                return String.valueOf(params.getLong(def.key, (Long) def.defaultValue));
-            case PALETTE:
-                List<int[]> palette = params.getPalette(def.key, null);
-                return palette != null ? palette.size() + " blocks" : "—";
-            default:
-                return "?";
-        }
     }
 }
