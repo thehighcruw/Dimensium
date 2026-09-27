@@ -26,12 +26,6 @@ dimensium.tool.weld=Weld
 dimensium.tool.melt=Melt
 dimensium.tool.roughen=Roughen
 
-# Tool categories
-dimensium.ui.category.selecting=Selecting
-dimensium.ui.category.creating=Creating
-dimensium.ui.category.painting=Painting
-dimensium.ui.category.manipulating=Manipulating
-
 # Brush shapes
 dimensium.brush_shape.sphere=Sphere
 dimensium.brush_shape.cube=Cube
@@ -47,12 +41,6 @@ dimensium.boolean_op.add=Add
 dimensium.boolean_op.subtract=Subtract
 dimensium.boolean_op.replace=Replace
 dimensium.boolean_op.intersect=Intersect
-
-# Replace modes
-dimensium.replace_mode.any=Any
-dimensium.replace_mode.air_only=Air only
-dimensium.replace_mode.solid_only=Solid only
-dimensium.replace_mode.same_block=Same block
 
 # Extrude modes
 dimensium.extrude_mode.expand=Expand
@@ -75,10 +63,6 @@ dimensium.shape_type.plane=Plane
 dimensium.shape_type.superellipse=Superellipse
 dimensium.shape_type.regular_polygon=Regular Polygon
 dimensium.shape_type.archimedean_spiral=Archimedean Spiral
-
-# Selection modes
-dimensium.selection_mode.box=Box Select
-dimensium.selection_mode.magic=Magic Select
 
 # Elevation modes
 dimensium.elevation_mode.raise=Raise
@@ -168,6 +152,7 @@ dimensium.ui.section.mode=Mode
 dimensium.ui.section.falloff=Falloff
 dimensium.ui.section.apply=Apply
 dimensium.menu.window.history=History
+
 dimensium.menu.window.pipeline_editor=Pipeline Editor
 dimensium.menu.window.pipeline_node_details=Pipeline Node Details
 dimensium.menu.window.pipeline_preview=Pipeline Preview
@@ -182,32 +167,16 @@ dimensium.ui.history.clear=Clear All
 dimensium.ui.history.empty=No history entries.
 dimensium.ui.panel.tools=Tools
 dimensium.ui.panel.tool_options=Tool Options
-dimensium.ui.panel.properties=Properties
 dimensium.ui.panel.viewport=Viewport
-dimensium.ui.section.tool_type=Tool Type
-dimensium.ui.section.tool_options=Tool Options
-dimensium.ui.section.block=Active Block
-dimensium.ui.section.selection=Selection
-dimensium.ui.section.operations=Operations
-dimensium.ui.section.clipboard=Clipboard
-dimensium.ui.section.recent=Recent
-
-# UI labels
-dimensium.ui.label.hollow=Hollow
 
 # UI hints / status
-dimensium.ui.hint.select1=Hold R-click and drag to set box selection
-dimensium.ui.hint.select2=Release to confirm, then Enter to apply
 dimensium.ui.hint.no_selection=No selection
-dimensium.ui.hint.click_to_select=Click to select block
 dimensium.ui.hint.fbo_failed=FBO failed:
 
 # UI operations
-dimensium.ui.op.copy=Copy
 dimensium.ui.op.fill=Fill
 dimensium.ui.op.delete=Delete
 dimensium.ui.op.paste=Paste
-dimensium.ui.op.clear=Clear
 
 # Block picker
 dimensium.ui.block_picker.air=Air
@@ -233,7 +202,6 @@ dimensium.tool.slope=Slope
 dimensium.tool.ruler=Ruler
 dimensium.tool.modelling=Modelling
 dimensium.tool.modify=Modify
-dimensium.ui.category.utility=Utility
 dimensium.ruler.mode.default=Default
 dimensium.ruler.mode.circle=Circle
 
@@ -327,7 +295,6 @@ dimensium.ui.elevation.strength=Strength
 dimensium.ui.elevation.heightmap.browse=Browse...
 
 dimensium.heightmap.browser.title=Heightmap Browser
-dimensium.heightmap.browser.loading=Loading...
 dimensium.heightmap.browser.empty=No heightmaps found. Add PNG files to dimensium/heightmaps in your .minecraft folder.
 dimensium.heightmap.browser.noresults=No matches
 dimensium.heightmap.browser.search.tip=Filter by name
@@ -470,7 +437,6 @@ dimensium.ui.sculpt.mask_y=Mask Y
 dimensium.ui.sculpt.strength=Strength
 
 dimensium.ui.section.distort=Distort
-dimensium.ui.section.elevation=Elevation
 dimensium.ui.section.extrude=Extrude
 dimensium.ui.section.fill=Fill
 dimensium.ui.section.gradient=Gradient
@@ -487,7 +453,6 @@ dimensium.ui.section.roughen=Roughen
 dimensium.ui.section.ruler=Ruler
 dimensium.ui.section.sculpt=Sculpt
 dimensium.ui.section.crack=Crack
-dimensium.ui.section.shatter=Shatter
 dimensium.ui.section.smooth=Smooth
 dimensium.ui.section.weld=Weld
 
@@ -512,16 +477,12 @@ dimensium.ui.shape.torus_ring_z=Torus Ring Z
 dimensium.ui.shape.torus_sep_axes=Torus Sep. Axes
 dimensium.ui.shape.torus_tube=Torus Tube Rad
 dimensium.ui.shape.type=Type
-dimensium.ui.shape.threshold=Threshold
 dimensium.ui.shape.wall_thickness=Wall Thickness
 dimensium.ui.shape.width=Width
 
 dimensium.ui.shatter.axis_mode=Axis Mode
 dimensium.ui.shatter.crack_width=Crack Width
 dimensium.ui.shatter.fill_mode=Fill Mode
-dimensium.ui.shatter.jitter=Jitter
-dimensium.ui.shatter.noise_scale=Noise Scale
-dimensium.ui.shatter.randomize_seed=Randomize Seed
 
 dimensium.ui.smooth.block_ratio=Block Ratio
 dimensium.ui.smooth.fix_edges=Fix Edges
@@ -567,7 +528,6 @@ dimensium.select.convex_hull=Convex Hull
 
 # Select menu modals (shared)
 dimensium.select.apply=Apply
-dimensium.select.cancel=Cancel
 
 # Filter modal
 dimensium.select.filter.title=Filter Selection
@@ -597,11 +557,8 @@ dimensium.settings.apply=Apply
 dimensium.settings.close=Close
 dimensium.settings.category.general=General
 dimensium.settings.general.ui_scale=UI Scale
-dimensium.settings.general.scroll_speed=Scroll Speed
-dimensium.settings.general.world_scroll_speed=World Scroll Speed
 dimensium.settings.general.ui_scroll_speed=UI Scroll Speed
 dimensium.settings.general.rotation_snap=Rotation Snap (degrees, 0 = off)
-dimensium.settings.general.movement_speed=Movement Speed (1.0x = normal walk speed)
 dimensium.settings.general.shape_threshold=Shape Surface Threshold (1.0 = exact, lower crops surface voxels)
 dimensium.settings.general.tool_grid_columns=Tool Grid Columns
 dimensium.settings.category.navigation=Navigation
@@ -616,11 +573,6 @@ dimensium.settings.category.actions=Actions
 # Keybind labels
 dimensium.settings.keybind.press_key=Press a key to bind... (Escape to cancel)
 dimensium.settings.keybind.press_key_short=Press a key...
-dimensium.settings.keybind.tool_select=Select Tool
-dimensium.settings.keybind.tool_draw=Draw Tool
-dimensium.settings.keybind.tool_noise=Noise Tool
-dimensium.settings.keybind.tool_smooth=Smooth Tool
-dimensium.settings.keybind.tool_extrude=Extrude Tool
 dimensium.settings.keybind.undo=Undo
 dimensium.settings.keybind.redo=Redo
 dimensium.settings.keybind.copy=Copy
@@ -638,7 +590,6 @@ dimensium.settings.keybind.gizmo_nudge_right=Nudge Gizmo Right
 dimensium.settings.keybind.gizmo_nudge_left=Nudge Gizmo Left
 dimensium.settings.keybind.gizmo_nudge_up=Nudge Gizmo Up (+Y)
 dimensium.settings.keybind.gizmo_nudge_down=Nudge Gizmo Down (-Y)
-dimensium.settings.keybind.orbit_crosshair=Orbit Crosshair
 
 # Operations modals / windows
 dimensium.op.fill.title=Fill
@@ -652,7 +603,6 @@ dimensium.op.type_replace.title=Type Replace
 dimensium.op.analyze.title=Analyze
 dimensium.op.autoshade.title=Autoshade
 dimensium.op.apply=Apply
-dimensium.op.cancel=Cancel
 dimensium.op.autoshade.do=Autoshade
 dimensium.op.autoshade.add_block=Add Block
 dimensium.op.autoshade.sun=Sun
@@ -720,15 +670,12 @@ dimensium.menu.view=View
 dimensium.menu.operations=Operations
 dimensium.menu.window=Window
 dimensium.menu.window.panels=Panels
-dimensium.menu.window.presets=Presets
 dimensium.menu.window.presets.save_as=Save Current As...
 dimensium.menu.window.presets.manage=Manage Presets...
-dimensium.layout.preset.save_as.title=Save Layout Preset
 dimensium.layout.preset.save_as.label=Name
 dimensium.layout.preset.save_as.confirm=Save
 dimensium.layout.preset.save_as.cancel=Cancel
 dimensium.layout.preset.save_as.error_empty=Name cannot be empty.
-dimensium.layout.preset.save_as.error_exists=A preset with that name already exists.
 dimensium.layout.preset.save_as.error_invalid_chars=Name contains invalid characters: \ / : < > " * ? |
 dimensium.layout.preset.manage.title=Manage Layout Presets
 dimensium.layout.preset.manage.empty=No saved presets.
@@ -748,8 +695,6 @@ dimensium.palette.window.title=Palette
 dimensium.palette.recent=Recent
 dimensium.palette.active_block=Pick Active Block...
 dimensium.palette.add_category=+ Add Category
-dimensium.palette.add_category.confirm=OK
-dimensium.palette.add_category.cancel=Cancel
 dimensium.palette.new_category_name=New Category
 dimensium.palette.rename_category=Rename
 dimensium.palette.delete_category=Delete Category
@@ -761,17 +706,13 @@ dimensium.palette.replace_block=Replace Block...
 dimensium.palette.context.set_active=Set as Active Block
 dimensium.palette.context.add_to=Add to Category
 dimensium.palette.editor.title=Palette Editor
-dimensium.palette.editor.open=Edit Palette...
-dimensium.palette.editor.close=Close
 dimensium.palette.editor.no_category_selected=Select a category on the left.
 dimensium.menu.window.palette=Palette
 dimensium.menu.window.palette_editor=Palette Editor...
-dimensium.menu.window.operations=Operations
 dimensium.menu.window.analyze=Analyze
 dimensium.menu.window.autoshade=Autoshade
 dimensium.menu.window.viewport=Viewport
 dimensium.menu.window.tool_panel=Tools
-dimensium.menu.window.properties=Properties
 dimensium.menu.window.block_info=Block Info
 dimensium.menu.window.selection=Selection
 dimensium.menu.window.clipboard=Clipboard
@@ -791,7 +732,6 @@ dimensium.block_info.no_target=No block targeted
 # Stamp tool
 dimensium.ui.section.stamp.blueprints=Blueprints
 dimensium.ui.section.stamp.options=Options
-dimensium.stamp.unnamed=Unnamed
 dimensium.stamp.remove=X
 dimensium.stamp.entry.chance=Chance
 dimensium.stamp.entry.offset_y=Y Offset
@@ -799,7 +739,6 @@ dimensium.stamp.add_blueprint=Add Blueprint
 dimensium.stamp.add_clipboard=Add Clipboard
 dimensium.stamp.add_pipeline=Add Pipeline Preset
 dimensium.stamp.reseed=New Seed
-dimensium.stamp.pipeline_preset_picker.title=Pick a preset
 dimensium.stamp.base_chance=Base Chance
 dimensium.stamp.min_spacing=Min Spacing (x size)
 dimensium.stamp.random_yaw=Random Yaw
@@ -831,22 +770,8 @@ dimensium.colour_picker.filter.solid=Solid
 dimensium.colour_picker.filter.opaque=Opaque
 dimensium.colour_picker.filter.same_texture=Same Texture
 
-# Gradient Helper
-dimensium.gui.gradient_helper=Gradient Helper
-dimensium.gui.gradient.inputs=Inputs
-dimensium.gui.gradient.outputs=Outputs
-dimensium.gui.gradient.copy_hotbar=Copy to Hotbar
 
 # Pipeline node parameter labels
-dimensium.ui.pipeline.trunk_height=Trunk Height
-dimensium.ui.pipeline.trunk_radius=Trunk Radius
-dimensium.ui.pipeline.trunk_taper=Trunk Taper
-dimensium.ui.pipeline.levels=Branch Levels
-dimensium.ui.pipeline.branch_count=Branches
-dimensium.ui.pipeline.branch_angle_spread=Angle Spread
-dimensium.ui.pipeline.branch_length_ratio=Length Ratio
-dimensium.ui.pipeline.branch_start_height=Start Height
-dimensium.ui.pipeline.branch_radius_factor=Radius Factor
 dimensium.ui.pipeline.vox_palette=Block Palette
 dimensium.ui.pipeline.cluster_palette=Block Palette
 dimensium.ui.pipeline.cluster_radius=Cluster Radius
@@ -854,13 +779,6 @@ dimensium.ui.pipeline.cluster_noisiness=Noisiness
 dimensium.ui.pipeline.depth_palette=Depth Palette
 dimensium.ui.pipeline.depth_gradient_start=Gradient Start
 dimensium.ui.pipeline.depth_gradient_end=Gradient End
-dimensium.ui.pipeline.sr_trunk_height=Trunk Height
-dimensium.ui.pipeline.sr_trunk_radius=Trunk Radius
-dimensium.ui.pipeline.sr_levels=Levels
-dimensium.ui.pipeline.sr_branch_count=Branches
-dimensium.ui.pipeline.sr_branch_angle=Branch Angle
-dimensium.ui.pipeline.sr_length_decay=Length Decay
-dimensium.ui.pipeline.sr_radius_decay=Radius Decay
 dimensium.ui.pipeline.sc_attractor_count=Attractor Count
 dimensium.ui.pipeline.sc_crown_radius_x=Crown Radius X
 dimensium.ui.pipeline.sc_crown_radius_y=Crown Radius Y
@@ -870,7 +788,6 @@ dimensium.ui.pipeline.sc_influence_radius=Influence Radius
 dimensium.ui.pipeline.sc_kill_radius=Kill Radius
 dimensium.ui.pipeline.sc_step_size=Step Size
 dimensium.ui.pipeline.sc_max_iterations=Max Iterations
-dimensium.ui.pipeline.sc_trunk_height=Trunk Height
 dimensium.ui.pipeline.sc_branch_radius=Branch Radius
 dimensium.ui.pipeline.branch_min_depth=Min Depth
 dimensium.ui.pipeline.branch_palette=Block Palette
@@ -966,8 +883,6 @@ dimensium.ui.pipeline.node.noise_palette.desc=Repaints blocks by sampling 3D Sim
 dimensium.ui.pipeline.editor=Pipeline Editor
 dimensium.ui.pipeline.new=New
 dimensium.ui.pipeline.save=Save
-dimensium.ui.pipeline.preview=Preview
-dimensium.ui.pipeline.clear_preview=Clear Preview
 dimensium.ui.pipeline.group.generate=Generate
 dimensium.ui.pipeline.group.branch=Branch
 dimensium.ui.pipeline.group.voxelize=Voxelize
@@ -982,15 +897,8 @@ dimensium.ui.pipeline.subgroup.curve=Curve
 dimensium.ui.pipeline.subgroup.value=Value
 dimensium.ui.pipeline.subgroup.move=Move
 dimensium.ui.pipeline.subgroup.repeat=Repeat
-dimensium.ui.pipeline.add_node=Add Node
-dimensium.ui.pipeline.mode.select=Select
-dimensium.ui.pipeline.mode.pan=Pan
-dimensium.ui.pipeline.mode.wire=Wire
 dimensium.ui.pipeline.delete_node=Delete Node
 dimensium.ui.pipeline.disconnect=Disconnect Input
-dimensium.ui.pipeline.library=Load
-dimensium.ui.pipeline.name=Name
-dimensium.ui.pipeline.no_selection=Select a node to edit its parameters.
 dimensium.ui.pipeline.randomize=Randomize
 dimensium.ui.pipeline.cf_value=Value
 dimensium.ui.pipeline.rf_min=Min
@@ -1009,7 +917,6 @@ dimensium.pipeline.library.no_nodes=No nodes in pipeline.
 dimensium.pipeline.library.select_hint=Select a pipeline to preview.
 dimensium.pipeline.library.node_count=%d nodes
 dimensium.pipeline.library.add=Add to Stamp
-dimensium.pipeline.library.edit=Open in Editor
 dimensium.pipeline.library.new=New Pipeline
 dimensium.pipeline.library.new_name=New Pipeline
 dimensium.pipeline.library.cancel=Cancel
@@ -1055,34 +962,6 @@ dimensium.ui.pipeline.shape_pyr_height=Height
 dimensium.ui.pipeline.shape_pyr_tip_dir=Tip Direction
 dimensium.ui.pipeline.shape_palette=Block Palette
 dimensium.ui.pipeline.node.shape.desc=Fills a mathematical solid at the pipeline origin. Select the shape type to reveal its parameters.
-
-# Cylinder mask node
-dimensium.ui.pipeline.cylinder_radius=Radius
-dimensium.ui.pipeline.cylinder_height=Height
-dimensium.ui.pipeline.cylinder_axis=Axis
-dimensium.ui.pipeline.cylinder_palette=Block Palette
-dimensium.ui.pipeline.node.cylinder_mask.desc=Fills a solid cylinder centred at the pipeline origin. Choose the axis for the cylinder to stand along.
-
-# Cone mask node
-dimensium.ui.pipeline.cone_base_radius=Base Radius
-dimensium.ui.pipeline.cone_height=Height
-dimensium.ui.pipeline.cone_tip_direction=Tip Direction
-dimensium.ui.pipeline.cone_palette=Block Palette
-dimensium.ui.pipeline.node.cone_mask.desc=Fills a solid cone from its base at the pipeline origin. Tip can point up or down.
-
-# Torus mask node
-dimensium.ui.pipeline.torus_major_radius=Major Radius
-dimensium.ui.pipeline.torus_minor_radius=Tube Radius
-dimensium.ui.pipeline.torus_palette=Block Palette
-dimensium.ui.pipeline.node.torus_mask.desc=Fills a torus (ring shape) lying in the XZ plane. Major radius sets the ring size; tube radius sets the tube thickness.
-
-# Pyramid mask node
-dimensium.ui.pipeline.pyramid_base_width=Base Width
-dimensium.ui.pipeline.pyramid_base_depth=Base Depth
-dimensium.ui.pipeline.pyramid_height=Height
-dimensium.ui.pipeline.pyramid_tip_direction=Tip Direction
-dimensium.ui.pipeline.pyramid_palette=Block Palette
-dimensium.ui.pipeline.node.pyramid_mask.desc=Fills a square pyramid from its base at the pipeline origin. Tip can point up or down.
 
 # Translate blocks node
 dimensium.ui.pipeline.translate_offset_x=Offset X
