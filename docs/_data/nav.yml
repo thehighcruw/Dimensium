@@ -6,6 +6,22 @@
   children:
     - title: Navigation
       url: /editor/navigation
+    - title: Freecam
+      url: /editor/freecam
+    - title: Clipboard
+      url: /editor/clipboard
+    - title: Palette
+      url: /editor/palette
+    - title: History
+      url: /editor/history
+    - title: Autoshade
+      url: /editor/autoshade
+    - title: Blueprints
+      url: /editor/blueprints
+    - title: Layout Presets
+      url: /editor/layout-presets
+    - title: Settings
+      url: /editor/settings
 
 - title: Tools
   url: /tools
@@ -41,12 +57,16 @@
           url: /tools/manipulating/extrude
         - title: Melt
           url: /tools/manipulating/melt
+        - title: Modify
+          url: /tools/manipulating/modify
         - title: Move
           url: /tools/manipulating/move
         - title: Roughen
           url: /tools/manipulating/roughen
         - title: Shatter
           url: /tools/manipulating/shatter
+        - title: Slope
+          url: /tools/manipulating/slope
         - title: Smooth
           url: /tools/manipulating/smooth
         - title: Weld
@@ -73,9 +93,91 @@
           url: /tools/selecting/lasso
         - title: Magic
           url: /tools/selecting/magic
+        - title: Operations
+          url: /tools/selecting/operations
+
+    - title: Masks
+      url: /tools/masks
 
     - title: Utility
       url: /tools/utility
       children:
         - title: Ruler
           url: /tools/utility/ruler
+
+- title: Pipeline
+  url: /pipeline
+  children:
+    - title: Nodes
+      url: /pipeline/nodes
+      children:
+        - title: Arc Curve
+          url: /pipeline/nodes/arc-curve
+        - title: Branch Depth Painter
+          url: /pipeline/nodes/branch-depth-painter
+        - title: Circle Curve
+          url: /pipeline/nodes/circle-curve
+        - title: Constant Float
+          url: /pipeline/nodes/constant-float
+        - title: Curve Fill
+          url: /pipeline/nodes/curve-fill
+        - title: Curve Scatter
+          url: /pipeline/nodes/curve-scatter
+        - title: Curved Path
+          url: /pipeline/nodes/curved-path
+        - title: Density Palette
+          url: /pipeline/nodes/density-palette
+        - title: Depth Palette
+          url: /pipeline/nodes/depth-palette
+        - title: Ellipse Curve
+          url: /pipeline/nodes/ellipse-curve
+        - title: Ellipsoid Mask
+          url: /pipeline/nodes/ellipsoid-mask
+        - title: Gaussian Blur
+          url: /pipeline/nodes/gaussian-blur
+        - title: Grid Blocks
+          url: /pipeline/nodes/grid-blocks
+        - title: Helix Curve
+          url: /pipeline/nodes/helix-curve
+        - title: Intersect Blocks
+          url: /pipeline/nodes/intersect-blocks
+        - title: Line Path
+          url: /pipeline/nodes/line-path
+        - title: Map Range
+          url: /pipeline/nodes/map-range
+        - title: Math
+          url: /pipeline/nodes/math
+        - title: Merge Blocks
+          url: /pipeline/nodes/merge-blocks
+        - title: Mirror Blocks
+          url: /pipeline/nodes/mirror-blocks
+        - title: Noise Erode
+          url: /pipeline/nodes/noise-erode
+        - title: Noise Palette
+          url: /pipeline/nodes/noise-palette
+        - title: Random Float
+          url: /pipeline/nodes/random-float
+        - title: Random Walk Path
+          url: /pipeline/nodes/random-walk-path
+        - title: Rotate Blocks
+          url: /pipeline/nodes/rotate-blocks
+        - title: Scatter Blocks
+          url: /pipeline/nodes/scatter-blocks
+        - title: Shape
+          url: /pipeline/nodes/shape
+        - title: Simple Recursive Branches
+          url: /pipeline/nodes/simple-recursive-branches
+        - title: Skeleton Voxelizer
+          url: /pipeline/nodes/skeleton-voxelizer
+        - title: Space Colonization Branches
+          url: /pipeline/nodes/space-colonization-branches
+        - title: Subtract Blocks
+          url: /pipeline/nodes/subtract-blocks
+        - title: Tip Cluster Fill
+          url: /pipeline/nodes/tip-cluster-fill
+        - title: Translate Blocks
+          url: /pipeline/nodes/translate-blocks
+        - title: Weber-Penn Branches
+          url: /pipeline/nodes/weber-penn-branches
+        - title: Whorl Branches
+          url: /pipeline/nodes/whorl-branches
