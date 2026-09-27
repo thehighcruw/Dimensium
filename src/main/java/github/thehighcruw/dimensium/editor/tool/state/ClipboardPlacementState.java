@@ -150,7 +150,7 @@ public class ClipboardPlacementState
                                 Vec3DFloat.from(sx + 0.5f, sy + 0.5f, sz + 0.5f).minus(scaledCenter);
                         world = anchor.plus(R.mul(local).plus(scaledCenter).floor());
                         Block blk = Block.getBlockById(blockData[0]);
-                        int rotatedMeta = blk == null ? blockData[1] : BlockMetaRotator.rotate(blk, blockData[1], R);
+                        int rotatedMeta = BlockMetaRotator.rotateOrKeep(blk, blockData[1], R);
                         placedData = rotatedMeta == blockData[1] ? blockData : new int[] {blockData[0], rotatedMeta};
                     }
                     p.proposed.put(ChangeProposal.packKey(world), placedData);

@@ -17,6 +17,7 @@ import github.thehighcruw.dimensium.editor.tool.gizmo.WithAxisTranslationGizmo;
 import github.thehighcruw.dimensium.editor.tool.gizmo.WithPlaneTranslationGizmo;
 import github.thehighcruw.dimensium.editor.tool.gizmo.WithRotationGizmo;
 import github.thehighcruw.dimensium.editor.tool.gizmo.WithScalingGizmo;
+import github.thehighcruw.dimensium.editor.tool.manipulating.modify.ModifyToolState;
 import github.thehighcruw.dimensium.editor.tool.manipulating.move.MoveToolState;
 import github.thehighcruw.dimensium.editor.tool.selecting.box.BoxSelectToolState;
 import github.thehighcruw.dimensium.editor.tool.state.ClipboardPlacementState;
@@ -199,6 +200,22 @@ public class OverlayRenderer {
                 handleGizmoHoverWithScale(ms, mx, my, eye, gizmoPos, ms.rot);
             }
 
+            ModifyToolState mods = ModifyToolState.INSTANCE;
+            if (mods.mode == ModifyToolState.ModifyMode.REVOLVE
+                    && mods.revolveCenter != null
+                    && !mods.getAxisTranslationGizmo().isDragging()
+                    && !mods.getPlaneTranslationGizmo().isDragging()
+                    && mc.renderViewEntity != null) {
+                Vec3DDouble centerWorld = mods.revolveCenter.toDouble().plus(0.5);
+                mods.getPlaneTranslationGizmo().updateHover(mx, my, mc.renderViewEntity, centerWorld, Vec3DFloat.ZERO);
+                if (mods.getPlaneTranslationGizmo().hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
+                    mods.getAxisTranslationGizmo().hoveredAxis = TranslationGizmo.Axis.NONE;
+                } else {
+                    mods.getAxisTranslationGizmo()
+                            .updateHover(mx, my, mc.renderViewEntity, centerWorld, Vec3DFloat.ZERO);
+                }
+            }
+
             // ── Box-select commit on tool change ─────────────────────────────
             SelectionState bxSel = SelectionState.INSTANCE;
             if (bxSel.boxConfirmed && DimensiumEditorMode.INSTANCE.selectedTool != Tool.SELECT) {
@@ -296,22 +313,6 @@ public class OverlayRenderer {
             return;
         }
         ps.getRotationGizmo().updateHover(mx, my, eye, pos, ps.rot);
-    }
-
-    private static <T extends WithAxisTranslationGizmo & WithPlaneTranslationGizmo & WithRotationGizmo>
-            void handleGizmoHover(T ms, int mx, int my, EntityLivingBase eye, Vec3DDouble pos, Vec3DFloat rot) {
-        ms.getPlaneTranslationGizmo().updateHover(mx, my, eye, pos, rot);
-        if (ms.getPlaneTranslationGizmo().hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
-            ms.getAxisTranslationGizmo().hoveredAxis = TranslationGizmo.Axis.NONE;
-            ms.getRotationGizmo().hoveredAxis = RotationGizmo.Axis.NONE;
-            return;
-        }
-        ms.getAxisTranslationGizmo().updateHover(mx, my, eye, pos, rot);
-        if (ms.getAxisTranslationGizmo().hoveredAxis != TranslationGizmo.Axis.NONE) {
-            ms.getRotationGizmo().hoveredAxis = RotationGizmo.Axis.NONE;
-            return;
-        }
-        ms.getRotationGizmo().updateHover(mx, my, eye, pos, rot);
     }
 
     private static <

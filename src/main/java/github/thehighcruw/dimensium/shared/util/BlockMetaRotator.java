@@ -48,6 +48,14 @@ public class BlockMetaRotator {
         return rotate(block, meta, Mat3DFloat.fromEulerDeg(roundedPitch, roundedYaw, roundedRoll));
     }
 
+    /**
+     * Like {@link #rotate(Block, int, Mat3DFloat)} but returns {@code meta} unchanged when
+     * {@code block} is null (unknown block — no facing to rotate).
+     */
+    public static int rotateOrKeep(Block block, int meta, Mat3DFloat rotation) {
+        return block == null ? meta : rotate(block, meta, rotation);
+    }
+
     /** Like {@link #rotate(Block, int, float, float, float)} but accepts a pre-built matrix (no angle rounding). */
     public static int rotate(Block block, int meta, Mat3DFloat rotation) {
         if (block instanceof BlockStairs) return rotateStairs(meta, rotation);

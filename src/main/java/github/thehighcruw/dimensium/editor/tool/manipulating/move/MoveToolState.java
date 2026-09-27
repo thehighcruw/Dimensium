@@ -212,7 +212,7 @@ public class MoveToolState
                     Vec3DFloat offset =
                             Vec3DFloat.from(sx + 0.5f, sy + 0.5f, sz + 0.5f).minus(scaledCenter);
                     Vec3DInt nCoord = Vec3DInt.floor(gizmoPos.plus(R.mul(bboxFloatCenter.plus(offset))));
-                    int rotatedMeta = BlockMetaRotator.rotate(bd.block(), bd.meta(), R);
+                    int rotatedMeta = BlockMetaRotator.rotateOrKeep(bd.block(), bd.meta(), R);
                     blocks.add(nCoord.toBlockOp(Block.getIdFromBlock(bd.block()), rotatedMeta));
                 }
             }

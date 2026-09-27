@@ -244,10 +244,15 @@ dimensium.action.modelling=Modelling
 
 # Modify tool
 dimensium.modify_mode.translate_copies=Translate Copies
+dimensium.modify_mode.revolve=Revolve
 dimensium.modify.offset_type.relative=Relative
 dimensium.modify.offset_type.absolute=Absolute
+dimensium.modify.axis.x=X
+dimensium.modify.axis.y=Y
+dimensium.modify.axis.z=Z
 dimensium.ui.section.modify=Modify
 dimensium.ui.section.translate_copies=Translate Copies
+dimensium.ui.section.revolve=Revolve
 dimensium.ui.modify.mode=Mode
 dimensium.ui.modify.offset_type=Offset Type
 dimensium.ui.modify.offset_x=Offset X
@@ -255,7 +260,11 @@ dimensium.ui.modify.offset_y=Offset Y
 dimensium.ui.modify.offset_z=Offset Z
 dimensium.ui.modify.count=Count
 dimensium.ui.modify.hint=Right-click or Enter to apply
+dimensium.ui.modify.revolve_axis=Axis
+dimensium.ui.modify.revolve_angle=Angle
+dimensium.ui.modify.revolve_add_translation=Add Translation
 dimensium.action.translate_copies=Translate Copies
+dimensium.action.revolve=Revolve
 
 # Blueprint system
 dimensium.blueprint.save=Save Blueprint

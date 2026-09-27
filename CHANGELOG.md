@@ -5,6 +5,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com). Run `scripts/rele
 
 ## [Unreleased]
 ### Added
+- Modify tool: add Revolve mode that rotates a selection N times around a chosen axis by a configurable angle, with optional helix translation; stairs, slabs, and orientable blocks rotate with each copy
 - Modify tool: add Translate Copies mode that clones a selection N times along a configurable offset (relative or absolute)
 - Path tool: add "Extend to Ground" option that fills each path column downward until a solid surface is reached
 

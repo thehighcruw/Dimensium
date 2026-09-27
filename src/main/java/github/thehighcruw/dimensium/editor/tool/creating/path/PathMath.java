@@ -509,7 +509,7 @@ public class PathMath {
                 Vec3DInt worldPos =
                         anchor.plus(Vec3DInt.floor(rotation.mul(local).plus(blueprintCenter)));
                 Block blk = Block.getBlockById(cb.blockId());
-                int meta = blk == null ? cb.meta() : BlockMetaRotator.rotate(blk, cb.meta(), rotation);
+                int meta = BlockMetaRotator.rotateOrKeep(blk, cb.meta(), rotation);
                 out.put(ChangeProposal.packKey(worldPos), new int[] {cb.blockId(), meta});
             }
         }

@@ -565,6 +565,19 @@ public class SelectionRenderer {
         if (DimensiumEditorMode.INSTANCE.isActive() && DimensiumEditorMode.INSTANCE.selectedTool == Tool.MODIFY) {
             mods.rebuildIfNeeded(sel, mc.theWorld);
             if (mods.preview != null) renderProposalPreview(mc, camPos, mods.preview);
+            if (mods.mode == ModifyToolState.ModifyMode.REVOLVE) {
+                mods.getAxisTranslationGizmo().getProjection().capture(camPos);
+                if (mods.revolveCenter != null) {
+                    GL11.glDisable(GL11.GL_TEXTURE_2D);
+                    renderPointBox(mods.revolveCenter, 1f, 0.85f, 0.2f, camPos);
+                    renderRevolveVisual(mods, camPos);
+                    if (!cameraMoving || gizmoDragging) {
+                        Vec3DDouble centerWorld = mods.revolveCenter.toDouble().plus(0.5);
+                        mods.getPlaneTranslationGizmo().render(centerWorld, camPos, Vec3DFloat.ZERO);
+                        mods.getAxisTranslationGizmo().render(centerWorld, camPos, Vec3DFloat.ZERO);
+                    }
+                }
+            }
         } else {
             mods.cancel();
         }
@@ -1129,6 +1142,89 @@ public class SelectionRenderer {
         t.startDrawingQuads();
         GhostRenderer.addBoxFaces(t, x2, y2, z2);
         t.draw();
+    }
+
+    private static void renderRevolveVisual(ModifyToolState mods, Vec3DDouble camPos) {
+        int segments = 64;
+        double cx = mods.revolveCenter.x() + 0.5 - camPos.x();
+        double cy = mods.revolveCenter.y() + 0.5 - camPos.y();
+        double cz = mods.revolveCenter.z() + 0.5 - camPos.z();
+        double innerRadius = mods.revolveInnerRadius;
+        double outerRadius = mods.revolveOuterRadius;
+        double totalAngleRad = Math.toRadians(mods.revolveAngleDegrees);
+        boolean isFullCircle = mods.revolveAngleDegrees >= 360f;
+
+        GL11.glDisable(GL11.GL_TEXTURE_2D);
+        GL11.glDisable(GL11.GL_DEPTH_TEST);
+        GL11.glLineWidth(1.5f);
+
+        for (int ring = 0; ring < 2; ring++) {
+            double radius = ring == 0 ? innerRadius : outerRadius;
+            if (ring == 0) GL11.glColor4f(1f, 0.2f, 0.2f, 0.8f);
+            else GL11.glColor4f(0.2f, 1f, 0.2f, 0.8f);
+
+            int drawSegments = isFullCircle ? segments : (int) Math.max(3, segments * mods.revolveAngleDegrees / 360f);
+            GL11.glBegin(isFullCircle ? GL11.GL_LINE_LOOP : GL11.GL_LINE_STRIP);
+            for (int segment = 0; segment <= drawSegments; segment++) {
+                double angle = 0.0 + totalAngleRad * segment / drawSegments;
+                double cos = Math.cos(angle);
+                double sin = Math.sin(angle);
+                switch (mods.revolveAxis) {
+                    case X:
+                        GL11.glVertex3d(cx, cy + radius * cos, cz + radius * sin);
+                        break;
+                    case Z:
+                        GL11.glVertex3d(cx + radius * cos, cy + radius * sin, cz);
+                        break;
+                    default: // Y
+                        GL11.glVertex3d(cx + radius * cos, cy, cz + radius * sin);
+                        break;
+                }
+            }
+            GL11.glEnd();
+        }
+
+        // Radial lines at start (angle=0) and end (angle=totalAngle)
+        GL11.glColor4f(1f, 1f, 1f, 0.6f);
+        GL11.glBegin(GL11.GL_LINES);
+        for (int lineIndex = 0; lineIndex < 2; lineIndex++) {
+            double angle = lineIndex == 0 ? 0.0 : 0.0 + totalAngleRad;
+            double cos = Math.cos(angle);
+            double sin = Math.sin(angle);
+            double innerX, innerY, innerZ, outerX, outerY, outerZ;
+            switch (mods.revolveAxis) {
+                case X:
+                    innerX = cx;
+                    innerY = cy + innerRadius * cos;
+                    innerZ = cz + innerRadius * sin;
+                    outerX = cx;
+                    outerY = cy + outerRadius * cos;
+                    outerZ = cz + outerRadius * sin;
+                    break;
+                case Z:
+                    innerX = cx + innerRadius * cos;
+                    innerY = cy + innerRadius * sin;
+                    innerZ = cz;
+                    outerX = cx + outerRadius * cos;
+                    outerY = cy + outerRadius * sin;
+                    outerZ = cz;
+                    break;
+                default: // Y
+                    innerX = cx + innerRadius * cos;
+                    innerY = cy;
+                    innerZ = cz + innerRadius * sin;
+                    outerX = cx + outerRadius * cos;
+                    outerY = cy;
+                    outerZ = cz + outerRadius * sin;
+                    break;
+            }
+            GL11.glVertex3d(innerX, innerY, innerZ);
+            GL11.glVertex3d(outerX, outerY, outerZ);
+        }
+        GL11.glEnd();
+
+        GL11.glEnable(GL11.GL_DEPTH_TEST);
+        GL11.glLineWidth(1f);
     }
 
     /** Draws the crease-edge wireframe for a proposal, rebuilding the cache if needed. */

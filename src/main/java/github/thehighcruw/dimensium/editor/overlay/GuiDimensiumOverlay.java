@@ -220,6 +220,11 @@ public final class GuiDimensiumOverlay {
                 pts.getAxisTranslationGizmo().endDrag();
             if (pts.getPlaneTranslationGizmo().isDragging())
                 pts.getPlaneTranslationGizmo().endDrag();
+            ModifyToolState mods = ModifyToolState.INSTANCE;
+            if (mods.getAxisTranslationGizmo().isDragging())
+                mods.getAxisTranslationGizmo().endDrag();
+            if (mods.getPlaneTranslationGizmo().isDragging())
+                mods.getPlaneTranslationGizmo().endDrag();
             ModellingToolState mtsDrag = ModellingToolState.INSTANCE;
             if (mtsDrag.getAxisTranslationGizmo().isDragging())
                 mtsDrag.getAxisTranslationGizmo().endDrag();
@@ -457,7 +462,10 @@ public final class GuiDimensiumOverlay {
     public static void confirmModify() {
         ModifyToolState mods = ModifyToolState.INSTANCE;
         if (mods.ghostBlocks == null || mods.ghostBlocks.isEmpty()) return;
-        BlockSender.sendChunked(mods.ghostBlocks, I18n.format("dimensium.action.translate_copies"));
+        String actionKey = mods.mode == ModifyToolState.ModifyMode.REVOLVE
+                ? "dimensium.action.revolve"
+                : "dimensium.action.translate_copies";
+        BlockSender.sendChunked(mods.ghostBlocks, I18n.format(actionKey));
         mods.clearAfterConfirm();
     }
 
@@ -497,6 +505,8 @@ public final class GuiDimensiumOverlay {
                         || SelectionRenderer.boxCenterPlaneGizmo.isDragging())) return true;
         if (PathToolState.INSTANCE.getAxisTranslationGizmo().isDragging()
                 || PathToolState.INSTANCE.getPlaneTranslationGizmo().isDragging()) return true;
+        if (ModifyToolState.INSTANCE.getAxisTranslationGizmo().isDragging()
+                || ModifyToolState.INSTANCE.getPlaneTranslationGizmo().isDragging()) return true;
         return ModellingToolState.INSTANCE.getAxisTranslationGizmo().isDragging()
                 || ModellingToolState.INSTANCE.getPlaneTranslationGizmo().isDragging();
     }
