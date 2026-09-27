@@ -3,28 +3,29 @@ layout: docs
 title: Navigation
 ---
 
-The editor uses a freecam viewport that detaches from the player body. Two camera modes are available: **Editor mode** (default) and **Walk mode**.
+The editor uses a freecam viewport that detaches from the player body.
 
 ## Opening the Editor
 
 Press **RShift** (or your configured toggle key) while holding the Builder Tool in creative mode. The editor overlay opens and the camera detaches from the player. Press the same key again to close.
 
-## Editor Mode
+## Camera Controls
 
-Default mode. The cursor is a software pointer — the mouse does not rotate the camera unless a modifier is held.
+The cursor is a software pointer — the mouse does not rotate the camera unless a drag or modifier is used.
+
+The **camera modifier key** is platform-specific: **Ctrl** on Windows and Linux, **Option** on macOS.
 
 | Input | Action |
 |---|---|
+| LMB drag | Rotate camera (yaw / pitch) |
+| CameraMod + LMB drag | Orbit around the block under the cursor |
+| CameraMod + RMB drag | Pan camera |
 | Scroll wheel | Zoom (move along look direction) |
 | Shift + Scroll | Change brush size |
-| Alt + LMB drag | Rotate camera |
-| Alt + RMB drag | Pan camera |
-| Alt + MMB drag | Orbit around the block under the cursor |
-| Ctrl + LMB drag | Orbit around the block under the cursor |
 
-## Walk Mode
+## Freecam Movement
 
-Press **C** to toggle walk mode. The mouse always rotates the camera, like standard first-person Minecraft.
+WASD movement is always available while the editor is open.
 
 | Input | Action |
 |---|---|
@@ -34,8 +35,6 @@ Press **C** to toggle walk mode. The mouse always rotates the camera, like stand
 | Ctrl (hold) | Sprint (5× speed) |
 | Shift (hold) | Sneak (0.2× speed) |
 | Scroll wheel | Increase / decrease movement speed |
-
-Press **C** again to return to Editor mode.
 
 ## Editor Shortcuts
 
@@ -50,6 +49,11 @@ Press **C** again to return to Editor mode.
 | Enter / Numpad Enter | Confirm placement (shape, clipboard, path, modelling) |
 | Escape | Cancel active drag or placement; deselect tool |
 | RShift | Toggle editor on / off |
+| Ctrl+F | Fill selection with active block |
+| Ctrl+P | Save blueprint |
+| Ctrl+B | Open blueprint browser |
+| Ctrl+. | Open settings |
+| Arrow keys / PgUp / PgDn | Nudge active gizmo 1 block |
 
 ## Tool Shortcuts
 
@@ -65,6 +69,6 @@ Tool shortcuts are remappable in **Settings** (opened via the settings keybind o
 
 ## Tips
 
-- Orbit (Alt+MMB or Ctrl+LMB) always pivots around the first block hit by a ray from the camera — useful for inspecting a specific structure.
+- Orbit (CameraMod + LMB) always pivots around the first block hit by a ray from the camera — useful for inspecting a specific structure.
 - In Editor mode, brush size can be changed without switching tools: hold Shift and scroll.
-- Walk mode speed persists between sessions; scroll to adjust it before entering walk mode for precise navigation.
+- Freecam movement speed persists between sessions; scroll to adjust it for precise navigation.

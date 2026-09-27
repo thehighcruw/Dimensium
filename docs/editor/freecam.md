@@ -17,14 +17,15 @@ Closing the editor returns the render view to your player. The camera's last pos
 
 See [Navigation](/editor/navigation) for the full control reference. Key controls:
 
+The **camera modifier key** is platform-specific: **Ctrl** on Windows and Linux, **Option** on macOS.
+
 | Input | Action |
 |---|---|
-| Scroll | Move forward/backward along look direction |
-| Alt + LMB drag | Rotate camera |
-| Alt + RMB drag | Pan camera |
-| Alt + MMB drag | Orbit around the block under the cursor |
-| Ctrl + LMB drag | Orbit around the block under the cursor |
-| **C** | Toggle walk mode (WASD movement) |
+| LMB drag | Rotate camera (yaw / pitch) |
+| CameraMod + LMB drag | Orbit around the block under the cursor |
+| CameraMod + RMB drag | Pan camera |
+| Scroll | Zoom (move along look direction) |
+| W / A / S / D / Space / Shift | Move (always active while editor is open) |
 
 ## Interaction Limits
 
@@ -39,8 +40,8 @@ The freecam raycasts up to **512 blocks** from the camera position. Tools and se
 
 ## Tips
 
-- Use orbit (Alt+MMB) to inspect a specific structure face without losing your viewing angle.
-- Walk mode is useful for initial positioning; switch back to editor mode for precise tool use.
+- Use orbit (CameraMod + LMB) to inspect a specific structure face without losing your viewing angle.
+- WASD is useful for initial positioning; use mouse controls for precise camera adjustment.
 
 ## See also
 
