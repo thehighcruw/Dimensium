@@ -27,7 +27,6 @@ public class DensityPaletteNode implements PipelineNode {
     private static final NodeSchema SCHEMA = new NodeSchema()
             .paletteParam("dp2.palette", DEFAULT_PALETTE, "dimensium.ui.pipeline.density_palette")
             .intParam("dp2.sampleRadius", 2, 1, 4, "dimensium.ui.pipeline.density_sample_radius")
-            .boolParam("dp2.onlyLeaves", true, "dimensium.ui.pipeline.density_only_leaves")
             .description("dimensium.ui.pipeline.node.density_palette.desc")
             .inputPort("blocks", PortType.BLOCK_MAP)
             .outputPort("blocks", PortType.BLOCK_MAP);
@@ -44,14 +43,10 @@ public class DensityPaletteNode implements PipelineNode {
         }
 
         int sampleRadius = params.getInt("dp2.sampleRadius", 2);
-        boolean onlyLeaves = params.getBool("dp2.onlyLeaves", true);
 
         int maxNeighbors = (int) Math.pow(2 * sampleRadius + 1, 3) - 1;
 
         for (Map.Entry<Long, int[]> entry : new ArrayList<>(blockMap.entries().entrySet())) {
-            int blockId = entry.getValue()[0];
-            if (onlyLeaves && !isLeaf(blockId)) continue;
-
             Vec3DInt pos = BlockMap.unpackKey(entry.getKey());
             int filled = countFilledNeighbors(blockMap, pos, sampleRadius);
             float density = maxNeighbors > 0 ? (float) filled / maxNeighbors : 0f;
@@ -75,10 +70,6 @@ public class DensityPaletteNode implements PipelineNode {
             }
         }
         return count;
-    }
-
-    private static boolean isLeaf(int blockId) {
-        return blockId == 18 || blockId == 161;
     }
 
     @Override

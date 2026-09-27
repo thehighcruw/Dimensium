@@ -32,7 +32,6 @@ public class GaussianBlurNode implements PipelineNode {
     private static final NodeSchema SCHEMA = new NodeSchema()
             .intParam("blur.passes", 1, 1, 3, "dimensium.ui.pipeline.blur_passes")
             .intParam("blur.threshold", 3, 1, 6, "dimensium.ui.pipeline.blur_threshold")
-            .boolParam("blur.onlyLeaves", true, "dimensium.ui.pipeline.blur_only_leaves")
             .description("dimensium.ui.pipeline.node.gaussian_blur.desc")
             .inputPort("blocks", PortType.BLOCK_MAP)
             .outputPort("blocks", PortType.BLOCK_MAP);
@@ -44,15 +43,14 @@ public class GaussianBlurNode implements PipelineNode {
 
         int passes = params.getInt("blur.passes", 1);
         int threshold = params.getInt("blur.threshold", 3);
-        boolean onlyLeaves = params.getBool("blur.onlyLeaves", true);
 
         for (int pass = 0; pass < passes; pass++) {
-            blockMap = blurPass(blockMap, threshold, onlyLeaves);
+            blockMap = blurPass(blockMap, threshold);
         }
         outputs.set("blocks", blockMap);
     }
 
-    private static BlockMap blurPass(BlockMap source, int threshold, boolean onlyLeaves) {
+    private static BlockMap blurPass(BlockMap source, int threshold) {
         Map<Long, int[]> existing = source.entries();
         Map<Long, int[]> additions = new HashMap<>();
 
@@ -70,7 +68,6 @@ public class GaussianBlurNode implements PipelineNode {
                     Vec3DInt neighbor = candidate.plus(neighborOffset);
                     int[] entry = existing.get(BlockMap.packKey(neighbor));
                     if (entry == null) continue;
-                    if (onlyLeaves && !isLeaf(entry[0])) continue;
                     filled++;
                     int packedId = entry[0] * 16 + entry[1];
                     counts.merge(packedId, 1, Integer::sum);
@@ -91,10 +88,6 @@ public class GaussianBlurNode implements PipelineNode {
             source.put(pos, Block.getBlockById(entry.getValue()[0]), entry.getValue()[1]);
         }
         return source;
-    }
-
-    private static boolean isLeaf(int blockId) {
-        return blockId == 18 || blockId == 161;
     }
 
     @Override

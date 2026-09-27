@@ -878,14 +878,12 @@ dimensium.ui.pipeline.erode_strength=Erode Strength
 dimensium.ui.pipeline.erode_noise_scale=Noise Scale
 dimensium.ui.pipeline.blur_passes=Blur Passes
 dimensium.ui.pipeline.blur_threshold=Fill Threshold
-dimensium.ui.pipeline.blur_only_leaves=Only Leaves
 dimensium.ui.pipeline.mask_radius_x=Mask Radius X
 dimensium.ui.pipeline.mask_radius_y=Mask Radius Y
 dimensium.ui.pipeline.mask_radius_z=Mask Radius Z
 dimensium.ui.pipeline.mask_center_offset_y=Mask Center Y
 dimensium.ui.pipeline.density_palette=Density Palette
 dimensium.ui.pipeline.density_sample_radius=Sample Radius
-dimensium.ui.pipeline.density_only_leaves=Only Leaves
 dimensium.ui.pipeline.noise_palette=Noise Palette
 dimensium.ui.pipeline.noise_scale=Noise Scale
 
