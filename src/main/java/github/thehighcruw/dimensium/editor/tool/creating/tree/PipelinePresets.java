@@ -10,6 +10,7 @@ import github.thehighcruw.dimensium.editor.pipeline.PipelineGraph;
 import github.thehighcruw.dimensium.editor.pipeline.PipelineLibrary;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.BoxMaskNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.BranchDepthPainterNode;
+import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.ConstantFloatNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.CurvedPathNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.DensityPaletteNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.DepthPaletteNode;
@@ -23,6 +24,7 @@ import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.MergeBlocksN
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.NoiseErodeNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.NoiseFieldNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.NoisePaletteNode;
+import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.RandomFloatNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.RandomWalkPathNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.SimpleRecursiveBranchesNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.SkeletonVoxelizerNode;
@@ -59,6 +61,8 @@ public final class PipelinePresets {
         NodeRegistry.register(SubtractBlocksNode.ID, NodeGroup.BOOLEAN, SubtractBlocksNode::new);
         NodeRegistry.register(IntersectBlocksNode.ID, NodeGroup.BOOLEAN, IntersectBlocksNode::new);
         // Math
+        NodeRegistry.register(ConstantFloatNode.ID, NodeGroup.MATH, ConstantFloatNode::new);
+        NodeRegistry.register(RandomFloatNode.ID, NodeGroup.MATH, RandomFloatNode::new);
         NodeRegistry.register(NoiseFieldNode.ID, NodeGroup.MATH, NoiseFieldNode::new);
         NodeRegistry.register(MapRangeNode.ID, NodeGroup.MATH, MapRangeNode::new);
         NodeRegistry.register(MathNode.ID, NodeGroup.MATH, MathNode::new);

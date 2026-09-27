@@ -13,6 +13,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com). Run `scripts/rele
 - Path tool: "Use Stairs and Slabs" option smooths sloped paths with correctly oriented stair blocks when using a supported block material
 - Pipelines: procedural pipeline-based voxel tree generator with Weber-Penn skeleton and leaf cluster nodes
 - Pipelines: DepthPaletteNode for Y-depth driven block palette variation
+- Pipelines: ConstantFloatNode and RandomFloatNode as float value sources
+- Pipelines: parameter port exposure — toggle a FLOAT input port per parameter to drive values from the graph
+- Stamp tool: virtual deterministic 2D grid seed — placement, preset selection, and pipeline seed all derived from tool seed mixed with block x/z, so restamping the same area with the same seed always yields identical results
 
 ### Changed
 - Shape tool: cuboid defaults to cube with optional separate axes toggle; uniform shapes (sphere, octahedron, supersphere, dodecahedron, icosahedron) show single size slider by default; XZ-symmetric shapes (cylinder, cone, pyramid) link depth to width by default; 2D radial shapes show single radius slider by default

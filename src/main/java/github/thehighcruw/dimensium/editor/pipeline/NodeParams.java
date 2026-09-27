@@ -4,13 +4,17 @@
  */
 package github.thehighcruw.dimensium.editor.pipeline;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class NodeParams {
 
     private final Map<String, Object> values = new HashMap<>();
+    private final Set<String> exposedPorts = new LinkedHashSet<>();
 
     public void set(String key, Object value) {
         values.put(key, value);
@@ -42,9 +46,26 @@ public class NodeParams {
         return value instanceof List ? (List<int[]>) value : defaultValue;
     }
 
+    public void setPortExposed(String key, boolean exposed) {
+        if (exposed) {
+            exposedPorts.add(key);
+        } else {
+            exposedPorts.remove(key);
+        }
+    }
+
+    public boolean isPortExposed(String key) {
+        return exposedPorts.contains(key);
+    }
+
+    public Set<String> exposedParamPorts() {
+        return Collections.unmodifiableSet(exposedPorts);
+    }
+
     public NodeParams copy() {
         NodeParams copy = new NodeParams();
         copy.values.putAll(values);
+        copy.exposedPorts.addAll(exposedPorts);
         return copy;
     }
 

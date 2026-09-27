@@ -963,6 +963,7 @@ dimensium.ui.pipeline.whorl_tip_length=Tip Length
 dimensium.ui.pipeline.whorl_branch_radius=Branch Radius
 dimensium.ui.pipeline.whorl_spacing=Spacing
 dimensium.ui.pipeline.whorl_skip_base=Skip Base
+dimensium.ui.pipeline.whorl_skip_tip=Skip Tip
 dimensium.ui.pipeline.whorl_spiral_offset=Spiral Offset
 dimensium.ui.pipeline.node.simple_recursive_branches.desc=Adds recursively subdivided branches to every leaf of a skeleton.
 dimensium.ui.pipeline.node.space_colonization_branches.desc=Grows branches toward a cloud of attractor points above the skeleton tips.
@@ -1013,6 +1014,12 @@ dimensium.ui.pipeline.library=Load
 dimensium.ui.pipeline.name=Name
 dimensium.ui.pipeline.no_selection=Select a node to edit its parameters.
 dimensium.ui.pipeline.randomize=Randomize
+dimensium.ui.pipeline.cf_value=Value
+dimensium.ui.pipeline.rf_min=Min
+dimensium.ui.pipeline.rf_max=Max
+dimensium.ui.pipeline.node.constant_float.desc=Outputs a fixed float value.
+dimensium.ui.pipeline.node.random_float.desc=Outputs a seeded random float between min and max. Same pipeline seed always produces the same value.
+dimensium.ui.pipeline.param_port_toggle=Drive with port (connect a Float node)
 dimensium.ui.pipeline.palette.add=+ Add Block
 
 # Pipeline library popup

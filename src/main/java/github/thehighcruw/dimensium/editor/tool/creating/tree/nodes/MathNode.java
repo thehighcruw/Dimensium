@@ -27,8 +27,18 @@ public class MathNode implements PipelineNode {
     public static final int OP_MAX = 6;
 
     private static final NodeSchema SCHEMA = new NodeSchema()
-            .intParam("math.op", OP_MULTIPLY, OP_ADD, OP_MAX, "dimensium.ui.pipeline.math_op")
-            .floatParam("math.valueB", 1.0f, -100.0f, 100.0f, "dimensium.ui.pipeline.math_value_b")
+            .enumParam(
+                    "math.op",
+                    OP_MULTIPLY,
+                    "dimensium.ui.pipeline.math_op",
+                    "Add",
+                    "Subtract",
+                    "Multiply",
+                    "Divide",
+                    "Power",
+                    "Min",
+                    "Max")
+            .floatParamNoPort("math.valueB", 1.0f, -100.0f, 100.0f, "dimensium.ui.pipeline.math_value_b")
             .description("dimensium.ui.pipeline.node.math.desc")
             .inputPort("valueA", PortType.FLOAT)
             .optionalInputPort("valueB", PortType.FLOAT)

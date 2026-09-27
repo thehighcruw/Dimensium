@@ -95,14 +95,32 @@ public final class PipelineExecutor {
                 inputs.set("origin", context.origin);
             }
 
+            NodeParams resolvedParams = resolveParamPortOverrides(graph, nodeOutputs, inst);
             PortValues outputs = new PortValues();
-            node.apply(inputs, outputs, inst.params, context);
+            node.apply(inputs, outputs, resolvedParams, context);
             nodeOutputs.put(inst.instanceId, outputs);
 
             if (inst.instanceId.equals(stopNodeId)) break;
         }
 
         return nodeOutputs;
+    }
+
+    private static NodeParams resolveParamPortOverrides(
+            PipelineGraph graph, Map<String, PortValues> nodeOutputs, PipelineGraph.NodeInstance inst) {
+        if (inst.params.exposedParamPorts().isEmpty()) return inst.params;
+        NodeParams copy = inst.params.copy();
+        for (String key : inst.params.exposedParamPorts()) {
+            PipelineGraph.Edge edge = graph.getUpstreamEdge(inst.instanceId, key);
+            if (edge == null) continue;
+            PortValues upstreamOutputs = nodeOutputs.get(edge.fromId);
+            if (upstreamOutputs == null) continue;
+            Object value = upstreamOutputs.getRaw(edge.fromPort);
+            if (value instanceof Number) {
+                copy.set(key, ((Number) value).floatValue());
+            }
+        }
+        return copy;
     }
 
     private static List<PipelineGraph.NodeInstance> topologicalSort(PipelineGraph graph) {

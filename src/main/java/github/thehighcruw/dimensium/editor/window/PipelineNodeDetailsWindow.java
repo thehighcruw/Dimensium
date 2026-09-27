@@ -14,6 +14,7 @@ import github.thehighcruw.dimensium.editor.pipeline.PipelineGraph;
 import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
 import github.thehighcruw.dimensium.editor.window.imgui.ToggleableWindow;
 import imgui.ImGui;
+import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
@@ -70,6 +71,25 @@ public class PipelineNodeDetailsWindow extends ToggleableWindow {
         ImGui.end();
     }
 
+    private void renderPortToggle(PipelineGraph.NodeInstance node, String paramKey, boolean currentlyExposed) {
+        if (currentlyExposed) {
+            ImGui.pushStyleColor(ImGuiCol.Button, 0xFF_44_99_44);
+            ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0xFF_55_BB_55);
+        }
+        if (ImGui.smallButton("~##pt_" + paramKey)) {
+            boolean newState = !currentlyExposed;
+            node.params.setPortExposed(paramKey, newState);
+            if (!newState) graph.disconnect(node.instanceId, paramKey);
+            graph.markDirty();
+        }
+        if (currentlyExposed) {
+            ImGui.popStyleColor(2);
+        }
+        if (ImGui.isItemHovered()) {
+            ImGui.setTooltip(I18n.format("dimensium.ui.pipeline.param_port_toggle"));
+        }
+    }
+
     private void renderContent(PipelineGraph.NodeInstance node) {
         NodeSchema schema = NodeRegistry.create(node.typeId).schema();
         float panelWidth = ImGui.getContentRegionAvailX();
@@ -83,24 +103,65 @@ public class PipelineNodeDetailsWindow extends ToggleableWindow {
             ImGui.separator();
         }
 
+        float uiScale = ImGuiManager.INSTANCE.getUIScale();
+        float portToggleWidth = 22f * uiScale;
+
         for (ParamDef def : schema.params()) {
             String label = I18n.format(def.labelKey);
             switch (def.type) {
                 case FLOAT: {
+                    boolean portExposed = node.params.isPortExposed(def.key);
+                    ImGui.textDisabled(label);
+                    if (def.portExposable) {
+                        renderPortToggle(node, def.key, portExposed);
+                        ImGui.sameLine();
+                        float sliderWidth =
+                                panelWidth - portToggleWidth - ImGui.getStyle().getItemSpacingX() * 2f;
+                        ImGui.setNextItemWidth(sliderWidth);
+                    } else {
+                        ImGui.setNextItemWidth(panelWidth);
+                    }
                     float current = node.params.getFloat(def.key, (Float) def.defaultValue);
                     float[] buf = {current};
-                    if (ImGui.sliderFloat(label + "##" + def.key, buf, def.min, def.max)) {
+                    if (ImGui.sliderFloat("##" + def.key, buf, def.min, def.max)) {
                         node.params.set(def.key, buf[0]);
                         graph.markDirty();
                     }
                     break;
                 }
                 case INT: {
+                    boolean portExposed = node.params.isPortExposed(def.key);
+                    ImGui.textDisabled(label);
+                    if (def.portExposable) {
+                        renderPortToggle(node, def.key, portExposed);
+                        ImGui.sameLine();
+                        float sliderWidth =
+                                panelWidth - portToggleWidth - ImGui.getStyle().getItemSpacingX() * 2f;
+                        ImGui.setNextItemWidth(sliderWidth);
+                    } else {
+                        ImGui.setNextItemWidth(panelWidth);
+                    }
                     int current = node.params.getInt(def.key, (Integer) def.defaultValue);
                     int[] buf = {current};
-                    if (ImGui.sliderInt(label + "##" + def.key, buf, (int) def.min, (int) def.max)) {
+                    if (ImGui.sliderInt("##" + def.key, buf, (int) def.min, (int) def.max)) {
                         node.params.set(def.key, buf[0]);
                         graph.markDirty();
+                    }
+                    break;
+                }
+                case ENUM: {
+                    ImGui.textDisabled(label);
+                    ImGui.setNextItemWidth(panelWidth);
+                    int current = node.params.getInt(def.key, (Integer) def.defaultValue);
+                    if (ImGui.beginCombo("##" + def.key, def.enumOptions[current])) {
+                        for (int i = 0; i < def.enumOptions.length; i++) {
+                            boolean selected = i == current;
+                            if (ImGui.selectable(def.enumOptions[i] + "##" + def.key + i, selected)) {
+                                node.params.set(def.key, i);
+                                graph.markDirty();
+                            }
+                        }
+                        ImGui.endCombo();
                     }
                     break;
                 }

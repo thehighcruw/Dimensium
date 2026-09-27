@@ -7,6 +7,7 @@ package github.thehighcruw.dimensium.editor.window;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.DimensiumConfig;
+import github.thehighcruw.dimensium.editor.pipeline.NodeParams;
 import github.thehighcruw.dimensium.editor.pipeline.NodeRegistry;
 import github.thehighcruw.dimensium.editor.pipeline.NodeRegistry.NodeGroup;
 import github.thehighcruw.dimensium.editor.pipeline.NodeSchema;
@@ -306,12 +307,13 @@ public class PipelineEditorWindow extends ToggleableWindow {
             NodeSchema fromSchema = NodeRegistry.create(fromNode.typeId).schema();
             NodeSchema toSchema = NodeRegistry.create(toNode.typeId).schema();
             int fromIdx = outputPortIndex(fromSchema, edge.fromPort);
-            int toIdx = inputPortIndex(toSchema, edge.toPort);
+            int toIdx = inputPortIndex(toSchema, toNode.params, edge.toPort);
 
             float fromNodeY = originY + panY + fromNode.posY * viewScale;
             float toNodeY = originY + panY + toNode.posY * viewScale;
             float fromX = originX + panX + fromNode.posX * viewScale + NODE_W * viewScale;
-            float fromY = portBodyY(fromSchema.inputPorts().size() + fromIdx, fromNodeY, viewScale);
+            float fromY = portBodyY(
+                    NodeSchema.effectiveInputPorts(fromSchema, fromNode.params).size() + fromIdx, fromNodeY, viewScale);
             float toX = originX + panX + toNode.posX * viewScale;
             float toY = portBodyY(toIdx, toNodeY, viewScale);
 
@@ -340,7 +342,7 @@ public class PipelineEditorWindow extends ToggleableWindow {
             float nx = originX + panX + node.posX * viewScale;
             float ny = originY + panY + node.posY * viewScale;
             NodeSchema schema = NodeRegistry.create(node.typeId).schema();
-            float nh = nodeHeight(schema, viewScale);
+            float nh = nodeHeight(schema, node.params, viewScale);
             if (nx + NODE_W * viewScale < originX
                     || nx > originX + canvasW
                     || ny + nh < originY
@@ -380,7 +382,7 @@ public class PipelineEditorWindow extends ToggleableWindow {
             float ny = originY + panY + node.posY * viewScale;
             float nw = NODE_W * viewScale;
 
-            List<InputPortDef> inputs = schema.inputPorts();
+            List<InputPortDef> inputs = NodeSchema.effectiveInputPorts(schema, node.params);
             for (int i = 0; i < inputs.size(); i++) {
                 float py = portBodyY(i, ny, viewScale);
                 if (dist2(mouseX, mouseY, nx, py) <= hitR * hitR) {
@@ -419,7 +421,7 @@ public class PipelineEditorWindow extends ToggleableWindow {
         float ny = originY + panY + node.posY * viewScale;
         float nw = NODE_W * viewScale;
         NodeSchema schema = NodeRegistry.create(node.typeId).schema();
-        float nh = nodeHeight(schema, viewScale);
+        float nh = nodeHeight(schema, node.params, viewScale);
 
         // Shadow
         dl.addRectFilled(nx + 3, ny + 3, nx + nw + 3, ny + nh + 3, COLOR_SHADOW, 4f * uiScale);
@@ -449,8 +451,8 @@ public class PipelineEditorWindow extends ToggleableWindow {
 
         boolean showLabels = canvasZoom >= LOD_PORT_LABELS;
 
-        // Input ports
-        List<InputPortDef> inputs = schema.inputPorts();
+        // Input ports (schema-defined + param-exposed)
+        List<InputPortDef> inputs = NodeSchema.effectiveInputPorts(schema, node.params);
         for (int i = 0; i < inputs.size(); i++) {
             InputPortDef port = inputs.get(i);
             float px = nx;
@@ -469,7 +471,7 @@ public class PipelineEditorWindow extends ToggleableWindow {
                         px + (PORT_R + PORT_LABEL_PAD) * viewScale,
                         py - scaledFontSize * 0.5f,
                         labelColor,
-                        port.name);
+                        portLabel(schema, port.name));
             }
         }
 
@@ -555,13 +557,15 @@ public class PipelineEditorWindow extends ToggleableWindow {
                     NodeSchema fromSchema = NodeRegistry.create(fromNode.typeId).schema();
                     int idx = outputPortIndex(fromSchema, wireFromPortName);
                     wireFromScreenY = portBodyY(
-                            fromSchema.inputPorts().size() + idx,
+                            NodeSchema.effectiveInputPorts(fromSchema, fromNode.params)
+                                            .size()
+                                    + idx,
                             originY + panY + fromNode.posY * viewScale,
                             viewScale);
                 } else {
                     wireFromScreenX = originX + panX + fromNode.posX * viewScale;
-                    int idx =
-                            inputPortIndex(NodeRegistry.create(fromNode.typeId).schema(), wireFromPortName);
+                    NodeSchema fromSchema = NodeRegistry.create(fromNode.typeId).schema();
+                    int idx = inputPortIndex(fromSchema, fromNode.params, wireFromPortName);
                     wireFromScreenY = portBodyY(idx, originY + panY + fromNode.posY * viewScale, viewScale);
                 }
             }
@@ -680,18 +684,29 @@ public class PipelineEditorWindow extends ToggleableWindow {
         return nodeScreenTop + (HEADER_H + BODY_PAD + (portIndex + 0.5f) * PORT_ROW_H) * viewScale;
     }
 
-    private static float nodeHeight(NodeSchema schema, float viewScale) {
-        // Inputs and outputs each occupy their own rows so labels don't overlap
-        int rows = Math.max(schema.inputPorts().size() + schema.outputPorts().size(), 1);
+    private static float nodeHeight(NodeSchema schema, NodeParams params, float viewScale) {
+        int rows = Math.max(
+                NodeSchema.effectiveInputPorts(schema, params).size()
+                        + schema.outputPorts().size(),
+                1);
         return (HEADER_H + BODY_PAD * 2f + rows * PORT_ROW_H) * viewScale;
     }
 
-    private static int inputPortIndex(NodeSchema schema, String portName) {
-        List<InputPortDef> ports = schema.inputPorts();
+    private static int inputPortIndex(NodeSchema schema, NodeParams params, String portName) {
+        List<InputPortDef> ports = NodeSchema.effectiveInputPorts(schema, params);
         for (int i = 0; i < ports.size(); i++) {
             if (ports.get(i).name.equals(portName)) return i;
         }
         return 0;
+    }
+
+    private static String portLabel(NodeSchema schema, String portName) {
+        for (NodeSchema.ParamDef def : schema.params()) {
+            if (def.key.equals(portName)) {
+                return I18n.format(def.labelKey);
+            }
+        }
+        return portName;
     }
 
     private static int outputPortIndex(NodeSchema schema, String portName) {
@@ -707,7 +722,7 @@ public class PipelineEditorWindow extends ToggleableWindow {
             PipelineGraph.NodeInstance node = nodes.get(i);
             NodeSchema schema = NodeRegistry.create(node.typeId).schema();
             float nw = NODE_W * viewScale;
-            float nh = nodeHeight(schema, viewScale);
+            float nh = nodeHeight(schema, node.params, viewScale);
             if (localX >= node.posX * viewScale
                     && localX <= node.posX * viewScale + nw
                     && localY >= node.posY * viewScale

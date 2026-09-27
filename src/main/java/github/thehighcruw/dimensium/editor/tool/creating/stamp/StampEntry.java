@@ -12,7 +12,6 @@ import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.RandomWalkPa
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.SpaceColonizationBranchesNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.SplinePathNode;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
-import java.util.concurrent.ThreadLocalRandom;
 
 public class StampEntry {
 
@@ -23,19 +22,15 @@ public class StampEntry {
 
     public float chance = 1.0f;
     public int offsetY = 0;
-    /** Per-entry seed for pipeline execution, randomised at creation. */
-    public long seed;
 
     public StampEntry(Blueprint blueprint) {
         this.blueprint = blueprint;
         this.pipeline = null;
-        this.seed = 0;
     }
 
     public StampEntry(PipelineGraph pipeline) {
         this.blueprint = null;
         this.pipeline = pipeline;
-        this.seed = ThreadLocalRandom.current().nextLong();
     }
 
     public boolean isPipeline() {

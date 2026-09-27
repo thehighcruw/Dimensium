@@ -7,6 +7,7 @@ package github.thehighcruw.dimensium.editor.pipeline;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 public class NodeSchema {
 
@@ -15,7 +16,8 @@ public class NodeSchema {
         INT,
         BOOL,
         LONG,
-        PALETTE
+        PALETTE,
+        ENUM
     }
 
     public static final class ParamDef {
@@ -26,14 +28,28 @@ public class NodeSchema {
         public final float min;
         public final float max;
         public final String labelKey;
+        /** Non-null only for ENUM params. Each entry is a display string (not an i18n key). */
+        public final String[] enumOptions;
+        /** When false, the port-expose toggle is not shown for this param. */
+        public final boolean portExposable;
 
-        public ParamDef(String key, ParamType type, Object defaultValue, float min, float max, String labelKey) {
+        public ParamDef(
+                String key,
+                ParamType type,
+                Object defaultValue,
+                float min,
+                float max,
+                String labelKey,
+                String[] enumOptions,
+                boolean portExposable) {
             this.key = key;
             this.type = type;
             this.defaultValue = defaultValue;
             this.min = min;
             this.max = max;
             this.labelKey = labelKey;
+            this.enumOptions = enumOptions;
+            this.portExposable = portExposable;
         }
     }
 
@@ -67,27 +83,44 @@ public class NodeSchema {
     private String descriptionKey = null;
 
     public NodeSchema floatParam(String key, float defaultValue, float min, float max, String labelKey) {
-        paramList.add(new ParamDef(key, ParamType.FLOAT, defaultValue, min, max, labelKey));
+        paramList.add(new ParamDef(key, ParamType.FLOAT, defaultValue, min, max, labelKey, null, true));
+        return this;
+    }
+
+    public NodeSchema floatParamNoPort(String key, float defaultValue, float min, float max, String labelKey) {
+        paramList.add(new ParamDef(key, ParamType.FLOAT, defaultValue, min, max, labelKey, null, false));
         return this;
     }
 
     public NodeSchema intParam(String key, int defaultValue, int min, int max, String labelKey) {
-        paramList.add(new ParamDef(key, ParamType.INT, defaultValue, (float) min, (float) max, labelKey));
+        paramList.add(new ParamDef(key, ParamType.INT, defaultValue, (float) min, (float) max, labelKey, null, true));
+        return this;
+    }
+
+    public NodeSchema intParamNoPort(String key, int defaultValue, int min, int max, String labelKey) {
+        paramList.add(new ParamDef(key, ParamType.INT, defaultValue, (float) min, (float) max, labelKey, null, false));
         return this;
     }
 
     public NodeSchema boolParam(String key, boolean defaultValue, String labelKey) {
-        paramList.add(new ParamDef(key, ParamType.BOOL, defaultValue, 0f, 1f, labelKey));
+        paramList.add(new ParamDef(key, ParamType.BOOL, defaultValue, 0f, 1f, labelKey, null, false));
         return this;
     }
 
     public NodeSchema longParam(String key, long defaultValue, String labelKey) {
-        paramList.add(new ParamDef(key, ParamType.LONG, defaultValue, 0f, 0f, labelKey));
+        paramList.add(new ParamDef(key, ParamType.LONG, defaultValue, 0f, 0f, labelKey, null, false));
         return this;
     }
 
     public NodeSchema paletteParam(String key, List<int[]> defaultValue, String labelKey) {
-        paramList.add(new ParamDef(key, ParamType.PALETTE, new ArrayList<>(defaultValue), 0f, 0f, labelKey));
+        paramList.add(
+                new ParamDef(key, ParamType.PALETTE, new ArrayList<>(defaultValue), 0f, 0f, labelKey, null, false));
+        return this;
+    }
+
+    /** Enum param rendered as a combobox. {@code defaultIndex} is the initial selection index. */
+    public NodeSchema enumParam(String key, int defaultIndex, String labelKey, String... options) {
+        paramList.add(new ParamDef(key, ParamType.ENUM, defaultIndex, 0f, 0f, labelKey, options, false));
         return this;
     }
 
@@ -133,6 +166,20 @@ public class NodeSchema {
 
     public List<ParamDef> params() {
         return Collections.unmodifiableList(paramList);
+    }
+
+    /**
+     * Returns the full list of input ports for a node instance, including schema-defined ports and
+     * any FLOAT ports dynamically exposed from params by the user.
+     */
+    public static List<InputPortDef> effectiveInputPorts(NodeSchema schema, NodeParams params) {
+        Set<String> exposed = params.exposedParamPorts();
+        if (exposed.isEmpty()) return schema.inputPorts();
+        List<InputPortDef> ports = new ArrayList<>(schema.inputPorts());
+        for (String key : exposed) {
+            ports.add(new InputPortDef(key, PortType.FLOAT, false));
+        }
+        return ports;
     }
 
     @SuppressWarnings("unchecked")

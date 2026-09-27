@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
@@ -43,11 +42,6 @@ public final class StampBrushInput implements BrushInput {
 
     private final Set<Long> strokeSet = new HashSet<>();
     private final List<Vec3DInt> strokePositions = new ArrayList<>();
-    /** Seed fixed at drag-start so preview stays stable as the stroke grows. */
-    private long dragSeed;
-
-    private final Random rng = new Random();
-    private final Random previewRng = new Random();
 
     private StampBrushInput() {}
 
@@ -58,7 +52,6 @@ public final class StampBrushInput implements BrushInput {
 
     @Override
     public void onBrushDragStart(Minecraft mc, MovingObjectPosition mop) {
-        dragSeed = rng.nextLong();
         strokeSet.clear();
         strokePositions.clear();
         collectBrushPositions(Vec3DInt.from(mop.blockX, mop.blockY, mop.blockZ));
@@ -81,8 +74,7 @@ public final class StampBrushInput implements BrushInput {
             strokePositions.clear();
             return;
         }
-        rng.setSeed(dragSeed);
-        List<StampInstance> instances = StampScatter.scatter(strokePositions, state, rng);
+        List<StampInstance> instances = StampScatter.scatter(strokePositions, state, state.toolSeed);
         strokeSet.clear();
         strokePositions.clear();
         if (instances.isEmpty()) return;
@@ -106,8 +98,7 @@ public final class StampBrushInput implements BrushInput {
             dragPreview = null;
             return;
         }
-        previewRng.setSeed(dragSeed);
-        List<StampInstance> instances = StampScatter.scatter(strokePositions, state, previewRng);
+        List<StampInstance> instances = StampScatter.scatter(strokePositions, state, state.toolSeed);
         if (instances.isEmpty()) {
             dragPreview = null;
             return;
@@ -127,7 +118,7 @@ public final class StampBrushInput implements BrushInput {
             StampEntry entry = state.blueprints.get(inst.entryIdx);
 
             if (entry.isPipeline()) {
-                PipelineContext context = new PipelineContext(inst.anchor, entry.seed);
+                PipelineContext context = new PipelineContext(inst.anchor, inst.locationSeed);
                 BlockMap blockMap = entry.pipeline.execute(context);
                 for (Map.Entry<Long, int[]> e : blockMap.entries().entrySet()) {
                     Vec3DInt worldPos = BlockMap.unpackKey(e.getKey());

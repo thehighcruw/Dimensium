@@ -55,10 +55,6 @@ public class StampSection implements ToolSection {
 
             if (entry.isPipeline()) {
                 ImGui.sameLine();
-                if (ImGui.smallButton(I18n.format("dimensium.stamp.reseed") + "##rs")) {
-                    entry.seed = ThreadLocalRandom.current().nextLong();
-                }
-                ImGui.sameLine();
                 if (ImGui.smallButton(I18n.format("dimensium.stamp.edit_pipeline") + "##ep")) {
                     PipelineEditorWindow.INSTANCE.open(entry.pipeline);
                 }
@@ -103,6 +99,10 @@ public class StampSection implements ToolSection {
         ImGui.spacing();
         ImGui.text(I18n.format("dimensium.ui.section.stamp.options"));
         ImGui.separator();
+
+        if (ImGui.button(I18n.format("dimensium.stamp.reseed") + "##ts")) {
+            state.toolSeed = ThreadLocalRandom.current().nextLong();
+        }
 
         baseChance[0] = state.baseChance;
         if (ImGui.sliderFloat(

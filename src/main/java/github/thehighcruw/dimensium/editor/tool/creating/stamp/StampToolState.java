@@ -6,6 +6,7 @@ package github.thehighcruw.dimensium.editor.tool.creating.stamp;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class StampToolState {
 
@@ -19,6 +20,9 @@ public class StampToolState {
     public static final float ENTRY_CHANCE_MAX = 1.0f;
     public static final int OFFSET_Y_MIN = -64;
     public static final int OFFSET_Y_MAX = 64;
+
+    /** Persistent seed. Combined with each location's x/z to deterministically vary placements. */
+    public long toolSeed = ThreadLocalRandom.current().nextLong();
 
     public float baseChance = 1.0f;
     /** Fraction of max(clipW, clipD) used as minimum distance between stamp anchors. */

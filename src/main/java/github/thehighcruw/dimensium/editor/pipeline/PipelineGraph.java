@@ -180,6 +180,13 @@ public class PipelineGraph {
                 paramsObj.add(entry.getKey(), serializeParamValue(entry.getValue()));
             }
             no.add("params", paramsObj);
+            if (!n.params.exposedParamPorts().isEmpty()) {
+                JsonArray exposedArr = new JsonArray();
+                for (String key : n.params.exposedParamPorts()) {
+                    exposedArr.add(new JsonPrimitive(key));
+                }
+                no.add("exposedPorts", exposedArr);
+            }
             nodesArr.add(no);
         }
         root.add("nodes", nodesArr);
@@ -236,7 +243,13 @@ public class PipelineGraph {
                 Object val = deserializeParamValue(entry.getValue());
                 if (val != null) params.set(entry.getKey(), val);
             }
-            graph.nodes.add(new NodeInstance(instanceId, typeId, params, posX, posY));
+            NodeInstance inst = new NodeInstance(instanceId, typeId, params, posX, posY);
+            if (no.has("exposedPorts")) {
+                for (JsonElement key : no.getAsJsonArray("exposedPorts")) {
+                    inst.params.setPortExposed(key.getAsString(), true);
+                }
+            }
+            graph.nodes.add(inst);
         }
 
         for (JsonElement ee : root.getAsJsonArray("edges")) {

@@ -35,6 +35,7 @@ public class WhorlBranchesNode implements PipelineNode {
             .floatParam("whorl.branchRadius", 0.4f, 0.1f, 1.5f, "dimensium.ui.pipeline.whorl_branch_radius")
             .intParam("whorl.spacing", 2, 1, 6, "dimensium.ui.pipeline.whorl_spacing")
             .intParam("whorl.skipBase", 2, 0, 8, "dimensium.ui.pipeline.whorl_skip_base")
+            .intParam("whorl.skipTip", 3, 0, 12, "dimensium.ui.pipeline.whorl_skip_tip")
             .floatParam("whorl.spiralOffset", 0.618f, 0.0f, 1.0f, "dimensium.ui.pipeline.whorl_spiral_offset")
             .description("dimensium.ui.pipeline.node.whorl_branches.desc")
             .inputPort("skeleton", PortType.SKELETON)
@@ -53,6 +54,7 @@ public class WhorlBranchesNode implements PipelineNode {
         float branchRadius = params.getFloat("whorl.branchRadius", 0.4f);
         int spacing = params.getInt("whorl.spacing", 2);
         int skipBase = params.getInt("whorl.skipBase", 2);
+        int skipTip = params.getInt("whorl.skipTip", 3);
         float spiralOffset = params.getFloat("whorl.spiralOffset", 0.618f);
 
         Random rand = new Random(context.nodeSeed(0));
@@ -70,6 +72,7 @@ public class WhorlBranchesNode implements PipelineNode {
                     branchRadius,
                     spacing,
                     skipBase,
+                    skipTip,
                     spiralOffset,
                     rand);
         }
@@ -95,19 +98,23 @@ public class WhorlBranchesNode implements PipelineNode {
             float branchRadius,
             int spacing,
             int skipBase,
+            int skipTip,
             float spiralOffset,
             Random rand) {
 
         int totalNodes = chain.size();
         if (totalNodes < 2) return;
 
+        int lastIdx = totalNodes - 1 - skipTip;
+        if (lastIdx < skipBase) return;
+
         // Count how many whorl positions exist so we can compute t correctly
         int whorlIndex = 0;
         int whorlCount = 0;
-        for (int i = skipBase; i < totalNodes; i += spacing) whorlCount++;
+        for (int i = skipBase; i <= lastIdx; i += spacing) whorlCount++;
         if (whorlCount == 0) return;
 
-        for (int nodeIdx = skipBase; nodeIdx < totalNodes; nodeIdx += spacing) {
+        for (int nodeIdx = skipBase; nodeIdx <= lastIdx; nodeIdx += spacing) {
             SkeletonNode node = chain.get(nodeIdx);
             float t = whorlCount > 1 ? (float) whorlIndex / (whorlCount - 1) : 0f;
 
