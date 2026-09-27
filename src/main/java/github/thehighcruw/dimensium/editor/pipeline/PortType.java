@@ -10,5 +10,6 @@ public enum PortType {
     VOXEL_FIELD,
     FLOAT,
     VEC3,
-    COLOR_RAMP
+    COLOR_RAMP,
+    CURVE
 }

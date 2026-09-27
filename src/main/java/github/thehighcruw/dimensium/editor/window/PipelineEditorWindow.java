@@ -69,6 +69,7 @@ public class PipelineEditorWindow extends ToggleableWindow {
     private static final int COLOR_PORT_BLOCK_MAP = 0xFF_00_FF_88;
     private static final int COLOR_PORT_FLOAT = 0xFF_AA_AA_AA;
     private static final int COLOR_PORT_VEC3 = 0xFF_00_CC_FF;
+    private static final int COLOR_PORT_CURVE = 0xFF_FF_88_00;
     private static final int COLOR_PORT_HIGHLIGHT = 0xFF_FF_FF_FF;
     private static final int COLOR_WIRE = 0xFF_CC_AA_55;
     private static final int COLOR_WIRE_HOVER = 0xFF_FF_CC_66;
@@ -234,7 +235,14 @@ public class PipelineEditorWindow extends ToggleableWindow {
                 ImGui.openPopup(popupId);
             }
             if (ImGui.beginPopup(popupId)) {
+                String lastSubGroup = null;
                 for (String typeId : NodeRegistry.idsInGroup(group)) {
+                    String subGroupKey = NodeRegistry.subGroupKeyOf(typeId);
+                    if (subGroupKey != null && !subGroupKey.equals(lastSubGroup)) {
+                        if (lastSubGroup != null) ImGui.separator();
+                        ImGui.textDisabled(I18n.format(subGroupKey));
+                        lastSubGroup = subGroupKey;
+                    }
                     if (ImGui.menuItem(nodeDisplayName(typeId))) {
                         float canvasCenter = 40f + panX / canvasZoom;
                         graph.addNode(typeId, canvasCenter, 40f + panY / canvasZoom);
@@ -769,6 +777,8 @@ public class PipelineEditorWindow extends ToggleableWindow {
                 return COLOR_PORT_FLOAT;
             case VEC3:
                 return COLOR_PORT_VEC3;
+            case CURVE:
+                return COLOR_PORT_CURVE;
             default:
                 return COLOR_PORT_BLOCK_MAP;
         }

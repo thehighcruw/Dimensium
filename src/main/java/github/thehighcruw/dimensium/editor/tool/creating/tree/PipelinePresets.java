@@ -8,31 +8,41 @@ import github.thehighcruw.dimensium.editor.pipeline.NodeRegistry;
 import github.thehighcruw.dimensium.editor.pipeline.NodeRegistry.NodeGroup;
 import github.thehighcruw.dimensium.editor.pipeline.PipelineGraph;
 import github.thehighcruw.dimensium.editor.pipeline.PipelineLibrary;
-import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.BoxMaskNode;
+import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.ArcCurveNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.BranchDepthPainterNode;
+import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.CircleCurveNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.ConstantFloatNode;
+import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.CurveFillNode;
+import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.CurveScatterNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.CurvedPathNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.DensityPaletteNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.DepthPaletteNode;
+import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.EllipseCurveNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.EllipsoidMaskNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.GaussianBlurNode;
+import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.GridBlocksNode;
+import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.HelixCurveNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.IntersectBlocksNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.LinePathNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.MapRangeNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.MathNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.MergeBlocksNode;
+import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.MirrorBlocksNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.NoiseErodeNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.NoiseFieldNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.NoisePaletteNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.RandomFloatNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.RandomWalkPathNode;
+import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.RotateBlocksNode;
+import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.ScatterBlocksNode;
+import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.ShapeMaskNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.SimpleRecursiveBranchesNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.SkeletonVoxelizerNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.SpaceColonizationBranchesNode;
-import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.SphereMaskNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.SplinePathNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.SubtractBlocksNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.TipClusterFillNode;
+import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.TranslateBlocksNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.WeberPennBranchesNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.WhorlBranchesNode;
 import java.util.ArrayList;
@@ -42,58 +52,84 @@ import java.util.List;
 public final class PipelinePresets {
 
     public static void registerNodes() {
-        // Path generators
-        NodeRegistry.register(LinePathNode.ID, NodeGroup.PATH, LinePathNode::new);
-        NodeRegistry.register(CurvedPathNode.ID, NodeGroup.PATH, CurvedPathNode::new);
-        NodeRegistry.register(RandomWalkPathNode.ID, NodeGroup.PATH, RandomWalkPathNode::new);
-        NodeRegistry.register(SplinePathNode.ID, NodeGroup.PATH, SplinePathNode::new);
-        // Branch nodes
+        // Generate — creates data from nothing
+        final String sgShape = "dimensium.ui.pipeline.subgroup.shape";
+        final String sgSkeleton = "dimensium.ui.pipeline.subgroup.skeleton";
+        final String sgCurve = "dimensium.ui.pipeline.subgroup.curve";
+        final String sgValue = "dimensium.ui.pipeline.subgroup.value";
+        NodeRegistry.register(ShapeMaskNode.ID, NodeGroup.GENERATE, sgShape, ShapeMaskNode::new);
+        NodeRegistry.register(LinePathNode.ID, NodeGroup.GENERATE, sgSkeleton, LinePathNode::new);
+        NodeRegistry.register(CurvedPathNode.ID, NodeGroup.GENERATE, null, CurvedPathNode::new);
+        NodeRegistry.register(RandomWalkPathNode.ID, NodeGroup.GENERATE, null, RandomWalkPathNode::new);
+        NodeRegistry.register(SplinePathNode.ID, NodeGroup.GENERATE, null, SplinePathNode::new);
+        NodeRegistry.register(ArcCurveNode.ID, NodeGroup.GENERATE, sgCurve, ArcCurveNode::new);
+        NodeRegistry.register(CircleCurveNode.ID, NodeGroup.GENERATE, null, CircleCurveNode::new);
+        NodeRegistry.register(EllipseCurveNode.ID, NodeGroup.GENERATE, null, EllipseCurveNode::new);
+        NodeRegistry.register(HelixCurveNode.ID, NodeGroup.GENERATE, null, HelixCurveNode::new);
+        NodeRegistry.register(ConstantFloatNode.ID, NodeGroup.GENERATE, sgValue, ConstantFloatNode::new);
+        NodeRegistry.register(RandomFloatNode.ID, NodeGroup.GENERATE, null, RandomFloatNode::new);
+        NodeRegistry.register(NoiseFieldNode.ID, NodeGroup.GENERATE, null, NoiseFieldNode::new);
+        // Branch — grows a skeleton from another skeleton
         NodeRegistry.register(WhorlBranchesNode.ID, NodeGroup.BRANCH, WhorlBranchesNode::new);
         NodeRegistry.register(SimpleRecursiveBranchesNode.ID, NodeGroup.BRANCH, SimpleRecursiveBranchesNode::new);
         NodeRegistry.register(SpaceColonizationBranchesNode.ID, NodeGroup.BRANCH, SpaceColonizationBranchesNode::new);
         NodeRegistry.register(WeberPennBranchesNode.ID, NodeGroup.BRANCH, WeberPennBranchesNode::new);
-        // Convert
-        NodeRegistry.register(SkeletonVoxelizerNode.ID, NodeGroup.CONVERT, SkeletonVoxelizerNode::new);
-        NodeRegistry.register(BranchDepthPainterNode.ID, NodeGroup.CONVERT, BranchDepthPainterNode::new);
-        NodeRegistry.register(TipClusterFillNode.ID, NodeGroup.CONVERT, TipClusterFillNode::new);
-        // Boolean
-        NodeRegistry.register(MergeBlocksNode.ID, NodeGroup.BOOLEAN, MergeBlocksNode::new);
-        NodeRegistry.register(SubtractBlocksNode.ID, NodeGroup.BOOLEAN, SubtractBlocksNode::new);
-        NodeRegistry.register(IntersectBlocksNode.ID, NodeGroup.BOOLEAN, IntersectBlocksNode::new);
-        // Math
-        NodeRegistry.register(ConstantFloatNode.ID, NodeGroup.MATH, ConstantFloatNode::new);
-        NodeRegistry.register(RandomFloatNode.ID, NodeGroup.MATH, RandomFloatNode::new);
-        NodeRegistry.register(NoiseFieldNode.ID, NodeGroup.MATH, NoiseFieldNode::new);
-        NodeRegistry.register(MapRangeNode.ID, NodeGroup.MATH, MapRangeNode::new);
-        NodeRegistry.register(MathNode.ID, NodeGroup.MATH, MathNode::new);
-        // Mask
-        NodeRegistry.register(SphereMaskNode.ID, NodeGroup.MASK, SphereMaskNode::new);
-        NodeRegistry.register(BoxMaskNode.ID, NodeGroup.MASK, BoxMaskNode::new);
-        NodeRegistry.register(EllipsoidMaskNode.ID, NodeGroup.MASK, EllipsoidMaskNode::new);
-        // Filter
+        // Voxelize — converts skeleton or curve to blocks
+        NodeRegistry.register(SkeletonVoxelizerNode.ID, NodeGroup.VOXELIZE, SkeletonVoxelizerNode::new);
+        NodeRegistry.register(BranchDepthPainterNode.ID, NodeGroup.VOXELIZE, BranchDepthPainterNode::new);
+        NodeRegistry.register(TipClusterFillNode.ID, NodeGroup.VOXELIZE, TipClusterFillNode::new);
+        NodeRegistry.register(CurveFillNode.ID, NodeGroup.VOXELIZE, CurveFillNode::new);
+        // Combine — boolean operations on block maps
+        NodeRegistry.register(MergeBlocksNode.ID, NodeGroup.COMBINE, MergeBlocksNode::new);
+        NodeRegistry.register(SubtractBlocksNode.ID, NodeGroup.COMBINE, SubtractBlocksNode::new);
+        NodeRegistry.register(IntersectBlocksNode.ID, NodeGroup.COMBINE, IntersectBlocksNode::new);
+        // Transform — reposition, orient, and repeat block maps
+        final String sgMove = "dimensium.ui.pipeline.subgroup.move";
+        final String sgRepeat = "dimensium.ui.pipeline.subgroup.repeat";
+        NodeRegistry.register(TranslateBlocksNode.ID, NodeGroup.TRANSFORM, sgMove, TranslateBlocksNode::new);
+        NodeRegistry.register(RotateBlocksNode.ID, NodeGroup.TRANSFORM, null, RotateBlocksNode::new);
+        NodeRegistry.register(MirrorBlocksNode.ID, NodeGroup.TRANSFORM, null, MirrorBlocksNode::new);
+        NodeRegistry.register(ScatterBlocksNode.ID, NodeGroup.TRANSFORM, sgRepeat, ScatterBlocksNode::new);
+        NodeRegistry.register(GridBlocksNode.ID, NodeGroup.TRANSFORM, null, GridBlocksNode::new);
+        NodeRegistry.register(CurveScatterNode.ID, NodeGroup.TRANSFORM, null, CurveScatterNode::new);
+        // Filter — modify the shape of existing blocks
+        NodeRegistry.register(EllipsoidMaskNode.ID, NodeGroup.FILTER, EllipsoidMaskNode::new);
         NodeRegistry.register(NoiseErodeNode.ID, NodeGroup.FILTER, NoiseErodeNode::new);
         NodeRegistry.register(GaussianBlurNode.ID, NodeGroup.FILTER, GaussianBlurNode::new);
-        // Palette
-        NodeRegistry.register(DepthPaletteNode.ID, NodeGroup.PALETTE, DepthPaletteNode::new);
-        NodeRegistry.register(DensityPaletteNode.ID, NodeGroup.PALETTE, DensityPaletteNode::new);
-        NodeRegistry.register(NoisePaletteNode.ID, NodeGroup.PALETTE, NoisePaletteNode::new);
+        // Paint — recolor blocks without moving them
+        NodeRegistry.register(DepthPaletteNode.ID, NodeGroup.PAINT, DepthPaletteNode::new);
+        NodeRegistry.register(DensityPaletteNode.ID, NodeGroup.PAINT, DensityPaletteNode::new);
+        NodeRegistry.register(NoisePaletteNode.ID, NodeGroup.PAINT, NoisePaletteNode::new);
+        // Math — float arithmetic and remapping
+        NodeRegistry.register(MapRangeNode.ID, NodeGroup.MATH, MapRangeNode::new);
+        NodeRegistry.register(MathNode.ID, NodeGroup.MATH, MathNode::new);
 
         if (!PipelineLibrary.INSTANCE.hasDefaults()) {
             PipelineLibrary.INSTANCE.loadDefaults(buildDefaultGraphs());
         }
     }
 
-    public static final String PRESETS_FOLDER = "Presets/Trees";
+    public static final String TREES_FOLDER = "Presets/Trees";
+    public static final String STRUCTURES_FOLDER = "Presets/Structures";
 
     public static List<PipelineGraph> buildDefaultGraphs() {
         List<PipelineGraph> graphs = new ArrayList<>();
-        graphs.add(buildOak());
-        graphs.add(buildPine());
-        graphs.add(buildWillow());
-        graphs.add(buildDeadTree());
-        graphs.add(buildBaobab());
-        graphs.add(buildGiantFantasy());
-        for (PipelineGraph graph : graphs) graph.folder = PRESETS_FOLDER;
+
+        List<PipelineGraph> trees = new ArrayList<>();
+        trees.add(buildOak());
+        trees.add(buildPine());
+        trees.add(buildWillow());
+        trees.add(buildDeadTree());
+        trees.add(buildBaobab());
+        trees.add(buildGiantFantasy());
+        for (PipelineGraph graph : trees) graph.folder = TREES_FOLDER;
+        graphs.addAll(trees);
+
+        List<PipelineGraph> structures = new ArrayList<>();
+        structures.add(buildArchBridge());
+        for (PipelineGraph graph : structures) graph.folder = STRUCTURES_FOLDER;
+        graphs.addAll(structures);
+
         return graphs;
     }
 
@@ -273,6 +309,60 @@ public final class PipelinePresets {
         g.connect(crown.instanceId, "skeleton", vox.instanceId, "skeleton");
         g.connect(vox.instanceId, "blocks", cluster.instanceId, "blocks");
         g.connect(crown.instanceId, "skeleton", cluster.instanceId, "skeleton");
+        return g;
+    }
+
+    /**
+     * Arch bridge: a semicircular stone-brick arch in the YZ plane with a matching flat deck.
+     *
+     * <p>
+     * Graph layout:
+     *
+     * <pre>
+     *  [Arc Curve] → [Curve Fill] ──────────────┐
+     *                                     [Merge Blocks]
+     *  [Shape Mask (box/deck)] ─────────────────┘
+     * </pre>
+     *
+     * <p>
+     * The arch radius and deck dimensions are matched so the deck sits flush with the arch feet.
+     * Stone brick (id=98) is used throughout.
+     */
+    private static PipelineGraph buildArchBridge() {
+        final int stoneBrick = 98;
+        final int archRadius = 10;
+
+        PipelineGraph g = new PipelineGraph("Arch Bridge");
+
+        // Arch — semicircle in the YZ plane (vertical, east–west span)
+        PipelineGraph.NodeInstance arc = g.addNode(ArcCurveNode.ID, 0, 40);
+        arc.params.set("arc.radius", (float) archRadius);
+        arc.params.set("arc.startAngle", 0.0f);
+        arc.params.set("arc.sweepAngle", 180.0f);
+        arc.params.set("arc.plane", 2); // YZ vertical
+
+        PipelineGraph.NodeInstance fill = g.addNode(CurveFillNode.ID, 260, 40);
+        fill.params.set("curveFill.radius", 1.5f);
+        fill.params.set("curveFill.palette", Arrays.asList(new int[] {stoneBrick, 0}));
+
+        // Deck — thin box spanning the bridge, raised to the top of the arch
+        PipelineGraph.NodeInstance deck = g.addNode(ShapeMaskNode.ID, 0, 220);
+        deck.params.set("shape.type", ShapeMaskNode.SHAPE_BOX);
+        deck.params.set("box.width", 5);
+        deck.params.set("box.height", 2);
+        deck.params.set("box.depth", 25);
+        deck.params.set("shape.palette", Arrays.asList(new int[] {stoneBrick, 0}));
+
+        PipelineGraph.NodeInstance deckRaise = g.addNode(TranslateBlocksNode.ID, 260, 220);
+        deckRaise.params.set("translate.y", 10);
+
+        PipelineGraph.NodeInstance merge = g.addNode(MergeBlocksNode.ID, 520, 130);
+
+        g.connect(arc.instanceId, "curve", fill.instanceId, "curve");
+        g.connect(deck.instanceId, "blocks", deckRaise.instanceId, "blocks");
+        g.connect(fill.instanceId, "blocks", merge.instanceId, "blocksA");
+        g.connect(deckRaise.instanceId, "blocks", merge.instanceId, "blocksB");
+
         return g;
     }
 

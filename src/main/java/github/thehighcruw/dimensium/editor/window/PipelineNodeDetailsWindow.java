@@ -107,6 +107,7 @@ public class PipelineNodeDetailsWindow extends ToggleableWindow {
         float portToggleWidth = 22f * uiScale;
 
         for (ParamDef def : schema.params()) {
+            if (!def.isVisibleGiven(node.params)) continue;
             String label = I18n.format(def.labelKey);
             switch (def.type) {
                 case FLOAT: {

@@ -997,14 +997,20 @@ dimensium.ui.pipeline.new=New
 dimensium.ui.pipeline.save=Save
 dimensium.ui.pipeline.preview=Preview
 dimensium.ui.pipeline.clear_preview=Clear Preview
-dimensium.ui.pipeline.group.path=Path
+dimensium.ui.pipeline.group.generate=Generate
 dimensium.ui.pipeline.group.branch=Branch
-dimensium.ui.pipeline.group.convert=Convert
-dimensium.ui.pipeline.group.boolean=Boolean
-dimensium.ui.pipeline.group.math=Math
-dimensium.ui.pipeline.group.mask=Mask
+dimensium.ui.pipeline.group.voxelize=Voxelize
+dimensium.ui.pipeline.group.combine=Combine
+dimensium.ui.pipeline.group.transform=Transform
 dimensium.ui.pipeline.group.filter=Filter
-dimensium.ui.pipeline.group.palette=Palette
+dimensium.ui.pipeline.group.paint=Paint
+dimensium.ui.pipeline.group.math=Math
+dimensium.ui.pipeline.subgroup.shape=Shape
+dimensium.ui.pipeline.subgroup.skeleton=Skeleton
+dimensium.ui.pipeline.subgroup.curve=Curve
+dimensium.ui.pipeline.subgroup.value=Value
+dimensium.ui.pipeline.subgroup.move=Move
+dimensium.ui.pipeline.subgroup.repeat=Repeat
 dimensium.ui.pipeline.add_node=Add Node
 dimensium.ui.pipeline.mode.select=Select
 dimensium.ui.pipeline.mode.pan=Pan
@@ -1054,3 +1060,116 @@ dimensium.pipeline.manage.folder_root=(root)
 # Pipeline builtin / save-as-copy
 dimensium.ui.pipeline.builtin=built-in
 dimensium.ui.pipeline.save_as_copy=Save as Copy
+
+# Shape mask node
+dimensium.ui.pipeline.shape_type=Shape
+dimensium.ui.pipeline.shape_sphere_radius=Radius
+dimensium.ui.pipeline.shape_ellipsoid_radius_x=Radius X
+dimensium.ui.pipeline.shape_ellipsoid_radius_y=Radius Y
+dimensium.ui.pipeline.shape_ellipsoid_radius_z=Radius Z
+dimensium.ui.pipeline.shape_box_width=Width
+dimensium.ui.pipeline.shape_box_height=Height
+dimensium.ui.pipeline.shape_box_depth=Depth
+dimensium.ui.pipeline.shape_cyl_radius=Radius
+dimensium.ui.pipeline.shape_cyl_height=Height
+dimensium.ui.pipeline.shape_cyl_axis=Axis
+dimensium.ui.pipeline.shape_cone_base_radius=Base Radius
+dimensium.ui.pipeline.shape_cone_height=Height
+dimensium.ui.pipeline.shape_cone_tip_dir=Tip Direction
+dimensium.ui.pipeline.shape_torus_major_radius=Major Radius
+dimensium.ui.pipeline.shape_torus_minor_radius=Tube Radius
+dimensium.ui.pipeline.shape_pyr_base_width=Base Width
+dimensium.ui.pipeline.shape_pyr_base_depth=Base Depth
+dimensium.ui.pipeline.shape_pyr_height=Height
+dimensium.ui.pipeline.shape_pyr_tip_dir=Tip Direction
+dimensium.ui.pipeline.shape_palette=Block Palette
+dimensium.ui.pipeline.node.shape_mask.desc=Fills a mathematical solid at the pipeline origin. Select the shape type to reveal its parameters.
+
+# Cylinder mask node
+dimensium.ui.pipeline.cylinder_radius=Radius
+dimensium.ui.pipeline.cylinder_height=Height
+dimensium.ui.pipeline.cylinder_axis=Axis
+dimensium.ui.pipeline.cylinder_palette=Block Palette
+dimensium.ui.pipeline.node.cylinder_mask.desc=Fills a solid cylinder centred at the pipeline origin. Choose the axis for the cylinder to stand along.
+
+# Cone mask node
+dimensium.ui.pipeline.cone_base_radius=Base Radius
+dimensium.ui.pipeline.cone_height=Height
+dimensium.ui.pipeline.cone_tip_direction=Tip Direction
+dimensium.ui.pipeline.cone_palette=Block Palette
+dimensium.ui.pipeline.node.cone_mask.desc=Fills a solid cone from its base at the pipeline origin. Tip can point up or down.
+
+# Torus mask node
+dimensium.ui.pipeline.torus_major_radius=Major Radius
+dimensium.ui.pipeline.torus_minor_radius=Tube Radius
+dimensium.ui.pipeline.torus_palette=Block Palette
+dimensium.ui.pipeline.node.torus_mask.desc=Fills a torus (ring shape) lying in the XZ plane. Major radius sets the ring size; tube radius sets the tube thickness.
+
+# Pyramid mask node
+dimensium.ui.pipeline.pyramid_base_width=Base Width
+dimensium.ui.pipeline.pyramid_base_depth=Base Depth
+dimensium.ui.pipeline.pyramid_height=Height
+dimensium.ui.pipeline.pyramid_tip_direction=Tip Direction
+dimensium.ui.pipeline.pyramid_palette=Block Palette
+dimensium.ui.pipeline.node.pyramid_mask.desc=Fills a square pyramid from its base at the pipeline origin. Tip can point up or down.
+
+# Translate blocks node
+dimensium.ui.pipeline.translate_offset_x=Offset X
+dimensium.ui.pipeline.translate_offset_y=Offset Y
+dimensium.ui.pipeline.translate_offset_z=Offset Z
+dimensium.ui.pipeline.node.translate_blocks.desc=Shifts all blocks in the map by a fixed integer offset on each axis.
+
+# Rotate blocks node
+dimensium.ui.pipeline.rotate_axis=Axis
+dimensium.ui.pipeline.rotate_turns=Quarter Turns
+dimensium.ui.pipeline.node.rotate_blocks.desc=Rotates a block map in 90-degree increments around the pipeline origin. Rotation is clockwise when viewed from the positive end of the chosen axis.
+
+# Mirror blocks node
+dimensium.ui.pipeline.mirror_axis=Mirror Axis
+dimensium.ui.pipeline.mirror_keep_original=Merge with Original
+dimensium.ui.pipeline.node.mirror_blocks.desc=Reflects a block map across an axis plane through the pipeline origin. Enable Merge with Original to produce a symmetric result.
+
+# Scatter blocks node
+dimensium.ui.pipeline.scatter_count=Count
+dimensium.ui.pipeline.scatter_spread_x=Spread X
+dimensium.ui.pipeline.scatter_spread_y=Spread Y
+dimensium.ui.pipeline.scatter_spread_z=Spread Z
+dimensium.ui.pipeline.node.scatter_blocks.desc=Places random copies of the input block map within a volume. Useful for rocks, mushrooms, debris, and natural clutter.
+
+# Grid blocks node
+dimensium.ui.pipeline.grid_columns=Columns
+dimensium.ui.pipeline.grid_rows=Rows
+dimensium.ui.pipeline.grid_spacing_x=Spacing X
+dimensium.ui.pipeline.grid_spacing_z=Spacing Z
+dimensium.ui.pipeline.node.grid_blocks.desc=Places copies of the input block map in a regular columns x rows grid centred at the pipeline origin. Useful for columns, fences, and window arrays.
+
+# Arc curve node
+dimensium.ui.pipeline.arc_radius=Radius
+dimensium.ui.pipeline.arc_start_angle=Start Angle
+dimensium.ui.pipeline.arc_sweep_angle=Sweep Angle
+dimensium.ui.pipeline.arc_plane=Plane
+dimensium.ui.pipeline.node.arc_curve.desc=Generates a partial arc of sample points. Sweep angle controls how much of the circle is traced. Useful for arches and doorway frames.
+
+# Circle curve node
+dimensium.ui.pipeline.circle_radius=Radius
+dimensium.ui.pipeline.node.circle_curve.desc=Generates a circle of sample points in the XZ plane, centred at the pipeline origin.
+
+# Ellipse curve node
+dimensium.ui.pipeline.ellipse_radius_x=Radius X
+dimensium.ui.pipeline.ellipse_radius_z=Radius Z
+dimensium.ui.pipeline.node.ellipse_curve.desc=Generates an ellipse of sample points in the XZ plane, centred at the pipeline origin.
+
+# Helix curve node
+dimensium.ui.pipeline.helix_radius=Radius
+dimensium.ui.pipeline.helix_height=Height
+dimensium.ui.pipeline.helix_turns=Turns
+dimensium.ui.pipeline.node.helix_curve.desc=Generates a helical curve rising from the pipeline origin. Useful for spiral staircases and vines.
+
+# Curve fill node
+dimensium.ui.pipeline.curve_fill_radius=Tube Radius
+dimensium.ui.pipeline.curve_fill_palette=Block Palette
+dimensium.ui.pipeline.node.curve_fill.desc=Fills a solid tube of blocks along a curve by stamping spheres at each sample point.
+
+# Curve scatter node
+dimensium.ui.pipeline.curve_scatter_stride=Stride
+dimensium.ui.pipeline.node.curve_scatter.desc=Places copies of the input block map centred at every Nth point along a curve. Useful for colonnades, fence posts, and evenly-spaced repeated elements.

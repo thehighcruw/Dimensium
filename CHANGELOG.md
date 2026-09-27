@@ -5,6 +5,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com). Run `scripts/rele
 
 ## [Unreleased]
 ### Added
+- Pipelines: add ArcCurveNode — partial arc with configurable radius, start angle, sweep angle, and orientation plane (horizontal XZ, vertical XY/YZ); useful for arches and doorway frames
+- Pipelines: add Presets/Structures folder with Arch Bridge sample preset (semicircular stone-brick arch with elevated deck)
+- Pipelines: CURVE port type renders orange to distinguish it from block map (green) and skeleton (blue) ports
+- Pipelines: node picker popups show labelled section separators within large groups (Generate: Shape / Skeleton / Curve / Value; Transform: Move / Repeat)
+- Pipelines: Curve gains a `closed` flag; circle and ellipse curves are closed, arc and helix are open; preview renderer and CurveFill respect the flag
 - Modify tool: add Twist mode that redistributes selection blocks in-place by rotating each block around the AABB center by an angle proportional to its normalized position along each axis; X, Y, and Z twist angles can be combined simultaneously
 - Modify tool: add Revolve mode that rotates a selection N times around a chosen axis by a configurable angle, with optional helix translation; stairs, slabs, and orientable blocks rotate with each copy
 - Viewport window: add toggle via Window > Panels menu; state persisted across restarts
@@ -19,6 +24,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com). Run `scripts/rele
 - Stamp tool: virtual deterministic 2D grid seed — placement, preset selection, and pipeline seed all derived from tool seed mixed with block x/z, so restamping the same area with the same seed always yields identical results
 
 ### Changed
+- Pipelines: regroup node toolbar from 11 technical groups into 8 functional groups: Generate, Branch, Voxelize, Combine, Transform, Filter, Paint, Math
+- Pipelines: curve generator nodes (circle, ellipse, helix) no longer expose a segments parameter; resolution is auto-computed from arc length (1 sample per block)
+- Pipelines: curve preview now renders correctly — executor was not returning Curve outputs from leaf nodes
 - Shape tool: cuboid defaults to cube with optional separate axes toggle; uniform shapes (sphere, octahedron, supersphere, dodecahedron, icosahedron) show single size slider by default; XZ-symmetric shapes (cylinder, cone, pyramid) link depth to width by default; 2D radial shapes show single radius slider by default
 - Tree tool: pipeline nodes now receive PipelineContext carrying seed and typed slots; skeleton no longer passed via thread-local
 - Tree tool: log and leaf block selection now uses palette (multi-block) instead of single block

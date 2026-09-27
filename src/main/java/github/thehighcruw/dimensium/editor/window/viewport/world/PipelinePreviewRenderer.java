@@ -7,6 +7,7 @@ package github.thehighcruw.dimensium.editor.window.viewport.world;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.pipeline.BlockMap;
+import github.thehighcruw.dimensium.editor.pipeline.Curve;
 import github.thehighcruw.dimensium.editor.pipeline.Skeleton;
 import github.thehighcruw.dimensium.editor.pipeline.SkeletonNode;
 import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
@@ -44,12 +45,14 @@ public class PipelinePreviewRenderer {
 
     private enum RenderMode {
         BLOCKS,
-        SKELETON
+        SKELETON,
+        CURVE
     }
 
     private RenderMode renderMode = RenderMode.BLOCKS;
     private Map<Long, int[]> localBlocks = null;
     private Skeleton localSkeleton = null;
+    private Curve localCurve = null;
     private Vec3DInt dims = null;
     private Vec3DFloat effectiveCenter = null;
     private float effectiveSpan = 1f;
@@ -138,6 +141,38 @@ public class PipelinePreviewRenderer {
         for (SkeletonNode child : node.children) collectSkeletonPositions(child, out);
     }
 
+    public void setCurve(Curve curve) {
+        localBlocks = null;
+        localSkeleton = null;
+        localCurve = curve;
+        renderMode = RenderMode.CURVE;
+        if (curve == null || curve.points.isEmpty()) {
+            dirty = false;
+            return;
+        }
+        double sumX = 0, sumY = 0, sumZ = 0;
+        for (Vec3DFloat point : curve.points) {
+            sumX += point.x();
+            sumY += point.y();
+            sumZ += point.z();
+        }
+        int count = curve.points.size();
+        float cx = (float) (sumX / count);
+        float cy = (float) (sumY / count);
+        float cz = (float) (sumZ / count);
+        effectiveCenter = Vec3DFloat.from(cx, cy, cz);
+        float maxDist = 0f;
+        for (Vec3DFloat point : curve.points) {
+            float dx = point.x() - cx;
+            float dy = point.y() - cy;
+            float dz = point.z() - cz;
+            float dist = (float) Math.sqrt(dx * dx + dy * dy + dz * dz);
+            if (dist > maxDist) maxDist = dist;
+        }
+        effectiveSpan = maxDist * 2f + 2f;
+        dirty = true;
+    }
+
     public void setBlockMap(BlockMap map) {
         localSkeleton = null;
         renderMode = RenderMode.BLOCKS;
@@ -183,6 +218,7 @@ public class PipelinePreviewRenderer {
 
     public boolean hasContent() {
         if (renderMode == RenderMode.SKELETON) return localSkeleton != null && !localSkeleton.roots.isEmpty();
+        if (renderMode == RenderMode.CURVE) return localCurve != null && !localCurve.points.isEmpty();
         return localBlocks != null && !localBlocks.isEmpty();
     }
 
@@ -191,6 +227,7 @@ public class PipelinePreviewRenderer {
         if (!dirty || fboFailed) return;
         if (renderMode == RenderMode.BLOCKS && localBlocks == null) return;
         if (renderMode == RenderMode.SKELETON && (localSkeleton == null || localSkeleton.roots.isEmpty())) return;
+        if (renderMode == RenderMode.CURVE && (localCurve == null || localCurve.points.isEmpty())) return;
         dirty = false;
         rebake();
     }
@@ -267,6 +304,10 @@ public class PipelinePreviewRenderer {
         if (fboFailed || fboId == -1) return;
         if (renderMode == RenderMode.SKELETON) {
             rebakeSkeleton();
+            return;
+        }
+        if (renderMode == RenderMode.CURVE) {
+            rebakeCurve();
             return;
         }
         if (localBlocks == null || dims == null) return;
@@ -449,6 +490,82 @@ public class PipelinePreviewRenderer {
             GL11.glVertex3f(node.position.x(), node.position.y(), node.position.z());
             GL11.glVertex3f(child.position.x(), child.position.y(), child.position.z());
             drawSkeletonLines(child, depth + 1);
+        }
+    }
+
+    private void rebakeCurve() {
+        if (localCurve == null || localCurve.points.isEmpty()) return;
+
+        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
+        GL11.glMatrixMode(GL11.GL_PROJECTION);
+        GL11.glPushMatrix();
+        GL11.glMatrixMode(GL11.GL_MODELVIEW);
+        GL11.glPushMatrix();
+
+        try {
+            EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, fboId);
+            GL11.glViewport(0, 0, TEX_SIZE, TEX_SIZE);
+            GL11.glClearColor(0.05f, 0.05f, 0.07f, 1f);
+            GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+
+            GL11.glMatrixMode(GL11.GL_PROJECTION);
+            GL11.glLoadIdentity();
+            GLU.gluPerspective(45f, 1f, 0.1f, 1000f);
+
+            GL11.glMatrixMode(GL11.GL_MODELVIEW);
+            GL11.glLoadIdentity();
+
+            Vec3DFloat center = effectiveCenter != null ? effectiveCenter : Vec3DFloat.from(0f, 0f, 0f);
+            float span = effectiveSpan > 0 ? effectiveSpan : 10f;
+            float dist = (span * 0.6f + 1f) / zoom;
+            double elevRad = Math.toRadians(elev);
+            double azimRad = Math.toRadians(azim);
+
+            Vec3DFloat eye = center.plus(Vec3DFloat.from(
+                    dist * (float) (Math.cos(elevRad) * Math.cos(azimRad)),
+                    dist * (float) Math.sin(elevRad),
+                    dist * (float) (Math.cos(elevRad) * Math.sin(azimRad))));
+
+            GLU.gluLookAt(eye.x(), eye.y(), eye.z(), center.x(), center.y(), center.z(), 0f, 1f, 0f);
+
+            GL11.glEnable(GL11.GL_DEPTH_TEST);
+            GL11.glDisable(GL11.GL_TEXTURE_2D);
+            GL11.glDisable(GL11.GL_LIGHTING);
+            GL11.glDisable(GL11.GL_BLEND);
+
+            GL11.glLineWidth(2.0f);
+            GL11.glColor3f(0.3f, 0.85f, 1.0f);
+            GL11.glBegin(GL11.GL_LINE_STRIP);
+            for (Vec3DFloat point : localCurve.points) {
+                GL11.glVertex3f(point.x(), point.y(), point.z());
+            }
+            if (localCurve.closed) {
+                Vec3DFloat first = localCurve.points.get(0);
+                GL11.glVertex3f(first.x(), first.y(), first.z());
+            }
+            GL11.glEnd();
+
+            // Draw sample points as small crosses
+            float tickSize = effectiveSpan * 0.015f;
+            GL11.glLineWidth(1.0f);
+            GL11.glColor3f(1.0f, 0.6f, 0.2f);
+            GL11.glBegin(GL11.GL_LINES);
+            for (Vec3DFloat point : localCurve.points) {
+                GL11.glVertex3f(point.x() - tickSize, point.y(), point.z());
+                GL11.glVertex3f(point.x() + tickSize, point.y(), point.z());
+                GL11.glVertex3f(point.x(), point.y(), point.z() - tickSize);
+                GL11.glVertex3f(point.x(), point.y(), point.z() + tickSize);
+            }
+            GL11.glEnd();
+        } catch (Exception e) {
+            if (failReason == null) failReason = e.getClass().getSimpleName() + ": " + e.getMessage();
+        } finally {
+            EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, 0);
+            GL11.glMatrixMode(GL11.GL_PROJECTION);
+            GL11.glPopMatrix();
+            GL11.glMatrixMode(GL11.GL_MODELVIEW);
+            GL11.glPopMatrix();
+            GL11.glPopAttrib();
         }
     }
 

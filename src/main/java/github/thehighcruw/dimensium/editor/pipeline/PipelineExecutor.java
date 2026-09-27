@@ -39,6 +39,7 @@ public final class PipelineExecutor {
         Map<String, PortValues> nodeOutputs = executeNodes(graph, context, order, null);
 
         Skeleton lastSkeleton = null;
+        Curve lastCurve = null;
         BlockMap result = new BlockMap();
         for (PipelineGraph.NodeInstance inst : order) {
             if (graph.getDownstream(inst.instanceId).isEmpty()) {
@@ -48,9 +49,12 @@ public final class PipelineExecutor {
                 if (blockMap != null) result.merge(blockMap);
                 Skeleton skeleton = outputs.get("skeleton", Skeleton.class);
                 if (skeleton != null) lastSkeleton = skeleton;
+                Curve curve = outputs.get("curve", Curve.class);
+                if (curve != null) lastCurve = curve;
             }
         }
         if (result.size() == 0 && lastSkeleton != null) return lastSkeleton;
+        if (result.size() == 0 && lastCurve != null) return lastCurve;
         return result;
     }
 
@@ -68,6 +72,8 @@ public final class PipelineExecutor {
         if (blockMap != null) return blockMap;
         Skeleton skeleton = outputs.get("skeleton", Skeleton.class);
         if (skeleton != null) return skeleton;
+        Curve curve = outputs.get("curve", Curve.class);
+        if (curve != null) return curve;
         return new BlockMap();
     }
 

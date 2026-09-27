@@ -8,6 +8,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.DimensiumConfig;
 import github.thehighcruw.dimensium.editor.pipeline.BlockMap;
+import github.thehighcruw.dimensium.editor.pipeline.Curve;
 import github.thehighcruw.dimensium.editor.pipeline.PipelineContext;
 import github.thehighcruw.dimensium.editor.pipeline.PipelineExecutor;
 import github.thehighcruw.dimensium.editor.pipeline.PipelineGraph;
@@ -97,6 +98,8 @@ public class PipelinePreviewWindow extends ToggleableWindow {
             renderer.setBlockMap((BlockMap) result);
         } else if (result instanceof Skeleton) {
             renderer.setSkeleton((Skeleton) result);
+        } else if (result instanceof Curve) {
+            renderer.setCurve((Curve) result);
         } else {
             renderer.setBlockMap(null);
         }
