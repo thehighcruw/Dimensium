@@ -13,3 +13,4 @@ Dimensium is a powerful building and sculpting mod for Minecraft 1.7.10.
 - **Painting tools** — paint, gradient, and noise-based painting
 - **Blueprint system** — save and load structures
 - **Undo/redo history**
+- **[Pipeline editor](/pipeline)** — node-based procedural generation
