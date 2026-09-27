@@ -29,7 +29,6 @@ import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.MathNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.MergeBlocksNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.MirrorBlocksNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.NoiseErodeNode;
-import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.NoiseFieldNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.NoisePaletteNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.RandomFloatNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.RandomWalkPathNode;
@@ -39,7 +38,6 @@ import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.ShapeMaskNod
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.SimpleRecursiveBranchesNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.SkeletonVoxelizerNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.SpaceColonizationBranchesNode;
-import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.SplinePathNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.SubtractBlocksNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.TipClusterFillNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.TranslateBlocksNode;
@@ -61,14 +59,12 @@ public final class PipelinePresets {
         NodeRegistry.register(LinePathNode.ID, NodeGroup.GENERATE, sgSkeleton, LinePathNode::new);
         NodeRegistry.register(CurvedPathNode.ID, NodeGroup.GENERATE, null, CurvedPathNode::new);
         NodeRegistry.register(RandomWalkPathNode.ID, NodeGroup.GENERATE, null, RandomWalkPathNode::new);
-        NodeRegistry.register(SplinePathNode.ID, NodeGroup.GENERATE, null, SplinePathNode::new);
         NodeRegistry.register(ArcCurveNode.ID, NodeGroup.GENERATE, sgCurve, ArcCurveNode::new);
         NodeRegistry.register(CircleCurveNode.ID, NodeGroup.GENERATE, null, CircleCurveNode::new);
         NodeRegistry.register(EllipseCurveNode.ID, NodeGroup.GENERATE, null, EllipseCurveNode::new);
         NodeRegistry.register(HelixCurveNode.ID, NodeGroup.GENERATE, null, HelixCurveNode::new);
         NodeRegistry.register(ConstantFloatNode.ID, NodeGroup.GENERATE, sgValue, ConstantFloatNode::new);
         NodeRegistry.register(RandomFloatNode.ID, NodeGroup.GENERATE, null, RandomFloatNode::new);
-        NodeRegistry.register(NoiseFieldNode.ID, NodeGroup.GENERATE, null, NoiseFieldNode::new);
         // Branch — grows a skeleton from another skeleton
         NodeRegistry.register(WhorlBranchesNode.ID, NodeGroup.BRANCH, WhorlBranchesNode::new);
         NodeRegistry.register(SimpleRecursiveBranchesNode.ID, NodeGroup.BRANCH, SimpleRecursiveBranchesNode::new);

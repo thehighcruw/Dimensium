@@ -10,7 +10,6 @@ import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.CurvedPathNo
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.LinePathNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.RandomWalkPathNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.SpaceColonizationBranchesNode;
-import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.SplinePathNode;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 
 public class StampEntry {
@@ -58,13 +57,8 @@ public class StampEntry {
                 case RandomWalkPathNode.ID:
                     trunkHeight = inst.params.getInt("rwalk.steps", 12);
                     break;
-                case SplinePathNode.ID:
-                    trunkHeight = inst.params.getInt("spline.segments", 12);
-                    break;
                 case SpaceColonizationBranchesNode.ID:
                     crownRadius = inst.params.getFloat("sc.crownRadiusX", 6f);
-                    break;
-                default:
                     break;
             }
         }

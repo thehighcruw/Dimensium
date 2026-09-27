@@ -37,6 +37,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com). Run `scripts/rele
 ### Deprecated
 
 ### Removed
+- Pipelines: remove NoiseFieldNode, SplinePathNode, BoxMaskNode, SphereMaskNode — no concrete use cases in current pipeline architecture
 
 ### Fixed
 - Move tool, clipboard paste, Revolve, Twist: switch to inverse (backward) mapping for all rotations; eliminates gaps that appeared when arc spacing exceeded one block at large radii
