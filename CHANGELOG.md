@@ -9,12 +9,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com). Run `scripts/rele
 - Path tool: add "Extend to Ground" option that fills each path column downward until a solid surface is reached
 
 ### Changed
+- Shape tool: cuboid defaults to cube with optional separate axes toggle; uniform shapes (sphere, octahedron, supersphere, dodecahedron, icosahedron) show single size slider by default; XZ-symmetric shapes (cylinder, cone, pyramid) link depth to width by default; 2D radial shapes show single radius slider by default
 
 ### Deprecated
 
 ### Removed
 
 ### Fixed
+- Shape tool: supersphere exponent slider had no effect (was wired to a dead constant)
+- Shape tool: torus Z ring radius ignored the separate-axes toggle, always stretching on one axis
+- Shape tool: switching shape types no longer carries over hidden stale dimension values
 
 ### Security
 

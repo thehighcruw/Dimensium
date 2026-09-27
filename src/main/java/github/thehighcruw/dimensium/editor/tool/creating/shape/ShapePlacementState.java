@@ -201,10 +201,10 @@ public class ShapePlacementState
                     toolState.shapeHollow,
                     toolState.shapeExponent,
                     toolState.torusRingRadius,
-                    toolState.torusRingRadiusZ,
+                    toolState.torusSeparateAxes ? toolState.torusRingRadiusZ : toolState.torusRingRadius,
                     toolState.torusTubeRadius,
                     toolState.tubeWallThickness,
-                    toolState.shapeSupersphereExp,
+                    toolState.shapeExponent,
                     toolState.shapePolygonSides,
                     toolState.shapeSpiralSpacing,
                     toolState.shapeSpiralTurns,
@@ -251,10 +251,10 @@ public class ShapePlacementState
                 s.shapeHollow,
                 s.shapeExponent,
                 s.torusRingRadius,
-                s.torusRingRadiusZ,
+                s.torusSeparateAxes ? s.torusRingRadiusZ : s.torusRingRadius,
                 s.torusTubeRadius,
                 s.tubeWallThickness,
-                s.shapeSupersphereExp,
+                s.shapeExponent,
                 s.shapePolygonSides,
                 s.shapeSpiralSpacing,
                 s.shapeSpiralTurns,
@@ -285,15 +285,15 @@ public class ShapePlacementState
                 + ","
                 + s.torusRingRadius
                 + ","
-                + s.torusRingRadiusZ
+                + (s.torusSeparateAxes ? s.torusRingRadiusZ : s.torusRingRadius)
                 + ","
                 + s.torusTubeRadius
+                + ","
+                + s.torusSeparateAxes
                 + ","
                 + s.shapeSeparateAxes
                 + ","
                 + s.shapeExponent
-                + ","
-                + s.shapeSupersphereExp
                 + ","
                 + s.shapePolygonSides
                 + ","

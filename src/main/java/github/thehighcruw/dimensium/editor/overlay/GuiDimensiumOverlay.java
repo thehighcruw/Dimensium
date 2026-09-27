@@ -310,10 +310,10 @@ public final class GuiDimensiumOverlay {
         final boolean keepExisting = toolState.shapeKeepExisting;
         final float exponent = toolState.shapeExponent;
         final int torusRingRadius = toolState.torusRingRadius;
-        final int torusRingRadiusZ = toolState.torusRingRadiusZ;
+        final int torusRingRadiusZ =
+                toolState.torusSeparateAxes ? toolState.torusRingRadiusZ : toolState.torusRingRadius;
         final int torusTubeRadius = toolState.torusTubeRadius;
         final int tubeWallThickness = toolState.tubeWallThickness;
-        final float supersphereExp = toolState.shapeSupersphereExp;
         final int polygonSides = toolState.shapePolygonSides;
         final float spiralSpacing = toolState.shapeSpiralSpacing;
         final float spiralTurns = toolState.shapeSpiralTurns;
@@ -357,7 +357,7 @@ public final class GuiDimensiumOverlay {
                             torusRingRadiusZ,
                             torusTubeRadius,
                             tubeWallThickness,
-                            supersphereExp,
+                            exponent,
                             polygonSides,
                             spiralSpacing,
                             spiralTurns,

@@ -71,26 +71,46 @@ public class ShapeToolState {
     public int shapePolygonSides = 6;
     public float shapeSpiralSpacing = 1.0f;
     public float shapeSpiralTurns = 3.0f;
-    public final float shapeSupersphereExp = 2.0f;
     public boolean metaballBlend = false;
     public int metaballBlendRadius = 2;
 
     public Vec3DInt effectiveDimensions(int w, int h, int d) {
-        if (shapeType == ShapeType.TORUS) {
-            int outerX = torusRingRadius + torusTubeRadius;
-            int outerZ = torusRingRadiusZ + torusTubeRadius;
-            w = outerX * 2 + 1;
-            h = torusTubeRadius * 2 + 1;
-            d = outerZ * 2 + 1;
-        } else if (shapeType == ShapeType.ARCHIMEDEAN_SPIRAL) {
-            int r = (int) Math.ceil(shapeSpiralSpacing * shapeSpiralTurns);
-            w = r * 2 + 1;
-            h = 1;
-            d = r * 2 + 1;
-        } else if (!shapeSeparateAxes
-                && (shapeType == ShapeType.CYLINDER || shapeType == ShapeType.CONE || shapeType == ShapeType.TUBE)) {
-            d = w;
+        switch (shapeType) {
+            case TORUS: {
+                int outerX = torusRingRadius + torusTubeRadius;
+                int outerZ = (torusSeparateAxes ? torusRingRadiusZ : torusRingRadius) + torusTubeRadius;
+                return Vec3DInt.from(outerX * 2 + 1, torusTubeRadius * 2 + 1, outerZ * 2 + 1);
+            }
+            case ARCHIMEDEAN_SPIRAL: {
+                int r = (int) Math.ceil(shapeSpiralSpacing * shapeSpiralTurns);
+                return Vec3DInt.from(r * 2 + 1, 1, r * 2 + 1);
+            }
+            // 2D radial: always H=1, D=W unless separate axes
+            case DISK:
+            case SUPERELLIPSE:
+            case REGULAR_POLYGON:
+                return Vec3DInt.from(w, 1, shapeSeparateAxes ? d : w);
+            // 2D planar: always H=1, W and D independent
+            case PLANE:
+                return Vec3DInt.from(w, 1, d);
+            // XZ-symmetric 3D: D=W unless separate axes
+            case CYLINDER:
+            case CONE:
+            case PYRAMID:
+                return Vec3DInt.from(w, h, shapeSeparateAxes ? d : w);
+            // Tube: always circular cross-section
+            case TUBE:
+                return Vec3DInt.from(w, h, w);
+            // Uniform 3D: H=W, D=W unless separate axes
+            case SPHERE:
+            case OCTAHEDRON:
+            case SUPERSPHERE:
+            case DODECAHEDRON:
+            case ICOSAHEDRON:
+                return Vec3DInt.from(w, shapeSeparateAxes ? h : w, shapeSeparateAxes ? d : w);
+            // CUBOID: uniform by default, separate axes unlocks W/H/D
+            default:
+                return Vec3DInt.from(w, shapeSeparateAxes ? h : w, shapeSeparateAxes ? d : w);
         }
-        return Vec3DInt.from(w, h, d);
     }
 }

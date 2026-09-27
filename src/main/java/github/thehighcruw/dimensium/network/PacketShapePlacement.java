@@ -44,7 +44,6 @@ public class PacketShapePlacement implements IPacket {
     private float exponent;
     private int torusRingR, torusRingRZ, torusTubeR;
     private int tubeWallThickness;
-    private float supersphereExp;
     private int polygonSides;
     private float spiralSpacing, spiralTurns;
     private boolean useStairsAndSlabs;
@@ -65,10 +64,9 @@ public class PacketShapePlacement implements IPacket {
         useStairsAndSlabs = s.useStairsAndSlabs;
         exponent = s.shapeExponent;
         torusRingR = s.torusRingRadius;
-        torusRingRZ = s.torusRingRadiusZ;
+        torusRingRZ = s.torusSeparateAxes ? s.torusRingRadiusZ : s.torusRingRadius;
         torusTubeR = s.torusTubeRadius;
         tubeWallThickness = s.tubeWallThickness;
-        supersphereExp = s.shapeSupersphereExp;
         polygonSides = s.shapePolygonSides;
         spiralSpacing = s.shapeSpiralSpacing;
         spiralTurns = s.shapeSpiralTurns;
@@ -105,7 +103,6 @@ public class PacketShapePlacement implements IPacket {
         buf.writeInt(torusRingRZ);
         buf.writeInt(torusTubeR);
         buf.writeInt(tubeWallThickness);
-        buf.writeFloat(supersphereExp);
         buf.writeInt(polygonSides);
         buf.writeFloat(spiralSpacing);
         buf.writeFloat(spiralTurns);
@@ -131,7 +128,6 @@ public class PacketShapePlacement implements IPacket {
         torusRingRZ = buf.readInt();
         torusTubeR = buf.readInt();
         tubeWallThickness = buf.readInt();
-        supersphereExp = buf.readFloat();
         polygonSides = buf.readInt();
         spiralSpacing = buf.readFloat();
         spiralTurns = buf.readFloat();
@@ -191,7 +187,7 @@ public class PacketShapePlacement implements IPacket {
                 torusRingRZ,
                 torusTubeR,
                 tubeWallThickness,
-                supersphereExp,
+                exponent,
                 polygonSides,
                 spiralSpacing,
                 spiralTurns,
@@ -233,7 +229,7 @@ public class PacketShapePlacement implements IPacket {
                         torusRingRZ,
                         torusTubeR,
                         tubeWallThickness,
-                        supersphereExp,
+                        exponent,
                         polygonSides,
                         spiralSpacing,
                         spiralTurns,

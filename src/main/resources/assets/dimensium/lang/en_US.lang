@@ -482,6 +482,7 @@ dimensium.ui.shape.metaball_blend_radius=Blend Radius
 dimensium.ui.shape.use_stairs_and_slabs=Use Stairs and Slabs
 dimensium.ui.shape.polygon_sides=Polygon Sides
 dimensium.ui.shape.separate_axes=Separate Axes
+dimensium.ui.shape.size=Size
 dimensium.ui.shape.spiral_spacing=Spiral Spacing
 dimensium.ui.shape.spiral_turns=Spiral Turns
 dimensium.ui.shape.torus_ring=Torus Ring Rad
