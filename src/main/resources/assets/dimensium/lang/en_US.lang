@@ -1172,4 +1172,5 @@ dimensium.ui.pipeline.node.curve_fill.desc=Fills a solid tube of blocks along a 
 
 # Curve scatter node
 dimensium.ui.pipeline.curve_scatter_stride=Stride
+dimensium.ui.pipeline.curve_scatter_align_to_curve=Align to Curve
 dimensium.ui.pipeline.node.curve_scatter.desc=Places copies of the input block map centred at every Nth point along a curve. Useful for colonnades, fence posts, and evenly-spaced repeated elements.
