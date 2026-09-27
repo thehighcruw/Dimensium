@@ -54,6 +54,7 @@ public final class PipelinePresets {
         final String sgCurve = "dimensium.ui.pipeline.subgroup.curve";
         final String sgValue = "dimensium.ui.pipeline.subgroup.value";
         NodeRegistry.register(ShapeMaskNode.ID, NodeGroup.GENERATE, sgShape, ShapeMaskNode::new);
+        NodeRegistry.register(BlueprintBlocksNode.ID, NodeGroup.GENERATE, null, BlueprintBlocksNode::new);
         NodeRegistry.register(LinePathNode.ID, NodeGroup.GENERATE, sgSkeleton, LinePathNode::new);
         NodeRegistry.register(CurvedPathNode.ID, NodeGroup.GENERATE, null, CurvedPathNode::new);
         NodeRegistry.register(RandomWalkPathNode.ID, NodeGroup.GENERATE, null, RandomWalkPathNode::new);
@@ -63,7 +64,6 @@ public final class PipelinePresets {
         NodeRegistry.register(HelixCurveNode.ID, NodeGroup.GENERATE, null, HelixCurveNode::new);
         NodeRegistry.register(ConstantFloatNode.ID, NodeGroup.GENERATE, sgValue, ConstantFloatNode::new);
         NodeRegistry.register(RandomFloatNode.ID, NodeGroup.GENERATE, null, RandomFloatNode::new);
-        NodeRegistry.register(BlueprintBlocksNode.ID, NodeGroup.GENERATE, null, BlueprintBlocksNode::new);
         // Branch — grows a skeleton from another skeleton
         NodeRegistry.register(WhorlBranchesNode.ID, NodeGroup.BRANCH, WhorlBranchesNode::new);
         NodeRegistry.register(SimpleRecursiveBranchesNode.ID, NodeGroup.BRANCH, SimpleRecursiveBranchesNode::new);
