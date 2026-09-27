@@ -33,6 +33,7 @@ import github.thehighcruw.dimensium.editor.tool.painting.gradient.GradientToolSt
 import github.thehighcruw.dimensium.editor.tool.painting.noise.NoiseToolState;
 import github.thehighcruw.dimensium.editor.tool.state.ClipboardPlacementState;
 import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
+import github.thehighcruw.dimensium.editor.window.viewport.ViewportPanel;
 import github.thehighcruw.dimensium.editor.window.viewport.ViewportRegistry;
 import github.thehighcruw.dimensium.editor.window.viewport.ViewportState;
 import github.thehighcruw.dimensium.editor.window.viewport.world.ScalingGizmo;
@@ -272,6 +273,7 @@ public class TickHandler {
     private void applyPaintIfHeld(Minecraft mc, int sw, int sh) {
         if (!DimensiumEditorMode.INSTANCE.isActive()) return;
         if (ImGuiManager.INSTANCE.anyModalOpen()) return;
+        if (!ViewportPanel.INSTANCE.isHovered()) return;
 
         FreecamState fs = FreecamState.INSTANCE;
         int mx = (int) fs.cursorX, my = (int) fs.cursorY;
