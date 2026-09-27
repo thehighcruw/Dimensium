@@ -83,7 +83,7 @@ public final class PipelinePresets {
         }
     }
 
-    public static final String PRESETS_FOLDER = "Presets";
+    public static final String PRESETS_FOLDER = "Presets/Trees";
 
     public static List<PipelineGraph> buildDefaultGraphs() {
         List<PipelineGraph> graphs = new ArrayList<>();

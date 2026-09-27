@@ -19,7 +19,9 @@ import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
 import imgui.type.ImString;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import net.minecraft.client.resources.I18n;
 
 @SideOnly(Side.CLIENT)
@@ -96,51 +98,7 @@ public class PipelineManageWindow extends ToggleableWindow {
             renderRow(g, scale);
         }
 
-        for (String folder : folders) {
-            int flags = ImGuiTreeNodeFlags.SpanAvailWidth | ImGuiTreeNodeFlags.DefaultOpen;
-
-            if (renamingFolderOriginal != null && renamingFolderOriginal.equals(folder)) {
-                renderFolderRenameInput(folder, all);
-            } else {
-                boolean node = ImGui.treeNodeEx("##folder_" + folder, flags, folder);
-
-                // Folder drag source
-                boolean isBuiltinFolder = lib.isBuiltinFolder(folder);
-                if (!isBuiltinFolder && ImGui.beginDragDropSource()) {
-                    dragFolder = folder;
-                    ImGui.setDragDropPayload("FOLDER", new byte[] {1});
-                    ImGui.text(folder);
-                    ImGui.endDragDropSource();
-                }
-
-                // Folder drop target — accept pipelines and other folders
-                if (ImGui.beginDragDropTarget()) {
-                    byte[] pipelinePayload = ImGui.acceptDragDropPayload("PIPELINE");
-                    if (pipelinePayload != null && dragPipeline != null) {
-                        lib.moveToFolder(dragPipeline, folder);
-                        dragPipeline = null;
-                    }
-                    byte[] folderPayload = ImGui.acceptDragDropPayload("FOLDER");
-                    if (folderPayload != null && dragFolder != null && !dragFolder.equals(folder)) {
-                        String sourceFolder = dragFolder;
-                        dragFolder = null;
-                        for (PipelineGraph g : lib.all()) {
-                            if (sourceFolder.equals(g.folder)) lib.moveToFolder(g, folder);
-                        }
-                        lib.removeExplicitFolder(sourceFolder);
-                    }
-                    ImGui.endDragDropTarget();
-                }
-
-                renderFolderContextMenu(folder, all);
-                if (node) {
-                    for (PipelineGraph g : all) {
-                        if (folder.equals(g.folder)) renderRow(g, scale);
-                    }
-                    ImGui.treePop();
-                }
-            }
-        }
+        renderFolderLevel(null, folders, all, scale);
 
         ImGui.separator();
         ImGui.setNextItemWidth(120f * scale);
@@ -153,6 +111,69 @@ public class PipelineManageWindow extends ToggleableWindow {
                 newFolderBuffer.set("");
             }
         }
+    }
+
+    private void renderFolderLevel(
+            String parentPath, List<String> allFolderPaths, List<PipelineGraph> all, float scale) {
+        PipelineLibrary lib = PipelineLibrary.INSTANCE;
+        Set<String> segments = getDirectChildSegments(parentPath, allFolderPaths);
+        for (String segment : segments) {
+            String fullPath = parentPath == null ? segment : parentPath + "/" + segment;
+            int flags = ImGuiTreeNodeFlags.SpanAvailWidth | ImGuiTreeNodeFlags.DefaultOpen;
+
+            if (renamingFolderOriginal != null && renamingFolderOriginal.equals(fullPath)) {
+                renderFolderRenameInput(fullPath, all);
+            } else {
+                boolean node = ImGui.treeNodeEx("##folder_" + fullPath, flags, segment);
+
+                boolean isBuiltinFolder = lib.isBuiltinFolder(fullPath);
+                if (!isBuiltinFolder && ImGui.beginDragDropSource()) {
+                    dragFolder = fullPath;
+                    ImGui.setDragDropPayload("FOLDER", new byte[] {1});
+                    ImGui.text(segment);
+                    ImGui.endDragDropSource();
+                }
+
+                if (ImGui.beginDragDropTarget()) {
+                    byte[] pipelinePayload = ImGui.acceptDragDropPayload("PIPELINE");
+                    if (pipelinePayload != null && dragPipeline != null) {
+                        lib.moveToFolder(dragPipeline, fullPath);
+                        dragPipeline = null;
+                    }
+                    byte[] folderPayload = ImGui.acceptDragDropPayload("FOLDER");
+                    if (folderPayload != null && dragFolder != null && !dragFolder.equals(fullPath)) {
+                        String sourceFolder = dragFolder;
+                        dragFolder = null;
+                        for (PipelineGraph g : lib.all()) {
+                            if (sourceFolder.equals(g.folder)) lib.moveToFolder(g, fullPath);
+                        }
+                        lib.removeExplicitFolder(sourceFolder);
+                    }
+                    ImGui.endDragDropTarget();
+                }
+
+                renderFolderContextMenu(fullPath, all);
+                if (node) {
+                    renderFolderLevel(fullPath, allFolderPaths, all, scale);
+                    for (PipelineGraph g : all) {
+                        if (fullPath.equals(g.folder)) renderRow(g, scale);
+                    }
+                    ImGui.treePop();
+                }
+            }
+        }
+    }
+
+    private Set<String> getDirectChildSegments(String parentPath, List<String> allFolderPaths) {
+        String prefix = parentPath == null ? "" : parentPath + "/";
+        Set<String> segments = new LinkedHashSet<>();
+        for (String folder : allFolderPaths) {
+            if (!folder.startsWith(prefix)) continue;
+            String rest = folder.substring(prefix.length());
+            int slash = rest.indexOf('/');
+            segments.add(slash == -1 ? rest : rest.substring(0, slash));
+        }
+        return segments;
     }
 
     private void renderRow(PipelineGraph graph, float scale) {
