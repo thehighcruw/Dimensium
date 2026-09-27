@@ -14,8 +14,16 @@ The Move tool translates and rotates the current selection using interactive giz
 | LMB drag (view-plane gizmo) | Translate the selection on the camera-facing plane |
 | RMB | Confirm the move and apply to the world |
 
+## Parameters
+
+| Parameter | Description |
+|---|---|
+| (none) | The Move tool has no panel parameters — all transforms are applied through gizmos in the viewport |
+
 ## Tips
 
 - The ghost preview updates in real time as you drag.
 - Rotation pivots around the selection's center of mass.
-- Cancel by switching to another tool before confirming.
+- Press **Escape** to cancel before confirming — this discards all gizmo movement.
+- Scale handles resize the selection via nearest-neighbour resampling, which may simplify detail at small scales.
+- Rotated blocks have their facing metadata updated automatically where supported.

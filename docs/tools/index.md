@@ -12,3 +12,7 @@ All tools are accessible from the editor overlay via the tool panel.
 | [Painting](/tools/painting) | Replace block types within a selection |
 | [Selecting](/tools/selecting) | Define a selection region |
 | [Utility](/tools/utility) | Measurement and reference helpers |
+
+## Masks
+
+[Masks](/tools/masks) restrict which blocks any tool may affect. A mask is applied globally — all tools respect the active mask.
