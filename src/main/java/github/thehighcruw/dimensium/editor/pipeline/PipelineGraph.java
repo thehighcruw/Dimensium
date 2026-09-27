@@ -208,6 +208,7 @@ public class PipelineGraph {
     private static JsonElement serializeParamValue(Object value) {
         if (value instanceof Number) return new JsonPrimitive(((Number) value).doubleValue());
         if (value instanceof Boolean) return new JsonPrimitive((Boolean) value);
+        if (value instanceof String) return new JsonPrimitive((String) value);
         if (value instanceof List) {
             JsonArray arr = new JsonArray();
             for (int[] entry : (List<int[]>) value) {
@@ -283,6 +284,7 @@ public class PipelineGraph {
         if (el.isJsonPrimitive()) {
             JsonPrimitive p = el.getAsJsonPrimitive();
             if (p.isBoolean()) return p.getAsBoolean();
+            if (p.isString()) return p.getAsString();
             return p.getAsDouble();
         }
         if (el.isJsonArray()) {

@@ -40,6 +40,11 @@ public class NodeParams {
         return value instanceof Number ? ((Number) value).longValue() : defaultValue;
     }
 
+    public String getString(String key, String defaultValue) {
+        Object value = values.get(key);
+        return value instanceof String ? (String) value : defaultValue;
+    }
+
     @SuppressWarnings("unchecked")
     public List<int[]> getPalette(String key, List<int[]> defaultValue) {
         Object value = values.get(key);

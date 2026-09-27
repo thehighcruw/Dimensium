@@ -9,6 +9,7 @@ import github.thehighcruw.dimensium.editor.pipeline.NodeRegistry.NodeGroup;
 import github.thehighcruw.dimensium.editor.pipeline.PipelineGraph;
 import github.thehighcruw.dimensium.editor.pipeline.PipelineLibrary;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.ArcCurveNode;
+import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.BlueprintBlocksNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.BranchDepthPainterNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.CircleCurveNode;
 import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.ConstantFloatNode;
@@ -65,6 +66,7 @@ public final class PipelinePresets {
         NodeRegistry.register(HelixCurveNode.ID, NodeGroup.GENERATE, null, HelixCurveNode::new);
         NodeRegistry.register(ConstantFloatNode.ID, NodeGroup.GENERATE, sgValue, ConstantFloatNode::new);
         NodeRegistry.register(RandomFloatNode.ID, NodeGroup.GENERATE, null, RandomFloatNode::new);
+        NodeRegistry.register(BlueprintBlocksNode.ID, NodeGroup.GENERATE, null, BlueprintBlocksNode::new);
         // Branch — grows a skeleton from another skeleton
         NodeRegistry.register(WhorlBranchesNode.ID, NodeGroup.BRANCH, WhorlBranchesNode::new);
         NodeRegistry.register(SimpleRecursiveBranchesNode.ID, NodeGroup.BRANCH, SimpleRecursiveBranchesNode::new);

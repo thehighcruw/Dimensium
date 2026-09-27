@@ -17,7 +17,8 @@ public class NodeSchema {
         BOOL,
         LONG,
         PALETTE,
-        ENUM
+        ENUM,
+        BLUEPRINT
     }
 
     public static final class ParamDef {
@@ -221,6 +222,22 @@ public class NodeSchema {
                 key,
                 ParamType.PALETTE,
                 new ArrayList<>(defaultValue),
+                0f,
+                0f,
+                labelKey,
+                null,
+                false,
+                consumeConditionKey(),
+                consumeConditionValues()));
+        return this;
+    }
+
+    /** Blueprint param rendered as a name label + pick button. Stores the blueprint filename as a String. */
+    public NodeSchema blueprintParam(String key, String labelKey) {
+        paramList.add(new ParamDef(
+                key,
+                ParamType.BLUEPRINT,
+                "",
                 0f,
                 0f,
                 labelKey,

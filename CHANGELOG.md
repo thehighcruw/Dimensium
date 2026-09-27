@@ -8,6 +8,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com). Run `scripts/rele
 - Modify tool: fix Twist mode multi-axis block placement disagreeing with the bounding-box visual; forward mapping now places blocks at their exact rotated positions, and the destination AABB is computed per-corner with each corner's own rotation
 
 ### Added
+- Pipelines: add Blueprint Blocks node (Generate group) — loads a saved blueprint and outputs its blocks as a BlockMap; blueprint is picked via the Blueprint Browser popup
 - Pipelines: add ArcCurveNode — partial arc with configurable radius, start angle, sweep angle, and orientation plane (horizontal XZ, vertical XY/YZ); useful for arches and doorway frames
 - Pipelines: add Presets/Structures folder with Arch Bridge sample preset (semicircular stone-brick arch with elevated deck)
 - Pipelines: CURVE port type renders orange to distinguish it from block map (green) and skeleton (blue) ports

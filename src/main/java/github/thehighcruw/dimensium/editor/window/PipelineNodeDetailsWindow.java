@@ -7,12 +7,14 @@ package github.thehighcruw.dimensium.editor.window;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.DimensiumConfig;
+import github.thehighcruw.dimensium.editor.blueprint.Blueprint;
 import github.thehighcruw.dimensium.editor.pipeline.NodeRegistry;
 import github.thehighcruw.dimensium.editor.pipeline.NodeSchema;
 import github.thehighcruw.dimensium.editor.pipeline.NodeSchema.ParamDef;
 import github.thehighcruw.dimensium.editor.pipeline.PipelineGraph;
 import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
 import github.thehighcruw.dimensium.editor.window.imgui.ToggleableWindow;
+import github.thehighcruw.dimensium.editor.window.popup.BlueprintBrowserPopup;
 import imgui.ImGui;
 import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiCond;
@@ -196,6 +198,28 @@ public class PipelineNodeDetailsWindow extends ToggleableWindow {
                     ImGui.text(label);
                     PipelineBlockPaletteWidget.render(def.key, palette, graph::markDirty);
                     ImGui.spacing();
+                    break;
+                }
+                case BLUEPRINT: {
+                    ImGui.textDisabled(label);
+                    String current = node.params.getString(def.key, "");
+                    String displayName = current.isEmpty()
+                            ? I18n.format("dimensium.ui.pipeline.node.blueprint_blocks.none")
+                            : current;
+                    ImGui.setNextItemWidth(panelWidth - 60f * ImGuiManager.INSTANCE.getUIScale());
+                    ImGui.inputText(
+                            "##" + def.key + "_display",
+                            new imgui.type.ImString(displayName, 256),
+                            imgui.flag.ImGuiInputTextFlags.ReadOnly);
+                    ImGui.sameLine();
+                    if (ImGui.button(
+                            I18n.format("dimensium.ui.pipeline.node.blueprint_blocks.pick") + "##" + def.key)) {
+                        BlueprintBrowserPopup.INSTANCE.open((Blueprint bp) -> {
+                            if (bp.name() == null) return;
+                            node.params.set(def.key, bp.name());
+                            graph.markDirty();
+                        });
+                    }
                     break;
                 }
                 default:
