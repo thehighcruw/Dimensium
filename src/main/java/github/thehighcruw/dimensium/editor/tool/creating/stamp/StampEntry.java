@@ -6,9 +6,11 @@ package github.thehighcruw.dimensium.editor.tool.creating.stamp;
 
 import github.thehighcruw.dimensium.editor.blueprint.Blueprint;
 import github.thehighcruw.dimensium.editor.pipeline.PipelineGraph;
-import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.SimpleRecursiveSkeletonNode;
-import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.SpaceColonizationSkeletonNode;
-import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.WeberPennSkeletonNode;
+import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.CurvedPathNode;
+import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.LinePathNode;
+import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.RandomWalkPathNode;
+import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.SpaceColonizationBranchesNode;
+import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.SplinePathNode;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -52,15 +54,19 @@ public class StampEntry {
         float crownRadius = 6f;
         for (PipelineGraph.NodeInstance inst : pipeline.nodes()) {
             switch (inst.typeId) {
-                case WeberPennSkeletonNode.ID:
-                    trunkHeight = inst.params.getInt("wp.trunkHeight", 12);
-                    crownRadius = inst.params.getFloat("leaf.clusterRadius", 6f);
+                case LinePathNode.ID:
+                    trunkHeight = inst.params.getInt("line.height", 12);
                     break;
-                case SimpleRecursiveSkeletonNode.ID:
-                    trunkHeight = inst.params.getInt("sr.trunkHeight", 8);
+                case CurvedPathNode.ID:
+                    trunkHeight = inst.params.getInt("curved.height", 12);
                     break;
-                case SpaceColonizationSkeletonNode.ID:
-                    trunkHeight = inst.params.getInt("sc.trunkHeight", 6);
+                case RandomWalkPathNode.ID:
+                    trunkHeight = inst.params.getInt("rwalk.steps", 12);
+                    break;
+                case SplinePathNode.ID:
+                    trunkHeight = inst.params.getInt("spline.segments", 12);
+                    break;
+                case SpaceColonizationBranchesNode.ID:
                     crownRadius = inst.params.getFloat("sc.crownRadiusX", 6f);
                     break;
                 default:

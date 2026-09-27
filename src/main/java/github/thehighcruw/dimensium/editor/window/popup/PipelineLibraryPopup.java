@@ -43,6 +43,8 @@ public class PipelineLibraryPopup {
     // Port colours (ABGR)
     private static final int COL_SKELETON = 0xFF_00_AA_FF;
     private static final int COL_BLOCK_MAP = 0xFF_00_FF_88;
+    private static final int COL_FLOAT = 0xFF_AA_AA_AA;
+    private static final int COL_VEC3 = 0xFF_00_CC_FF;
     private static final int COL_CARD_BG = 0xFF_3A_3A_3A;
     private static final int COL_CARD_BORDER = 0xFF_66_66_66;
     private static final int COL_ARROW = 0xFF_99_99_99;
@@ -256,8 +258,18 @@ public class PipelineLibraryPopup {
                     ? (schema.primaryInput() != null ? schema.primaryInput().type : null)
                     : (schema.primaryOutput() != null ? schema.primaryOutput().type : null);
             if (type == null) return COL_CARD_BORDER;
-            if (type == PortType.SKELETON) return COL_SKELETON;
-            if (type == PortType.BLOCK_MAP) return COL_BLOCK_MAP;
+            switch (type) {
+                case SKELETON:
+                    return COL_SKELETON;
+                case BLOCK_MAP:
+                    return COL_BLOCK_MAP;
+                case FLOAT:
+                    return COL_FLOAT;
+                case VEC3:
+                    return COL_VEC3;
+                default:
+                    return COL_CARD_BORDER;
+            }
         } catch (Exception ignored) {
         }
         return COL_CARD_BORDER;

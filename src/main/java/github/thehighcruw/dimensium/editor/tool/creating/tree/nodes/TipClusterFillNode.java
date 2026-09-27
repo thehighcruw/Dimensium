@@ -36,7 +36,7 @@ public class TipClusterFillNode implements PipelineNode {
             .floatParam("cluster.noisiness", 0.5f, 0.0f, 1.0f, "dimensium.ui.pipeline.cluster_noisiness")
             .description("dimensium.ui.pipeline.node.tip_cluster_fill.desc")
             .inputPort("blocks", PortType.BLOCK_MAP)
-            .optionalInputPort("skeleton", PortType.SKELETON)
+            .inputPort("skeleton", PortType.SKELETON)
             .outputPort("blocks", PortType.BLOCK_MAP);
 
     @Override
@@ -55,7 +55,9 @@ public class TipClusterFillNode implements PipelineNode {
         float noisiness = params.getFloat("cluster.noisiness", 0.5f);
 
         List<Vec3DInt> tips = new ArrayList<>();
-        collectTips(skeleton.root, tips);
+        for (SkeletonNode root : skeleton.roots) {
+            collectTips(root, tips);
+        }
 
         long seed = context.nodeSeed(2);
         Random rand = new Random(seed);

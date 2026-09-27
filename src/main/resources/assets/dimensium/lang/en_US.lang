@@ -888,7 +888,83 @@ dimensium.ui.pipeline.density_only_leaves=Only Leaves
 dimensium.ui.pipeline.noise_palette=Noise Palette
 dimensium.ui.pipeline.noise_scale=Noise Scale
 
+# Path node params
+dimensium.ui.pipeline.line_height=Height
+dimensium.ui.pipeline.line_base_radius=Base Radius
+dimensium.ui.pipeline.line_taper=Taper
+dimensium.ui.pipeline.curved_height=Height
+dimensium.ui.pipeline.curved_base_radius=Base Radius
+dimensium.ui.pipeline.curved_taper=Taper
+dimensium.ui.pipeline.curved_lean_angle=Lean Angle
+dimensium.ui.pipeline.curved_lean_direction=Lean Direction
+dimensium.ui.pipeline.rwalk_steps=Steps
+dimensium.ui.pipeline.rwalk_base_radius=Base Radius
+dimensium.ui.pipeline.rwalk_taper=Taper
+dimensium.ui.pipeline.rwalk_deviation_angle=Deviation Angle
+dimensium.ui.pipeline.rwalk_upward_bias=Upward Bias
+dimensium.ui.pipeline.spline_p1x=P1 X
+dimensium.ui.pipeline.spline_p1y=P1 Y
+dimensium.ui.pipeline.spline_p1z=P1 Z
+dimensium.ui.pipeline.spline_p2x=P2 X
+dimensium.ui.pipeline.spline_p2y=P2 Y
+dimensium.ui.pipeline.spline_p2z=P2 Z
+dimensium.ui.pipeline.spline_p3x=P3 X
+dimensium.ui.pipeline.spline_p3y=P3 Y
+dimensium.ui.pipeline.spline_p3z=P3 Z
+dimensium.ui.pipeline.spline_segments=Segments
+dimensium.ui.pipeline.spline_base_radius=Base Radius
+dimensium.ui.pipeline.spline_taper=Taper
+
+# Branch node params
+dimensium.ui.pipeline.srb_levels=Levels
+dimensium.ui.pipeline.srb_branch_count=Branches
+dimensium.ui.pipeline.srb_branch_angle=Branch Angle
+dimensium.ui.pipeline.srb_initial_length=Initial Length
+dimensium.ui.pipeline.srb_length_decay=Length Decay
+dimensium.ui.pipeline.srb_radius_decay=Radius Decay
+dimensium.ui.pipeline.wp_levels=Levels
+dimensium.ui.pipeline.wp_branch_count=Branches
+dimensium.ui.pipeline.wp_branch_angle_spread=Angle Spread
+dimensium.ui.pipeline.wp_initial_length=Initial Length
+dimensium.ui.pipeline.wp_length_ratio=Length Ratio
+dimensium.ui.pipeline.wp_radius_factor=Radius Factor
+
+# Math / FLOAT node params
+dimensium.ui.pipeline.noise_frequency=Frequency
+dimensium.ui.pipeline.noise_octaves=Octaves
+dimensium.ui.pipeline.noise_amplitude=Amplitude
+dimensium.ui.pipeline.mr_in_min=In Min
+dimensium.ui.pipeline.mr_in_max=In Max
+dimensium.ui.pipeline.mr_out_min=Out Min
+dimensium.ui.pipeline.mr_out_max=Out Max
+dimensium.ui.pipeline.mr_clamp=Clamp
+dimensium.ui.pipeline.math_op=Operation
+dimensium.ui.pipeline.math_value_b=Value B
+
+# Mask node params
+dimensium.ui.pipeline.sphere_radius=Radius
+dimensium.ui.pipeline.sphere_palette=Block Palette
+dimensium.ui.pipeline.box_width=Width
+dimensium.ui.pipeline.box_height=Height
+dimensium.ui.pipeline.box_depth=Depth
+dimensium.ui.pipeline.box_palette=Block Palette
+
 # Pipeline node descriptions
+dimensium.ui.pipeline.node.line_path.desc=Generates a straight vertical skeleton path.
+dimensium.ui.pipeline.node.curved_path.desc=Generates a skeleton path that curves in a fixed direction.
+dimensium.ui.pipeline.node.random_walk_path.desc=Generates a skeleton path using a random walk with upward bias.
+dimensium.ui.pipeline.node.spline_path.desc=Generates a skeleton path following a cubic Bezier spline through four control points.
+dimensium.ui.pipeline.node.simple_recursive_branches.desc=Adds recursively subdivided branches to every leaf of a skeleton.
+dimensium.ui.pipeline.node.space_colonization_branches.desc=Grows branches toward a cloud of attractor points above the skeleton tips.
+dimensium.ui.pipeline.node.weber_penn_branches.desc=Adds parametric Weber-Penn style branches to every leaf of a skeleton.
+dimensium.ui.pipeline.node.merge_blocks.desc=Merges two block maps, with blocks from B overwriting overlapping positions in A.
+dimensium.ui.pipeline.node.subtract_blocks.desc=Removes positions from block map A that are occupied in block map B.
+dimensium.ui.pipeline.node.intersect_blocks.desc=Keeps only positions present in both block map A and block map B.
+dimensium.ui.pipeline.node.noise_field.desc=Evaluates multi-octave simplex noise at the pipeline origin and outputs a float in [0, amplitude].
+dimensium.ui.pipeline.node.map_range.desc=Remaps a float value from one range to another with optional clamping.
+dimensium.ui.pipeline.node.math.desc=Applies a binary math operation (add, subtract, multiply, divide, pow, min, max) to two floats.
+dimensium.ui.pipeline.node.sphere_mask.desc=Fills a sphere of the given radius at the pipeline origin with the chosen palette.
+dimensium.ui.pipeline.node.box_mask.desc=Fills an axis-aligned box at the pipeline origin with the chosen palette.
 dimensium.ui.pipeline.node.ellipsoid_mask.desc=Removes all blocks outside an axis-aligned ellipsoid centred above the pipeline origin.
 dimensium.ui.pipeline.node.skeleton_voxelizer.desc=Converts a skeleton into blocks by stamping spheres along each segment.
 dimensium.ui.pipeline.node.density_palette.desc=Repaints blocks based on local neighbor density — dense areas use later palette entries.
@@ -898,9 +974,6 @@ dimensium.ui.pipeline.node.gaussian_blur.desc=Fills voxels adjacent to filled on
 dimensium.ui.pipeline.node.tip_cluster_fill.desc=Fills noisy spherical clusters around skeleton tip nodes using a block palette.
 dimensium.ui.pipeline.node.noise_erode.desc=Removes blocks based on 3D Simplex noise, carving an irregular eroded surface.
 dimensium.ui.pipeline.node.noise_palette.desc=Repaints blocks by sampling 3D Simplex noise, distributing palette entries across noise bands.
-dimensium.ui.pipeline.node.simple_recursive_skeleton.desc=Generates a branching skeleton using a simple recursive subdivision algorithm.
-dimensium.ui.pipeline.node.space_colonization_skeleton.desc=Generates a skeleton using space colonization, growing branches toward a cloud of attractor points.
-dimensium.ui.pipeline.node.weber_penn_skeleton.desc=Generates a skeleton using the Weber-Penn parametric branching model.
 
 # Tree Tool (section labels, kept for ToolSection panel)
 dimensium.tool.tree=Tree
@@ -912,8 +985,12 @@ dimensium.ui.pipeline.new=New
 dimensium.ui.pipeline.save=Save
 dimensium.ui.pipeline.preview=Preview
 dimensium.ui.pipeline.clear_preview=Clear Preview
-dimensium.ui.pipeline.group.skeleton=Skeleton
+dimensium.ui.pipeline.group.path=Path
+dimensium.ui.pipeline.group.branch=Branch
 dimensium.ui.pipeline.group.convert=Convert
+dimensium.ui.pipeline.group.boolean=Boolean
+dimensium.ui.pipeline.group.math=Math
+dimensium.ui.pipeline.group.mask=Mask
 dimensium.ui.pipeline.group.filter=Filter
 dimensium.ui.pipeline.group.palette=Palette
 dimensium.ui.pipeline.add_node=Add Node

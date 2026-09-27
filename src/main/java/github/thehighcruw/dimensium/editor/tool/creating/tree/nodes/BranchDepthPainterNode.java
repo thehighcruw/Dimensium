@@ -31,7 +31,7 @@ public class BranchDepthPainterNode implements PipelineNode {
             .paletteParam("branch.palette", DEFAULT_PALETTE, "dimensium.ui.pipeline.branch_palette")
             .description("dimensium.ui.pipeline.node.branch_depth_painter.desc")
             .inputPort("blocks", PortType.BLOCK_MAP)
-            .optionalInputPort("skeleton", PortType.SKELETON)
+            .inputPort("skeleton", PortType.SKELETON)
             .outputPort("blocks", PortType.BLOCK_MAP);
 
     @Override
@@ -56,7 +56,9 @@ public class BranchDepthPainterNode implements PipelineNode {
         Block block = Block.getBlockById(entry[0]);
         int meta = entry[1];
 
-        paintBranches(skeleton.root, null, 0, minDepth, block, meta, blockMap);
+        for (SkeletonNode root : skeleton.roots) {
+            paintBranches(root, null, 0, minDepth, block, meta, blockMap);
+        }
         outputs.set("blocks", blockMap);
     }
 

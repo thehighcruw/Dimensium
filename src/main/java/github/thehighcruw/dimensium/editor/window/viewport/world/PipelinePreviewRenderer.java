@@ -97,11 +97,11 @@ public class PipelinePreviewRenderer {
         localSkeleton = skeleton;
         localBlocks = null;
         renderMode = RenderMode.SKELETON;
-        if (skeleton == null || skeleton.root == null) {
+        if (skeleton == null || skeleton.roots.isEmpty()) {
             dirty = false;
             return;
         }
-        computeSkeletonCamera(skeleton.root);
+        computeSkeletonCamera(skeleton.roots.get(0));
         dirty = true;
     }
 
@@ -182,7 +182,7 @@ public class PipelinePreviewRenderer {
     }
 
     public boolean hasContent() {
-        if (renderMode == RenderMode.SKELETON) return localSkeleton != null && localSkeleton.root != null;
+        if (renderMode == RenderMode.SKELETON) return localSkeleton != null && !localSkeleton.roots.isEmpty();
         return localBlocks != null && !localBlocks.isEmpty();
     }
 
@@ -190,7 +190,7 @@ public class PipelinePreviewRenderer {
     public void maybeRebake() {
         if (!dirty || fboFailed) return;
         if (renderMode == RenderMode.BLOCKS && localBlocks == null) return;
-        if (renderMode == RenderMode.SKELETON && (localSkeleton == null || localSkeleton.root == null)) return;
+        if (renderMode == RenderMode.SKELETON && (localSkeleton == null || localSkeleton.roots.isEmpty())) return;
         dirty = false;
         rebake();
     }
@@ -369,7 +369,7 @@ public class PipelinePreviewRenderer {
     }
 
     private void rebakeSkeleton() {
-        if (localSkeleton == null || localSkeleton.root == null) return;
+        if (localSkeleton == null || localSkeleton.roots.isEmpty()) return;
 
         GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
         GL11.glMatrixMode(GL11.GL_PROJECTION);
@@ -410,13 +410,17 @@ public class PipelinePreviewRenderer {
 
             GL11.glLineWidth(1.5f);
             GL11.glBegin(GL11.GL_LINES);
-            drawSkeletonLines(localSkeleton.root, 0);
+            for (SkeletonNode root : localSkeleton.roots) {
+                drawSkeletonLines(root, 0);
+            }
             GL11.glEnd();
 
             // Draw node spheres as small crosses
             GL11.glPointSize(4f);
             GL11.glBegin(GL11.GL_POINTS);
-            drawSkeletonPoints(localSkeleton.root, 0);
+            for (SkeletonNode root : localSkeleton.roots) {
+                drawSkeletonPoints(root, 0);
+            }
             GL11.glEnd();
         } catch (Exception e) {
             if (failReason == null) failReason = e.getClass().getSimpleName() + ": " + e.getMessage();

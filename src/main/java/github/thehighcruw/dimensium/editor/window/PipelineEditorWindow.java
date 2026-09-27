@@ -61,6 +61,8 @@ public class PipelineEditorWindow extends ToggleableWindow {
     private static final int COLOR_SHADOW = 0x44_00_00_00;
     private static final int COLOR_PORT_SKELETON = 0xFF_00_AA_FF;
     private static final int COLOR_PORT_BLOCK_MAP = 0xFF_00_FF_88;
+    private static final int COLOR_PORT_FLOAT = 0xFF_AA_AA_AA;
+    private static final int COLOR_PORT_VEC3 = 0xFF_00_CC_FF;
     private static final int COLOR_WIRE = 0xFF_CC_AA_55;
     private static final int COLOR_WIRE_HOVER = 0xFF_FF_CC_66;
     private static final int COLOR_TEXT = 0xFF_E0_E0_E0;
@@ -598,15 +600,13 @@ public class PipelineEditorWindow extends ToggleableWindow {
 
         NodeSchema.InputPortDef inputPort = schema.primaryInput();
         if (inputPort != null) {
-            int portColor = inputPort.type == PortType.SKELETON ? COLOR_PORT_SKELETON : COLOR_PORT_BLOCK_MAP;
-            dl.addCircleFilled(nx, ny + HEADER_H * viewScale / 2f, PORT_R * viewScale, portColor);
+            dl.addCircleFilled(nx, ny + HEADER_H * viewScale / 2f, PORT_R * viewScale, portColor(inputPort.type));
             dl.addCircle(nx, ny + HEADER_H * viewScale / 2f, PORT_R * viewScale, COLOR_NODE_BORDER);
         }
 
         NodeSchema.OutputPortDef outputPort = schema.primaryOutput();
         if (outputPort != null) {
-            int portColor = outputPort.type == PortType.SKELETON ? COLOR_PORT_SKELETON : COLOR_PORT_BLOCK_MAP;
-            dl.addCircleFilled(nx + nw, ny + HEADER_H * viewScale / 2f, PORT_R * viewScale, portColor);
+            dl.addCircleFilled(nx + nw, ny + HEADER_H * viewScale / 2f, PORT_R * viewScale, portColor(outputPort.type));
             dl.addCircle(nx + nw, ny + HEADER_H * viewScale / 2f, PORT_R * viewScale, COLOR_NODE_BORDER);
         }
     }
@@ -660,6 +660,21 @@ public class PipelineEditorWindow extends ToggleableWindow {
             if (dist < minDist) minDist = dist;
         }
         return minDist;
+    }
+
+    private static int portColor(PortType type) {
+        switch (type) {
+            case SKELETON:
+                return COLOR_PORT_SKELETON;
+            case BLOCK_MAP:
+                return COLOR_PORT_BLOCK_MAP;
+            case FLOAT:
+                return COLOR_PORT_FLOAT;
+            case VEC3:
+                return COLOR_PORT_VEC3;
+            default:
+                return COLOR_PORT_BLOCK_MAP;
+        }
     }
 
     private static String nodeDisplayName(String typeId) {

@@ -13,75 +13,69 @@ import github.thehighcruw.dimensium.editor.pipeline.PortValues;
 import github.thehighcruw.dimensium.editor.pipeline.Skeleton;
 import github.thehighcruw.dimensium.editor.pipeline.SkeletonNode;
 import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
-import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
-public class SimpleRecursiveSkeletonNode implements PipelineNode {
+/** Attaches recursive symmetric branches to every leaf node of the input skeleton. */
+public class SimpleRecursiveBranchesNode implements PipelineNode {
 
-    public static final String ID = "simple_recursive_skeleton";
+    public static final String ID = "simple_recursive_branches";
 
     private static final NodeSchema SCHEMA = new NodeSchema()
-            .intParam("sr.trunkHeight", 8, 2, 30, "dimensium.ui.pipeline.sr_trunk_height")
-            .floatParam("sr.trunkRadius", 1.5f, 0.3f, 5.0f, "dimensium.ui.pipeline.sr_trunk_radius")
-            .intParam("sr.levels", 3, 1, 5, "dimensium.ui.pipeline.sr_levels")
-            .intParam("sr.branchCount", 3, 1, 6, "dimensium.ui.pipeline.sr_branch_count")
-            .floatParam("sr.branchAngle", 35.0f, 5.0f, 70.0f, "dimensium.ui.pipeline.sr_branch_angle")
-            .floatParam("sr.lengthDecay", 0.6f, 0.2f, 0.9f, "dimensium.ui.pipeline.sr_length_decay")
-            .floatParam("sr.radiusDecay", 0.5f, 0.1f, 0.9f, "dimensium.ui.pipeline.sr_radius_decay")
-            .description("dimensium.ui.pipeline.node.simple_recursive_skeleton.desc")
+            .intParam("srb.levels", 2, 1, 5, "dimensium.ui.pipeline.srb_levels")
+            .intParam("srb.branchCount", 3, 1, 6, "dimensium.ui.pipeline.srb_branch_count")
+            .floatParam("srb.branchAngle", 35.0f, 5.0f, 70.0f, "dimensium.ui.pipeline.srb_branch_angle")
+            .intParam("srb.initialLength", 5, 1, 20, "dimensium.ui.pipeline.srb_initial_length")
+            .floatParam("srb.lengthDecay", 0.6f, 0.2f, 0.9f, "dimensium.ui.pipeline.srb_length_decay")
+            .floatParam("srb.radiusDecay", 0.5f, 0.1f, 0.9f, "dimensium.ui.pipeline.srb_radius_decay")
+            .description("dimensium.ui.pipeline.node.simple_recursive_branches.desc")
+            .inputPort("skeleton", PortType.SKELETON)
             .outputPort("skeleton", PortType.SKELETON);
 
     @Override
     public void apply(PortValues inputs, PortValues outputs, NodeParams params, PipelineContext context) {
-        Vec3DInt origin = inputs.get("origin", Vec3DInt.class);
-        if (origin == null) origin = context.origin;
+        Skeleton skeleton = inputs.get("skeleton", Skeleton.class);
+        if (skeleton == null) return;
 
-        int trunkHeight = params.getInt("sr.trunkHeight", 8);
-        float trunkRadius = params.getFloat("sr.trunkRadius", 1.5f);
-        int levels = params.getInt("sr.levels", 3);
-        int branchCount = params.getInt("sr.branchCount", 3);
-        float branchAngle = params.getFloat("sr.branchAngle", 35.0f);
-        float lengthDecay = params.getFloat("sr.lengthDecay", 0.6f);
-        float radiusDecay = params.getFloat("sr.radiusDecay", 0.5f);
+        int levels = params.getInt("srb.levels", 2);
+        int branchCount = params.getInt("srb.branchCount", 3);
+        float branchAngle = params.getFloat("srb.branchAngle", 35.0f);
+        int initialLength = params.getInt("srb.initialLength", 5);
+        float lengthDecay = params.getFloat("srb.lengthDecay", 0.6f);
+        float radiusDecay = params.getFloat("srb.radiusDecay", 0.5f);
 
         Random rand = new Random(context.nodeSeed(0));
 
-        SkeletonNode root = buildTrunk(origin, trunkHeight, trunkRadius);
-        SkeletonNode tip = getTip(root);
+        List<SkeletonNode> leaves = new ArrayList<>();
+        for (SkeletonNode root : skeleton.roots) {
+            collectLeaves(root, leaves);
+        }
+        for (SkeletonNode leaf : leaves) {
+            recurse(
+                    leaf,
+                    Vec3DFloat.from(0, 1, 0),
+                    initialLength,
+                    leaf.radius,
+                    levels,
+                    branchCount,
+                    branchAngle,
+                    lengthDecay,
+                    radiusDecay,
+                    rand);
+        }
 
-        recurse(
-                tip,
-                Vec3DFloat.from(0, 1, 0),
-                trunkHeight,
-                trunkRadius,
-                levels,
-                branchCount,
-                branchAngle,
-                lengthDecay,
-                radiusDecay,
-                rand);
-
-        outputs.set("skeleton", new Skeleton(root));
+        outputs.set("skeleton", skeleton);
     }
 
-    private static SkeletonNode buildTrunk(Vec3DInt origin, int height, float radius) {
-        SkeletonNode current = new SkeletonNode(origin, radius);
-        SkeletonNode head = current;
-        for (int y = 1; y <= height; y++) {
-            float r = radius * (1f - 0.3f * ((float) y / height));
-            SkeletonNode next = new SkeletonNode(origin.plus(0, y, 0), r);
-            current.children.add(next);
-            current = next;
+    private static void collectLeaves(SkeletonNode node, List<SkeletonNode> result) {
+        if (node.children.isEmpty()) {
+            result.add(node);
+            return;
         }
-        return head;
-    }
-
-    private static SkeletonNode getTip(SkeletonNode node) {
-        SkeletonNode current = node;
-        while (!current.children.isEmpty()) {
-            current = current.children.get(0);
+        for (SkeletonNode child : node.children) {
+            collectLeaves(child, result);
         }
-        return current;
     }
 
     private static void recurse(
@@ -110,7 +104,7 @@ public class SimpleRecursiveSkeletonNode implements PipelineNode {
             SkeletonNode branchRoot = new SkeletonNode(parent.position, branchRadius);
             parent.children.add(branchRoot);
 
-            SkeletonNode tip = buildBranchChain(branchRoot, dir, branchLength, branchRadius);
+            SkeletonNode tip = buildChain(branchRoot, dir, branchLength, branchRadius);
             recurse(
                     tip,
                     dir,
@@ -125,7 +119,7 @@ public class SimpleRecursiveSkeletonNode implements PipelineNode {
         }
     }
 
-    private static SkeletonNode buildBranchChain(SkeletonNode root, Vec3DFloat dir, int length, float radius) {
+    private static SkeletonNode buildChain(SkeletonNode root, Vec3DFloat dir, int length, float radius) {
         SkeletonNode current = root;
         Vec3DFloat pos = root.position.toFloat();
         for (int step = 1; step <= length; step++) {

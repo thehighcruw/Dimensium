@@ -14,8 +14,12 @@ import java.util.function.Supplier;
 public final class NodeRegistry {
 
     public enum NodeGroup {
-        SKELETON,
+        PATH,
+        BRANCH,
         CONVERT,
+        BOOLEAN,
+        MATH,
+        MASK,
         FILTER,
         PALETTE
     }

@@ -31,6 +31,7 @@ public class SkeletonVoxelizerNode implements PipelineNode {
             .paletteParam("vox.palette", DEFAULT_PALETTE, "dimensium.ui.pipeline.vox_palette")
             .description("dimensium.ui.pipeline.node.skeleton_voxelizer.desc")
             .inputPort("skeleton", PortType.SKELETON)
+            .optionalInputPort("radiusScale", PortType.FLOAT)
             .outputPort("blocks", PortType.BLOCK_MAP);
 
     @Override
@@ -39,29 +40,34 @@ public class SkeletonVoxelizerNode implements PipelineNode {
         if (skeleton == null) return;
 
         List<int[]> palette = params.getPalette("vox.palette", DEFAULT_PALETTE);
+        Float radiusScaleInput = inputs.get("radiusScale", Float.class);
+        float radiusScale = radiusScaleInput != null ? radiusScaleInput : 1.0f;
         Random rand = new Random(context.nodeSeed(1));
 
         BlockMap map = new BlockMap();
-        voxelizeNode(skeleton.root, map, palette, rand);
+        for (SkeletonNode root : skeleton.roots) {
+            voxelizeNode(root, map, palette, rand, radiusScale);
+        }
         outputs.set("blocks", map);
     }
 
-    private static void voxelizeNode(SkeletonNode node, BlockMap map, List<int[]> palette, Random rand) {
+    private static void voxelizeNode(
+            SkeletonNode node, BlockMap map, List<int[]> palette, Random rand, float radiusScale) {
         for (SkeletonNode child : node.children) {
-            voxelizeSegment(node, child, map, palette, rand);
-            voxelizeNode(child, map, palette, rand);
+            voxelizeSegment(node, child, map, palette, rand, radiusScale);
+            voxelizeNode(child, map, palette, rand, radiusScale);
         }
     }
 
     private static void voxelizeSegment(
-            SkeletonNode from, SkeletonNode to, BlockMap map, List<int[]> palette, Random rand) {
+            SkeletonNode from, SkeletonNode to, BlockMap map, List<int[]> palette, Random rand, float radiusScale) {
         Vec3DFloat start = from.position.toFloat();
         Vec3DFloat end = to.position.toFloat();
         Vec3DFloat delta = end.minus(start);
         float length = delta.length();
 
         if (length < 0.001f) {
-            stampSphere(from.position, from.radius, map, palette, rand);
+            stampSphere(from.position, from.radius * radiusScale, map, palette, rand);
             return;
         }
 
@@ -69,7 +75,7 @@ public class SkeletonVoxelizerNode implements PipelineNode {
         for (int step = 0; step <= steps; step++) {
             float t = (float) step / steps;
             Vec3DFloat pos = start.plus(delta.times(t));
-            float radius = from.radius + (to.radius - from.radius) * t;
+            float radius = (from.radius + (to.radius - from.radius) * t) * radiusScale;
             stampSphere(pos.round(), radius, map, palette, rand);
         }
     }

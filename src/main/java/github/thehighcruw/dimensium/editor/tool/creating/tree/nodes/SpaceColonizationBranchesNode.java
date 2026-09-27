@@ -13,54 +13,61 @@ import github.thehighcruw.dimensium.editor.pipeline.PortValues;
 import github.thehighcruw.dimensium.editor.pipeline.Skeleton;
 import github.thehighcruw.dimensium.editor.pipeline.SkeletonNode;
 import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
-import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
-public class SpaceColonizationSkeletonNode implements PipelineNode {
+/**
+ * Grows space-colonization branches from all leaf nodes of the input skeleton.
+ * Attractors are scattered in an ellipsoid whose center is offset from the skeleton's
+ * highest tip position, producing an organic crown shape.
+ */
+public class SpaceColonizationBranchesNode implements PipelineNode {
 
-    public static final String ID = "space_colonization_skeleton";
+    public static final String ID = "space_colonization_branches";
 
     private static final NodeSchema SCHEMA = new NodeSchema()
             .intParam("sc.attractorCount", 200, 50, 1000, "dimensium.ui.pipeline.sc_attractor_count")
             .floatParam("sc.crownRadiusX", 8.0f, 2.0f, 20.0f, "dimensium.ui.pipeline.sc_crown_radius_x")
             .floatParam("sc.crownRadiusY", 6.0f, 2.0f, 20.0f, "dimensium.ui.pipeline.sc_crown_radius_y")
             .floatParam("sc.crownRadiusZ", 8.0f, 2.0f, 20.0f, "dimensium.ui.pipeline.sc_crown_radius_z")
-            .floatParam("sc.crownOffsetY", 10.0f, 2.0f, 30.0f, "dimensium.ui.pipeline.sc_crown_offset_y")
+            .floatParam("sc.crownOffsetY", 4.0f, 0.0f, 20.0f, "dimensium.ui.pipeline.sc_crown_offset_y")
             .floatParam("sc.influenceRadius", 6.0f, 1.0f, 15.0f, "dimensium.ui.pipeline.sc_influence_radius")
             .floatParam("sc.killRadius", 2.0f, 0.5f, 5.0f, "dimensium.ui.pipeline.sc_kill_radius")
             .floatParam("sc.stepSize", 1.0f, 0.5f, 3.0f, "dimensium.ui.pipeline.sc_step_size")
             .intParam("sc.maxIterations", 80, 10, 200, "dimensium.ui.pipeline.sc_max_iterations")
-            .intParam("sc.trunkHeight", 6, 1, 20, "dimensium.ui.pipeline.sc_trunk_height")
             .floatParam("sc.branchRadius", 0.8f, 0.2f, 3.0f, "dimensium.ui.pipeline.sc_branch_radius")
-            .description("dimensium.ui.pipeline.node.space_colonization_skeleton.desc")
+            .description("dimensium.ui.pipeline.node.space_colonization_branches.desc")
+            .inputPort("skeleton", PortType.SKELETON)
             .outputPort("skeleton", PortType.SKELETON);
 
     @Override
     public void apply(PortValues inputs, PortValues outputs, NodeParams params, PipelineContext context) {
-        Vec3DInt origin = inputs.get("origin", Vec3DInt.class);
-        if (origin == null) origin = context.origin;
+        Skeleton skeleton = inputs.get("skeleton", Skeleton.class);
+        if (skeleton == null) return;
 
-        int attractorCount = params.getInt("sc.attractorCount", 200);
         float crownRX = params.getFloat("sc.crownRadiusX", 8.0f);
         float crownRY = params.getFloat("sc.crownRadiusY", 6.0f);
         float crownRZ = params.getFloat("sc.crownRadiusZ", 8.0f);
-        float crownOffsetY = params.getFloat("sc.crownOffsetY", 10.0f);
+        float crownOffsetY = params.getFloat("sc.crownOffsetY", 4.0f);
         float influenceRadius = params.getFloat("sc.influenceRadius", 6.0f);
         float killRadius = params.getFloat("sc.killRadius", 2.0f);
         float stepSize = params.getFloat("sc.stepSize", 1.0f);
         int maxIterations = params.getInt("sc.maxIterations", 80);
-        int trunkHeight = params.getInt("sc.trunkHeight", 6);
         float branchRadius = params.getFloat("sc.branchRadius", 0.8f);
+        int attractorCount = params.getInt("sc.attractorCount", 200);
 
         Random rand = new Random(context.nodeSeed(0));
 
-        SkeletonNode root = buildTrunk(origin, trunkHeight, branchRadius);
-        List<SkeletonNode> allNodes = collectAllNodes(root);
+        // Collect all nodes and find the highest tip for crown placement
+        List<SkeletonNode> allNodes = new ArrayList<>();
+        for (SkeletonNode root : skeleton.roots) {
+            collectAllNodes(root, allNodes);
+        }
 
-        Vec3DFloat crownCenter = Vec3DFloat.from(origin.x(), origin.y() + crownOffsetY, origin.z());
+        Vec3DFloat highestTip = findHighestTip(skeleton.roots);
+        Vec3DFloat crownCenter = Vec3DFloat.from(highestTip.x(), highestTip.y() + crownOffsetY, highestTip.z());
         List<Vec3DFloat> attractors = scatterAttractors(attractorCount, crownCenter, crownRX, crownRY, crownRZ, rand);
 
         float influenceRadSq = influenceRadius * influenceRadius;
@@ -93,15 +100,11 @@ public class SpaceColonizationSkeletonNode implements PipelineNode {
                         .get(ai)
                         .minus(allNodes.get(ni).position.toFloat())
                         .normalize();
-                if (growthDirs[ni] == null) {
-                    growthDirs[ni] = dir;
-                } else {
-                    growthDirs[ni] = growthDirs[ni].plus(dir);
-                }
+                growthDirs[ni] = growthDirs[ni] == null ? dir : growthDirs[ni].plus(dir);
             }
 
-            boolean grew = false;
             int prevSize = allNodes.size();
+            boolean grew = false;
             for (int ni = 0; ni < prevSize; ni++) {
                 if (growthDirs[ni] == null) continue;
                 Vec3DFloat dir = growthDirs[ni].normalize();
@@ -116,8 +119,8 @@ public class SpaceColonizationSkeletonNode implements PipelineNode {
             Iterator<Vec3DFloat> it = attractors.iterator();
             while (it.hasNext()) {
                 Vec3DFloat attractor = it.next();
-                for (int ni = 0; ni < allNodes.size(); ni++) {
-                    if (distSq(allNodes.get(ni).position.toFloat(), attractor) <= killRadSq) {
+                for (SkeletonNode node : allNodes) {
+                    if (distSq(node.position.toFloat(), attractor) <= killRadSq) {
                         it.remove();
                         break;
                     }
@@ -125,31 +128,32 @@ public class SpaceColonizationSkeletonNode implements PipelineNode {
             }
         }
 
-        outputs.set("skeleton", new Skeleton(root));
+        outputs.set("skeleton", skeleton);
     }
 
-    private static SkeletonNode buildTrunk(Vec3DInt origin, int height, float radius) {
-        SkeletonNode current = new SkeletonNode(origin, radius * 1.5f);
-        SkeletonNode head = current;
-        for (int y = 1; y <= height; y++) {
-            float r = radius * (1f - 0.2f * ((float) y / height));
-            SkeletonNode next = new SkeletonNode(origin.plus(0, y, 0), r);
-            current.children.add(next);
-            current = next;
+    private static Vec3DFloat findHighestTip(List<SkeletonNode> roots) {
+        Vec3DFloat highest = Vec3DFloat.from(0, 0, 0);
+        for (SkeletonNode root : roots) {
+            Vec3DFloat tip = findHighestTipRecursive(root);
+            if (tip.y() > highest.y()) highest = tip;
         }
-        return head;
+        return highest;
     }
 
-    private static List<SkeletonNode> collectAllNodes(SkeletonNode root) {
-        List<SkeletonNode> result = new ArrayList<>();
-        collectRecursive(root, result);
-        return result;
+    private static Vec3DFloat findHighestTipRecursive(SkeletonNode node) {
+        if (node.children.isEmpty()) return node.position.toFloat();
+        Vec3DFloat highest = node.position.toFloat();
+        for (SkeletonNode child : node.children) {
+            Vec3DFloat candidate = findHighestTipRecursive(child);
+            if (candidate.y() > highest.y()) highest = candidate;
+        }
+        return highest;
     }
 
-    private static void collectRecursive(SkeletonNode node, List<SkeletonNode> result) {
+    private static void collectAllNodes(SkeletonNode node, List<SkeletonNode> result) {
         result.add(node);
         for (SkeletonNode child : node.children) {
-            collectRecursive(child, result);
+            collectAllNodes(child, result);
         }
     }
 
