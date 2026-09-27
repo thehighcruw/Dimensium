@@ -288,17 +288,17 @@ public class ModifyToolState implements WithAxisTranslationGizmo, WithPlaneTrans
 
         // Compute inner (nearest) and outer (farthest) radii from center to selection AABB corners
         Vec3DInt selMin = sel.min();
-        int maxX = selMin.x() + sel.width();
-        int maxY = selMin.y() + sel.height();
-        int maxZ = selMin.z() + sel.depth();
+        int srcMaxX = selMin.x() + sel.width();
+        int srcMaxY = selMin.y() + sel.height();
+        int srcMaxZ = selMin.z() + sel.depth();
         revolveInnerRadius = Double.MAX_VALUE;
         revolveOuterRadius = 0;
         for (int xi = 0; xi <= 1; xi++) {
             for (int yi = 0; yi <= 1; yi++) {
                 for (int zi = 0; zi <= 1; zi++) {
-                    double cornerX = xi == 0 ? selMin.x() : maxX;
-                    double cornerY = yi == 0 ? selMin.y() : maxY;
-                    double cornerZ = zi == 0 ? selMin.z() : maxZ;
+                    double cornerX = xi == 0 ? selMin.x() : srcMaxX;
+                    double cornerY = yi == 0 ? selMin.y() : srcMaxY;
+                    double cornerZ = zi == 0 ? selMin.z() : srcMaxZ;
                     double dist;
                     switch (revolveAxis) {
                         case X:
@@ -321,11 +321,17 @@ public class ModifyToolState implements WithAxisTranslationGizmo, WithPlaneTrans
         int copies = revolveCount;
         double totalAngleRad = Math.toRadians(revolveAngleDegrees);
 
-        List<int[]> blocks = new ArrayList<>(copies * sel.clipboard.size());
+        // Inverse mapping: for each destination position, rotate back to find the source block.
+        // Forward mapping produces gaps when the arc spacing between adjacent source blocks
+        // exceeds one block at the given radius.
+        List<int[]> blocks = new ArrayList<>();
         for (int copyIndex = 1; copyIndex <= copies; copyIndex++) {
             double theta = totalAngleRad * copyIndex / copies;
             double cosTheta = Math.cos(theta);
             double sinTheta = Math.sin(theta);
+            // Inverse rotation: cos(-θ)=cosθ, sin(-θ)=-sinθ
+            double cosInv = cosTheta;
+            double sinInv = -sinTheta;
             float thetaDeg = (float) Math.toDegrees(theta);
             Mat3DFloat metaRotation =
                     switch (revolveAxis) {
@@ -339,47 +345,101 @@ public class ModifyToolState implements WithAxisTranslationGizmo, WithPlaneTrans
             float translationY = revolveTranslation.y() * translationScale;
             float translationZ = revolveTranslation.z() * translationScale;
 
-            for (Map.Entry<Long, SelectionState.BlockData> entry : sel.clipboard.entrySet()) {
-                Vec3DInt rel = SelectionState.decodeClipboardKey(entry.getKey());
-                double bx = selMin.x() + rel.x() + 0.5;
-                double by = selMin.y() + rel.y() + 0.5;
-                double bz = selMin.z() + rel.z() + 0.5;
-
-                double rotatedX, rotatedY, rotatedZ;
-                switch (revolveAxis) {
-                    case X: {
-                        double dy = by - cy;
-                        double dz = bz - cz;
-                        rotatedX = bx;
-                        rotatedY = cy + dy * cosTheta - dz * sinTheta;
-                        rotatedZ = cz + dy * sinTheta + dz * cosTheta;
-                        break;
-                    }
-                    case Z: {
-                        double dx = bx - cx;
-                        double dy = by - cy;
-                        rotatedX = cx + dx * cosTheta - dy * sinTheta;
-                        rotatedY = cy + dx * sinTheta + dy * cosTheta;
-                        rotatedZ = bz;
-                        break;
-                    }
-                    default: { // Y
-                        double dx = bx - cx;
-                        double dz = bz - cz;
-                        rotatedX = cx + dx * cosTheta - dz * sinTheta;
-                        rotatedY = by;
-                        rotatedZ = cz + dx * sinTheta + dz * cosTheta;
-                        break;
+            // Compute the destination AABB by rotating all 8 source corners forward.
+            double dMinX = Double.MAX_VALUE, dMinY = Double.MAX_VALUE, dMinZ = Double.MAX_VALUE;
+            double dMaxX = -Double.MAX_VALUE, dMaxY = -Double.MAX_VALUE, dMaxZ = -Double.MAX_VALUE;
+            for (int xi = 0; xi <= 1; xi++) {
+                for (int yi = 0; yi <= 1; yi++) {
+                    for (int zi = 0; zi <= 1; zi++) {
+                        double px = xi == 0 ? selMin.x() : srcMaxX;
+                        double py = yi == 0 ? selMin.y() : srcMaxY;
+                        double pz = zi == 0 ? selMin.z() : srcMaxZ;
+                        double rx, ry, rz;
+                        switch (revolveAxis) {
+                            case X: {
+                                double dy = py - cy, dz = pz - cz;
+                                rx = px;
+                                ry = cy + dy * cosTheta - dz * sinTheta;
+                                rz = cz + dy * sinTheta + dz * cosTheta;
+                                break;
+                            }
+                            case Z: {
+                                double dx = px - cx, dy = py - cy;
+                                rx = cx + dx * cosTheta - dy * sinTheta;
+                                ry = cy + dx * sinTheta + dy * cosTheta;
+                                rz = pz;
+                                break;
+                            }
+                            default: {
+                                double dx = px - cx, dz = pz - cz;
+                                rx = cx + dx * cosTheta - dz * sinTheta;
+                                ry = py;
+                                rz = cz + dx * sinTheta + dz * cosTheta;
+                                break;
+                            }
+                        }
+                        rx += translationX;
+                        ry += translationY;
+                        rz += translationZ;
+                        if (rx < dMinX) dMinX = rx;
+                        if (rx > dMaxX) dMaxX = rx;
+                        if (ry < dMinY) dMinY = ry;
+                        if (ry > dMaxY) dMaxY = ry;
+                        if (rz < dMinZ) dMinZ = rz;
+                        if (rz > dMaxZ) dMaxZ = rz;
                     }
                 }
+            }
 
-                int destX = (int) Math.round(rotatedX - 0.5 + translationX);
-                int destY = (int) Math.round(rotatedY - 0.5 + translationY);
-                int destZ = (int) Math.round(rotatedZ - 0.5 + translationZ);
+            int destMinX = (int) Math.floor(dMinX);
+            int destMinY = (int) Math.floor(dMinY);
+            int destMinZ = (int) Math.floor(dMinZ);
+            int destMaxX = (int) Math.ceil(dMaxX);
+            int destMaxY = (int) Math.ceil(dMaxY);
+            int destMaxZ = (int) Math.ceil(dMaxZ);
 
-                SelectionState.BlockData bd = entry.getValue();
-                int rotatedMeta = BlockMetaRotator.rotateOrKeep(bd.block(), bd.meta(), metaRotation);
-                blocks.add(new int[] {destX, destY, destZ, Block.getIdFromBlock(bd.block()), rotatedMeta});
+            for (int dx = destMinX; dx < destMaxX; dx++) {
+                for (int dy = destMinY; dy < destMaxY; dy++) {
+                    for (int dz = destMinZ; dz < destMaxZ; dz++) {
+                        // Undo translation, then rotate back by -theta to find source center
+                        double px = dx + 0.5 - translationX;
+                        double py = dy + 0.5 - translationY;
+                        double pz = dz + 0.5 - translationZ;
+                        double srcX, srcY, srcZ;
+                        switch (revolveAxis) {
+                            case X: {
+                                double dy2 = py - cy, dz2 = pz - cz;
+                                srcX = px;
+                                srcY = cy + dy2 * cosInv - dz2 * sinInv;
+                                srcZ = cz + dy2 * sinInv + dz2 * cosInv;
+                                break;
+                            }
+                            case Z: {
+                                double dx2 = px - cx, dy2 = py - cy;
+                                srcX = cx + dx2 * cosInv - dy2 * sinInv;
+                                srcY = cy + dx2 * sinInv + dy2 * cosInv;
+                                srcZ = pz;
+                                break;
+                            }
+                            default: {
+                                double dx2 = px - cx, dz2 = pz - cz;
+                                srcX = cx + dx2 * cosInv - dz2 * sinInv;
+                                srcY = py;
+                                srcZ = cz + dx2 * sinInv + dz2 * cosInv;
+                                break;
+                            }
+                        }
+                        // Block center is at (blockX+0.5, ...), so block = round(src - 0.5)
+                        int srcBlockX = (int) Math.round(srcX - 0.5);
+                        int srcBlockY = (int) Math.round(srcY - 0.5);
+                        int srcBlockZ = (int) Math.round(srcZ - 0.5);
+                        SelectionState.BlockData bd = sel.clipboardGet(
+                                Vec3DInt.from(srcBlockX - selMin.x(), srcBlockY - selMin.y(), srcBlockZ - selMin.z()));
+                        if (bd == SelectionState.BlockData.AIR) continue;
+                        int rotatedMeta = BlockMetaRotator.rotateOrKeep(bd.block(), bd.meta(), metaRotation);
+                        blocks.add(new int[] {dx, dy, dz, Block.getIdFromBlock(bd.block()), rotatedMeta});
+                    }
+                }
             }
         }
         ghostBlocks = blocks;
@@ -403,36 +463,85 @@ public class ModifyToolState implements WithAxisTranslationGizmo, WithPlaneTrans
         double centerY = selMin.y() + height * 0.5;
         double centerZ = selMin.z() + depth * 0.5;
 
+        // Inverse mapping: iterate the destination AABB and back-project to source.
+        // Forward mapping produces gaps because adjacent source blocks at the same layer
+        // can rotate to non-adjacent destination positions.
+        // Destination AABB is larger than the source AABB when corners rotate outward —
+        // compute it by forward-rotating all 8 source corners at the maximum twist angles
+        // (which occur at the selection boundary where t=1).
+        Mat3DFloat maxRotation =
+                ShapeMath.buildRotationMatrix(twistAngleXDegrees, twistAngleYDegrees, twistAngleZDegrees);
+        double dMinX = Double.MAX_VALUE, dMinY = Double.MAX_VALUE, dMinZ = Double.MAX_VALUE;
+        double dMaxX = -Double.MAX_VALUE, dMaxY = -Double.MAX_VALUE, dMaxZ = -Double.MAX_VALUE;
+        for (int xi = 0; xi <= 1; xi++) {
+            for (int yi = 0; yi <= 1; yi++) {
+                for (int zi = 0; zi <= 1; zi++) {
+                    double px = (xi == 0 ? selMin.x() : selMin.x() + width) + 0.5 - centerX;
+                    double py = (yi == 0 ? selMin.y() : selMin.y() + height) + 0.5 - centerY;
+                    double pz = (zi == 0 ? selMin.z() : selMin.z() + depth) + 0.5 - centerZ;
+                    Vec3DFloat rotated = maxRotation.mul(Vec3DFloat.from((float) px, (float) py, (float) pz));
+                    double rx = centerX + rotated.x();
+                    double ry = centerY + rotated.y();
+                    double rz = centerZ + rotated.z();
+                    if (rx < dMinX) dMinX = rx;
+                    if (rx > dMaxX) dMaxX = rx;
+                    if (ry < dMinY) dMinY = ry;
+                    if (ry > dMaxY) dMaxY = ry;
+                    if (rz < dMinZ) dMinZ = rz;
+                    if (rz > dMaxZ) dMaxZ = rz;
+                }
+            }
+        }
+        // Also include the unrotated (t=0) source AABB — rotation at t=0 is identity
+        if (selMin.x() < dMinX) dMinX = selMin.x();
+        if (selMin.x() + width > dMaxX) dMaxX = selMin.x() + width;
+        if (selMin.y() < dMinY) dMinY = selMin.y();
+        if (selMin.y() + height > dMaxY) dMaxY = selMin.y() + height;
+        if (selMin.z() < dMinZ) dMinZ = selMin.z();
+        if (selMin.z() + depth > dMaxZ) dMaxZ = selMin.z() + depth;
+        int destMinX = (int) Math.floor(dMinX);
+        int destMinY = (int) Math.floor(dMinY);
+        int destMinZ = (int) Math.floor(dMinZ);
+        int destMaxX = (int) Math.ceil(dMaxX);
+        int destMaxY = (int) Math.ceil(dMaxY);
+        int destMaxZ = (int) Math.ceil(dMaxZ);
+
+        // Approximation: use destination block's normalized position to estimate the twist
+        // angle — accurate for mild twists, sufficient for gap elimination in all cases.
         List<int[]> blocks = new ArrayList<>(sel.clipboard.size());
-        for (Map.Entry<Long, SelectionState.BlockData> entry : sel.clipboard.entrySet()) {
-            Vec3DInt rel = SelectionState.decodeClipboardKey(entry.getKey());
-            int blockX = selMin.x() + rel.x();
-            int blockY = selMin.y() + rel.y();
-            int blockZ = selMin.z() + rel.z();
+        for (int dx = destMinX; dx < destMaxX; dx++) {
+            for (int dy = destMinY; dy < destMaxY; dy++) {
+                for (int dz = destMinZ; dz < destMaxZ; dz++) {
+                    float tx = width > 0 ? (float) (dx - selMin.x()) / width : 0.5f;
+                    float ty = height > 0 ? (float) (dy - selMin.y()) / height : 0.5f;
+                    float tz = depth > 0 ? (float) (dz - selMin.z()) / depth : 0.5f;
 
-            float tx = width > 0 ? (float) rel.x() / width : 0.5f;
-            float ty = height > 0 ? (float) rel.y() / height : 0.5f;
-            float tz = depth > 0 ? (float) rel.z() / depth : 0.5f;
+                    float angleX = twistAngleXDegrees * tx;
+                    float angleY = twistAngleYDegrees * ty;
+                    float angleZ = twistAngleZDegrees * tz;
 
-            float angleX = twistAngleXDegrees * tx;
-            float angleY = twistAngleYDegrees * ty;
-            float angleZ = twistAngleZDegrees * tz;
+                    Mat3DFloat rotation = ShapeMath.buildRotationMatrix(angleX, angleY, angleZ);
+                    // Rotation matrices are orthogonal: inverse = transpose
+                    Mat3DFloat invRotation = rotation.transpose();
 
-            Mat3DFloat rotation = ShapeMath.buildRotationMatrix(angleX, angleY, angleZ);
+                    double relX = dx + 0.5 - centerX;
+                    double relY = dy + 0.5 - centerY;
+                    double relZ = dz + 0.5 - centerZ;
 
-            double relX = blockX + 0.5 - centerX;
-            double relY = blockY + 0.5 - centerY;
-            double relZ = blockZ + 0.5 - centerZ;
+                    Vec3DFloat srcVec = invRotation.mul(Vec3DFloat.from((float) relX, (float) relY, (float) relZ));
 
-            Vec3DFloat rotated = rotation.mul(Vec3DFloat.from((float) relX, (float) relY, (float) relZ));
+                    int srcBlockX = (int) Math.round(centerX + srcVec.x() - 0.5);
+                    int srcBlockY = (int) Math.round(centerY + srcVec.y() - 0.5);
+                    int srcBlockZ = (int) Math.round(centerZ + srcVec.z() - 0.5);
 
-            int destX = (int) Math.round(centerX + rotated.x() - 0.5);
-            int destY = (int) Math.round(centerY + rotated.y() - 0.5);
-            int destZ = (int) Math.round(centerZ + rotated.z() - 0.5);
+                    SelectionState.BlockData bd = sel.clipboardGet(
+                            Vec3DInt.from(srcBlockX - selMin.x(), srcBlockY - selMin.y(), srcBlockZ - selMin.z()));
+                    if (bd == SelectionState.BlockData.AIR) continue;
 
-            SelectionState.BlockData bd = entry.getValue();
-            int rotatedMeta = BlockMetaRotator.rotateOrKeep(bd.block(), bd.meta(), rotation);
-            blocks.add(new int[] {destX, destY, destZ, Block.getIdFromBlock(bd.block()), rotatedMeta});
+                    int rotatedMeta = BlockMetaRotator.rotateOrKeep(bd.block(), bd.meta(), rotation);
+                    blocks.add(new int[] {dx, dy, dz, Block.getIdFromBlock(bd.block()), rotatedMeta});
+                }
+            }
         }
         ghostBlocks = blocks;
 

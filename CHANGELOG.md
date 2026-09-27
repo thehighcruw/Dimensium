@@ -28,6 +28,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com). Run `scripts/rele
 ### Removed
 
 ### Fixed
+- Move tool, clipboard paste, Revolve, Twist: switch to inverse (backward) mapping for all rotations; eliminates gaps that appeared when arc spacing exceeded one block at large radii
+- Move tool: fix irrecoverable freeze after confirming a rotation that moved blocks below Y=0; corrupt pack keys from negative Y caused an effectively unbounded AABB iteration
 - Shape tool: supersphere exponent slider had no effect (was wired to a dead constant)
 - Shape tool: torus Z ring radius ignored the separate-axes toggle, always stretching on one axis
 - Shape tool: switching shape types no longer carries over hidden stale dimension values

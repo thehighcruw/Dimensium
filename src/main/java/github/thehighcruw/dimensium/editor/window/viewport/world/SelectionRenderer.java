@@ -538,15 +538,9 @@ public class SelectionRenderer {
         if (DimensiumEditorMode.INSTANCE.isActive() && DimensiumEditorMode.INSTANCE.selectedTool == Tool.MOVE) {
             if (sel.hasSelection()) {
                 if (!ms.active || ms.capturedSelVersion != sel.renderVersion) {
-                    long _msT0 = System.nanoTime();
                     ms.activate(sel, mc.theWorld);
-                    long _msActMs = (System.nanoTime() - _msT0) / 1_000_000;
-                    System.err.println("[DIMTIMER] MoveToolState.activate=" + _msActMs + "ms selSize=" + sel.size());
                 }
-                long _rbT0 = System.nanoTime();
                 ms.rebuildIfNeeded();
-                long _rbMs = (System.nanoTime() - _rbT0) / 1_000_000;
-                if (_rbMs > 5) System.err.println("[DIMTIMER] MoveToolState.rebuildIfNeeded=" + _rbMs + "ms");
                 if (ms.preview != null) {
                     renderProposalPreview(mc, camPos, ms.preview);
                 }

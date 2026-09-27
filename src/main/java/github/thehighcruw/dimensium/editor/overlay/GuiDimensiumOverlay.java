@@ -261,22 +261,19 @@ public final class GuiDimensiumOverlay {
         if (!ms.active || ms.ghostBlocks == null || ms.ghostBlocks.isEmpty() || !sel.hasSelection()) return;
 
         // Erase originals and place at new positions as a single history entry
-        long _t0 = System.nanoTime();
         List<int[]> moveOps = new ArrayList<>();
         moveOps.addAll(SelectionOps.selectionToAirOps(sel));
         moveOps.addAll(ms.ghostBlocks);
-        long _t1 = System.nanoTime();
         BlockSender.sendChunked(moveOps, I18n.format("dimensium.action.move"));
-        long _t2 = System.nanoTime();
-        long _buildMs = (_t1 - _t0) / 1_000_000;
-        long _sendMs = (_t2 - _t1) / 1_000_000;
-        System.err.println("[DIMTIMER] confirmMove buildOps=" + _buildMs + "ms sendChunked=" + _sendMs + "ms ops="
-                + moveOps.size());
 
-        // Build new snapshot from the placed blocks (no world-read — avoids server-packet timing gap)
+        // Build new snapshot from the placed blocks (no world-read — avoids server-packet timing gap).
+        // Blocks outside the valid world Y range [0, 255] are skipped: SelectionState.pack truncates Y
+        // to 8 bits, so negative Y corrupts the X bits and produces an invalid key.
         Map<Long, SelectionState.BlockData> newSnap = new HashMap<>(ms.ghostBlocks.size());
         float ncx = 0, ncy = 0, ncz = 0;
+        int validCount = 0;
         for (int[] b : ms.ghostBlocks) {
+            if (b[1] < 0 || b[1] > 255) continue;
             Block blk = Block.getBlockById(b[3]);
             if (blk != null && blk != Blocks.air) {
                 newSnap.put(
@@ -285,8 +282,9 @@ public final class GuiDimensiumOverlay {
             ncx += b[0] + 0.5f;
             ncy += b[1] + 0.5f;
             ncz += b[2] + 0.5f;
+            validCount++;
         }
-        int ghostCount = ms.ghostBlocks.size();
+        int ghostCount = Math.max(1, validCount);
 
         // Update selection to new positions
         Set<Long> newSel = new HashSet<>(newSnap.keySet());

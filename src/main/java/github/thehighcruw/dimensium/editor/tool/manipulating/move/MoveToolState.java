@@ -196,24 +196,68 @@ public class MoveToolState
         Vec3DFloat scaledCenter = Vec3DFloat.from(scaledW, scaledH, scaledD).divide(2f);
 
         Mat3DFloat R = ShapeMath.buildRotationMatrix(rot.x(), rot.y(), rot.z());
+        Mat3DFloat Rinv = R.transpose();
         Vec3DFloat gizmoPos = cm.plus(delta);
 
+        // Inverse mapping: iterate world-space AABB of the rotated bbox, back-project each cell
+        // through R^-1 to find its source block. Avoids gaps from arc spacing > 1 block/step.
+        float dMinX = Float.MAX_VALUE, dMinY = Float.MAX_VALUE, dMinZ = Float.MAX_VALUE;
+        float dMaxX = -Float.MAX_VALUE, dMaxY = -Float.MAX_VALUE, dMaxZ = -Float.MAX_VALUE;
+        for (int xi = 0; xi <= 1; xi++) {
+            for (int yi = 0; yi <= 1; yi++) {
+                for (int zi = 0; zi <= 1; zi++) {
+                    Vec3DFloat corner = Vec3DFloat.from(xi * scaledW, yi * scaledH, zi * scaledD)
+                            .minus(scaledCenter);
+                    Vec3DFloat world = gizmoPos.plus(R.mul(bboxFloatCenter.plus(corner)));
+                    if (world.x() < dMinX) dMinX = world.x();
+                    if (world.x() > dMaxX) dMaxX = world.x();
+                    if (world.y() < dMinY) dMinY = world.y();
+                    if (world.y() > dMaxY) dMaxY = world.y();
+                    if (world.z() < dMinZ) dMinZ = world.z();
+                    if (world.z() > dMaxZ) dMaxZ = world.z();
+                }
+            }
+        }
+        int wMinX = (int) Math.floor(dMinX);
+        int wMinY = Math.max(0, (int) Math.floor(dMinY));
+        int wMinZ = (int) Math.floor(dMinZ);
+        int wMaxX = (int) Math.ceil(dMaxX);
+        int wMaxY = Math.min(256, (int) Math.ceil(dMaxY));
+        int wMaxZ = (int) Math.ceil(dMaxZ);
+
+        // Unpack matrix and vector components once to avoid per-iteration object allocation.
+        float ri00 = Rinv.r00(), ri01 = Rinv.r01(), ri02 = Rinv.r02();
+        float ri10 = Rinv.r10(), ri11 = Rinv.r11(), ri12 = Rinv.r12();
+        float ri20 = Rinv.r20(), ri21 = Rinv.r21(), ri22 = Rinv.r22();
+        float gpx = gizmoPos.x(), gpy = gizmoPos.y(), gpz = gizmoPos.z();
+        float bfcx = bboxFloatCenter.x(), bfcy = bboxFloatCenter.y(), bfcz = bboxFloatCenter.z();
+        float scx = scaledCenter.x(), scy = scaledCenter.y(), scz = scaledCenter.z();
+        float scaleX = scale.x(), scaleY = scale.y(), scaleZ = scale.z();
+
         List<int[]> blocks = new ArrayList<>();
-        for (int sx = 0; sx < scaledW; sx++) {
-            for (int sy = 0; sy < scaledH; sy++) {
-                for (int sz = 0; sz < scaledD; sz++) {
+        for (int wx = wMinX; wx < wMaxX; wx++) {
+            for (int wy = wMinY; wy < wMaxY; wy++) {
+                for (int wz = wMinZ; wz < wMaxZ; wz++) {
+                    // Back-project world cell center through R^-1 into scaled source space.
+                    float ox = wx + 0.5f - gpx;
+                    float oy = wy + 0.5f - gpy;
+                    float oz = wz + 0.5f - gpz;
+                    float lox = ri00 * ox + ri01 * oy + ri02 * oz - bfcx + scx;
+                    float loy = ri10 * ox + ri11 * oy + ri12 * oz - bfcy + scy;
+                    float loz = ri20 * ox + ri21 * oy + ri22 * oz - bfcz + scz;
+                    int sx = (int) Math.floor(lox);
+                    int sy = (int) Math.floor(loy);
+                    int sz = (int) Math.floor(loz);
+                    if (sx < 0 || sy < 0 || sz < 0 || sx >= scaledW || sy >= scaledH || sz >= scaledD) continue;
                     // Nearest-neighbour reverse-map into local bbox space.
-                    int srcX = Math.min((int) (sx / scale.x()), bboxW - 1);
-                    int srcY = Math.min((int) (sy / scale.y()), bboxH - 1);
-                    int srcZ = Math.min((int) (sz / scale.z()), bboxD - 1);
-                    Vec3DInt lk = Vec3DInt.from(lMinX + srcX, lMinY + srcY, lMinZ + srcZ);
-                    SelectionState.BlockData bd = localLookup.get(ChangeProposal.packKey(lk));
+                    int srcX = Math.min((int) (sx / scaleX), bboxW - 1);
+                    int srcY = Math.min((int) (sy / scaleY), bboxH - 1);
+                    int srcZ = Math.min((int) (sz / scaleZ), bboxD - 1);
+                    SelectionState.BlockData bd =
+                            localLookup.get(ChangeProposal.packKey(lMinX + srcX, lMinY + srcY, lMinZ + srcZ));
                     if (bd == null) continue;
-                    Vec3DFloat offset =
-                            Vec3DFloat.from(sx + 0.5f, sy + 0.5f, sz + 0.5f).minus(scaledCenter);
-                    Vec3DInt nCoord = Vec3DInt.floor(gizmoPos.plus(R.mul(bboxFloatCenter.plus(offset))));
                     int rotatedMeta = BlockMetaRotator.rotateOrKeep(bd.block(), bd.meta(), R);
-                    blocks.add(nCoord.toBlockOp(Block.getIdFromBlock(bd.block()), rotatedMeta));
+                    blocks.add(Vec3DInt.from(wx, wy, wz).toBlockOp(Block.getIdFromBlock(bd.block()), rotatedMeta));
                 }
             }
         }
