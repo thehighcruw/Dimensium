@@ -23,7 +23,7 @@ import net.minecraft.block.Block;
  */
 public class ShapeMaskNode implements PipelineNode {
 
-    public static final String ID = "shape_mask";
+    public static final String ID = "shape";
 
     public static final int SHAPE_SPHERE = 0;
     public static final int SHAPE_ELLIPSOID = 1;
@@ -103,7 +103,7 @@ public class ShapeMaskNode implements PipelineNode {
             .enumParam("pyr.tipDir", TIP_UP, "dimensium.ui.pipeline.shape_pyr_tip_dir", "Tip Up", "Tip Down")
             // Palette (always visible)
             .paletteParam("shape.palette", DEFAULT_PALETTE, "dimensium.ui.pipeline.shape_palette")
-            .description("dimensium.ui.pipeline.node.shape_mask.desc")
+            .description("dimensium.ui.pipeline.node.shape.desc")
             .optionalInputPort("origin", PortType.VEC3)
             .outputPort("blocks", PortType.BLOCK_MAP);
 

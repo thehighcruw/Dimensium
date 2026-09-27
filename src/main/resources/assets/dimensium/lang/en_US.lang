@@ -1083,7 +1083,7 @@ dimensium.ui.pipeline.shape_pyr_base_depth=Base Depth
 dimensium.ui.pipeline.shape_pyr_height=Height
 dimensium.ui.pipeline.shape_pyr_tip_dir=Tip Direction
 dimensium.ui.pipeline.shape_palette=Block Palette
-dimensium.ui.pipeline.node.shape_mask.desc=Fills a mathematical solid at the pipeline origin. Select the shape type to reveal its parameters.
+dimensium.ui.pipeline.node.shape.desc=Fills a mathematical solid at the pipeline origin. Select the shape type to reveal its parameters.
 
 # Cylinder mask node
 dimensium.ui.pipeline.cylinder_radius=Radius

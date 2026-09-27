@@ -321,7 +321,7 @@ public final class PipelinePresets {
      * <pre>
      *  [Arc Curve] → [Curve Fill] ──────────────┐
      *                                     [Merge Blocks]
-     *  [Shape Mask (box/deck)] ─────────────────┘
+     *  [Shape (box/deck)] ──────────────────────┘
      * </pre>
      *
      * <p>
