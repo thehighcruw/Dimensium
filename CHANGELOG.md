@@ -4,6 +4,19 @@ All notable changes to Dimensium will be documented in this file.
 Format follows [Keep a Changelog](https://keepachangelog.com). Run `scripts/release.sh <version>` to cut a release.
 
 ## [Unreleased]
+### Added
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [0.1.0] — 2026-09-27
 ### Fixed
 - Modify tool: fix Twist mode multi-axis block placement disagreeing with the bounding-box visual; forward mapping now places blocks at their exact rotated positions, and the destination AABB is computed per-corner with each corner's own rotation
 
@@ -35,8 +48,6 @@ Format follows [Keep a Changelog](https://keepachangelog.com). Run `scripts/rele
 - Tree tool: pipeline nodes now receive PipelineContext carrying seed and typed slots; skeleton no longer passed via thread-local
 - Tree tool: log and leaf block selection now uses palette (multi-block) instead of single block
 
-### Deprecated
-
 ### Removed
 - Pipelines: remove NoiseFieldNode, SplinePathNode, BoxMaskNode, SphereMaskNode — no concrete use cases in current pipeline architecture
 
@@ -46,8 +57,6 @@ Format follows [Keep a Changelog](https://keepachangelog.com). Run `scripts/rele
 - Shape tool: supersphere exponent slider had no effect (was wired to a dead constant)
 - Shape tool: torus Z ring radius ignored the separate-axes toggle, always stretching on one axis
 - Shape tool: switching shape types no longer carries over hidden stale dimension values
-
-### Security
 
 ## [0.0.7] — 2026-09-25
 ### Added
