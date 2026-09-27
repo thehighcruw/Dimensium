@@ -16,6 +16,7 @@ import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.BlockMetaRotator;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -463,23 +464,56 @@ public class ModifyToolState implements WithAxisTranslationGizmo, WithPlaneTrans
         double centerY = selMin.y() + height * 0.5;
         double centerZ = selMin.z() + depth * 0.5;
 
-        // Inverse mapping: iterate the destination AABB and back-project to source.
-        // Forward mapping produces gaps because adjacent source blocks at the same layer
-        // can rotate to non-adjacent destination positions.
-        // Destination AABB is larger than the source AABB when corners rotate outward —
-        // compute it by forward-rotating all 8 source corners at the maximum twist angles
-        // (which occur at the selection boundary where t=1).
-        Mat3DFloat maxRotation =
-                ShapeMath.buildRotationMatrix(twistAngleXDegrees, twistAngleYDegrees, twistAngleZDegrees);
+        // Two-pass approach: forward pass places source blocks at their exact destinations
+        // (matching the rendered bounding-box visual); inverse gap-fill pass covers any holes
+        // left where adjacent source blocks map to non-adjacent destinations.
+        HashMap<Long, int[]> destMap = new HashMap<>(sel.clipboard.size() * 2);
+        for (Map.Entry<Long, SelectionState.BlockData> entry : sel.clipboard.entrySet()) {
+            SelectionState.BlockData bd = entry.getValue();
+            if (bd == SelectionState.BlockData.AIR) continue;
+
+            Vec3DInt local = SelectionState.decodeClipboardKey(entry.getKey());
+            int sx = selMin.x() + local.x();
+            int sy = selMin.y() + local.y();
+            int sz = selMin.z() + local.z();
+
+            float tx = width > 0 ? (float) local.x() / width : 0.5f;
+            float ty = height > 0 ? (float) local.y() / height : 0.5f;
+            float tz = depth > 0 ? (float) local.z() / depth : 0.5f;
+
+            Mat3DFloat rotation = ShapeMath.buildRotationMatrix(
+                    twistAngleXDegrees * tx, twistAngleYDegrees * ty, twistAngleZDegrees * tz);
+
+            Vec3DFloat destRel = rotation.mul(Vec3DFloat.from(
+                    (float) (sx + 0.5 - centerX), (float) (sy + 0.5 - centerY), (float) (sz + 0.5 - centerZ)));
+
+            int dx = (int) Math.round(centerX + destRel.x() - 0.5);
+            int dy = (int) Math.round(centerY + destRel.y() - 0.5);
+            int dz = (int) Math.round(centerZ + destRel.z() - 0.5);
+
+            int rotatedMeta = BlockMetaRotator.rotateOrKeep(bd.block(), bd.meta(), rotation);
+            destMap.put(
+                    ChangeProposal.packKey(Vec3DInt.from(dx, dy, dz)),
+                    new int[] {dx, dy, dz, Block.getIdFromBlock(bd.block()), rotatedMeta});
+        }
+
+        // Destination AABB: forward-rotate each of the 8 source corners with its own rotation.
+        // Each corner's t = (xi, yi, zi) ∈ {0,1}³ — the normalized boundary position —
+        // so corners rotate by different amounts. This matches what the renderer draws.
         double dMinX = Double.MAX_VALUE, dMinY = Double.MAX_VALUE, dMinZ = Double.MAX_VALUE;
         double dMaxX = -Double.MAX_VALUE, dMaxY = -Double.MAX_VALUE, dMaxZ = -Double.MAX_VALUE;
         for (int xi = 0; xi <= 1; xi++) {
             for (int yi = 0; yi <= 1; yi++) {
                 for (int zi = 0; zi <= 1; zi++) {
+                    float tx = xi == 1 ? 1f : 0f;
+                    float ty = yi == 1 ? 1f : 0f;
+                    float tz = zi == 1 ? 1f : 0f;
+                    Mat3DFloat cornerRotation = ShapeMath.buildRotationMatrix(
+                            twistAngleXDegrees * tx, twistAngleYDegrees * ty, twistAngleZDegrees * tz);
                     double px = (xi == 0 ? selMin.x() : selMin.x() + width) + 0.5 - centerX;
                     double py = (yi == 0 ? selMin.y() : selMin.y() + height) + 0.5 - centerY;
                     double pz = (zi == 0 ? selMin.z() : selMin.z() + depth) + 0.5 - centerZ;
-                    Vec3DFloat rotated = maxRotation.mul(Vec3DFloat.from((float) px, (float) py, (float) pz));
+                    Vec3DFloat rotated = cornerRotation.mul(Vec3DFloat.from((float) px, (float) py, (float) pz));
                     double rx = centerX + rotated.x();
                     double ry = centerY + rotated.y();
                     double rz = centerZ + rotated.z();
@@ -492,13 +526,6 @@ public class ModifyToolState implements WithAxisTranslationGizmo, WithPlaneTrans
                 }
             }
         }
-        // Also include the unrotated (t=0) source AABB — rotation at t=0 is identity
-        if (selMin.x() < dMinX) dMinX = selMin.x();
-        if (selMin.x() + width > dMaxX) dMaxX = selMin.x() + width;
-        if (selMin.y() < dMinY) dMinY = selMin.y();
-        if (selMin.y() + height > dMaxY) dMaxY = selMin.y() + height;
-        if (selMin.z() < dMinZ) dMinZ = selMin.z();
-        if (selMin.z() + depth > dMaxZ) dMaxZ = selMin.z() + depth;
         int destMinX = (int) Math.floor(dMinX);
         int destMinY = (int) Math.floor(dMinY);
         int destMinZ = (int) Math.floor(dMinZ);
@@ -506,43 +533,50 @@ public class ModifyToolState implements WithAxisTranslationGizmo, WithPlaneTrans
         int destMaxY = (int) Math.ceil(dMaxY);
         int destMaxZ = (int) Math.ceil(dMaxZ);
 
-        // Approximation: use destination block's normalized position to estimate the twist
-        // angle — accurate for mild twists, sufficient for gap elimination in all cases.
-        List<int[]> blocks = new ArrayList<>(sel.clipboard.size());
+        // Inverse gap-fill pass: for destination cells not already covered by the forward pass,
+        // back-project to find a source block. This handles cases where adjacent source blocks
+        // rotate to non-adjacent destinations, leaving holes.
         for (int dx = destMinX; dx < destMaxX; dx++) {
             for (int dy = destMinY; dy < destMaxY; dy++) {
                 for (int dz = destMinZ; dz < destMaxZ; dz++) {
-                    float tx = width > 0 ? (float) (dx - selMin.x()) / width : 0.5f;
-                    float ty = height > 0 ? (float) (dy - selMin.y()) / height : 0.5f;
-                    float tz = depth > 0 ? (float) (dz - selMin.z()) / depth : 0.5f;
-
-                    float angleX = twistAngleXDegrees * tx;
-                    float angleY = twistAngleYDegrees * ty;
-                    float angleZ = twistAngleZDegrees * tz;
-
-                    Mat3DFloat rotation = ShapeMath.buildRotationMatrix(angleX, angleY, angleZ);
-                    // Rotation matrices are orthogonal: inverse = transpose
-                    Mat3DFloat invRotation = rotation.transpose();
+                    long key = ChangeProposal.packKey(Vec3DInt.from(dx, dy, dz));
+                    if (destMap.containsKey(key)) continue;
 
                     double relX = dx + 0.5 - centerX;
                     double relY = dy + 0.5 - centerY;
                     double relZ = dz + 0.5 - centerZ;
 
-                    Vec3DFloat srcVec = invRotation.mul(Vec3DFloat.from((float) relX, (float) relY, (float) relZ));
-
-                    int srcBlockX = (int) Math.round(centerX + srcVec.x() - 0.5);
-                    int srcBlockY = (int) Math.round(centerY + srcVec.y() - 0.5);
-                    int srcBlockZ = (int) Math.round(centerZ + srcVec.z() - 0.5);
+                    // Iterative refinement: start from destination t, converge toward true source t.
+                    float tx = width > 0 ? (float) (dx - selMin.x()) / width : 0.5f;
+                    float ty = height > 0 ? (float) (dy - selMin.y()) / height : 0.5f;
+                    float tz = depth > 0 ? (float) (dz - selMin.z()) / depth : 0.5f;
+                    int srcBlockX = 0, srcBlockY = 0, srcBlockZ = 0;
+                    Mat3DFloat rotation = ShapeMath.buildRotationMatrix(
+                            twistAngleXDegrees * tx, twistAngleYDegrees * ty, twistAngleZDegrees * tz);
+                    for (int iter = 0; iter < 4; iter++) {
+                        Vec3DFloat srcVec =
+                                rotation.transpose().mul(Vec3DFloat.from((float) relX, (float) relY, (float) relZ));
+                        srcBlockX = (int) Math.round(centerX + srcVec.x() - 0.5);
+                        srcBlockY = (int) Math.round(centerY + srcVec.y() - 0.5);
+                        srcBlockZ = (int) Math.round(centerZ + srcVec.z() - 0.5);
+                        tx = width > 0 ? (float) (srcBlockX - selMin.x()) / width : 0.5f;
+                        ty = height > 0 ? (float) (srcBlockY - selMin.y()) / height : 0.5f;
+                        tz = depth > 0 ? (float) (srcBlockZ - selMin.z()) / depth : 0.5f;
+                        rotation = ShapeMath.buildRotationMatrix(
+                                twistAngleXDegrees * tx, twistAngleYDegrees * ty, twistAngleZDegrees * tz);
+                    }
 
                     SelectionState.BlockData bd = sel.clipboardGet(
                             Vec3DInt.from(srcBlockX - selMin.x(), srcBlockY - selMin.y(), srcBlockZ - selMin.z()));
                     if (bd == SelectionState.BlockData.AIR) continue;
 
                     int rotatedMeta = BlockMetaRotator.rotateOrKeep(bd.block(), bd.meta(), rotation);
-                    blocks.add(new int[] {dx, dy, dz, Block.getIdFromBlock(bd.block()), rotatedMeta});
+                    destMap.put(key, new int[] {dx, dy, dz, Block.getIdFromBlock(bd.block()), rotatedMeta});
                 }
             }
         }
+
+        List<int[]> blocks = new ArrayList<>(destMap.values());
         ghostBlocks = blocks;
 
         ChangeProposal proposal = ChangeProposal.forPreview();

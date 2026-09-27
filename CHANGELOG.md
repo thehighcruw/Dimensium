@@ -4,6 +4,9 @@ All notable changes to Dimensium will be documented in this file.
 Format follows [Keep a Changelog](https://keepachangelog.com). Run `scripts/release.sh <version>` to cut a release.
 
 ## [Unreleased]
+### Fixed
+- Modify tool: fix Twist mode multi-axis block placement disagreeing with the bounding-box visual; forward mapping now places blocks at their exact rotated positions, and the destination AABB is computed per-corner with each corner's own rotation
+
 ### Added
 - Pipelines: add ArcCurveNode — partial arc with configurable radius, start angle, sweep angle, and orientation plane (horizontal XZ, vertical XY/YZ); useful for arches and doorway frames
 - Pipelines: add Presets/Structures folder with Arch Bridge sample preset (semicircular stone-brick arch with elevated deck)
