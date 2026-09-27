@@ -6,10 +6,10 @@ package github.thehighcruw.dimensium.editor.tool.creating.stamp;
 
 import github.thehighcruw.dimensium.editor.blueprint.Blueprint;
 import github.thehighcruw.dimensium.editor.pipeline.PipelineGraph;
-import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.CurvedPathNode;
-import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.LinePathNode;
-import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.RandomWalkPathNode;
-import github.thehighcruw.dimensium.editor.tool.creating.tree.nodes.SpaceColonizationBranchesNode;
+import github.thehighcruw.dimensium.editor.pipeline.nodes.CurvedPathNode;
+import github.thehighcruw.dimensium.editor.pipeline.nodes.LinePathNode;
+import github.thehighcruw.dimensium.editor.pipeline.nodes.RandomWalkPathNode;
+import github.thehighcruw.dimensium.editor.pipeline.nodes.SpaceColonizationBranchesNode;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 
 public class StampEntry {
