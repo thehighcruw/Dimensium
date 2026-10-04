@@ -45,6 +45,7 @@ import github.thehighcruw.dimensium.editor.window.viewport.ViewportPanel;
 import github.thehighcruw.dimensium.editor.window.viewport.world.SelectionRenderer;
 import github.thehighcruw.dimensium.shared.BlockColorCache;
 import github.thehighcruw.dimensium.shared.InputHandler;
+import github.thehighcruw.dimensium.world.handler.ReplaceModeRenderer;
 import github.thehighcruw.dimensium.world.inventory.CreativeGuiHandler;
 import net.minecraftforge.common.MinecraftForge;
 
@@ -53,8 +54,9 @@ public class ClientProxy implements IProxy {
 
     @Override
     public void preInit() {
-        // toggleDimensium is a global keybind — lives in the MC controls menu.
+        // Global keybinds — live in the MC controls menu.
         ClientRegistry.registerKeyBinding(Dimensium.toggleDimensium);
+        ClientRegistry.registerKeyBinding(Dimensium.toggleReplaceMode);
         // Editor-view keybinds are configured in Settings > Keybinds, not registered with MC.
         Dimensium.applyKeybinds();
     }
@@ -64,6 +66,7 @@ public class ClientProxy implements IProxy {
         MinecraftForge.EVENT_BUS.register(SelectionRenderer.INSTANCE);
         MinecraftForge.EVENT_BUS.register(new OverlayRenderer());
         MinecraftForge.EVENT_BUS.register(new InputHandler());
+        MinecraftForge.EVENT_BUS.register(new ReplaceModeRenderer());
         MinecraftForge.EVENT_BUS.register(BlockColorCache.INSTANCE);
         CreativeGuiHandler.register();
         FMLCommonHandler.instance().bus().register(new KeyHandler());

@@ -8,7 +8,10 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.DimensiumEditorMode;
 import github.thehighcruw.dimensium.editor.freecam.FreecamUtils;
+import github.thehighcruw.dimensium.network.PacketHandler;
+import github.thehighcruw.dimensium.network.PacketReplaceBlock;
 import github.thehighcruw.dimensium.shared.InputHandler;
+import github.thehighcruw.dimensium.shared.KeyConstants;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
@@ -18,6 +21,7 @@ import github.thehighcruw.dimensium.tool.BuilderToolState.AxisLock;
 import github.thehighcruw.dimensium.tool.BuilderToolState.Phase;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.MouseEvent;
 import org.lwjgl.input.Keyboard;
@@ -34,6 +38,22 @@ public class WorldMouseHandler {
     public void handle(MouseEvent event, EntityPlayer player, Minecraft mc) {
         if (event.dwheel != 0) {
             if (handleSlotScroll(event, player)) return;
+        }
+
+        if (ReplaceModeState.INSTANCE.active && event.button == KeyConstants.RMB && event.buttonstate) {
+            MovingObjectPosition mop = mc.objectMouseOver;
+            if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+                // Arm swing: triggers local animation immediately and broadcasts to other clients.
+                player.swingItem();
+                float hitX = (float) (mop.hitVec.xCoord - mop.blockX);
+                float hitY = (float) (mop.hitVec.yCoord - mop.blockY);
+                float hitZ = (float) (mop.hitVec.zCoord - mop.blockZ);
+                PacketHandler.CHANNEL.sendToServer(new PacketReplaceBlock(
+                        Vec3DInt.from(mop.blockX, mop.blockY, mop.blockZ), mop.sideHit, hitX, hitY, hitZ));
+                ReplaceModeState.INSTANCE.seedReplaceCooldown();
+                event.setCanceled(true);
+                return;
+            }
         }
 
         if (DimensiumEditorMode.INSTANCE.isBuilderToolsActive()) {

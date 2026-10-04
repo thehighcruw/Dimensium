@@ -38,6 +38,7 @@ import github.thehighcruw.dimensium.tool.BuilderTool;
 import github.thehighcruw.dimensium.tool.BuilderToolState;
 import github.thehighcruw.dimensium.tool.BuilderToolState.Phase;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
+import github.thehighcruw.dimensium.world.handler.ReplaceModeState;
 import github.thehighcruw.dimensium.world.tool.BuilderToolApplicator;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +48,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.Entity;
+import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.MovingObjectPosition;
 import org.lwjgl.input.Keyboard;
 
@@ -102,6 +104,18 @@ public class KeyHandler {
                 FreecamState.INSTANCE.activate();
                 if (mc.thePlayer != null) mc.thePlayer.setInvisible(true);
                 mc.displayGuiScreen(new EditingModeScreen());
+            }
+            return;
+        }
+
+        // ── Toggle replace mode — requires creative mode, only outside editor ──
+        if (key == Dimensium.toggleReplaceMode.getKeyCode() && !DimensiumEditorMode.INSTANCE.isActive()) {
+            if (!OverlayRenderer.isNotCreative()) {
+                ReplaceModeState.INSTANCE.active = !ReplaceModeState.INSTANCE.active;
+                String msgKey = ReplaceModeState.INSTANCE.active
+                        ? "dimensium.replace_mode.enabled"
+                        : "dimensium.replace_mode.disabled";
+                mc.ingameGUI.getChatGUI().printChatMessage(new ChatComponentText(I18n.format(msgKey)));
             }
             return;
         }

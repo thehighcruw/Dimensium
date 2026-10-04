@@ -33,9 +33,9 @@ public class WorldLines {
     // Half-widths in world units for each usage context.
     // At typical building distances (5–30 blocks) these appear as 1–3 pixel lines.
     static final float W_THIN = 0.018f; // selection block wireframes
-    static final float W_SEL = 0.028f; // selection box outlines
+    public static final float W_SEL = 0.028f; // selection box outlines
     static final float W_GIZMO = 0.038f; // gizmo arrow shafts and rings
-    static final float W_HOT = 0.060f; // hover highlight glow pass
+    public static final float W_HOT = 0.060f; // hover highlight glow pass
     static final float W_SILHOUETTE = 0.054f; // outer silhouette outlines (3× W_THIN)
 
     // Eye (camera) position in the CURRENT GL local coordinate frame.
@@ -47,7 +47,7 @@ public class WorldLines {
      * If glTranslated(t) is the innermost active transform, the camera
      * sits at local -t. For no active translate, pass Vec3DDouble.ZERO.
      */
-    static void setEyeForTranslation(Vec3DDouble translation) {
+    public static void setEyeForTranslation(Vec3DDouble translation) {
         eye = translation.negate();
     }
 
@@ -117,7 +117,7 @@ public class WorldLines {
      * Draw a 12-edge wireframe box as billboard quads.
      * Handles tessellator setup/teardown.
      */
-    static void drawBox(float x1, float y1, float z1, float x2, float y2, float z2) {
+    public static void drawBox(float x1, float y1, float z1, float x2, float y2, float z2) {
         GL11.glDisable(GL11.GL_CULL_FACE);
         Tessellator t = Tessellator.instance;
         t.startDrawingQuads();

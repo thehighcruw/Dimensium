@@ -34,7 +34,7 @@ public class EditHistory {
      * facing, etc.). GT5 machines, GT+Plus, and similar mods all handled
      * automatically this way.
      */
-    static void applyBlock(World world, Vec3DInt pos, Block blk, int meta) {
+    public static void applyBlock(World world, Vec3DInt pos, Block blk, int meta) {
         if (blk == null || blk == Blocks.air) {
             WorldUtils.setBlock(world, pos, Blocks.air, 0, 3);
             return;

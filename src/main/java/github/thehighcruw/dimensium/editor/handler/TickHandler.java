@@ -38,6 +38,8 @@ import github.thehighcruw.dimensium.editor.window.viewport.ViewportPanel;
 import github.thehighcruw.dimensium.editor.window.viewport.ViewportRegistry;
 import github.thehighcruw.dimensium.editor.window.viewport.ViewportState;
 import github.thehighcruw.dimensium.editor.window.viewport.world.ScalingGizmo;
+import github.thehighcruw.dimensium.network.PacketHandler;
+import github.thehighcruw.dimensium.network.PacketReplaceBlock;
 import github.thehighcruw.dimensium.shared.BlockSender;
 import github.thehighcruw.dimensium.shared.KeyConstants;
 import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
@@ -47,6 +49,7 @@ import github.thehighcruw.dimensium.shared.util.PerfTrace;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
 import github.thehighcruw.dimensium.shared.util.WorldUtils;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
+import github.thehighcruw.dimensium.world.handler.ReplaceModeState;
 import java.util.List;
 import java.util.Set;
 import net.minecraft.client.Minecraft;
@@ -86,6 +89,33 @@ public class TickHandler {
     private void cancelDrag(BrushInput input, Minecraft mc) {
         if (input != null) input.onBrushRelease(mc);
         cancelDrag();
+    }
+
+    private void tickReplaceModeHold() {
+        ReplaceModeState rs = ReplaceModeState.INSTANCE;
+        if (!rs.active) {
+            rs.replaceHoldCooldown = 0;
+            return;
+        }
+        if (OverlayRenderer.isNotCreative() || DimensiumEditorMode.INSTANCE.isActive()) return;
+        if (!Mouse.isButtonDown(KeyConstants.RMB)) {
+            rs.replaceHoldCooldown = 0;
+            return;
+        }
+        if (rs.replaceHoldCooldown > 0) {
+            rs.replaceHoldCooldown--;
+            return;
+        }
+        Minecraft mc = Minecraft.getMinecraft();
+        MovingObjectPosition mop = mc.objectMouseOver;
+        if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return;
+        mc.thePlayer.swingItem();
+        float hitX = (float) (mop.hitVec.xCoord - mop.blockX);
+        float hitY = (float) (mop.hitVec.yCoord - mop.blockY);
+        float hitZ = (float) (mop.hitVec.zCoord - mop.blockZ);
+        PacketHandler.CHANNEL.sendToServer(new PacketReplaceBlock(
+                Vec3DInt.from(mop.blockX, mop.blockY, mop.blockZ), mop.sideHit, hitX, hitY, hitZ));
+        rs.seedReplaceCooldown();
     }
 
     /** Read-only view of accumulated SMOOTH drag positions. */
@@ -199,6 +229,8 @@ public class TickHandler {
             DimensiumEditorMode.INSTANCE.deactivate();
             mc.displayGuiScreen(new GuiIngameMenu());
         }
+
+        tickReplaceModeHold();
 
         FreecamState fs = FreecamState.INSTANCE;
         if (!fs.active || fs.cameraEntity == null) return;
@@ -585,6 +617,7 @@ public class TickHandler {
     @SubscribeEvent
     public void onClientDisconnect(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
         DimensiumEditorMode.INSTANCE.fullReset();
+        ReplaceModeState.INSTANCE.active = false;
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

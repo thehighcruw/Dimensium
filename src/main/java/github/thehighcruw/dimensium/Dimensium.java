@@ -53,9 +53,11 @@ public class Dimensium {
     public static final int MOD_SHIFT = 2;
     public static final int MOD_ALT = 4;
 
-    // Global keybind — registered with MC so it appears in the controls menu.
+    // Global keybinds — registered with MC so they appear in the controls menu.
     public static final KeyBinding toggleDimensium =
             new KeyBinding("key.dimensium.toggle", Keyboard.KEY_RSHIFT, "Dimensium");
+    public static final KeyBinding toggleReplaceMode =
+            new KeyBinding("key.dimensium.replace_mode", Keyboard.KEY_NONE, "Dimensium");
 
     // Tool-switch keybinds — one per Tool enum value, populated by applyKeybinds().
     public static final EnumMap<Tool, KeyBinding> toolKeybinds = buildToolKeybinds();

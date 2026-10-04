@@ -15,6 +15,7 @@ public class PacketHandler {
         CHANNEL.toServer(new PacketPaste());
         CHANNEL.toServer(new PacketBlockList());
         CHANNEL.toServer(new PacketBrushUse());
+        CHANNEL.toServer(new PacketReplaceBlock());
         CHANNEL.toServer(new PacketCaptureRequest());
         CHANNEL.toServer(new PacketOpenGradientGui());
         CHANNEL.toClient(new PacketHistoryEntry());

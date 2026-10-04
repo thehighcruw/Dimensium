@@ -1,5 +1,8 @@
 key.dimensium.toggle=Toggle Dimensium
 key.dimensium.freecam=Toggle Freecam
+key.dimensium.replace_mode=Toggle Replace Mode
+dimensium.replace_mode.enabled=Replace mode enabled
+dimensium.replace_mode.disabled=Replace mode disabled
 
 # Tools
 dimensium.tool.pointer=Pointer
