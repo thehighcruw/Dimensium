@@ -4,9 +4,12 @@
  */
 package github.thehighcruw.dimensium.shared.util;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import javax.annotation.Nullable;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockLeaves;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
@@ -18,6 +21,7 @@ public final class WorldUtils {
 
     private WorldUtils() {}
 
+    @SideOnly(Side.CLIENT)
     public static @Nullable Block getBlock(Vec3DInt coord) {
         World world = Minecraft.getMinecraft().theWorld;
         if (world == null) return null;
@@ -30,9 +34,18 @@ public final class WorldUtils {
     }
 
     public static void setBlock(World world, Vec3DInt coord, Block block, int meta, int flags) {
-        world.setBlock(coord.x(), coord.y(), coord.z(), block, meta, flags);
+        world.setBlock(coord.x(), coord.y(), coord.z(), block, adjustMetaForPlacement(block, meta), flags);
     }
 
+    /** Adjusts block metadata to match what player placement would produce. */
+    public static int adjustMetaForPlacement(Block block, int meta) {
+        if (block instanceof BlockLeaves) {
+            return (meta | 0x4) & ~0x8; // player-placed flag on, decay-check flag off
+        }
+        return meta;
+    }
+
+    @SideOnly(Side.CLIENT)
     public static int getBlockMetadata(Vec3DInt coord) {
         World world = Minecraft.getMinecraft().theWorld;
         if (world == null) return -1;

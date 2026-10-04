@@ -87,7 +87,7 @@ public class EditHistory {
             return;
         }
         Chunk chunk = world.getChunkFromBlockCoords(pos.x(), pos.z());
-        chunk.func_150807_a(pos.x() & 15, pos.y(), pos.z() & 15, blk, meta);
+        chunk.func_150807_a(pos.x() & 15, pos.y(), pos.z() & 15, blk, WorldUtils.adjustMetaForPlacement(blk, meta));
         chunk.setChunkModified();
     }
 
