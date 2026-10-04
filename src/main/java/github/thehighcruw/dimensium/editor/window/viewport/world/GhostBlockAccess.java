@@ -4,6 +4,7 @@
  */
 package github.thehighcruw.dimensium.editor.window.viewport.world;
 
+import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 import java.util.Map;
 import net.minecraft.block.Block;
@@ -18,17 +19,31 @@ import net.minecraftforge.common.util.ForgeDirection;
  * ChangeProposal.packKey format, value = {blockId, meta}).
  * Returns max brightness so ghost blocks render fully lit without world lighting.
  * Entries with blockId == 0 are treated as air (removals in a proposal).
+ *
+ * When an origin offset is provided, coordinates passed to IBlockAccess methods
+ * are treated as local (origin-relative) and the offset is added back before
+ * looking up in the world-space block map.
  */
 class GhostBlockAccess implements IBlockAccess {
 
     private final Map<Long, int[]> blocks;
+    private final int offsetX;
+    private final int offsetY;
+    private final int offsetZ;
 
     GhostBlockAccess(Map<Long, int[]> blocks) {
+        this(blocks, Vec3DInt.ZERO);
+    }
+
+    GhostBlockAccess(Map<Long, int[]> blocks, Vec3DInt offset) {
         this.blocks = blocks;
+        this.offsetX = offset.x();
+        this.offsetY = offset.y();
+        this.offsetZ = offset.z();
     }
 
     private int[] at(int x, int y, int z) {
-        return blocks.get(ChangeProposal.packKey(x, y, z));
+        return blocks.get(ChangeProposal.packKey(x + offsetX, y + offsetY, z + offsetZ));
     }
 
     @Override

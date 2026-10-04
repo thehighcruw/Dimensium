@@ -314,14 +314,18 @@ public class SelectionRenderer {
                 GL11.glEnable(GL11.GL_CULL_FACE);
                 GL11.glFrontFace(GL11.GL_CW);
 
+                Set<Long> selBlocks = sel.getSelectedBlocks();
+                Vec3DInt selOrigin = sel.min();
+                Vec3DDouble selTrans = selOrigin.toDouble().minus(camPos);
+
                 GL11.glPushMatrix();
-                GL11.glTranslated(-camPos.x(), -camPos.y(), -camPos.z());
+                GL11.glTranslated(selTrans.x(), selTrans.y(), selTrans.z());
 
                 Tessellator t = Tessellator.instance;
-                Set<Long> selBlocks = sel.getSelectedBlocks();
                 List<Vec3DInt> selPositions = new ArrayList<>(count);
-                for (long key : selBlocks) selPositions.add(SelectionState.unpack(key));
-                GhostRenderer.renderBlocksPass(t, mc.theWorld, selPositions);
+                for (long key : selBlocks)
+                    selPositions.add(SelectionState.unpack(key).minus(selOrigin));
+                GhostRenderer.renderBlocksPass(t, new OffsetBlockAccess(mc.theWorld, selOrigin), selPositions);
                 GL11.glDisable(GL11.GL_TEXTURE_2D);
 
                 // Glow pass — slightly more negative offset than opaque so no z-fighting.
@@ -337,11 +341,12 @@ public class SelectionRenderer {
                     Vec3DInt bv = SelectionState.unpack(key);
                     Block b = WorldUtils.getBlock(mc.theWorld, bv);
                     if (b == null || b == Blocks.air) continue;
+                    Vec3DInt local = bv.minus(selOrigin);
                     for (int face = 0; face < 6; face++) {
                         long nk = SelectionState.pack(
                                 bv.plus(GhostRenderer.NX[face], GhostRenderer.NY[face], GhostRenderer.NZ[face]));
                         if (!selBlocks.contains(nk)) {
-                            GhostRenderer.addSingleFace(t, bv, face, 0.02f);
+                            GhostRenderer.addSingleFace(t, local, face, 0.02f);
                             if (++batched % GhostRenderer.BATCH_SIZE == 0) {
                                 t.draw();
                                 t.startDrawingQuads();
@@ -828,15 +833,18 @@ public class SelectionRenderer {
     private static void renderMagicPreview(Minecraft mc, Vec3DDouble camPos, ChangeProposal preview) {
         if (preview == null || preview.proposed.isEmpty()) return;
         float pulse = 0.5f + 0.5f * (float) Math.sin(System.currentTimeMillis() / 300.0);
-        beginProposalRender(mc, camPos);
+        rebuildProposalWireIfNeeded(preview);
+        Vec3DInt origin = preview.wireOrigin;
+        beginProposalRender(mc, camPos, origin);
         Tessellator t = Tessellator.instance;
 
         // Textured pass — fully opaque using RenderBlocks for correct non-full-block geometry.
         GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-        GhostBlockAccess magicAccess = new GhostBlockAccess(preview.proposed);
+        GhostBlockAccess magicAccess = new GhostBlockAccess(preview.proposed, origin);
         List<Vec3DInt> magicPositions = new ArrayList<>(preview.proposed.size());
         for (Map.Entry<Long, int[]> e : preview.proposed.entrySet()) {
-            if (e.getValue()[0] != 0) magicPositions.add(ChangeProposal.unpackKey(e.getKey()));
+            if (e.getValue()[0] != 0)
+                magicPositions.add(ChangeProposal.unpackKey(e.getKey()).minus(origin));
         }
         GhostRenderer.renderBlocksPass(t, magicAccess, magicPositions);
 
@@ -847,11 +855,11 @@ public class SelectionRenderer {
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
         GL11.glDepthMask(false);
         GL11.glColor4f(0.25f, 1.0f, 0.55f, 0.05f + 0.07f * pulse);
-        GhostRenderer.drawExteriorFacesSingleColor(t, preview.proposed, null);
+        GhostRenderer.drawExteriorFacesSingleColor(t, preview.proposed, null, origin);
         RenderUtils.unsetGhostRendering();
 
         // Wireframe pass.
-        drawProposalWireframe(preview, t, camPos, 0.40f, 1.0f, 0.55f, pulse);
+        drawProposalWireframe(preview, t, camPos, origin, 0.40f, 1.0f, 0.55f, pulse);
 
         GL11.glPopMatrix();
     }
@@ -936,22 +944,25 @@ public class SelectionRenderer {
     private static void renderProposalPreview(Minecraft mc, Vec3DDouble camPos, ChangeProposal drag) {
         if (drag == null || drag.proposed.isEmpty()) return;
         float pulse = 0.5f + 0.5f * (float) Math.sin(System.currentTimeMillis() / 300.0);
-        beginProposalRender(mc, camPos);
+        rebuildProposalWireIfNeeded(drag);
+        Vec3DInt origin = drag.wireOrigin;
+        beginProposalRender(mc, camPos, origin);
         Tessellator t = Tessellator.instance;
 
         // Pass 0: removals — orange tint over existing blocks, exterior faces only.
         GL11.glDisable(GL11.GL_TEXTURE_2D);
         GL11.glColor4f(1.0f, 0.40f, 0.10f, 0.70f);
-        GhostRenderer.drawExteriorFacesSingleColor(t, drag.proposed, bm -> bm[0] == 0);
+        GhostRenderer.drawExteriorFacesSingleColor(t, drag.proposed, bm -> bm[0] == 0, origin);
 
         // Pass 1: additions fully opaque using RenderBlocks for correct non-full-block geometry.
         GL11.glEnable(GL11.GL_TEXTURE_2D);
         mc.getTextureManager().bindTexture(TextureMap.locationBlocksTexture);
         GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-        GhostBlockAccess proposalAccess = new GhostBlockAccess(drag.proposed);
-        List<Vec3DInt> addPositions = new ArrayList<>();
+        GhostBlockAccess proposalAccess = new GhostBlockAccess(drag.proposed, origin);
+        List<Vec3DInt> addPositions = new ArrayList<>(drag.proposed.size());
         for (Map.Entry<Long, int[]> e : drag.proposed.entrySet()) {
-            if (e.getValue()[0] != 0) addPositions.add(ChangeProposal.unpackKey(e.getKey()));
+            if (e.getValue()[0] != 0)
+                addPositions.add(ChangeProposal.unpackKey(e.getKey()).minus(origin));
         }
         GhostRenderer.renderBlocksPass(t, proposalAccess, addPositions);
 
@@ -965,20 +976,27 @@ public class SelectionRenderer {
 
         // Additive orange glow over removals — exterior faces only.
         GL11.glColor4f(1.0f, 0.30f, 0.0f, 0.05f + 0.07f * pulse);
-        GhostRenderer.drawExteriorFacesSingleColor(t, drag.proposed, bm -> bm[0] == 0);
+        GhostRenderer.drawExteriorFacesSingleColor(t, drag.proposed, bm -> bm[0] == 0, origin);
 
         // Additive blue glow over all additions — exterior faces only.
         GL11.glColor4f(0.40f, 0.75f, 1.0f, 0.05f + 0.07f * pulse);
-        GhostRenderer.drawExteriorFacesSingleColor(t, drag.proposed, bm -> bm[0] != 0);
+        GhostRenderer.drawExteriorFacesSingleColor(t, drag.proposed, bm -> bm[0] != 0, origin);
         RenderUtils.unsetGhostRendering();
 
         // Pass 3: crease-edge wireframe around the exterior of the proposed shape.
-        drawProposalWireframe(drag, t, camPos, 0.75f, 0.90f, 1.0f, pulse);
+        drawProposalWireframe(drag, t, camPos, origin, 0.75f, 0.90f, 1.0f, pulse);
 
         GL11.glPopMatrix();
     }
 
-    private static void beginProposalRender(Minecraft mc, Vec3DDouble camPos) {
+    /**
+     * Set up GL state for a proposal render pass and push a matrix translated so that
+     * (origin - camPos) is the local origin. Block positions emitted as (pos - origin)
+     * will then land at the correct world location with full double precision, avoiding
+     * the float-precision loss that occurs when large absolute world coords are accumulated
+     * in the GL float matrix.
+     */
+    private static void beginProposalRender(Minecraft mc, Vec3DDouble camPos, Vec3DInt origin) {
         GL11.glEnable(GL11.GL_DEPTH_TEST);
         GL11.glEnable(GL11.GL_POLYGON_OFFSET_FILL);
         GL11.glPolygonOffset(-1.0f, -1.0f);
@@ -988,7 +1006,8 @@ public class SelectionRenderer {
         GL11.glEnable(GL11.GL_CULL_FACE);
         GL11.glFrontFace(GL11.GL_CW);
         GL11.glPushMatrix();
-        GL11.glTranslated(-camPos.x(), -camPos.y(), -camPos.z());
+        Vec3DDouble trans = origin.toDouble().minus(camPos);
+        GL11.glTranslated(trans.x(), trans.y(), trans.z());
     }
 
     private static void rebuildProposalWireIfNeeded(ChangeProposal drag) {
@@ -996,15 +1015,16 @@ public class SelectionRenderer {
         drag.wireCacheSize = drag.proposed.size();
 
         Vec3DInt min = Vec3DInt.from(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
+        List<Vec3DInt> unpacked = new ArrayList<>(drag.proposed.size());
         for (long key : drag.proposed.keySet()) {
-            min = min.min(ChangeProposal.unpackKey(key));
+            Vec3DInt pos = ChangeProposal.unpackKey(key);
+            min = min.min(pos);
+            unpacked.add(pos);
         }
         drag.wireOrigin = min;
 
-        List<Vec3DInt> local = new ArrayList<>(drag.proposed.size());
-        for (long key : drag.proposed.keySet()) {
-            local.add(ChangeProposal.unpackKey(key).minus(min));
-        }
+        List<Vec3DInt> local = new ArrayList<>(unpacked.size());
+        for (Vec3DInt pos : unpacked) local.add(pos.minus(min));
         drag.cachedWire = GhostRenderer.INSTANCE.computeLocalWireframe(local);
     }
 
@@ -1275,7 +1295,7 @@ public class SelectionRenderer {
             int drawSegments = isFullCircle ? segments : (int) Math.max(3, segments * mods.revolveAngleDegrees / 360f);
             GL11.glBegin(isFullCircle ? GL11.GL_LINE_LOOP : GL11.GL_LINE_STRIP);
             for (int segment = 0; segment <= drawSegments; segment++) {
-                double angle = 0.0 + totalAngleRad * segment / drawSegments;
+                double angle = totalAngleRad * segment / drawSegments;
                 double cos = Math.cos(angle);
                 double sin = Math.sin(angle);
                 switch (mods.revolveAxis) {
@@ -1297,7 +1317,7 @@ public class SelectionRenderer {
         GL11.glColor4f(1f, 1f, 1f, 0.6f);
         GL11.glBegin(GL11.GL_LINES);
         for (int lineIndex = 0; lineIndex < 2; lineIndex++) {
-            double angle = lineIndex == 0 ? 0.0 : 0.0 + totalAngleRad;
+            double angle = lineIndex == 0 ? 0.0 : totalAngleRad;
             double cos = Math.cos(angle);
             double sin = Math.sin(angle);
             double innerX, innerY, innerZ, outerX, outerY, outerZ;
@@ -1336,15 +1356,29 @@ public class SelectionRenderer {
         GL11.glLineWidth(1f);
     }
 
-    /** Draws the crease-edge wireframe for a proposal, rebuilding the cache if needed. */
+    /**
+     * parentOrigin is the world-space origin already encoded in the current GL matrix
+     * (i.e. what was passed to beginProposalRender). The wireframe is stored in
+     * proposal.wireOrigin-relative local coords; this method translates by the delta
+     * between the two origins so that no large absolute coordinates accumulate in the
+     * GL float matrix.
+     */
     private static void drawProposalWireframe(
-            ChangeProposal proposal, Tessellator t, Vec3DDouble camPos, float r, float g, float b, float pulse) {
+            ChangeProposal proposal,
+            Tessellator t,
+            Vec3DDouble camPos,
+            Vec3DInt parentOrigin,
+            float r,
+            float g,
+            float b,
+            float pulse) {
         rebuildProposalWireIfNeeded(proposal);
         if (proposal.cachedWire == null || proposal.cachedWire.length == 0) return;
         GL11.glDisable(GL11.GL_TEXTURE_2D);
         GL11.glColor4f(r, g, b, 0.70f + 0.20f * pulse);
         GL11.glPushMatrix();
-        GL11.glTranslated(proposal.wireOrigin.x(), proposal.wireOrigin.y(), proposal.wireOrigin.z());
+        Vec3DInt delta = proposal.wireOrigin.minus(parentOrigin);
+        GL11.glTranslated(delta.x(), delta.y(), delta.z());
         WorldLines.setEye(camPos.minus(proposal.wireOrigin.toDouble()));
         GhostRenderer.drawWireframeCache(t, proposal.cachedWire);
         GL11.glPopMatrix();

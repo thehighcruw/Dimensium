@@ -13,6 +13,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com). Run `scripts/rele
 ### Removed
 
 ### Fixed
+- Copy tool: fix ghost preview appearing hundreds of blocks away and apparently rotated due to float precision loss when large absolute world coordinates were accumulated in the GL float matrix
+- Selection highlight: fix same float precision rendering bug affecting the per-block textured and glow passes
+- Copy tool: fix ghost wireframe and glow passes sharing the same precision bug via the proposal render path
 
 ### Security
 

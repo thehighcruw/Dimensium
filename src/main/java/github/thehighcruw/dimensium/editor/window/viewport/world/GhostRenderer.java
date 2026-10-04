@@ -75,7 +75,8 @@ public class GhostRenderer {
                 if (set.contains(SelectionRenderer.lPack(p.plus(NX[face], NY[face], NZ[face])))) continue;
                 int axisBit = FACE_AXIS_BIT[face];
                 for (int[] e : FACE_EDGES[face]) {
-                    long ek = lEdgeKey(e[0], p.plus(e[1], e[2], e[3]));
+                    Vec3DInt corner = p.plus(e[1], e[2], e[3]);
+                    long ek = lEdgeKey(e[0], corner.x(), corner.y(), corner.z());
                     edgeMask.compute(ek, (k, prev) -> prev == null ? axisBit : prev | axisBit);
                 }
             }
@@ -89,110 +90,6 @@ public class GhostRenderer {
     }
 
     // ── Geometry helpers ──────────────────────────────────────────────────────
-
-    /**
-     * Add one textured face (face index matches NX/NY/NZ: 0=+X,1=-X,2=+Y,3=-Y,4=+Z,5=-Z)
-     * of the block at (x,y,z). Uses white tint (1,1,1). For exterior-face-only textured passes.
-     */
-    static void addTexturedFace(Tessellator t, Vec3DInt pos, Block block, int meta, int face) {
-        addTexturedFace(t, pos, block, meta, face, 0xFFFFFF);
-    }
-
-    static void addTexturedFace(Tessellator t, Vec3DInt pos, Block block, int meta, int face, int tintRGB) {
-        float tr = ((tintRGB >> 16) & 0xFF) / 255f;
-        float tg = ((tintRGB >> 8) & 0xFF) / 255f;
-        float tb = (tintRGB & 0xFF) / 255f;
-        Vec3DFloat base = pos.toFloat();
-        Vec3DFloat corner = base.plus(1f);
-        switch (face) {
-            case 0:
-                addFace(
-                        t,
-                        block,
-                        meta,
-                        5,
-                        tr,
-                        tg,
-                        tb,
-                        Vec3DFloat.from(corner.x(), corner.y(), corner.z()),
-                        Vec3DFloat.from(corner.x(), corner.y(), base.z()),
-                        Vec3DFloat.from(corner.x(), base.y(), base.z()),
-                        Vec3DFloat.from(corner.x(), base.y(), corner.z()));
-                break;
-            case 1:
-                addFace(
-                        t,
-                        block,
-                        meta,
-                        4,
-                        tr,
-                        tg,
-                        tb,
-                        Vec3DFloat.from(base.x(), corner.y(), base.z()),
-                        Vec3DFloat.from(base.x(), corner.y(), corner.z()),
-                        Vec3DFloat.from(base.x(), base.y(), corner.z()),
-                        Vec3DFloat.from(base.x(), base.y(), base.z()));
-                break;
-            case 2:
-                addFace(
-                        t,
-                        block,
-                        meta,
-                        1,
-                        tr,
-                        tg,
-                        tb,
-                        Vec3DFloat.from(base.x(), corner.y(), base.z()),
-                        Vec3DFloat.from(corner.x(), corner.y(), base.z()),
-                        Vec3DFloat.from(corner.x(), corner.y(), corner.z()),
-                        Vec3DFloat.from(base.x(), corner.y(), corner.z()));
-                break;
-            case 3:
-                addFace(
-                        t,
-                        block,
-                        meta,
-                        0,
-                        tr,
-                        tg,
-                        tb,
-                        Vec3DFloat.from(base.x(), base.y(), corner.z()),
-                        Vec3DFloat.from(corner.x(), base.y(), corner.z()),
-                        Vec3DFloat.from(corner.x(), base.y(), base.z()),
-                        Vec3DFloat.from(base.x(), base.y(), base.z()));
-                break;
-            case 4:
-                addFace(
-                        t,
-                        block,
-                        meta,
-                        3,
-                        tr,
-                        tg,
-                        tb,
-                        Vec3DFloat.from(base.x(), corner.y(), corner.z()),
-                        Vec3DFloat.from(corner.x(), corner.y(), corner.z()),
-                        Vec3DFloat.from(corner.x(), base.y(), corner.z()),
-                        Vec3DFloat.from(base.x(), base.y(), corner.z()));
-                break;
-            case 5:
-                addFace(
-                        t,
-                        block,
-                        meta,
-                        2,
-                        tr,
-                        tg,
-                        tb,
-                        Vec3DFloat.from(corner.x(), corner.y(), base.z()),
-                        Vec3DFloat.from(base.x(), corner.y(), base.z()),
-                        Vec3DFloat.from(base.x(), base.y(), base.z()),
-                        Vec3DFloat.from(corner.x(), base.y(), base.z()));
-                break;
-            default:
-                break;
-        }
-    }
 
     /** Emit one textured quad using the block's icon for the given side. Skips if icon is null. */
     static void addFace(
@@ -268,41 +165,31 @@ public class GhostRenderer {
         return verts;
     }
 
-    static int writeEdgeVerts(float[] verts, int vi, int ex, int ey, int ez, int axis) {
-        verts[vi++] = ex;
-        verts[vi++] = ey;
-        verts[vi++] = ez;
-        verts[vi++] = ex + (axis == 0 ? 1 : 0);
-        verts[vi++] = ey + (axis == 1 ? 1 : 0);
-        verts[vi++] = ez + (axis == 2 ? 1 : 0);
-        return vi;
-    }
-
     static void addBoxFaces(Tessellator t, float x2, float y2, float z2) {
-        t.addVertex((float) 0.0, (float) 0.0, (float) 0.0);
-        t.addVertex((float) 0.0, (float) 0.0, z2);
-        t.addVertex(x2, (float) 0.0, z2);
-        t.addVertex(x2, (float) 0.0, (float) 0.0);
-        t.addVertex((float) 0.0, y2, (float) 0.0);
-        t.addVertex(x2, y2, (float) 0.0);
+        t.addVertex(0f, 0f, 0f);
+        t.addVertex(0f, 0f, z2);
+        t.addVertex(x2, 0f, z2);
+        t.addVertex(x2, 0f, 0f);
+        t.addVertex(0f, y2, 0f);
+        t.addVertex(x2, y2, 0f);
         t.addVertex(x2, y2, z2);
-        t.addVertex((float) 0.0, y2, z2);
-        t.addVertex((float) 0.0, (float) 0.0, (float) 0.0);
-        t.addVertex(x2, (float) 0.0, (float) 0.0);
-        t.addVertex(x2, y2, (float) 0.0);
-        t.addVertex((float) 0.0, y2, (float) 0.0);
-        t.addVertex((float) 0.0, (float) 0.0, z2);
-        t.addVertex((float) 0.0, y2, z2);
+        t.addVertex(0f, y2, z2);
+        t.addVertex(0f, 0f, 0f);
+        t.addVertex(x2, 0f, 0f);
+        t.addVertex(x2, y2, 0f);
+        t.addVertex(0f, y2, 0f);
+        t.addVertex(0f, 0f, z2);
+        t.addVertex(0f, y2, z2);
         t.addVertex(x2, y2, z2);
-        t.addVertex(x2, (float) 0.0, z2);
-        t.addVertex((float) 0.0, (float) 0.0, (float) 0.0);
-        t.addVertex((float) 0.0, y2, (float) 0.0);
-        t.addVertex((float) 0.0, y2, z2);
-        t.addVertex((float) 0.0, (float) 0.0, z2);
-        t.addVertex(x2, (float) 0.0, (float) 0.0);
-        t.addVertex(x2, (float) 0.0, z2);
+        t.addVertex(x2, 0f, z2);
+        t.addVertex(0f, 0f, 0f);
+        t.addVertex(0f, y2, 0f);
+        t.addVertex(0f, y2, z2);
+        t.addVertex(0f, 0f, z2);
+        t.addVertex(x2, 0f, 0f);
+        t.addVertex(x2, 0f, z2);
         t.addVertex(x2, y2, z2);
-        t.addVertex(x2, y2, (float) 0.0);
+        t.addVertex(x2, y2, 0f);
     }
 
     /**
@@ -377,10 +264,6 @@ public class GhostRenderer {
         return ((long) axis << 39) | ((long) (x + 4096) << 26) | ((long) (y + 4096) << 13) | (z + 4096);
     }
 
-    private long lEdgeKey(int axis, Vec3DInt v) {
-        return lEdgeKey(axis, v.x(), v.y(), v.z());
-    }
-
     @FunctionalInterface
     public interface BlockFilter {
 
@@ -413,17 +296,24 @@ public class GhostRenderer {
         mc.gameSettings.ambientOcclusion = savedAO;
     }
 
-    /** Renders exterior faces (untextured, batched) for entries matching filter. Caller sets GL color first. */
-    static void drawExteriorFacesSingleColor(Tessellator t, Map<Long, int[]> proposed, BlockFilter filter) {
+    /**
+     * Renders exterior faces (untextured, batched) for entries matching filter.
+     * Caller sets GL color first. origin is the world-space reference point for the
+     * current GL matrix; vertices are emitted as (blockPos - origin) so they are
+     * camera-relative small values with full float precision.
+     */
+    static void drawExteriorFacesSingleColor(
+            Tessellator t, Map<Long, int[]> proposed, BlockFilter filter, Vec3DInt origin) {
         int batched = 0;
         t.startDrawingQuads();
         for (Map.Entry<Long, int[]> e : proposed.entrySet()) {
             if (filter != null && !filter.accept(e.getValue())) continue;
             Vec3DInt b = ChangeProposal.unpackKey(e.getKey());
+            Vec3DInt local = b.minus(origin);
             for (int face = 0; face < 6; face++) {
                 long nk = ChangeProposal.packKey(b.plus(NX[face], NY[face], NZ[face]));
                 if (!proposed.containsKey(nk)) {
-                    addSingleFace(t, b, face);
+                    addSingleFace(t, local, face);
                     if (++batched % BATCH_SIZE == 0) {
                         t.draw();
                         t.startDrawingQuads();
