@@ -16,6 +16,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com). Run `scripts/rele
 ### Removed
 
 ### Fixed
+- All popups: fix popup flashing closed immediately after save-quitting and reopening a world
 - All tools: fix placed leaves decaying when not adjacent to a log
 - Box select tool: clicking empty space no longer accidentally confirms the bounding box
 

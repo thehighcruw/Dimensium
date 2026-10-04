@@ -618,6 +618,7 @@ public class TickHandler {
     public void onClientDisconnect(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
         DimensiumEditorMode.INSTANCE.fullReset();
         ReplaceModeState.INSTANCE.active = false;
+        ImGuiManager.INSTANCE.clearPendingInput();
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

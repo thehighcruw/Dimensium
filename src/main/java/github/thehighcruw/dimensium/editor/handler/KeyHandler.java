@@ -104,6 +104,7 @@ public class KeyHandler {
                 FreecamState.INSTANCE.activate();
                 if (mc.thePlayer != null) mc.thePlayer.setInvisible(true);
                 mc.displayGuiScreen(new EditingModeScreen());
+                ImGuiManager.INSTANCE.clearPendingInput();
             }
             return;
         }

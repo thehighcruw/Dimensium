@@ -294,6 +294,18 @@ public final class ImGuiManager {
         suppressEscapeOnce = true;
     }
 
+    /**
+     * Clears all pending input queued since the last newFrame().
+     * Call on world disconnect to prevent stale key events (e.g. the ESC from save-quitting)
+     * from firing into the next session's first popup frame.
+     */
+    public void clearPendingInput() {
+        pendingKeyEvents.clear();
+        pendingChars.clear();
+        pendingWheel = 0f;
+        suppressEscapeOnce = false;
+    }
+
     private void applyStyle() {
         ImGui.styleColorsDark();
         ImGuiStyle style = getStyle();
