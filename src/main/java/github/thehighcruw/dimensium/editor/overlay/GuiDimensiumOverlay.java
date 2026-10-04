@@ -20,6 +20,8 @@ import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapePlacementSta
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeToolState;
 import github.thehighcruw.dimensium.editor.tool.manipulating.modify.ModifyToolState;
 import github.thehighcruw.dimensium.editor.tool.manipulating.move.MoveToolState;
+import github.thehighcruw.dimensium.editor.tool.selecting.BooleanOp;
+import github.thehighcruw.dimensium.editor.tool.selecting.MoveSelectionState;
 import github.thehighcruw.dimensium.editor.tool.selecting.SelectedBlockState;
 import github.thehighcruw.dimensium.editor.tool.selecting.box.BoxSelectToolState;
 import github.thehighcruw.dimensium.editor.tool.state.ClipboardPlacementState;
@@ -130,6 +132,55 @@ public final class GuiDimensiumOverlay {
             }
             return;
         }
+        MoveSelectionState mss = MoveSelectionState.INSTANCE;
+        if (mss.active) {
+            if (button == KeyConstants.LMB) {
+                EntityLivingBase eye = mc.renderViewEntity;
+                Vec3DDouble center = mss.centerWorldPos();
+                if (eye != null && mss.centerViewPlane.hovered) {
+                    mss.centerDragBaseMin = mss.proposedMin;
+                    mss.centerDragBaseMax = mss.proposedMax;
+                    mss.centerViewPlane.startDrag(mouseX, mouseY, eye, center, center);
+                    return;
+                }
+                if (eye != null && mss.centerAxis.hoveredAxis != TranslationGizmo.Axis.NONE) {
+                    mss.centerDragBaseMin = mss.proposedMin;
+                    mss.centerDragBaseMax = mss.proposedMax;
+                    mss.centerAxis.startDrag(mouseX, mouseY, center, center, Vec3DFloat.ZERO);
+                    return;
+                }
+                if (eye != null && mss.centerPlane.hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
+                    mss.centerDragBaseMin = mss.proposedMin;
+                    mss.centerDragBaseMax = mss.proposedMax;
+                    mss.centerPlane.startDrag(mouseX, mouseY, center, center, Vec3DFloat.ZERO);
+                    return;
+                }
+                if (mss.isCuboid && eye != null) {
+                    Vec3DDouble minPos = mss.minWorldPos();
+                    if (mss.minAxis.hoveredAxis != TranslationGizmo.Axis.NONE) {
+                        mss.minAxis.startDrag(mouseX, mouseY, minPos, minPos, Vec3DFloat.ZERO);
+                        return;
+                    }
+                    if (mss.minPlane.hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
+                        mss.minPlane.startDrag(mouseX, mouseY, minPos, minPos, Vec3DFloat.ZERO);
+                        return;
+                    }
+                    Vec3DDouble maxPos = mss.maxWorldPos();
+                    if (mss.maxAxis.hoveredAxis != TranslationGizmo.Axis.NONE) {
+                        mss.maxAxis.startDrag(mouseX, mouseY, maxPos, maxPos, Vec3DFloat.ZERO);
+                        return;
+                    }
+                    if (mss.maxPlane.hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
+                        mss.maxPlane.startDrag(mouseX, mouseY, maxPos, maxPos, Vec3DFloat.ZERO);
+                        return;
+                    }
+                }
+            } else if (button == KeyConstants.RMB) {
+                mss.cancel();
+                return;
+            }
+        }
+
         ClipboardPlacementState cps = ClipboardPlacementState.INSTANCE;
         if (cps.active) {
             if (button == KeyConstants.LMB) {
@@ -201,6 +252,16 @@ public final class GuiDimensiumOverlay {
                     ms.getPlaneTranslationGizmo().endDrag();
                 if (ms.getRotationGizmo().isDragging()) ms.getRotationGizmo().endDrag();
                 if (ms.getScalingGizmo().isDragging()) ms.getScalingGizmo().endDrag();
+            }
+            MoveSelectionState mss = MoveSelectionState.INSTANCE;
+            if (mss.active) {
+                if (mss.centerViewPlane.isDragging()) mss.centerViewPlane.endDrag();
+                if (mss.centerAxis.isDragging()) mss.centerAxis.endDrag();
+                if (mss.centerPlane.isDragging()) mss.centerPlane.endDrag();
+                if (mss.minAxis.isDragging()) mss.minAxis.endDrag();
+                if (mss.minPlane.isDragging()) mss.minPlane.endDrag();
+                if (mss.maxAxis.isDragging()) mss.maxAxis.endDrag();
+                if (mss.maxPlane.isDragging()) mss.maxPlane.endDrag();
             }
             SelectionState sel = SelectionState.INSTANCE;
             if (sel.boxConfirmed) {
@@ -482,6 +543,8 @@ public final class GuiDimensiumOverlay {
         if (cps.active && cps.isAnyGizmoDragging()) return true;
         MoveToolState ms = MoveToolState.INSTANCE;
         if (ms.active && ms.isAnyGizmoDragging()) return true;
+        MoveSelectionState mss = MoveSelectionState.INSTANCE;
+        if (mss.active && mss.isAnyGizmoDragging()) return true;
         SelectionState sel = SelectionState.INSTANCE;
         if (sel.boxConfirmed
                 && (SelectionRenderer.boxPos1Gizmo.isDragging()
@@ -497,6 +560,36 @@ public final class GuiDimensiumOverlay {
                 || ModifyToolState.INSTANCE.getPlaneTranslationGizmo().isDragging()) return true;
         return ModellingToolState.INSTANCE.getAxisTranslationGizmo().isDragging()
                 || ModellingToolState.INSTANCE.getPlaneTranslationGizmo().isDragging();
+    }
+
+    /**
+     * Commits the proposed min/max from {@link MoveSelectionState} into the live selection.
+     * For cuboid selections, replaces with the new AABB. For non-cuboid, translates all blocks.
+     */
+    public static void confirmMoveSelection() {
+        MoveSelectionState mss = MoveSelectionState.INSTANCE;
+        if (!mss.active) return;
+        SelectionState sel = SelectionState.INSTANCE;
+        if (!sel.hasSelection()) {
+            mss.cancel();
+            return;
+        }
+        if (mss.isCuboid) {
+            Vec3DInt newMin = mss.proposedMin.min(mss.proposedMax);
+            Vec3DInt newMax = mss.proposedMin.max(mss.proposedMax);
+            sel.applyOp(SelectionState.aabbBlocks(newMin, newMax), BooleanOp.REPLACE);
+        } else {
+            Vec3DInt delta = mss.proposedMin.minus(mss.originalMin);
+            if (!delta.equals(Vec3DInt.ZERO)) {
+                Set<Long> translated = new HashSet<>(sel.size());
+                for (long key : sel.getSelectedBlocks()) {
+                    translated.add(
+                            SelectionState.pack(SelectionState.unpack(key).plus(delta)));
+                }
+                sel.applyOp(translated, BooleanOp.REPLACE);
+            }
+        }
+        mss.cancel();
     }
 
     /** Commits the pending box selection (boxConfirmed state) and clears gizmo state. */

@@ -19,6 +19,7 @@ import github.thehighcruw.dimensium.editor.tool.gizmo.WithRotationGizmo;
 import github.thehighcruw.dimensium.editor.tool.gizmo.WithScalingGizmo;
 import github.thehighcruw.dimensium.editor.tool.manipulating.modify.ModifyToolState;
 import github.thehighcruw.dimensium.editor.tool.manipulating.move.MoveToolState;
+import github.thehighcruw.dimensium.editor.tool.selecting.MoveSelectionState;
 import github.thehighcruw.dimensium.editor.tool.selecting.box.BoxSelectToolState;
 import github.thehighcruw.dimensium.editor.tool.state.ClipboardPlacementState;
 import github.thehighcruw.dimensium.editor.window.AnalyzeWindow;
@@ -202,6 +203,57 @@ public class OverlayRenderer {
                 EntityLivingBase eye = mc.renderViewEntity;
                 Vec3DDouble gizmoPos = ms.gizmoPos();
                 handleGizmoHoverWithScale(ms, mx, my, eye, gizmoPos, ms.rot);
+            }
+
+            MoveSelectionState mss = MoveSelectionState.INSTANCE;
+            if (mss.active && !mss.isAnyGizmoDragging() && mc.renderViewEntity != null) {
+                EntityLivingBase mssEye = mc.renderViewEntity;
+                Vec3DDouble center = mss.centerWorldPos();
+                mss.centerViewPlane.updateHover(mx, my, mssEye, center);
+                if (mss.centerViewPlane.hovered) {
+                    mss.centerAxis.hoveredAxis = TranslationGizmo.Axis.NONE;
+                    mss.centerPlane.hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
+                } else {
+                    mss.centerPlane.updateHover(mx, my, mssEye, center, Vec3DFloat.ZERO);
+                    if (mss.centerPlane.hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
+                        mss.centerAxis.hoveredAxis = TranslationGizmo.Axis.NONE;
+                    } else {
+                        mss.centerAxis.updateHover(mx, my, mssEye, center, Vec3DFloat.ZERO);
+                    }
+                }
+                boolean centerHovered = mss.centerViewPlane.hovered
+                        || mss.centerPlane.hoveredPlane != PlaneTranslationGizmo.Plane.NONE
+                        || mss.centerAxis.hoveredAxis != TranslationGizmo.Axis.NONE;
+                if (mss.isCuboid && !centerHovered) {
+                    mss.configureMinGizmoFlips();
+                    mss.configureMaxGizmoFlips();
+                    Vec3DDouble minPos = mss.minWorldPos();
+                    mss.minPlane.updateHover(mx, my, mssEye, minPos, Vec3DFloat.ZERO);
+                    if (mss.minPlane.hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
+                        mss.minAxis.hoveredAxis = TranslationGizmo.Axis.NONE;
+                    } else {
+                        mss.minAxis.updateHover(mx, my, mssEye, minPos, Vec3DFloat.ZERO);
+                    }
+                    boolean minHovered = mss.minPlane.hoveredPlane != PlaneTranslationGizmo.Plane.NONE
+                            || mss.minAxis.hoveredAxis != TranslationGizmo.Axis.NONE;
+                    if (!minHovered) {
+                        Vec3DDouble maxPos = mss.maxWorldPos();
+                        mss.maxPlane.updateHover(mx, my, mssEye, maxPos, Vec3DFloat.ZERO);
+                        if (mss.maxPlane.hoveredPlane != PlaneTranslationGizmo.Plane.NONE) {
+                            mss.maxAxis.hoveredAxis = TranslationGizmo.Axis.NONE;
+                        } else {
+                            mss.maxAxis.updateHover(mx, my, mssEye, maxPos, Vec3DFloat.ZERO);
+                        }
+                    } else {
+                        mss.maxPlane.hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
+                        mss.maxAxis.hoveredAxis = TranslationGizmo.Axis.NONE;
+                    }
+                } else {
+                    mss.minPlane.hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
+                    mss.minAxis.hoveredAxis = TranslationGizmo.Axis.NONE;
+                    mss.maxPlane.hoveredPlane = PlaneTranslationGizmo.Plane.NONE;
+                    mss.maxAxis.hoveredAxis = TranslationGizmo.Axis.NONE;
+                }
             }
 
             ModifyToolState mods = ModifyToolState.INSTANCE;

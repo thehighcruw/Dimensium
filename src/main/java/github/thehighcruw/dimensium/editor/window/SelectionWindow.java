@@ -7,9 +7,8 @@ package github.thehighcruw.dimensium.editor.window;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.DimensiumConfig;
-import github.thehighcruw.dimensium.DimensiumEditorMode;
-import github.thehighcruw.dimensium.editor.tool.Tool;
 import github.thehighcruw.dimensium.editor.tool.selecting.BooleanOp;
+import github.thehighcruw.dimensium.editor.tool.selecting.MoveSelectionState;
 import github.thehighcruw.dimensium.editor.window.imgui.ToggleableWindow;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.SelectionTransforms;
@@ -73,7 +72,7 @@ public class SelectionWindow extends ToggleableWindow {
             ImGui.separator();
 
             if (ImGui.button(I18n.format("dimensium.select.move"), w, 0)) {
-                DimensiumEditorMode.INSTANCE.selectTool(Tool.MOVE);
+                MoveSelectionState.INSTANCE.activate(sel);
             }
             if (ImGui.button(I18n.format("dimensium.select.filter"), w, 0)) {
                 FilterSelectionWindow.INSTANCE.open();

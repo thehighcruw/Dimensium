@@ -21,6 +21,7 @@ import github.thehighcruw.dimensium.editor.tool.creating.modelling.ModellingTool
 import github.thehighcruw.dimensium.editor.tool.creating.path.PathToolState;
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapePlacementState;
 import github.thehighcruw.dimensium.editor.tool.manipulating.move.MoveToolState;
+import github.thehighcruw.dimensium.editor.tool.selecting.MoveSelectionState;
 import github.thehighcruw.dimensium.editor.tool.selecting.SelectedBlockState;
 import github.thehighcruw.dimensium.editor.tool.selecting.box.BoxSelectToolState;
 import github.thehighcruw.dimensium.editor.tool.state.ClipboardPlacementState;
@@ -114,6 +115,10 @@ public class KeyHandler {
             // Confirm — box selection gizmo phase, shape placement, clipboard paste, path, or modelling.
             if (matches(key, mods, Dimensium.actionConfirm, Dimensium.actionConfirmMods)
                     || key == Keyboard.KEY_NUMPADENTER) {
+                if (MoveSelectionState.INSTANCE.active) {
+                    GuiDimensiumOverlay.confirmMoveSelection();
+                    return;
+                }
                 SelectionState bxConfSel = SelectionState.INSTANCE;
                 if (bxConfSel.boxConfirmed && DimensiumEditorMode.INSTANCE.getSelectedTool() == Tool.SELECT) {
                     GuiDimensiumOverlay.commitBoxSelection(bxConfSel, BoxSelectToolState.INSTANCE);
@@ -167,6 +172,10 @@ public class KeyHandler {
                 }
                 if (ClipboardPlacementState.INSTANCE.active) {
                     ClipboardPlacementState.INSTANCE.cancel();
+                    return;
+                }
+                if (MoveSelectionState.INSTANCE.active) {
+                    MoveSelectionState.INSTANCE.cancel();
                     return;
                 }
                 DimensiumEditorMode.INSTANCE.selectTool(Tool.POINTER);

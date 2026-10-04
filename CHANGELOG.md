@@ -7,6 +7,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com). Run `scripts/rele
 ### Added
 
 ### Changed
+- Selection window: "Move Selection" now moves the selection itself (not the blocks) via interactive gizmos — center gizmo for all selections, plus min/max corner gizmos for cuboid (AABB) selections; confirm with Enter, cancel with Escape or RMB
 
 ### Deprecated
 

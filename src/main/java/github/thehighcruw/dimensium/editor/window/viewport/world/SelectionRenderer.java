@@ -36,6 +36,7 @@ import github.thehighcruw.dimensium.editor.tool.manipulating.slope.SlopeToolStat
 import github.thehighcruw.dimensium.editor.tool.mask.ToolMask;
 import github.thehighcruw.dimensium.editor.tool.mask.ToolMaskRegistry;
 import github.thehighcruw.dimensium.editor.tool.painting.gradient.GradientToolState;
+import github.thehighcruw.dimensium.editor.tool.selecting.MoveSelectionState;
 import github.thehighcruw.dimensium.editor.tool.selecting.SelectedBlockState;
 import github.thehighcruw.dimensium.editor.tool.selecting.box.BoxSelectToolState;
 import github.thehighcruw.dimensium.editor.tool.selecting.magic.MagicSelectToolState;
@@ -577,6 +578,42 @@ public class SelectionRenderer {
             }
         } else if (ms.active) {
             ms.cancel();
+        }
+
+        // ── Move-selection gizmos (moves selection, not blocks) ───────────────
+        MoveSelectionState mss = MoveSelectionState.INSTANCE;
+        if (mss.active) {
+            if (!sel.hasSelection() || mss.capturedSelVersion != sel.renderVersion) {
+                mss.cancel();
+            } else {
+                Vec3DInt msMin = mss.proposedMin.min(mss.proposedMax);
+                Vec3DInt msMax = mss.proposedMin.max(mss.proposedMax);
+                Vec3DDouble mssTrans = msMin.toDouble().minus(camPos);
+                GL11.glPushMatrix();
+                GL11.glTranslated(mssTrans.x(), mssTrans.y(), mssTrans.z());
+                WorldLines.setEyeForTranslation(mssTrans);
+                GL11.glColor4f(0.6f, 0.9f, 1.0f, 0.9f);
+                GL11.glLineWidth(2.0f);
+                drawBox(0, 0, 0, msMax.x() - msMin.x() + 1, msMax.y() - msMin.y() + 1, msMax.z() - msMin.z() + 1);
+                GL11.glLineWidth(1.5f);
+                GL11.glPopMatrix();
+                if (!cameraMoving || gizmoDragging) {
+                    Vec3DDouble center = mss.centerWorldPos();
+                    mss.centerViewPlane.render(center, camPos);
+                    mss.centerPlane.render(center, camPos, Vec3DFloat.ZERO);
+                    mss.centerAxis.render(center, camPos, Vec3DFloat.ZERO);
+                    if (mss.isCuboid) {
+                        mss.configureMinGizmoFlips();
+                        mss.configureMaxGizmoFlips();
+                        Vec3DDouble minPos = mss.minWorldPos();
+                        Vec3DDouble maxPos = mss.maxWorldPos();
+                        mss.minPlane.render(minPos, camPos, Vec3DFloat.ZERO);
+                        mss.minAxis.render(minPos, camPos, Vec3DFloat.ZERO);
+                        mss.maxPlane.render(maxPos, camPos, Vec3DFloat.ZERO);
+                        mss.maxAxis.render(maxPos, camPos, Vec3DFloat.ZERO);
+                    }
+                }
+            }
         }
 
         // ── Modify tool preview ───────────────────────────────────────────────

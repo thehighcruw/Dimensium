@@ -520,7 +520,7 @@ dimensium.action.op.trigger_updates=Trigger Updates
 
 # Select menu
 dimensium.select.clear=Clear
-dimensium.select.move=Move Selection...
+dimensium.select.move=Move Selection
 dimensium.select.filter=Filter...
 dimensium.select.expand=Expand
 dimensium.select.shrink=Shrink

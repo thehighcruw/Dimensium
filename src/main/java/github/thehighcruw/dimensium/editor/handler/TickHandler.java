@@ -31,6 +31,7 @@ import github.thehighcruw.dimensium.editor.tool.manipulating.smooth.SmoothBrushI
 import github.thehighcruw.dimensium.editor.tool.mask.ToolMaskRegistry;
 import github.thehighcruw.dimensium.editor.tool.painting.gradient.GradientToolState;
 import github.thehighcruw.dimensium.editor.tool.painting.noise.NoiseToolState;
+import github.thehighcruw.dimensium.editor.tool.selecting.MoveSelectionState;
 import github.thehighcruw.dimensium.editor.tool.state.ClipboardPlacementState;
 import github.thehighcruw.dimensium.editor.window.imgui.ImGuiManager;
 import github.thehighcruw.dimensium.editor.window.viewport.ViewportPanel;
@@ -462,6 +463,32 @@ public class TickHandler {
                     else ms.scale = Vec3DFloat.from(ms.scale.x(), ms.scale.y(), result[0]);
                     ms.invalidateGhost();
                 }
+            }
+        }
+
+        MoveSelectionState mss = MoveSelectionState.INSTANCE;
+        if (mss.active) {
+            if (mss.centerViewPlane.isDragging()) {
+                Vec3DDouble anchor = mss.centerViewPlane.updateDrag(mx, my);
+                if (anchor != null) mss.applyCenterDrag(anchor, snap);
+            } else if (mss.centerAxis.isDragging()) {
+                Vec3DDouble anchor = mss.centerAxis.updateDrag(mx, my);
+                if (anchor != null) mss.applyCenterDrag(anchor, snap);
+            } else if (mss.centerPlane.isDragging()) {
+                Vec3DDouble anchor = mss.centerPlane.updateDrag(mx, my);
+                if (anchor != null) mss.applyCenterDrag(anchor, snap);
+            } else if (mss.minAxis.isDragging()) {
+                Vec3DDouble anchor = mss.minAxis.updateDrag(mx, my);
+                if (anchor != null) mss.applyMinDrag(anchor, snap);
+            } else if (mss.minPlane.isDragging()) {
+                Vec3DDouble anchor = mss.minPlane.updateDrag(mx, my);
+                if (anchor != null) mss.applyMinDrag(anchor, snap);
+            } else if (mss.maxAxis.isDragging()) {
+                Vec3DDouble anchor = mss.maxAxis.updateDrag(mx, my);
+                if (anchor != null) mss.applyMaxDrag(anchor, snap);
+            } else if (mss.maxPlane.isDragging()) {
+                Vec3DDouble anchor = mss.maxPlane.updateDrag(mx, my);
+                if (anchor != null) mss.applyMaxDrag(anchor, snap);
             }
         }
     }
