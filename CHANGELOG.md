@@ -14,6 +14,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com). Run `scripts/rele
 ### Removed
 
 ### Fixed
+- All tools: fix placed leaves decaying when not adjacent to a log
 - Box select tool: clicking empty space no longer accidentally confirms the bounding box
 
 ### Security
@@ -31,7 +32,6 @@ Format follows [Keep a Changelog](https://keepachangelog.com). Run `scripts/rele
 - Ghost previews, brush previews, and hologram: replace crease-edge wireframe with view-dependent yellow silhouette outline at 3× line thickness; inner contours are depth-culled so only the continuous outermost edge is visible
 
 ### Fixed
-- All tools: fix placed leaves decaying when not adjacent to a log
 - Gradient tool: fix FSOT filter buttons not responding to clicks in creative GUI
 - Move tool: show orange erase ghost at original block positions while previewing a move
 - Move tool: allow Enter to confirm the move (in addition to RMB)
