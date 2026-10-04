@@ -8,6 +8,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com). Run `scripts/rele
 - Replace mode: toggle via a configurable keybind (default: unbound) to replace existing blocks on right-click; targeted block is highlighted in red while mode is active
 
 ### Changed
+- Paste and selection fill/delete: use bulk chunk writes and deferred lighting instead of per-block world updates
 - Selection window: "Move Selection" now moves the selection itself (not the blocks) via interactive gizmos — center gizmo for all selections, plus min/max corner gizmos for cuboid (AABB) selections; confirm with Enter, cancel with Escape or RMB
 
 ### Deprecated

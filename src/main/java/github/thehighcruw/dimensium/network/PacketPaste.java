@@ -6,11 +6,16 @@ package github.thehighcruw.dimensium.network;
 
 import com.gtnewhorizon.gtnhlib.network.base.IPacket;
 import github.thehighcruw.dimensium.Dimensium;
+import github.thehighcruw.dimensium.editor.history.EditHistory;
 import github.thehighcruw.dimensium.shared.SelectionState;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.WorldUtils;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.network.NetHandlerPlayServer;
@@ -84,11 +89,18 @@ public class PacketPaste implements IPacket {
             return null;
         }
         World world = handler.playerEntity.worldObj;
+        Set<Long> affectedChunks = new HashSet<>();
+        List<int[]> ops = new ArrayList<>(dim.product());
         dim.forEach(pos -> {
             int i = pos.toIndex(dim);
             Block blk = Block.getBlockById(blockIds[i]);
-            WorldUtils.setBlock(world, origin.plus(pos), blk != null ? blk : Blocks.air, blockMetas[i] & 0xFFFF, 3);
+            Vec3DInt coord = origin.plus(pos);
+            int meta = blockMetas[i] & 0xFFFF;
+            EditHistory.applyBlockFast(world, coord, blk != null ? blk : Blocks.air, meta);
+            affectedChunks.add(WorldUtils.chunkKeyForBlock(coord));
+            ops.add(new int[] {coord.x(), coord.y(), coord.z()});
         });
+        EditHistory.finalizeChunks(world, affectedChunks, ops);
         return null;
     }
 }

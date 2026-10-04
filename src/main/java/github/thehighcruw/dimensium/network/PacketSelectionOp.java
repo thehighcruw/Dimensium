@@ -5,9 +5,14 @@
 package github.thehighcruw.dimensium.network;
 
 import com.gtnewhorizon.gtnhlib.network.base.IPacket;
+import github.thehighcruw.dimensium.editor.history.EditHistory;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.WorldUtils;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.network.NetHandlerPlayServer;
@@ -59,7 +64,14 @@ public class PacketSelectionOp implements IPacket {
 
         final Block blk = block;
         final int m = meta;
-        Vec3DInt.forEachInclusive(mn, mx, coord -> WorldUtils.setBlock(world, coord, blk, m, 3));
+        Set<Long> affectedChunks = new HashSet<>();
+        List<int[]> ops = new ArrayList<>();
+        Vec3DInt.forEachInclusive(mn, mx, coord -> {
+            EditHistory.applyBlockFast(world, coord, blk, m);
+            affectedChunks.add(WorldUtils.chunkKeyForBlock(coord));
+            ops.add(new int[] {coord.x(), coord.y(), coord.z()});
+        });
+        EditHistory.finalizeChunks(world, affectedChunks, ops);
 
         return null;
     }

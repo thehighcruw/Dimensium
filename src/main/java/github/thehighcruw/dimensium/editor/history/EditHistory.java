@@ -77,7 +77,7 @@ public class EditHistory {
      * Caller MUST call finalizeChunks() after all fast writes are done.
      * meta > 15 blocks fall back to applyBlock() — placeBlockAt() cannot be bypassed.
      */
-    static void applyBlockFast(World world, Vec3DInt pos, Block blk, int meta) {
+    public static void applyBlockFast(World world, Vec3DInt pos, Block blk, int meta) {
         if (pos.y() < 0 || pos.y() >= world.getHeight()) return;
         if (blk == null) blk = Blocks.air;
         // Tile-entity blocks must go through world.setBlock so the TE receives a world
@@ -95,9 +95,9 @@ public class EditHistory {
      * Finalize a bulk-fast edit: recalculate sky light per affected chunk column, then
      * notify clients of every changed block. Must be called on the server tick thread.
      *
-     * chunkKeys: packed chunk coords as ((long)cx << 32) | (cz & 0xFFFFFFFFL).
+     * chunkKeys: packed chunk coords via {@link github.thehighcruw.dimensium.shared.util.WorldUtils#packChunkKey}.
      */
-    static void finalizeChunks(World world, Set<Long> chunkKeys, List<int[]> ops) {
+    public static void finalizeChunks(World world, Set<Long> chunkKeys, List<int[]> ops) {
         PerfTrace.push("generateSkylightMap chunks=" + chunkKeys.size());
         skylightAndLightRecalc(world, chunkKeys, ops);
         PerfTrace.pop();

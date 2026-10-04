@@ -57,6 +57,16 @@ public final class WorldUtils {
         return world.getBlockMetadata(coord.x(), coord.y(), coord.z());
     }
 
+    /** Packs chunk coordinates into a single long: {@code ((long)cx << 32) | (cz & 0xFFFFFFFFL)}. */
+    public static long packChunkKey(int cx, int cz) {
+        return ((long) cx << 32) | (cz & 0xFFFFFFFFL);
+    }
+
+    /** Returns the chunk key for a block coordinate. */
+    public static long chunkKeyForBlock(Vec3DInt coord) {
+        return packChunkKey(coord.x() >> 4, coord.z() >> 4);
+    }
+
     public static Vec3DInt mopToCoord(MovingObjectPosition mop) {
         return Vec3DInt.from(mop.blockX, mop.blockY, mop.blockZ);
     }

@@ -64,7 +64,7 @@ public class ServerEditQueue {
 
         boolean capturedBefore = false;
         int cursor = 0;
-        // Chunk columns touched during drain; populated lazily. Packed as ((long)cx << 32) | (cz & 0xFFFFFFFFL).
+        // Chunk columns touched during drain; populated lazily via WorldUtils.packChunkKey.
         final Set<Long> affectedChunks = new HashSet<>();
         // Ops grouped by chunk key for throttled notification phase (populated when drain completes).
         // null = notify phase not started yet.
@@ -152,7 +152,7 @@ public class ServerEditQueue {
                     PerfTrace.push("buildPendingNotify ops=" + edit.ops.size());
                     edit.pendingNotify = new HashMap<>();
                     for (int[] op : edit.ops) {
-                        long ck = ((long) (op[0] >> 4) << 32) | ((op[2] >> 4) & 0xFFFFFFFFL);
+                        long ck = WorldUtils.packChunkKey(op[0] >> 4, op[2] >> 4);
                         edit.pendingNotify
                                 .computeIfAbsent(ck, k -> new ArrayDeque<>())
                                 .add(op);
@@ -210,7 +210,7 @@ public class ServerEditQueue {
     }
 
     private static void applyOpFast(World world, int[] op, Set<Long> affectedChunks) {
-        affectedChunks.add(((long) (op[0] >> 4) << 32) | ((op[2] >> 4) & 0xFFFFFFFFL));
+        affectedChunks.add(WorldUtils.packChunkKey(op[0] >> 4, op[2] >> 4));
         EditHistory.applyBlockFast(world, Vec3DInt.from(op[0], op[1], op[2]), Block.getBlockById(op[3]), op[4]);
     }
 }
