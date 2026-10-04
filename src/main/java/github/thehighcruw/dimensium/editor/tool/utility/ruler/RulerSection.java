@@ -20,34 +20,50 @@ public class RulerSection implements ToolSection {
 
     private final RulerToolState state;
     private final ImInt modeIdx = new ImInt();
+    private final Mode[] modes = Mode.values();
+    private final String[] modeLabels;
+    private final String sectionLabel;
+    private final String modeComboLabel;
+    private final String clearButtonLabel;
+    private final String distanceLabel;
+    private final String hintLabel;
 
     public RulerSection(RulerToolState state) {
         this.state = state;
+        this.modeLabels = new String[modes.length];
+        for (int i = 0; i < modes.length; i++) modeLabels[i] = I18n.format(modes[i].label);
+        this.sectionLabel = I18n.format("dimensium.ui.section.ruler");
+        this.modeComboLabel = I18n.format("dimensium.ui.ruler.mode") + "##ruler_mode";
+        this.clearButtonLabel = I18n.format("dimensium.ui.ruler.clear_points") + "##ruler_clear";
+        this.distanceLabel = I18n.format("dimensium.ui.ruler.distance");
+        this.hintLabel = I18n.format("dimensium.ui.ruler.hint");
     }
 
     @Override
     public void render() {
         ImGui.separator();
-        ImGui.text(I18n.format("dimensium.ui.section.ruler"));
+        ImGui.text(sectionLabel);
 
-        Mode[] modes = Mode.values();
-        String[] modeLabels = new String[modes.length];
-        for (int i = 0; i < modes.length; i++) modeLabels[i] = I18n.format(modes[i].label);
         modeIdx.set(state.mode.ordinal());
-        if (ImGui.combo(I18n.format("dimensium.ui.ruler.mode") + "##ruler_mode", modeIdx, modeLabels)) {
+        if (ImGui.combo(modeComboLabel, modeIdx, modeLabels)) {
             state.mode = modes[modeIdx.get()];
         }
 
         List<Vec3DInt> pts = state.points;
+        if (!pts.isEmpty()) {
+            if (ImGui.button(clearButtonLabel)) {
+                pts.clear();
+            }
+        }
         if (pts.size() >= 2) {
             Vec3DInt a = pts.get(0);
             Vec3DInt b = pts.get(pts.size() - 1);
             Vec3DDouble delta = b.minus(a).toDouble();
-            ImGui.text(I18n.format("dimensium.ui.ruler.distance") + ": " + String.format("%.2f", delta.length()));
+            ImGui.text(distanceLabel + ": " + String.format("%.2f", delta.length()));
             Vec3DDouble abs = delta.abs();
             ImGui.textDisabled("(" + (int) abs.x() + ", " + (int) abs.y() + ", " + (int) abs.z() + ")");
         } else {
-            ImGui.textDisabled(I18n.format("dimensium.ui.ruler.hint"));
+            ImGui.textDisabled(hintLabel);
         }
     }
 }

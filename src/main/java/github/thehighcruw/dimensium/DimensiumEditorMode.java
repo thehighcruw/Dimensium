@@ -10,6 +10,7 @@ import github.thehighcruw.dimensium.editor.tool.Tool;
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapePlacementState;
 import github.thehighcruw.dimensium.editor.tool.painting.gradient.GradientToolState;
 import github.thehighcruw.dimensium.editor.tool.state.ClipboardPlacementState;
+import github.thehighcruw.dimensium.editor.tool.utility.ruler.RulerToolState;
 import github.thehighcruw.dimensium.editor.window.viewport.ViewportRegistry;
 import github.thehighcruw.dimensium.editor.window.viewport.ViewportState;
 import github.thehighcruw.dimensium.shared.SelectionState;
@@ -37,6 +38,7 @@ public class DimensiumEditorMode {
             GradientToolState gradientState = GradientToolState.INSTANCE;
             gradientState.gradientHasPos1 = false;
             gradientState.gradientHasPos2 = false;
+            RulerToolState.INSTANCE.points.clear();
         }
         selectedTool = tool;
     }

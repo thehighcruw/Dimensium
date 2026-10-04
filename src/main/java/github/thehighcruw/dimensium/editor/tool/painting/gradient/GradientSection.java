@@ -30,12 +30,20 @@ public class GradientSection implements ToolSection {
     private final ImInt interpIdx = new ImInt();
     private final ImBoolean maskSurface = new ImBoolean();
     private final ImBoolean clampToEdge = new ImBoolean();
+    private final ImBoolean typeReplace = new ImBoolean();
+    private final PaletteState paletteState;
     private final GradientShape[] shapes = GradientShape.values();
     private final GradientInterp[] interps = GradientInterp.values();
     private final String[] shapeLabels;
     private final String[] interpLabels;
-    private final ImBoolean typeReplace = new ImBoolean();
-    private final PaletteState paletteState;
+    private final String sectionLabel;
+    private final String shapeComboLabel;
+    private final String interpComboLabel;
+    private final String maskSurfaceCheckLabel;
+    private final String clampEdgeCheckLabel;
+    private final String typeReplaceCheckLabel;
+    private final String randomizeSeedButtonLabel;
+    private final String clearPos1ButtonLabel;
 
     public GradientSection(GradientToolState state, BrushState bs, PaletteState ps) {
         this.state = state;
@@ -46,6 +54,14 @@ public class GradientSection implements ToolSection {
         for (int i = 0; i < shapes.length; i++) shapeLabels[i] = I18n.format(shapes[i].label);
         this.interpLabels = new String[interps.length];
         for (int i = 0; i < interps.length; i++) interpLabels[i] = I18n.format(interps[i].label);
+        this.sectionLabel = I18n.format("dimensium.ui.section.gradient");
+        this.shapeComboLabel = I18n.format("dimensium.ui.gradient.shape") + "##grad_shape";
+        this.interpComboLabel = I18n.format("dimensium.ui.gradient.interp") + "##grad_interp";
+        this.maskSurfaceCheckLabel = I18n.format("dimensium.ui.gradient.mask_surface") + "##grad_mask";
+        this.clampEdgeCheckLabel = I18n.format("dimensium.ui.gradient.clamp_edge") + "##grad_clamp";
+        this.typeReplaceCheckLabel = I18n.format("dimensium.ui.paint.type_replace") + "##grad_type_replace";
+        this.randomizeSeedButtonLabel = I18n.format("dimensium.ui.gradient.randomize_seed") + "##grad_seed";
+        this.clearPos1ButtonLabel = I18n.format("dimensium.ui.gradient.clear_pos1") + "##grad_clear_pos1";
     }
 
     @Override
@@ -54,44 +70,44 @@ public class GradientSection implements ToolSection {
         brushSection.render(false);
 
         ImGui.separator();
-        ImGui.text(I18n.format("dimensium.ui.section.gradient"));
+        ImGui.text(sectionLabel);
 
         shapeIdx.set(state.gradientShape.ordinal());
-        if (ImGui.combo(I18n.format("dimensium.ui.gradient.shape") + "##grad_shape", shapeIdx, shapeLabels)) {
+        if (ImGui.combo(shapeComboLabel, shapeIdx, shapeLabels)) {
             state.gradientShape = shapes[shapeIdx.get()];
         }
 
         interpIdx.set(state.gradientInterp.ordinal());
-        if (ImGui.combo(I18n.format("dimensium.ui.gradient.interp") + "##grad_interp", interpIdx, interpLabels)) {
+        if (ImGui.combo(interpComboLabel, interpIdx, interpLabels)) {
             state.gradientInterp = interps[interpIdx.get()];
         }
 
         maskSurface.set(state.gradientMaskSurface);
-        if (ImGui.checkbox(I18n.format("dimensium.ui.gradient.mask_surface") + "##grad_mask", maskSurface)) {
+        if (ImGui.checkbox(maskSurfaceCheckLabel, maskSurface)) {
             state.gradientMaskSurface = maskSurface.get();
         }
 
         clampToEdge.set(state.gradientClampToEdge);
-        if (ImGui.checkbox(I18n.format("dimensium.ui.gradient.clamp_edge") + "##grad_clamp", clampToEdge)) {
+        if (ImGui.checkbox(clampEdgeCheckLabel, clampToEdge)) {
             state.gradientClampToEdge = clampToEdge.get();
         }
 
         boolean canTypeReplace = BlockFamilyRegistry.allHaveFamily(paletteState.palette);
         if (canTypeReplace) {
             typeReplace.set(state.gradientTypeReplace);
-            if (ImGui.checkbox(I18n.format("dimensium.ui.paint.type_replace") + "##grad_type_replace", typeReplace)) {
+            if (ImGui.checkbox(typeReplaceCheckLabel, typeReplace)) {
                 state.gradientTypeReplace = typeReplace.get();
             }
         } else {
             state.gradientTypeReplace = false;
         }
 
-        if (ImGui.button(I18n.format("dimensium.ui.gradient.randomize_seed") + "##grad_seed")) {
+        if (ImGui.button(randomizeSeedButtonLabel)) {
             state.gradientSeed = ThreadLocalRandom.current().nextLong();
         }
 
         if (state.gradientHasPos1) {
-            if (ImGui.button(I18n.format("dimensium.ui.gradient.clear_pos1") + "##grad_clear_pos1")) {
+            if (ImGui.button(clearPos1ButtonLabel)) {
                 state.gradientHasPos1 = false;
             }
         }

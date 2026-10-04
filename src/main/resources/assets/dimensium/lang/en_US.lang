@@ -429,6 +429,7 @@ dimensium.ui.rock.smoothing=Smoothing
 dimensium.ui.roughen.faces=Faces
 dimensium.ui.roughen.ratio=Ratio
 
+dimensium.ui.ruler.clear_points=Clear Points
 dimensium.ui.ruler.distance=Distance
 dimensium.ui.ruler.hint=RMB to place a point.
 dimensium.ui.ruler.mode=Mode
