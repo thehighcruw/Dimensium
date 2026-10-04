@@ -17,8 +17,8 @@ public class GradientToolState {
 
         public final String label;
 
-        GradientShape(String l) {
-            label = l;
+        GradientShape(String label) {
+            this.label = label;
         }
     }
 
@@ -29,8 +29,8 @@ public class GradientToolState {
 
         public final String label;
 
-        GradientInterp(String l) {
-            label = l;
+        GradientInterp(String label) {
+            this.label = label;
         }
     }
 
@@ -38,6 +38,7 @@ public class GradientToolState {
     public GradientInterp gradientInterp = GradientInterp.LINEAR;
     public boolean gradientMaskSurface = false;
     public boolean gradientClampToEdge = false;
+    public boolean gradientTypeReplace = false;
     public long gradientSeed = ThreadLocalRandom.current().nextLong();
     public boolean gradientHasPos1 = false;
     public Vec3DInt gradientPos1 = Vec3DInt.ZERO;

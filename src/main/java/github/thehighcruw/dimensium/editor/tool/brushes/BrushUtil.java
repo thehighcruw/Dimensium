@@ -8,6 +8,7 @@ import github.thehighcruw.dimensium.DimensiumConfig;
 import github.thehighcruw.dimensium.shared.math.Vec2DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
+import github.thehighcruw.dimensium.shared.util.BlockFamilyRegistry;
 import github.thehighcruw.dimensium.shared.util.BlockUtils;
 import github.thehighcruw.dimensium.shared.util.WorldUtils;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
@@ -26,6 +27,21 @@ public final class BrushUtil {
         Block blk = Block.getBlockFromItem(item.getItem());
         int meta = item.getItemDamage();
         if (blk != null && blk != Blocks.air) ChangeProposal.write(world, pos, blk, meta);
+    }
+
+    public static void writeFromItemWithTypeReplace(World world, Vec3DInt pos, ItemStack item) {
+        if (item == null) return;
+        Block target = Block.getBlockFromItem(item.getItem());
+        int targetMeta = item.getItemDamage();
+        if (target == null || target == Blocks.air) return;
+        Block existing = WorldUtils.getBlock(world, pos);
+        int existingMeta = WorldUtils.getBlockMetadata(world, pos);
+        int[] replacement = BlockFamilyRegistry.applyTypeReplace(existing, existingMeta, target, targetMeta);
+        if (replacement != null) {
+            ChangeProposal.write(world, pos, Block.getBlockById(replacement[0]), replacement[1]);
+        } else {
+            ChangeProposal.write(world, pos, target, targetMeta);
+        }
     }
 
     public static Vec3DInt faceNormal(int sideHit) {

@@ -13,6 +13,7 @@ import github.thehighcruw.dimensium.editor.tool.painting.MultiPaletteSection;
 import github.thehighcruw.dimensium.editor.tool.painting.gradient.GradientToolState.GradientInterp;
 import github.thehighcruw.dimensium.editor.tool.painting.gradient.GradientToolState.GradientShape;
 import github.thehighcruw.dimensium.editor.tool.state.PaletteState;
+import github.thehighcruw.dimensium.shared.util.BlockFamilyRegistry;
 import imgui.ImGui;
 import imgui.type.ImBoolean;
 import imgui.type.ImInt;
@@ -33,9 +34,12 @@ public class GradientSection implements ToolSection {
     private final GradientInterp[] interps = GradientInterp.values();
     private final String[] shapeLabels;
     private final String[] interpLabels;
+    private final ImBoolean typeReplace = new ImBoolean();
+    private final PaletteState paletteState;
 
     public GradientSection(GradientToolState state, BrushState bs, PaletteState ps) {
         this.state = state;
+        this.paletteState = ps;
         this.paletteSection = new MultiPaletteSection(ps);
         this.brushSection = new BrushSection(bs);
         this.shapeLabels = new String[shapes.length];
@@ -70,6 +74,16 @@ public class GradientSection implements ToolSection {
         clampToEdge.set(state.gradientClampToEdge);
         if (ImGui.checkbox(I18n.format("dimensium.ui.gradient.clamp_edge") + "##grad_clamp", clampToEdge)) {
             state.gradientClampToEdge = clampToEdge.get();
+        }
+
+        boolean canTypeReplace = BlockFamilyRegistry.allHaveFamily(paletteState.palette);
+        if (canTypeReplace) {
+            typeReplace.set(state.gradientTypeReplace);
+            if (ImGui.checkbox(I18n.format("dimensium.ui.paint.type_replace") + "##grad_type_replace", typeReplace)) {
+                state.gradientTypeReplace = typeReplace.get();
+            }
+        } else {
+            state.gradientTypeReplace = false;
         }
 
         if (ImGui.button(I18n.format("dimensium.ui.gradient.randomize_seed") + "##grad_seed")) {

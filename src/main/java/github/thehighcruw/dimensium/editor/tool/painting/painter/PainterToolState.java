@@ -9,4 +9,5 @@ public class PainterToolState {
     public static final PainterToolState INSTANCE = new PainterToolState();
 
     public boolean painterMaskSurface = false;
+    public boolean painterTypeReplace = false;
 }

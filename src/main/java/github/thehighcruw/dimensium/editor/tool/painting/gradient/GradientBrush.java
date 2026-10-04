@@ -73,7 +73,11 @@ public class GradientBrush implements BrushStrategy {
             }
 
             int palIdx = paletteIdx(s, ps, t);
-            BrushUtil.writeFromItem(world, pos, ps.palette.get(palIdx));
+            if (s.gradientTypeReplace) {
+                BrushUtil.writeFromItemWithTypeReplace(world, pos, ps.palette.get(palIdx));
+            } else {
+                BrushUtil.writeFromItem(world, pos, ps.palette.get(palIdx));
+            }
         });
     }
 

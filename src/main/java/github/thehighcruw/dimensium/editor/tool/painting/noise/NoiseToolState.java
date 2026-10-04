@@ -29,4 +29,5 @@ public class NoiseToolState {
     public boolean noiseSurfaceOnly = false;
     public boolean noise3D = false;
     public boolean showGrayscaleNoise = false;
+    public boolean noiseTypeReplace = false;
 }

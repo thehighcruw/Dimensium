@@ -58,7 +58,11 @@ public class NoiseBrush implements BrushStrategy {
                 noiseVal = NoiseSampler.sample2D(s, nx, pos.y());
             }
 
-            BrushUtil.writeFromItem(world, pos, samplePaletteByNoise(ps, noiseVal));
+            if (s.noiseTypeReplace) {
+                BrushUtil.writeFromItemWithTypeReplace(world, pos, samplePaletteByNoise(ps, noiseVal));
+            } else {
+                BrushUtil.writeFromItem(world, pos, samplePaletteByNoise(ps, noiseVal));
+            }
         });
     }
 

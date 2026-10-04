@@ -305,13 +305,16 @@ public final class StairSlabSmoother {
                 case FULL:
                     break;
                 case SLAB_BOTTOM:
-                    result.put(key, new int[] {Block.getIdFromBlock(family.slab()), family.slabMetaBottom()});
+                    if (family.slab() != null)
+                        result.put(key, new int[] {Block.getIdFromBlock(family.slab()), family.slabMetaBottom()});
                     break;
                 case SLAB_TOP:
-                    result.put(key, new int[] {Block.getIdFromBlock(family.slab()), family.slabMetaTop()});
+                    if (family.slab() != null)
+                        result.put(key, new int[] {Block.getIdFromBlock(family.slab()), family.slabMetaTop()});
                     break;
                 case STAIR:
-                    result.put(key, new int[] {Block.getIdFromBlock(family.stairs()), shape.stairMeta()});
+                    if (family.stairs() != null)
+                        result.put(key, new int[] {Block.getIdFromBlock(family.stairs()), shape.stairMeta()});
                     break;
             }
         }
@@ -455,13 +458,16 @@ public final class StairSlabSmoother {
                 case FULL:
                     break;
                 case SLAB_BOTTOM:
-                    result.put(key, new int[] {Block.getIdFromBlock(family.slab()), family.slabMetaBottom()});
+                    if (family.slab() != null)
+                        result.put(key, new int[] {Block.getIdFromBlock(family.slab()), family.slabMetaBottom()});
                     break;
                 case SLAB_TOP:
-                    result.put(key, new int[] {Block.getIdFromBlock(family.slab()), family.slabMetaTop()});
+                    if (family.slab() != null)
+                        result.put(key, new int[] {Block.getIdFromBlock(family.slab()), family.slabMetaTop()});
                     break;
                 case STAIR:
-                    result.put(key, new int[] {Block.getIdFromBlock(family.stairs()), shape.stairMeta()});
+                    if (family.stairs() != null)
+                        result.put(key, new int[] {Block.getIdFromBlock(family.stairs()), shape.stairMeta()});
                     break;
             }
         }

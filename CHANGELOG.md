@@ -5,6 +5,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com). Run `scripts/rele
 
 ## [Unreleased]
 ### Added
+- Painter, Gradient, Noise tools: add Type Replace option — when all palette blocks have registered variants (stairs/slabs/fences), painting preserves the shape of existing blocks and replaces only the material
+- `BlockFamilyRegistry`: auto-detect modded stair variants at FML post-init via `BlockStairs` field reflection (GTNHLib `Fields`); add `registerSlab`, `registerFence` for explicit slab/fence registration; add `BlockShapeType`, `shapeTypeOf`, `applyTypeReplace`, `allHaveFamily`
 - Gradient tool: add "Clear Start Point" button to reset pos1 from the tool options panel
 - Gradient tool: reset pos1 when switching away from the gradient tool
 

@@ -14,6 +14,7 @@ import github.thehighcruw.dimensium.editor.tool.noise.NoisePreviewRenderer;
 import github.thehighcruw.dimensium.editor.tool.painting.MultiPaletteSection;
 import github.thehighcruw.dimensium.editor.tool.painting.NoiseParamSection;
 import github.thehighcruw.dimensium.editor.tool.state.PaletteState;
+import github.thehighcruw.dimensium.shared.util.BlockFamilyRegistry;
 import imgui.ImGui;
 import imgui.type.ImBoolean;
 import net.minecraft.client.resources.I18n;
@@ -30,6 +31,7 @@ public class NoiseSection implements ToolSection {
     private final ImBoolean surfaceOnly = new ImBoolean();
     private final ImBoolean noise3D = new ImBoolean();
     private final ImBoolean showGrayscaleNoise = new ImBoolean();
+    private final ImBoolean typeReplace = new ImBoolean();
 
     private NoiseParams cachedParams = null;
     private int cachedPaletteHash = 0;
@@ -70,6 +72,16 @@ public class NoiseSection implements ToolSection {
             state.showGrayscaleNoise = showGrayscaleNoise.get();
         }
 
+        boolean canTypeReplace = BlockFamilyRegistry.allHaveFamily(paletteState.palette);
+        if (canTypeReplace) {
+            typeReplace.set(state.noiseTypeReplace);
+            if (ImGui.checkbox(I18n.format("dimensium.ui.paint.type_replace") + "##noise_type_replace", typeReplace)) {
+                state.noiseTypeReplace = typeReplace.get();
+            }
+        } else {
+            state.noiseTypeReplace = false;
+        }
+
         ImGui.separator();
         ImGui.text(I18n.format("dimensium.ui.noise.preview"));
 
@@ -91,6 +103,7 @@ public class NoiseSection implements ToolSection {
         int hash = paletteState.palette.size();
         for (int i = 0; i < paletteState.palette.size(); i++) {
             ItemStack stack = paletteState.palette.get(i);
+            if (stack == null) continue;
             hash = 31 * hash + System.identityHashCode(stack.getItem());
             hash = 31 * hash + stack.getItemDamage();
             hash = 31 * hash + paletteState.getWeight(i);

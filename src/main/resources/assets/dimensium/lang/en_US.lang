@@ -384,6 +384,7 @@ dimensium.ui.noise.surface_only=Surface Only
 dimensium.ui.noise.type=Type
 
 dimensium.ui.painter.mask_surface=Mask Surface
+dimensium.ui.paint.type_replace=Type Replace
 
 dimensium.ui.palette.add=+ Add block
 

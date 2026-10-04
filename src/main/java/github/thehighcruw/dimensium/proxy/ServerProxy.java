@@ -6,6 +6,7 @@ package github.thehighcruw.dimensium.proxy;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import github.thehighcruw.dimensium.editor.handler.PlayerHistoryEventHandler;
+import github.thehighcruw.dimensium.shared.util.BlockFamilyRegistry;
 
 @SuppressWarnings("unused")
 public class ServerProxy implements IProxy {
@@ -19,5 +20,7 @@ public class ServerProxy implements IProxy {
     }
 
     @Override
-    public void postInit() {}
+    public void postInit() {
+        BlockFamilyRegistry.scanAllStairs();
+    }
 }
