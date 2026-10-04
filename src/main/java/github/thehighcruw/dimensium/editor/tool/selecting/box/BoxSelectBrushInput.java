@@ -7,7 +7,6 @@ package github.thehighcruw.dimensium.editor.tool.selecting.box;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.editor.freecam.FreecamState;
-import github.thehighcruw.dimensium.editor.overlay.GuiDimensiumOverlay;
 import github.thehighcruw.dimensium.editor.tool.BrushInput;
 import github.thehighcruw.dimensium.editor.window.viewport.world.PlaneTranslationGizmo;
 import github.thehighcruw.dimensium.editor.window.viewport.world.SelectionRenderer;
@@ -30,7 +29,6 @@ public class BoxSelectBrushInput implements BrushInput {
         int mouseX = (int) fs.cursorX, mouseY = (int) fs.cursorY;
 
         SelectionState sel = SelectionState.INSTANCE;
-        BoxSelectToolState ts = BoxSelectToolState.INSTANCE;
 
         if (sel.boxConfirmed) {
             if (button == KeyConstants.LMB) {
@@ -68,7 +66,6 @@ public class BoxSelectBrushInput implements BrushInput {
                         return;
                     }
                 }
-                GuiDimensiumOverlay.commitBoxSelection(sel, ts);
             }
             return;
         }

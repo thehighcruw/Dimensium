@@ -13,6 +13,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com). Run `scripts/rele
 ### Removed
 
 ### Fixed
+- Box select tool: clicking empty space no longer accidentally confirms the bounding box
 
 ### Security
 
