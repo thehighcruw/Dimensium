@@ -37,8 +37,8 @@ public class ChangeProposal {
         this.dragMask = mask;
     }
 
-    /** Crease-edge wireframe cache. Recomputed when proposed.size() changes. */
-    public float[] cachedWire = null;
+    /** Silhouette edge mask cache. Recomputed when proposed.size() changes. */
+    public HashMap<Long, Integer> cachedEdgeMask = null;
 
     public Vec3DInt wireOrigin = Vec3DInt.ZERO;
     public int wireCacheSize = -1;

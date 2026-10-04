@@ -875,7 +875,7 @@ public class SelectionRenderer {
         RenderUtils.unsetGhostRendering();
 
         // Wireframe pass.
-        drawProposalWireframe(preview, t, camPos, origin, 0.40f, 1.0f, 0.55f, pulse);
+        drawProposalWireframe(preview, t, camPos, origin, pulse);
 
         GL11.glPopMatrix();
     }
@@ -928,10 +928,10 @@ public class SelectionRenderer {
             for (int face = 0; face < 6; face++) {
                 if (blockSet.contains(SelectionState.pack(
                         bv.plus(GhostRenderer.NX[face], GhostRenderer.NY[face], GhostRenderer.NZ[face])))) continue;
-                int axisBit = GhostRenderer.FACE_AXIS_BIT[face];
+                int faceBit = GhostRenderer.FACE_BIT[face];
                 for (int[] e : GhostRenderer.FACE_EDGES[face]) {
                     long ek = ((long) e[0] << 60) | SelectionState.pack(bv.plus(e[1], e[2], e[3]));
-                    edgeMask.compute(ek, (k, prev) -> prev == null ? axisBit : prev | axisBit);
+                    edgeMask.compute(ek, (k, prev) -> prev == null ? faceBit : prev | faceBit);
                 }
             }
         }
@@ -1007,8 +1007,8 @@ public class SelectionRenderer {
         GhostRenderer.drawExteriorFacesSingleColor(t, proposed, bm -> bm[0] != 0, origin);
         RenderUtils.unsetGhostRendering();
 
-        // Pass 3: crease-edge wireframe around the exterior of the proposed shape.
-        drawProposalWireframe(drag, t, camPos, origin, 0.75f, 0.90f, 1.0f, pulse);
+        // Pass 3: silhouette wireframe around the exterior of the proposed shape.
+        drawProposalWireframe(drag, t, camPos, origin, pulse);
 
         GL11.glPopMatrix();
     }
@@ -1058,7 +1058,7 @@ public class SelectionRenderer {
 
         List<Vec3DInt> local = new ArrayList<>(unpacked.size());
         for (Vec3DInt pos : unpacked) local.add(pos.minus(min));
-        drag.cachedWire = GhostRenderer.INSTANCE.computeLocalWireframe(local);
+        drag.cachedEdgeMask = GhostRenderer.INSTANCE.computeLocalWireframe(local);
     }
 
     // ── Elevation tool terrain-projected preview ──────────────────────────────
@@ -1397,23 +1397,29 @@ public class SelectionRenderer {
      * GL float matrix.
      */
     private static void drawProposalWireframe(
-            ChangeProposal proposal,
-            Tessellator t,
-            Vec3DDouble camPos,
-            Vec3DInt parentOrigin,
-            float r,
-            float g,
-            float b,
-            float pulse) {
+            ChangeProposal proposal, Tessellator t, Vec3DDouble camPos, Vec3DInt parentOrigin, float pulse) {
         rebuildProposalWireIfNeeded(proposal);
-        if (proposal.cachedWire == null || proposal.cachedWire.length == 0) return;
+        if (proposal.cachedEdgeMask == null || proposal.cachedEdgeMask.isEmpty()) return;
         GL11.glDisable(GL11.GL_TEXTURE_2D);
-        GL11.glColor4f(r, g, b, 0.70f + 0.20f * pulse);
+        GL11.glColor4f(1.0f, 1.0f, 0.0f, 0.70f + 0.20f * pulse);
+        // Enable depth test so inner silhouette contours behind the shape's own opaque geometry are culled.
+        // Offset -2,-2 pulls line quads slightly closer than the opaque block pass (-1,-1), so the outer
+        // silhouette passes and inner back-face contours (at greater depth) fail GL_LEQUAL.
+        GL11.glEnable(GL11.GL_DEPTH_TEST);
+        GL11.glDepthFunc(GL11.GL_LEQUAL);
+        GL11.glEnable(GL11.GL_POLYGON_OFFSET_FILL);
+        GL11.glPolygonOffset(-2.0f, -2.0f);
         GL11.glPushMatrix();
         Vec3DInt delta = proposal.wireOrigin.minus(parentOrigin);
         GL11.glTranslated(delta.x(), delta.y(), delta.z());
-        WorldLines.setEye(camPos.minus(proposal.wireOrigin.toDouble()));
-        GhostRenderer.drawWireframeCache(t, proposal.cachedWire);
+        Vec3DDouble localEye = camPos.minus(proposal.wireOrigin.toDouble());
+        WorldLines.setEye(localEye);
+        float[] wire = GhostRenderer.buildSilhouetteVerts(proposal.cachedEdgeMask, localEye);
+        WorldLines.drawWireframeCache(t, wire, WorldLines.W_SILHOUETTE);
         GL11.glPopMatrix();
+        GL11.glDisable(GL11.GL_POLYGON_OFFSET_FILL);
+        GL11.glPolygonOffset(0.0f, 0.0f);
+        GL11.glDepthFunc(GL11.GL_LESS);
+        GL11.glDisable(GL11.GL_DEPTH_TEST);
     }
 }

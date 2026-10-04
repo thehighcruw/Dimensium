@@ -15,6 +15,7 @@ import github.thehighcruw.dimensium.shared.util.RenderUtils;
 import github.thehighcruw.dimensium.tool.BuilderTool;
 import github.thehighcruw.dimensium.tool.BuilderToolState;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import net.minecraft.client.Minecraft;
@@ -29,7 +30,7 @@ class HologramRenderer {
     private static final int PER_BLOCK_MAX = 2048;
 
     private int cachedClipVersion = -1;
-    private float[] cachedClipWire = null;
+    private HashMap<Long, Integer> cachedClipEdgeMask = null;
 
     void render(Minecraft mc, SelectionState sel, BuilderToolState bts, Vec3DDouble camPos) {
         float pulse = 0.5f + 0.5f * (float) Math.sin(System.currentTimeMillis() / 400.0);
@@ -180,10 +181,20 @@ class HologramRenderer {
             RenderUtils.unsetGhostRendering();
 
             float alpha = 0.9f - (float) (copyIndex - 1) / Math.max(1, totalCopies) * 0.4f;
-            GL11.glColor4f(0.2f, 1.0f, 0.4f, alpha);
-            GL11.glLineWidth(2.0f);
+            GL11.glColor4f(1.0f, 1.0f, 0.0f, alpha);
             ensureClipWireframeCache(sel);
-            GhostRenderer.drawWireframeCache(t, cachedClipWire);
+            Vec3DDouble localEye = hPos.negate();
+            WorldLines.setEye(localEye);
+            GL11.glEnable(GL11.GL_DEPTH_TEST);
+            GL11.glDepthFunc(GL11.GL_LEQUAL);
+            GL11.glEnable(GL11.GL_POLYGON_OFFSET_FILL);
+            GL11.glPolygonOffset(-1.0f, -1.0f);
+            WorldLines.drawWireframeCache(
+                    t, GhostRenderer.buildSilhouetteVerts(cachedClipEdgeMask, localEye), WorldLines.W_SILHOUETTE);
+            GL11.glDisable(GL11.GL_POLYGON_OFFSET_FILL);
+            GL11.glPolygonOffset(0.0f, 0.0f);
+            GL11.glDepthFunc(GL11.GL_LESS);
+            GL11.glDisable(GL11.GL_DEPTH_TEST);
 
             GL11.glPopMatrix();
         } else {
@@ -202,20 +213,14 @@ class HologramRenderer {
         }
     }
 
-    private static boolean isFacingAir(SelectionState sel, int face, Vec3DInt pos, Vec3DInt dims) {
-        Vec3DInt neighbor = pos.plus(GhostRenderer.NX[face], GhostRenderer.NY[face], GhostRenderer.NZ[face]);
-        return !neighbor.inBounds(Vec3DInt.ZERO, dims.minus(1))
-                || sel.clipboardGet(neighbor).block() == Blocks.air;
-    }
-
     private void ensureClipWireframeCache(SelectionState sel) {
-        if (sel.clipboardVersion == cachedClipVersion && cachedClipWire != null) return;
-        cachedClipWire = computeClipWireframe(sel);
+        if (sel.clipboardVersion == cachedClipVersion && cachedClipEdgeMask != null) return;
+        cachedClipEdgeMask = computeClipEdgeMask(sel);
         cachedClipVersion = sel.clipboardVersion;
     }
 
-    private static float[] computeClipWireframe(SelectionState sel) {
-        if (sel.clipboard == null) return new float[0];
+    private static HashMap<Long, Integer> computeClipEdgeMask(SelectionState sel) {
+        if (sel.clipboard == null) return new HashMap<>();
         Vec3DInt clipDims = sel.clipDim;
 
         HashSet<Long> set = new HashSet<>(clipDims.product());
@@ -223,7 +228,7 @@ class HologramRenderer {
             if (sel.clipboardGet(pos).block() != Blocks.air) set.add(SelectionRenderer.lPack(pos));
         });
 
-        return GhostRenderer.creaseWireframeFromSet(set);
+        return GhostRenderer.outlineWireframeFromSet(set);
     }
 
     private static void drawAxisLine(SelectionState sel, BuilderToolState bts, Vec3DDouble camPos) {

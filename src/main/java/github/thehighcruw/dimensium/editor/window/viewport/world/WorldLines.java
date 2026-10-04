@@ -32,10 +32,11 @@ public class WorldLines {
 
     // Half-widths in world units for each usage context.
     // At typical building distances (5–30 blocks) these appear as 1–3 pixel lines.
-    static final float W_THIN = 0.018f; // crease / selection wireframes
+    static final float W_THIN = 0.018f; // selection block wireframes
     static final float W_SEL = 0.028f; // selection box outlines
     static final float W_GIZMO = 0.038f; // gizmo arrow shafts and rings
     static final float W_HOT = 0.060f; // hover highlight glow pass
+    static final float W_SILHOUETTE = 0.054f; // outer silhouette outlines (3× W_THIN)
 
     // Eye (camera) position in the CURRENT GL local coordinate frame.
     // Must be set via setEyeForTranslation / setEye before any draw call.
@@ -145,20 +146,16 @@ public class WorldLines {
      * Handles tessellator setup/teardown and batching.
      */
     static void drawWireframeCache(Tessellator t, float[] verts) {
+        drawWireframeCache(t, verts, W_THIN);
+    }
+
+    static void drawWireframeCache(Tessellator t, float[] verts, float halfW) {
         if (verts == null || verts.length < 6) return;
         GL11.glDisable(GL11.GL_CULL_FACE);
         t.startDrawingQuads();
         int batched = 0;
         for (int i = 0; i + 5 < verts.length; i += 6) {
-            addSegment(
-                    t,
-                    verts[i],
-                    verts[i + 1],
-                    verts[i + 2],
-                    verts[i + 3],
-                    verts[i + 4],
-                    verts[i + 5],
-                    WorldLines.W_THIN);
+            addSegment(t, verts[i], verts[i + 1], verts[i + 2], verts[i + 3], verts[i + 4], verts[i + 5], halfW);
             if (++batched % 2048 == 0) {
                 t.draw();
                 t.startDrawingQuads();

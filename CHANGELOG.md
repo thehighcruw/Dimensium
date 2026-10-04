@@ -13,6 +13,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com). Run `scripts/rele
 - Ruler tool: clear placed points when switching away from the ruler tool
 
 ### Changed
+- Ghost previews, brush previews, and hologram: replace crease-edge wireframe with view-dependent yellow silhouette outline at 3× line thickness; inner contours are depth-culled so only the continuous outermost edge is visible
 
 ### Deprecated
 

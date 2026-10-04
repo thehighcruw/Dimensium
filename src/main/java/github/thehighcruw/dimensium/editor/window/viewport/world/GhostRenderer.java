@@ -4,9 +4,11 @@
  */
 package github.thehighcruw.dimensium.editor.window.viewport.world;
 
+import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -48,23 +50,17 @@ public class GhostRenderer {
         {{0, 0, 0, 1}, {1, 1, 0, 1}, {0, 0, 1, 1}, {1, 0, 0, 1}}, // +Z face
         {{0, 0, 0, 0}, {1, 1, 0, 0}, {0, 0, 1, 0}, {1, 0, 0, 0}}, // -Z face
     };
-    // Which "plane group" each face belongs to: X-faces=1, Y-faces=2, Z-faces=4
-    static final int[] FACE_AXIS_BIT = {1, 1, 2, 2, 4, 4};
+    // One bit per face direction: +X=1, -X=2, +Y=4, -Y=8, +Z=16, -Z=32
+    static final int[] FACE_BIT = {1, 2, 4, 8, 16, 32};
 
     public static final GhostRenderer INSTANCE = new GhostRenderer();
 
     // ── Exterior wireframe for ghost block list ────────────────────────────────
 
-    float[] computeLocalWireframe(List<Vec3DInt> blocks) {
-        // Build block lookup set using local coord packing (coords assumed < ±4096)
+    HashMap<Long, Integer> computeLocalWireframe(List<Vec3DInt> blocks) {
         Set<Long> set = new HashSet<>(blocks.size() * 2);
         for (Vec3DInt p : blocks) set.add(SelectionRenderer.lPack(p.x(), p.y(), p.z()));
-
-        // For each exterior face, register its 4 edges with the face's plane-group bit.
-        // An edge is a "crease" (should be drawn) iff it borders faces from 2+ plane groups.
-        HashMap<Long, Integer> edgeMask = getEdgeMask(blocks, set);
-
-        return buildVertsFromEdgeMask(edgeMask);
+        return getEdgeMask(blocks, set);
     }
 
     @Nonnull
@@ -73,20 +69,15 @@ public class GhostRenderer {
         for (Vec3DInt p : blocks) {
             for (int face = 0; face < 6; face++) {
                 if (set.contains(SelectionRenderer.lPack(p.plus(NX[face], NY[face], NZ[face])))) continue;
-                int axisBit = FACE_AXIS_BIT[face];
+                int faceBit = FACE_BIT[face];
                 for (int[] e : FACE_EDGES[face]) {
                     Vec3DInt corner = p.plus(e[1], e[2], e[3]);
                     long ek = lEdgeKey(e[0], corner.x(), corner.y(), corner.z());
-                    edgeMask.compute(ek, (k, prev) -> prev == null ? axisBit : prev | axisBit);
+                    edgeMask.compute(ek, (k, prev) -> prev == null ? faceBit : prev | faceBit);
                 }
             }
         }
         return edgeMask;
-    }
-
-    /** Draws pre-computed wireframe vertices (x1,y1,z1,x2,y2,z2,...) as billboard quads. */
-    static void drawWireframeCache(Tessellator t, float[] verts) {
-        WorldLines.drawWireframeCache(t, verts);
     }
 
     // ── Geometry helpers ──────────────────────────────────────────────────────
@@ -126,35 +117,55 @@ public class GhostRenderer {
         t.addVertexWithUV(x, y, z, u, v);
     }
 
-    static float[] creaseWireframeFromSet(HashSet<Long> set) {
+    static HashMap<Long, Integer> outlineWireframeFromSet(HashSet<Long> set) {
         HashMap<Long, Integer> edgeMask = new HashMap<>(set.size() * 4);
         for (long pk : set) {
             Vec3DInt b = SelectionRenderer.lUnpack(pk);
             for (int face = 0; face < 6; face++) {
                 if (set.contains(SelectionRenderer.lPack(b.plus(NX[face], NY[face], NZ[face])))) continue;
-                int axisBit = FACE_AXIS_BIT[face];
+                int faceBit = FACE_BIT[face];
                 for (int[] e : FACE_EDGES[face]) {
                     long ek = ((long) e[0] << 39) | SelectionRenderer.lPack(b.plus(e[1], e[2], e[3]));
-                    edgeMask.compute(ek, (k, prev) -> prev == null ? axisBit : prev | axisBit);
+                    edgeMask.compute(ek, (k, prev) -> prev == null ? faceBit : prev | faceBit);
                 }
             }
         }
-        return buildVertsFromEdgeMask(edgeMask);
+        return edgeMask;
     }
 
-    private static float[] buildVertsFromEdgeMask(HashMap<Long, Integer> edgeMask) {
-        int creaseCount = 0;
-        for (int mask : edgeMask.values()) if (Integer.bitCount(mask) > 1) creaseCount++;
-        if (creaseCount == 0) return new float[0];
-        float[] verts = new float[creaseCount * 6];
+    /**
+     * Builds billboard-quad vertices for the silhouette edges of a precomputed edge mask.
+     * Only fold edges (bitCount &gt; 1: edge borders two differently-oriented exterior faces) are
+     * considered. Among those, only edges where one adjacent face is front-facing and one is
+     * back-facing relative to the camera are drawn — the true view-dependent silhouette contour.
+     */
+    static float[] buildSilhouetteVerts(HashMap<Long, Integer> edgeMask, Vec3DDouble eye) {
+        if (edgeMask == null || edgeMask.isEmpty()) return new float[0];
+
+        float[] verts = new float[edgeMask.size() * 6];
         int vi = 0;
         for (Map.Entry<Long, Integer> entry : edgeMask.entrySet()) {
-            if (Integer.bitCount(entry.getValue()) <= 1) continue;
+            int mask = entry.getValue();
             long ek = entry.getKey();
             int axis = (int) (ek >> 39) & 3;
             Vec3DInt coord = Vec3DInt.from(
                     (int) ((ek >> 26) & 0x1FFF) - 4096, (int) ((ek >> 13) & 0x1FFF) - 4096, (int) (ek & 0x1FFF) - 4096);
             Vec3DInt end = coord.plus(axis == 0 ? 1 : 0, axis == 1 ? 1 : 0, axis == 2 ? 1 : 0);
+
+            // Edge midpoint
+            double mx = (coord.x() + end.x()) * 0.5;
+            double my = (coord.y() + end.y()) * 0.5;
+            double mz = (coord.z() + end.z()) * 0.5;
+
+            // Which face normals point toward the camera from this edge's midpoint
+            int frontFaceBits = (eye.x() > mx ? FACE_BIT[0] : FACE_BIT[1])
+                    | (eye.y() > my ? FACE_BIT[2] : FACE_BIT[3])
+                    | (eye.z() > mz ? FACE_BIT[4] : FACE_BIT[5]);
+
+            boolean isSilhouette =
+                    Integer.bitCount(mask) > 1 && (mask & frontFaceBits) != 0 && (mask & ~frontFaceBits) != 0;
+            if (!isSilhouette) continue;
+
             verts[vi++] = coord.x();
             verts[vi++] = coord.y();
             verts[vi++] = coord.z();
@@ -162,7 +173,7 @@ public class GhostRenderer {
             verts[vi++] = end.y();
             verts[vi++] = end.z();
         }
-        return verts;
+        return vi == verts.length ? verts : Arrays.copyOf(verts, vi);
     }
 
     static void addBoxFaces(Tessellator t, float x2, float y2, float z2) {
