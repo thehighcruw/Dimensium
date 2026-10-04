@@ -33,6 +33,8 @@ import github.thehighcruw.dimensium.editor.tool.manipulating.elevation.Elevation
 import github.thehighcruw.dimensium.editor.tool.manipulating.modify.ModifyToolState;
 import github.thehighcruw.dimensium.editor.tool.manipulating.move.MoveToolState;
 import github.thehighcruw.dimensium.editor.tool.manipulating.slope.SlopeToolState;
+import github.thehighcruw.dimensium.editor.tool.mask.ToolMask;
+import github.thehighcruw.dimensium.editor.tool.mask.ToolMaskRegistry;
 import github.thehighcruw.dimensium.editor.tool.painting.gradient.GradientToolState;
 import github.thehighcruw.dimensium.editor.tool.selecting.SelectedBlockState;
 import github.thehighcruw.dimensium.editor.tool.selecting.box.BoxSelectToolState;
@@ -945,6 +947,14 @@ public class SelectionRenderer {
 
     private static void renderProposalPreview(Minecraft mc, Vec3DDouble camPos, ChangeProposal drag) {
         if (drag == null || drag.proposed.isEmpty()) return;
+
+        ToolMask previewMask = ToolMaskRegistry.INSTANCE.getActiveMask();
+        Map<Long, int[]> proposed =
+                (previewMask != null && previewMask.getRole().appliesToDestination())
+                        ? buildMaskedProposal(drag.proposed, mc, previewMask)
+                        : drag.proposed;
+        if (proposed.isEmpty()) return;
+
         float pulse = 0.5f + 0.5f * (float) Math.sin(System.currentTimeMillis() / 300.0);
         rebuildProposalWireIfNeeded(drag);
         Vec3DInt origin = drag.wireOrigin;
@@ -954,15 +964,15 @@ public class SelectionRenderer {
         // Pass 0: removals — orange tint over existing blocks, exterior faces only.
         GL11.glDisable(GL11.GL_TEXTURE_2D);
         GL11.glColor4f(1.0f, 0.40f, 0.10f, 0.70f);
-        GhostRenderer.drawExteriorFacesSingleColor(t, drag.proposed, bm -> bm[0] == 0, origin);
+        GhostRenderer.drawExteriorFacesSingleColor(t, proposed, bm -> bm[0] == 0, origin);
 
         // Pass 1: additions fully opaque using RenderBlocks for correct non-full-block geometry.
         GL11.glEnable(GL11.GL_TEXTURE_2D);
         mc.getTextureManager().bindTexture(TextureMap.locationBlocksTexture);
         GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-        GhostBlockAccess proposalAccess = new GhostBlockAccess(drag.proposed, origin);
-        List<Vec3DInt> addPositions = new ArrayList<>(drag.proposed.size());
-        for (Map.Entry<Long, int[]> e : drag.proposed.entrySet()) {
+        GhostBlockAccess proposalAccess = new GhostBlockAccess(proposed, origin);
+        List<Vec3DInt> addPositions = new ArrayList<>(proposed.size());
+        for (Map.Entry<Long, int[]> e : proposed.entrySet()) {
             if (e.getValue()[0] != 0)
                 addPositions.add(ChangeProposal.unpackKey(e.getKey()).minus(origin));
         }
@@ -978,17 +988,26 @@ public class SelectionRenderer {
 
         // Additive orange glow over removals — exterior faces only.
         GL11.glColor4f(1.0f, 0.30f, 0.0f, 0.05f + 0.07f * pulse);
-        GhostRenderer.drawExteriorFacesSingleColor(t, drag.proposed, bm -> bm[0] == 0, origin);
+        GhostRenderer.drawExteriorFacesSingleColor(t, proposed, bm -> bm[0] == 0, origin);
 
         // Additive blue glow over all additions — exterior faces only.
         GL11.glColor4f(0.40f, 0.75f, 1.0f, 0.05f + 0.07f * pulse);
-        GhostRenderer.drawExteriorFacesSingleColor(t, drag.proposed, bm -> bm[0] != 0, origin);
+        GhostRenderer.drawExteriorFacesSingleColor(t, proposed, bm -> bm[0] != 0, origin);
         RenderUtils.unsetGhostRendering();
 
         // Pass 3: crease-edge wireframe around the exterior of the proposed shape.
         drawProposalWireframe(drag, t, camPos, origin, 0.75f, 0.90f, 1.0f, pulse);
 
         GL11.glPopMatrix();
+    }
+
+    private static Map<Long, int[]> buildMaskedProposal(Map<Long, int[]> proposed, Minecraft mc, ToolMask mask) {
+        Map<Long, int[]> filtered = new HashMap<>();
+        for (Map.Entry<Long, int[]> e : proposed.entrySet()) {
+            Vec3DInt pos = ChangeProposal.unpackKey(e.getKey());
+            if (mask.test(mc.theWorld, pos)) filtered.put(e.getKey(), e.getValue());
+        }
+        return filtered;
     }
 
     /**

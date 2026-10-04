@@ -105,6 +105,14 @@ public class ChangeProposal {
         return drag.dragMask.test(world, coord);
     }
 
+    /** Returns true if the coord passes the active drag's destination mask, or if no destination mask applies. */
+    public static boolean testDestination(World world, Vec3DInt coord) {
+        ChangeProposal drag = ActiveDragState.INSTANCE.activeDrag;
+        if (drag == null || drag.dragMask == null) return true;
+        if (!drag.dragMask.getRole().appliesToDestination()) return true;
+        return drag.dragMask.test(world, coord);
+    }
+
     // ── Write interception ────────────────────────────────────────────────────
 
     /**

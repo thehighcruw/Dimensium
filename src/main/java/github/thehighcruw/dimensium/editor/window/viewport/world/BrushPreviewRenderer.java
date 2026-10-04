@@ -20,6 +20,7 @@ import github.thehighcruw.dimensium.shared.math.Vec3DDouble;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import github.thehighcruw.dimensium.shared.util.RenderUtils;
 import github.thehighcruw.dimensium.shared.util.WorldUtils;
+import github.thehighcruw.dimensium.tool.ChangeProposal;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -84,8 +85,10 @@ public class BrushPreviewRenderer {
                 HashSet<Long> affectedSet = new HashSet<>();
                 Vec3DInt.forEachInclusive(brushSize.negate(), brushSize, offset -> {
                     if (!BrushUtil.inShape(shape, offset, brushSize)) return;
-                    if (renderer.isBlockAffected(mc, cursor.plus(offset)))
-                        affectedSet.add(SelectionRenderer.lPack(offset.plus(brushSize)));
+                    Vec3DInt worldPos = cursor.plus(offset);
+                    if (!renderer.isBlockAffected(mc, worldPos)) return;
+                    if (!ChangeProposal.testDestination(mc.theWorld, worldPos)) return;
+                    affectedSet.add(SelectionRenderer.lPack(offset.plus(brushSize)));
                 });
 
                 if (!affectedSet.isEmpty()) {
@@ -197,12 +200,6 @@ public class BrushPreviewRenderer {
         return cachedBrushWire;
     }
 
-    private static void pushBrushTranslation(int bx, int by, int bz, double rx, double ry, double rz, int radius) {
-        Vec3DDouble trans = Vec3DDouble.from(bx - radius - rx, by - radius - ry, bz - radius - rz);
-        GL11.glTranslated(trans.x(), trans.y(), trans.z());
-        WorldLines.setEyeForTranslation(trans);
-    }
-
     private static HashSet<Long> buildBrushSet(BrushShape shape, Vec3DInt brushSize) {
         HashSet<Long> set = new HashSet<>();
         Vec3DInt.forEachInclusive(brushSize.negate(), brushSize, offset -> {
@@ -245,7 +242,9 @@ public class BrushPreviewRenderer {
         Vec3DInt.forEachInclusive(brushSize.negate(), brushSize, offset -> {
             if (!BrushUtil.inShape(shape, offset, brushSize)) return;
             Vec3DInt worldPos = center.plus(offset);
-            if (WorldUtils.getBlock(mc.theWorld, worldPos) != Blocks.air) out.add(wPack(worldPos));
+            if (WorldUtils.getBlock(mc.theWorld, worldPos) == Blocks.air) return;
+            if (!ChangeProposal.testDestination(mc.theWorld, worldPos)) return;
+            out.add(wPack(worldPos));
         });
     }
 
