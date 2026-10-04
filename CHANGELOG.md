@@ -5,6 +5,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com). Run `scripts/rele
 
 ## [Unreleased]
 ### Added
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [0.1.1] — 2026-10-04
+### Added
 - Painter, Gradient, Noise tools: add Type Replace option — when all palette blocks have registered variants (stairs/slabs/fences), painting preserves the shape of existing blocks and replaces only the material
 - `BlockFamilyRegistry`: auto-detect modded stair variants at FML post-init via `BlockStairs` field reflection (GTNHLib `Fields`); add `registerSlab`, `registerFence` for explicit slab/fence registration; add `BlockShapeType`, `shapeTypeOf`, `applyTypeReplace`, `allHaveFamily`
 - Gradient tool: add "Clear Start Point" button to reset pos1 from the tool options panel
@@ -15,10 +28,6 @@ Format follows [Keep a Changelog](https://keepachangelog.com). Run `scripts/rele
 ### Changed
 - Ghost previews, brush previews, and hologram: replace crease-edge wireframe with view-dependent yellow silhouette outline at 3× line thickness; inner contours are depth-culled so only the continuous outermost edge is visible
 
-### Deprecated
-
-### Removed
-
 ### Fixed
 - Gradient tool: fix FSOT filter buttons not responding to clicks in creative GUI
 - Move tool: show orange erase ghost at original block positions while previewing a move
@@ -28,8 +37,6 @@ Format follows [Keep a Changelog](https://keepachangelog.com). Run `scripts/rele
 - Selection highlight: fix same float precision rendering bug affecting the per-block textured and glow passes
 - Copy tool: fix ghost wireframe and glow passes sharing the same precision bug via the proposal render path
 - Tool mask: apply active mask to brush drag preview and proposal-based tool previews (shape, path, and others) so the ghost accurately reflects what will be placed
-
-### Security
 
 ## [0.1.0] — 2026-09-27
 ### Fixed
