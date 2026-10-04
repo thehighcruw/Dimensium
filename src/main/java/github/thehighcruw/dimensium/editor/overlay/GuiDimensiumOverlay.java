@@ -20,7 +20,6 @@ import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapePlacementSta
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapeToolState;
 import github.thehighcruw.dimensium.editor.tool.manipulating.modify.ModifyToolState;
 import github.thehighcruw.dimensium.editor.tool.manipulating.move.MoveToolState;
-import github.thehighcruw.dimensium.editor.tool.selecting.BooleanOp;
 import github.thehighcruw.dimensium.editor.tool.selecting.SelectedBlockState;
 import github.thehighcruw.dimensium.editor.tool.selecting.box.BoxSelectToolState;
 import github.thehighcruw.dimensium.editor.tool.state.ClipboardPlacementState;
@@ -49,7 +48,6 @@ import github.thehighcruw.dimensium.shared.util.WorldUtils;
 import github.thehighcruw.dimensium.tool.BuilderToolState;
 import github.thehighcruw.dimensium.tool.ChangeProposal;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -266,33 +264,8 @@ public final class GuiDimensiumOverlay {
         moveOps.addAll(ms.ghostBlocks);
         BlockSender.sendChunked(moveOps, I18n.format("dimensium.action.move"));
 
-        // Build new snapshot from the placed blocks (no world-read — avoids server-packet timing gap).
-        // Blocks outside the valid world Y range [0, 255] are skipped: SelectionState.pack truncates Y
-        // to 8 bits, so negative Y corrupts the X bits and produces an invalid key.
-        Map<Long, SelectionState.BlockData> newSnap = new HashMap<>(ms.ghostBlocks.size());
-        float ncx = 0, ncy = 0, ncz = 0;
-        int validCount = 0;
-        for (int[] b : ms.ghostBlocks) {
-            if (b[1] < 0 || b[1] > 255) continue;
-            Block blk = Block.getBlockById(b[3]);
-            if (blk != null && blk != Blocks.air) {
-                newSnap.put(
-                        SelectionState.pack(Vec3DInt.from(b[0], b[1], b[2])), new SelectionState.BlockData(blk, b[4]));
-            }
-            ncx += b[0] + 0.5f;
-            ncy += b[1] + 0.5f;
-            ncz += b[2] + 0.5f;
-            validCount++;
-        }
-        int ghostCount = Math.max(1, validCount);
-
-        // Update selection to new positions
-        Set<Long> newSel = new HashSet<>(newSnap.keySet());
-        sel.applyOp(newSel, BooleanOp.REPLACE);
-
-        // Re-activate with known block data — selection renderVersion just changed via applyOp
-        ms.activateFromSnapshot(sel, newSnap, Vec3DFloat.from(ncx / ghostCount, ncy / ghostCount, ncz / ghostCount));
-        MoveToolState.INSTANCE.preview = null;
+        sel.clearSelection();
+        ms.cancel();
     }
 
     public static void confirmPlacement() {

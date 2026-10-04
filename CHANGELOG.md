@@ -16,6 +16,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com). Run `scripts/rele
 
 ### Fixed
 - Gradient tool: fix FSOT filter buttons not responding to clicks in creative GUI
+- Move tool: show orange erase ghost at original block positions while previewing a move
+- Move tool: allow Enter to confirm the move (in addition to RMB)
+- Move tool: clear selection on confirm so the gizmo disappears and the operation looks finished
 - Copy tool: fix ghost preview appearing hundreds of blocks away and apparently rotated due to float precision loss when large absolute world coordinates were accumulated in the GL float matrix
 - Selection highlight: fix same float precision rendering bug affecting the per-block textured and glow passes
 - Copy tool: fix ghost wireframe and glow passes sharing the same precision bug via the proposal render path

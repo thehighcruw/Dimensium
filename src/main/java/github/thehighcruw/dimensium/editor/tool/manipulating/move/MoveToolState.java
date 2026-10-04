@@ -115,19 +115,6 @@ public class MoveToolState
         active = true;
     }
 
-    /**
-     * Re-activate after a confirm with known block data (no world read needed).
-     * Avoids the server-packet timing gap.
-     */
-    public void activateFromSnapshot(SelectionState sel, Map<Long, SelectionState.BlockData> snap, Vec3DFloat newCm) {
-        cm = newCm;
-        snapshot = snap;
-        currentSnapshotVersion++;
-        reset();
-        capturedSelVersion = sel.renderVersion;
-        active = true;
-    }
-
     public void cancel() {
         active = false;
         preview = null;
@@ -264,6 +251,11 @@ public class MoveToolState
         ghostBlocks = blocks;
 
         ChangeProposal p = ChangeProposal.forPreview();
+        // Original positions shown as removals (air) so renderProposalPreview draws the orange erase tint.
+        for (long key : snapshot.keySet()) {
+            Vec3DInt src = SelectionState.unpack(key);
+            p.proposed.putIfAbsent(ChangeProposal.packKey(src), new int[] {0, 0});
+        }
         for (int[] b : blocks) {
             p.proposed.put(ChangeProposal.packKey(Vec3DInt.from(b[0], b[1], b[2])), new int[] {b[3], b[4]});
         }

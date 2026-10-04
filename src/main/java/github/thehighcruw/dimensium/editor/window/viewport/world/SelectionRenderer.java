@@ -552,6 +552,18 @@ public class SelectionRenderer {
                 if (ms.preview != null) {
                     renderProposalPreview(mc, camPos, ms.preview);
                 }
+                float movePulse = 0.5f + 0.5f * (float) Math.sin(System.currentTimeMillis() / 400.0);
+                GL11.glPushMatrix();
+                GL11.glTranslated(sel.minX() - camPos.x(), sel.minY() - camPos.y(), sel.minZ() - camPos.z());
+                GL11.glColor4f(1.0f, 0.15f, 0.15f, 0.10f + movePulse * 0.06f);
+                drawFilledBox(sel.width(), sel.height(), sel.depth());
+                GL11.glColor4f(1.0f, 0.2f, 0.2f, 0.85f);
+                GL11.glLineWidth(2.0f);
+                drawBox(0, 0, 0, sel.width(), sel.height(), sel.depth());
+                GL11.glColor4f(1.0f, 1.0f, 1.0f, movePulse * 0.25f);
+                GL11.glLineWidth(1.0f);
+                drawBox(-0.02f, -0.02f, -0.02f, sel.width() + 0.02f, sel.height() + 0.02f, sel.depth() + 0.02f);
+                GL11.glPopMatrix();
                 if (!cameraMoving || gizmoDragging) {
                     Vec3DDouble gizmoPos = ms.gizmoPos();
                     ms.viewPlaneGizmo.render(gizmoPos, camPos);
