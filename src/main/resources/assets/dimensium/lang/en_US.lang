@@ -766,6 +766,10 @@ dimensium.menu.window.smooth=Smooth Selection...
 
 # Colour Picker
 itemGroup.dimensium.colour_picker=Colour Picker
+dimensium.colour_picker.title=Colour Picker
+dimensium.gradient_helper.title=Gradient Helper
+dimensium.gradient_helper.section.inputs=Inputs
+dimensium.gradient_helper.section.outputs=Outputs
 dimensium.colour_picker.filter.full_cube=Full Cube
 dimensium.colour_picker.filter.solid=Solid
 dimensium.colour_picker.filter.opaque=Opaque

@@ -10,13 +10,13 @@ import github.thehighcruw.dimensium.shared.BlockColorCache;
 import github.thehighcruw.dimensium.shared.KeyConstants;
 import github.thehighcruw.dimensium.world.inventory.AbstractFsotGuiContainer;
 import github.thehighcruw.dimensium.world.inventory.CreativeGuiUtils;
-import github.thehighcruw.dimensium.world.inventory.GuiToggleButton;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityClientPlayerMP;
 import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
@@ -41,10 +41,6 @@ public class GuiGradientHelper extends AbstractFsotGuiContainer {
     private static final int C_TEXT = 0xFF404040;
     private static final int C_LABEL = 0xFF707070;
 
-    private static final int BTN_F = 20;
-    private static final int BTN_S = 21;
-    private static final int BTN_O = 22;
-    private static final int BTN_T = 23;
     private static final int BTN_COPY_HOTBAR = 24;
     private static final int BTN_CYCLE_PREV_BASE = 30;
     private static final int BTN_CYCLE_NEXT_BASE = 40;
@@ -102,9 +98,17 @@ public class GuiGradientHelper extends AbstractFsotGuiContainer {
 
         drawMcPanel(guiLeft, guiTop);
 
-        fontRendererObj.drawString("Gradient Helper", guiLeft + 6, guiTop + 6, C_TEXT);
-        fontRendererObj.drawString("Inputs", guiLeft + CONTENT_X, guiTop + INPUT_Y - 9, C_LABEL);
-        fontRendererObj.drawString("Outputs", guiLeft + CONTENT_X, guiTop + OUTPUT_Y - 9, C_LABEL);
+        fontRendererObj.drawString(I18n.format("dimensium.gradient_helper.title"), guiLeft + 6, guiTop + 6, C_TEXT);
+        fontRendererObj.drawString(
+                I18n.format("dimensium.gradient_helper.section.inputs"),
+                guiLeft + CONTENT_X,
+                guiTop + INPUT_Y - 9,
+                C_LABEL);
+        fontRendererObj.drawString(
+                I18n.format("dimensium.gradient_helper.section.outputs"),
+                guiLeft + CONTENT_X,
+                guiTop + OUTPUT_Y - 9,
+                C_LABEL);
 
         // Arrow between rows
         fontRendererObj.drawString("v", guiLeft + PANEL_W / 2 - 2, guiTop + INPUT_Y + SLOT_SIZE + 1, C_LABEL);
@@ -136,10 +140,10 @@ public class GuiGradientHelper extends AbstractFsotGuiContainer {
     @Override
     protected String fsotTooltipKey(int id) {
         return switch (id) {
-            case BTN_F -> "dimensium.colour_picker.filter.full_cube";
-            case BTN_S -> "dimensium.colour_picker.filter.solid";
-            case BTN_O -> "dimensium.colour_picker.filter.opaque";
-            case BTN_T -> "dimensium.colour_picker.filter.same_texture";
+            case CreativeGuiUtils.BTN_F -> "dimensium.colour_picker.filter.full_cube";
+            case CreativeGuiUtils.BTN_S -> "dimensium.colour_picker.filter.solid";
+            case CreativeGuiUtils.BTN_O -> "dimensium.colour_picker.filter.opaque";
+            case CreativeGuiUtils.BTN_T -> "dimensium.colour_picker.filter.same_texture";
             default -> null;
         };
     }
@@ -238,8 +242,8 @@ public class GuiGradientHelper extends AbstractFsotGuiContainer {
         double z = labFInv(fz) * 1.08883;
         double r = delinearize(3.2404542 * x - 1.5371385 * y - 0.4985314 * z);
         double g = delinearize(-0.9692660 * x + 1.8760108 * y + 0.0415560 * z);
-        double bv = delinearize(0.0556434 * x - 0.2040259 * y + 1.0572252 * z);
-        return (clampByte(r) << 16) | (clampByte(g) << 8) | clampByte(bv);
+        double blueValue = delinearize(0.0556434 * x - 0.2040259 * y + 1.0572252 * z);
+        return (clampByte(r) << 16) | (clampByte(g) << 8) | clampByte(blueValue);
     }
 
     private static double labFInv(double t) {
@@ -276,22 +280,22 @@ public class GuiGradientHelper extends AbstractFsotGuiContainer {
         GradientHelperContainer container = gradientContainer();
         int id = button.id;
 
-        if (id == BTN_F) {
+        if (id == CreativeGuiUtils.BTN_F) {
             filterFullCube = toggle(button, filterFullCube);
             dirty = true;
             return;
         }
-        if (id == BTN_S) {
+        if (id == CreativeGuiUtils.BTN_S) {
             filterSolid = toggle(button, filterSolid);
             dirty = true;
             return;
         }
-        if (id == BTN_O) {
+        if (id == CreativeGuiUtils.BTN_O) {
             filterOpaque = toggle(button, filterOpaque);
             dirty = true;
             return;
         }
-        if (id == BTN_T) {
+        if (id == CreativeGuiUtils.BTN_T) {
             filterSameTexture = toggle(button, filterSameTexture);
             dirty = true;
             return;
@@ -330,30 +334,10 @@ public class GuiGradientHelper extends AbstractFsotGuiContainer {
         }
     }
 
-    private boolean toggle(GuiButton btn, boolean current) {
-        boolean next = !current;
-        ((GuiToggleButton) btn).setActive(next);
-        return next;
-    }
-
     // ── MC drawing helpers ─────────────────────────────────────────────────────
 
     private void drawMcPanel(int x, int y) {
-        drawRect(x, y, x + GuiGradientHelper.PANEL_W, y + GuiGradientHelper.PANEL_H, C_PANEL);
-        drawRect(x, y, x + GuiGradientHelper.PANEL_W, y + 1, C_PANEL_HI);
-        drawRect(x, y, x + 1, y + GuiGradientHelper.PANEL_H, C_PANEL_HI);
-        drawRect(
-                x,
-                y + GuiGradientHelper.PANEL_H - 1,
-                x + GuiGradientHelper.PANEL_W,
-                y + GuiGradientHelper.PANEL_H,
-                C_PANEL_SH);
-        drawRect(
-                x + GuiGradientHelper.PANEL_W - 1,
-                y,
-                x + GuiGradientHelper.PANEL_W,
-                y + GuiGradientHelper.PANEL_H,
-                C_PANEL_SH);
+        drawBeveledRect(x, y, PANEL_W, PANEL_H, C_PANEL, C_PANEL_HI, C_PANEL_SH);
     }
 
     // Output slots: server's outputInv is always empty (server doesn't compute the gradient),
@@ -377,12 +361,12 @@ public class GuiGradientHelper extends AbstractFsotGuiContainer {
     }
 
     private Slot getSlotUnderMouse(int mouseX, int mouseY) {
-        for (Slot s : inventorySlots.inventorySlots) {
-            if (mouseX >= guiLeft + s.xDisplayPosition
-                    && mouseX < guiLeft + s.xDisplayPosition + 16
-                    && mouseY >= guiTop + s.yDisplayPosition
-                    && mouseY < guiTop + s.yDisplayPosition + 16) {
-                return s;
+        for (Slot slot : inventorySlots.inventorySlots) {
+            if (mouseX >= guiLeft + slot.xDisplayPosition
+                    && mouseX < guiLeft + slot.xDisplayPosition + 16
+                    && mouseY >= guiTop + slot.yDisplayPosition
+                    && mouseY < guiTop + slot.yDisplayPosition + 16) {
+                return slot;
             }
         }
         return null;

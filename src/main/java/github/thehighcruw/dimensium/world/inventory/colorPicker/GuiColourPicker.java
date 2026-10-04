@@ -7,17 +7,17 @@ package github.thehighcruw.dimensium.world.inventory.colorPicker;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import github.thehighcruw.dimensium.shared.BlockColorCache;
+import github.thehighcruw.dimensium.shared.KeyConstants;
 import github.thehighcruw.dimensium.world.inventory.AbstractFsotGuiContainer;
 import github.thehighcruw.dimensium.world.inventory.CreativeGuiUtils;
-import github.thehighcruw.dimensium.world.inventory.GuiToggleButton;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Nonnull;
 import net.minecraft.block.Block;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
@@ -58,9 +58,6 @@ public class GuiColourPicker extends AbstractFsotGuiContainer {
     private static final int C_PANEL_SH = 0xFF555555; // border shadow (bottom-right)
     private static final int C_TEXT = 0xFF404040; // dark text
     private static final int C_LABEL = 0xFF707070; // secondary text
-
-    // Button IDs
-    private static final int BTN_F = 10, BTN_S = 11, BTN_O = 12, BTN_T = 13;
 
     // ── State ─────────────────────────────────────────────────────────────────
     private float hue = 0.254f, sat = 0.814f, bri = 0.675f;
@@ -152,7 +149,7 @@ public class GuiColourPicker extends AbstractFsotGuiContainer {
         drawMcPanel(guiLeft, guiTop);
 
         // Title
-        fontRendererObj.drawString("Colour Picker", guiLeft + 6, guiTop + 6, C_TEXT);
+        fontRendererObj.drawString(I18n.format("dimensium.colour_picker.title"), guiLeft + 6, guiTop + 6, C_TEXT);
 
         int contentY = guiTop + CONTENT_REL_Y;
         int svX = guiLeft + SV_REL_X;
@@ -224,10 +221,10 @@ public class GuiColourPicker extends AbstractFsotGuiContainer {
     @Override
     protected String fsotTooltipKey(int id) {
         return switch (id) {
-            case BTN_F -> "dimensium.colour_picker.filter.full_cube";
-            case BTN_S -> "dimensium.colour_picker.filter.solid";
-            case BTN_O -> "dimensium.colour_picker.filter.opaque";
-            case BTN_T -> "dimensium.colour_picker.filter.same_texture";
+            case CreativeGuiUtils.BTN_F -> "dimensium.colour_picker.filter.full_cube";
+            case CreativeGuiUtils.BTN_S -> "dimensium.colour_picker.filter.solid";
+            case CreativeGuiUtils.BTN_O -> "dimensium.colour_picker.filter.opaque";
+            case CreativeGuiUtils.BTN_T -> "dimensium.colour_picker.filter.same_texture";
             default -> null;
         };
     }
@@ -321,40 +318,34 @@ public class GuiColourPicker extends AbstractFsotGuiContainer {
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glShadeModel(GL11.GL_SMOOTH);
 
-        Tessellator t = getTessellator(x, y, stops);
-        t.draw();
+        Tessellator tessellator = Tessellator.instance;
+        int segmentCount = stops.length - 1;
+        tessellator.startDrawingQuads();
+        for (int i = 0; i < segmentCount; i++) {
+            int y0 = y + i * SV_SIZE / segmentCount;
+            int y1 = y + (i + 1) * SV_SIZE / segmentCount;
+            float[] top = stops[i], bot = stops[i + 1];
+            tessellator.setColorRGBA_F(bot[0], bot[1], bot[2], 1f);
+            tessellator.addVertex(x + HUE_W, y1, 0);
+            tessellator.setColorRGBA_F(top[0], top[1], top[2], 1f);
+            tessellator.addVertex(x + HUE_W, y0, 0);
+            tessellator.setColorRGBA_F(top[0], top[1], top[2], 1f);
+            tessellator.addVertex(x, y0, 0);
+            tessellator.setColorRGBA_F(bot[0], bot[1], bot[2], 1f);
+            tessellator.addVertex(x, y1, 0);
+        }
+        tessellator.draw();
 
         GL11.glEnable(GL11.GL_TEXTURE_2D);
         GL11.glShadeModel(GL11.GL_FLAT);
         GL11.glDisable(GL11.GL_DEPTH_TEST);
 
-        int my = y + (int) (hue * SV_SIZE);
-        drawRect(x, my - 1, x + HUE_W, my, 0x80000000);
-        drawRect(x, my, x + HUE_W, my + 2, 0xFFFFFFFF);
-        drawRect(x, my + 2, x + HUE_W, my + 3, 0x80000000);
+        int markerY = y + (int) (hue * SV_SIZE);
+        drawRect(x, markerY - 1, x + HUE_W, markerY, 0x80000000);
+        drawRect(x, markerY, x + HUE_W, markerY + 2, 0xFFFFFFFF);
+        drawRect(x, markerY + 2, x + HUE_W, markerY + 3, 0x80000000);
 
         GL11.glEnable(GL11.GL_DEPTH_TEST);
-    }
-
-    @Nonnull
-    private static Tessellator getTessellator(int x, int y, float[][] stops) {
-        Tessellator t = Tessellator.instance;
-        int segs = stops.length - 1;
-        t.startDrawingQuads();
-        for (int i = 0; i < segs; i++) {
-            int y0 = y + i * SV_SIZE / segs;
-            int y1 = y + (i + 1) * SV_SIZE / segs;
-            float[] top = stops[i], bot = stops[i + 1];
-            t.setColorRGBA_F(bot[0], bot[1], bot[2], 1f);
-            t.addVertex(x + HUE_W, y1, 0);
-            t.setColorRGBA_F(top[0], top[1], top[2], 1f);
-            t.addVertex(x + HUE_W, y0, 0);
-            t.setColorRGBA_F(top[0], top[1], top[2], 1f);
-            t.addVertex(x, y0, 0);
-            t.setColorRGBA_F(bot[0], bot[1], bot[2], 1f);
-            t.addVertex(x, y1, 0);
-        }
-        return t;
     }
 
     // ── Slider rows ───────────────────────────────────────────────────────────
@@ -369,7 +360,7 @@ public class GuiColourPicker extends AbstractFsotGuiContainer {
 
     @Override
     protected void mouseClicked(int mouseX, int mouseY, int button) {
-        if (button == 0) {
+        if (button == KeyConstants.LMB) {
             int svX = guiLeft + SV_REL_X;
             int hueX = guiLeft + HUE_REL_X;
             int contentY = guiTop + CONTENT_REL_Y;
@@ -411,7 +402,7 @@ public class GuiColourPicker extends AbstractFsotGuiContainer {
 
         // Intercept slot clicks before GuiContainer.mouseClicked so it never sends
         // C0EPacketClickWindow — we use C10PacketCreativeInventoryAction in handleMouseClick.
-        if (button == 0 || button == 1) {
+        if (button == KeyConstants.LMB || button == KeyConstants.RMB) {
             Slot slot = slotAtPosition(mouseX, mouseY);
             if (slot != null) {
                 handleMouseClick(slot, inventorySlots.inventorySlots.indexOf(slot), button, 0);
@@ -603,23 +594,24 @@ public class GuiColourPicker extends AbstractFsotGuiContainer {
         super.keyTyped(typedChar, keyCode);
     }
 
-    private boolean fieldKey(GuiTextField f, char c, int key) {
-        if (!f.isFocused()) return false;
-        f.textboxKeyTyped(c, key);
+    private boolean fieldKey(GuiTextField field, char character, int keyCode) {
+        if (!field.isFocused()) return false;
+        field.textboxKeyTyped(character, keyCode);
         return true;
     }
 
-    private void parseIntField(GuiTextField f, ColourPickerSlider s) {
+    private void parseIntField(GuiTextField field, ColourPickerSlider slider) {
         try {
-            s.setValue(Math.max(0, Math.min(255, Integer.parseInt(f.getText().trim()))));
+            slider.setValue(
+                    Math.max(0, Math.min(255, Integer.parseInt(field.getText().trim()))));
         } catch (NumberFormatException ignored) {
         }
     }
 
-    private void parseFloatField(GuiTextField f, ColourPickerSlider s, float max) {
+    private void parseFloatField(GuiTextField field, ColourPickerSlider slider, float max) {
         try {
-            s.setValue(Math.max(
-                    (float) 0, Math.min(max, Float.parseFloat(f.getText().trim()))));
+            slider.setValue(Math.max(
+                    (float) 0, Math.min(max, Float.parseFloat(field.getText().trim()))));
         } catch (NumberFormatException ignored) {
         }
     }
@@ -627,32 +619,26 @@ public class GuiColourPicker extends AbstractFsotGuiContainer {
     @Override
     protected void actionPerformed(GuiButton button) {
         switch (button.id) {
-            case BTN_F -> filterFullCube = toggle(button, filterFullCube);
-            case BTN_S -> filterSolid = toggle(button, filterSolid);
-            case BTN_O -> filterOpaque = toggle(button, filterOpaque);
-            case BTN_T -> filterSameTexture = toggle(button, filterSameTexture);
+            case CreativeGuiUtils.BTN_F -> filterFullCube = toggle(button, filterFullCube);
+            case CreativeGuiUtils.BTN_S -> filterSolid = toggle(button, filterSolid);
+            case CreativeGuiUtils.BTN_O -> filterOpaque = toggle(button, filterOpaque);
+            case CreativeGuiUtils.BTN_T -> filterSameTexture = toggle(button, filterSameTexture);
             default -> {}
         }
         dirty = true;
     }
 
-    private boolean toggle(GuiButton btn, boolean current) {
-        boolean next = !current;
-        ((GuiToggleButton) btn).setActive(next);
-        return next;
-    }
-
     // ── Colour helpers ────────────────────────────────────────────────────────
 
-    private void updateSV(int rx, int ry) {
-        sat = clamp01((float) rx / SV_SIZE);
-        bri = clamp01(1f - (float) ry / SV_SIZE);
+    private void updateSV(int relativeX, int relativeY) {
+        sat = clamp01((float) relativeX / SV_SIZE);
+        bri = clamp01(1f - (float) relativeY / SV_SIZE);
         syncSlidersFromHSB();
         dirty = true;
     }
 
-    private void updateHue(int ry) {
-        hue = clamp01((float) ry / SV_SIZE);
+    private void updateHue(int relativeY) {
+        hue = clamp01((float) relativeY / SV_SIZE);
         syncSlidersFromHSB();
         dirty = true;
     }
@@ -718,26 +704,26 @@ public class GuiColourPicker extends AbstractFsotGuiContainer {
 
     // ── Util ──────────────────────────────────────────────────────────────────
 
-    private boolean trySliderPress(int mx, int my) {
-        return sliderR.mousePressed(mx, my)
-                || sliderG.mousePressed(mx, my)
-                || sliderB.mousePressed(mx, my)
-                || sliderH.mousePressed(mx, my)
-                || sliderS.mousePressed(mx, my)
-                || sliderBr.mousePressed(mx, my);
+    private boolean trySliderPress(int mouseX, int mouseY) {
+        return sliderR.mousePressed(mouseX, mouseY)
+                || sliderG.mousePressed(mouseX, mouseY)
+                || sliderB.mousePressed(mouseX, mouseY)
+                || sliderH.mousePressed(mouseX, mouseY)
+                || sliderS.mousePressed(mouseX, mouseY)
+                || sliderBr.mousePressed(mouseX, mouseY);
     }
 
-    private void trySliderDrag(int mx) {
-        sliderR.mouseDragged(mx);
-        sliderG.mouseDragged(mx);
-        sliderB.mouseDragged(mx);
-        sliderH.mouseDragged(mx);
-        sliderS.mouseDragged(mx);
-        sliderBr.mouseDragged(mx);
+    private void trySliderDrag(int mouseX) {
+        sliderR.mouseDragged(mouseX);
+        sliderG.mouseDragged(mouseX);
+        sliderB.mouseDragged(mouseX);
+        sliderH.mouseDragged(mouseX);
+        sliderS.mouseDragged(mouseX);
+        sliderBr.mouseDragged(mouseX);
     }
 
-    private static boolean inBox(int mx, int my, int x, int y, int w, int h) {
-        return mx >= x && mx < x + w && my >= y && my < y + h;
+    private static boolean inBox(int mouseX, int mouseY, int x, int y, int w, int h) {
+        return mouseX >= x && mouseX < x + w && mouseY >= y && mouseY < y + h;
     }
 
     private static int hsbToRgb(float h, float s, float b) {
@@ -752,21 +738,21 @@ public class GuiColourPicker extends AbstractFsotGuiContainer {
         return Math.round(v * 10f) / 10f;
     }
 
-    private Slot slotAtPosition(int mx, int my) {
-        for (int i = 0; i < inventorySlots.inventorySlots.size(); i++) {
-            Slot s = inventorySlots.inventorySlots.get(i);
+    private Slot slotAtPosition(int mouseX, int mouseY) {
+        for (int slotIndex = 0; slotIndex < inventorySlots.inventorySlots.size(); slotIndex++) {
+            Slot slot = inventorySlots.inventorySlots.get(slotIndex);
             // Palette slots: exact 16×16 cell. Hotbar slots: registered +1 inside 18×18 frame,
             // so subtract 1 to align hitbox with the visual frame.
-            boolean isHotbar = i >= ColourPickerContainer.GRID_PALETTE;
-            int ox = isHotbar ? -1 : 0;
-            int oy = isHotbar ? -1 : 0;
-            int ow = isHotbar ? 18 : 16;
-            int oh = isHotbar ? 18 : 16;
-            if (mx >= guiLeft + s.xDisplayPosition + ox
-                    && mx < guiLeft + s.xDisplayPosition + ox + ow
-                    && my >= guiTop + s.yDisplayPosition + oy
-                    && my < guiTop + s.yDisplayPosition + oy + oh) {
-                return s;
+            boolean isHotbar = slotIndex >= ColourPickerContainer.GRID_PALETTE;
+            int offsetX = isHotbar ? -1 : 0;
+            int offsetY = isHotbar ? -1 : 0;
+            int hitWidth = isHotbar ? 18 : 16;
+            int hitHeight = isHotbar ? 18 : 16;
+            if (mouseX >= guiLeft + slot.xDisplayPosition + offsetX
+                    && mouseX < guiLeft + slot.xDisplayPosition + offsetX + hitWidth
+                    && mouseY >= guiTop + slot.yDisplayPosition + offsetY
+                    && mouseY < guiTop + slot.yDisplayPosition + offsetY + hitHeight) {
+                return slot;
             }
         }
         return null;

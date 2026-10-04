@@ -10,7 +10,7 @@ import net.minecraft.client.gui.GuiButton;
 public class CreativeGuiUtils {
 
     // Button IDs
-    private static final int BTN_F = 10, BTN_S = 11, BTN_O = 12, BTN_T = 13;
+    public static final int BTN_F = 10, BTN_S = 11, BTN_O = 12, BTN_T = 13;
 
     public static void addFsotButtons(List<GuiButton> buttonList, int guiLeft, int guiTop, int panelWidth) {
         // FSOT — top-right, matching gradient helper layout

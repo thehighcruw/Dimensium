@@ -49,6 +49,12 @@ public abstract class AbstractFsotGuiContainer extends GuiContainer {
         drawRect(x + 17, y, x + 18, y + 18, C_SLOT_HI);
     }
 
+    protected boolean toggle(GuiButton button, boolean current) {
+        boolean next = !current;
+        ((GuiToggleButton) button).setActive(next);
+        return next;
+    }
+
     public static void drawBeveledRect(int x, int y, int w, int h, int fill, int topLeft, int bottomRight) {
         drawRect(x, y, x + w, y + h, fill);
         drawRect(x, y, x + w, y + 1, topLeft);
