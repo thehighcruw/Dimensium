@@ -5,22 +5,29 @@ Format follows [Keep a Changelog](https://keepachangelog.com). Run `scripts/rele
 
 ## [Unreleased]
 ### Added
-- Replace mode: toggle via a configurable keybind (default: unbound) to replace existing blocks on right-click; targeted block is highlighted in red while mode is active
 
 ### Changed
-- Paste and selection fill/delete: use bulk chunk writes and deferred lighting instead of per-block world updates
-- Selection window: "Move Selection" now moves the selection itself (not the blocks) via interactive gizmos — center gizmo for all selections, plus min/max corner gizmos for cuboid (AABB) selections; confirm with Enter, cancel with Escape or RMB
 
 ### Deprecated
 
 ### Removed
 
 ### Fixed
+
+### Security
+
+## [0.1.2] — 2026-10-04
+### Added
+- Replace mode: toggle via a configurable keybind (default: unbound) to replace existing blocks on right-click; targeted block is highlighted in red while mode is active
+
+### Changed
+- Paste and selection fill/delete: use bulk chunk writes and deferred lighting instead of per-block world updates
+- Selection window: "Move Selection" now moves the selection itself (not the blocks) via interactive gizmos — center gizmo for all selections, plus min/max corner gizmos for cuboid (AABB) selections; confirm with Enter, cancel with Escape or RMB
+
+### Fixed
 - All popups: fix popup flashing closed immediately after save-quitting and reopening a world
 - All tools: fix placed leaves decaying when not adjacent to a log
 - Box select tool: clicking empty space no longer accidentally confirms the bounding box
-
-### Security
 
 ## [0.1.1] — 2026-10-04
 ### Added
