@@ -278,7 +278,7 @@ public class TickHandler {
         FreecamState fs = FreecamState.INSTANCE;
         int mx = (int) fs.cursorX, my = (int) fs.cursorY;
         boolean snap = Keyboard.isKeyDown(Keyboard.KEY_LSHIFT);
-        Tool tool = DimensiumEditorMode.INSTANCE.selectedTool;
+        Tool tool = DimensiumEditorMode.INSTANCE.getSelectedTool();
         BrushInput input = BrushInputRegistry.get(tool);
 
         // Gizmo drag state update — runs before paint loop so world renderers see fresh state.

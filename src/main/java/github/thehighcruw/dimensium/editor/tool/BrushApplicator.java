@@ -63,7 +63,7 @@ public class BrushApplicator {
                 coord.z(),
                 1,
                 Vec3.createVectorHelper(coord.x() + 0.5, coord.y() + 0.5, coord.z() + 0.5));
-        BrushStrategy strategy = BRUSHES.get(DimensiumEditorMode.INSTANCE.selectedTool);
+        BrushStrategy strategy = BRUSHES.get(DimensiumEditorMode.INSTANCE.getSelectedTool());
         if (strategy != null) strategy.apply(world, mop);
     }
 }

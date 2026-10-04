@@ -73,7 +73,7 @@ public class SelectionWindow extends ToggleableWindow {
             ImGui.separator();
 
             if (ImGui.button(I18n.format("dimensium.select.move"), w, 0)) {
-                DimensiumEditorMode.INSTANCE.selectedTool = Tool.MOVE;
+                DimensiumEditorMode.INSTANCE.selectTool(Tool.MOVE);
             }
             if (ImGui.button(I18n.format("dimensium.select.filter"), w, 0)) {
                 FilterSelectionWindow.INSTANCE.open();

@@ -150,7 +150,7 @@ public class SelectionRenderer {
 
         // ── Brush cursor preview ──────────────────────────────────────────────
         PerfTrace.push("brushCursorPreview");
-        Tool _previewTool = DimensiumEditorMode.INSTANCE.selectedTool;
+        Tool _previewTool = DimensiumEditorMode.INSTANCE.getSelectedTool();
         boolean _anyModal = ImGuiManager.INSTANCE.anyModalOpen()
                 || FilterSelectionWindow.INSTANCE.isOpen()
                 || DistortSelectionWindow.INSTANCE.isOpen()
@@ -172,18 +172,19 @@ public class SelectionRenderer {
             if (DimensiumEditorMode.INSTANCE.isActive()
                     && !_anyModal
                     && _cursorOnViewport
-                    && DimensiumEditorMode.INSTANCE.selectedTool == Tool.ELEVATION) {
+                    && DimensiumEditorMode.INSTANCE.getSelectedTool() == Tool.ELEVATION) {
                 renderElevationPreview(mc, camPos);
             }
         }
 
         // ── Gradient pos1 → cursor / pos2 line ───────────────────────────────
-        if (DimensiumEditorMode.INSTANCE.isActive() && DimensiumEditorMode.INSTANCE.selectedTool == Tool.GRADIENT) {
+        if (DimensiumEditorMode.INSTANCE.isActive()
+                && DimensiumEditorMode.INSTANCE.getSelectedTool() == Tool.GRADIENT) {
             renderGradientOverlay(mc, player, camPos);
         }
 
         // ── Slope pos1 → cursor line / pos2 box ──────────────────────────────
-        if (DimensiumEditorMode.INSTANCE.isActive() && DimensiumEditorMode.INSTANCE.selectedTool == Tool.SLOPE) {
+        if (DimensiumEditorMode.INSTANCE.isActive() && DimensiumEditorMode.INSTANCE.getSelectedTool() == Tool.SLOPE) {
             SlopeToolState ss = SlopeToolState.INSTANCE;
             if (ss.hasPos1) {
                 MovingObjectPosition smop = RenderUtils.raycastAtCursor();
@@ -225,7 +226,7 @@ public class SelectionRenderer {
         // ── Proposal previews (fill / extrude / shape / move / drag stroke) ────
         PerfTrace.push("proposalPreviews");
         if (DimensiumEditorMode.INSTANCE.isActive()) {
-            Tool tool = DimensiumEditorMode.INSTANCE.selectedTool;
+            Tool tool = DimensiumEditorMode.INSTANCE.getSelectedTool();
             BuilderToolState bts0 = BuilderToolState.INSTANCE;
             if (tool == Tool.EXTRUDE) ExtrudeHelper.INSTANCE.buildExtrudeProposal(mc);
             else {
@@ -288,7 +289,7 @@ public class SelectionRenderer {
         SelectionState sel = SelectionState.INSTANCE;
 
         // Tool-change commit: if the user left SELECT while a box was confirmed, apply it now.
-        if (sel.boxConfirmed && DimensiumEditorMode.INSTANCE.selectedTool != Tool.SELECT) {
+        if (sel.boxConfirmed && DimensiumEditorMode.INSTANCE.getSelectedTool() != Tool.SELECT) {
             BoxSelectToolState bts = BoxSelectToolState.INSTANCE;
             sel.applyOp(SelectionState.aabbBlocks(sel.pendingPos, sel.pendingPos2), bts.booleanOp);
             sel.boxConfirmed = false;
@@ -391,8 +392,8 @@ public class SelectionRenderer {
         }
 
         // ── Live drag preview: pos1 anchor + AABB to cursor ──────────────────
-        boolean selectToolActive =
-                DimensiumEditorMode.INSTANCE.isActive() && DimensiumEditorMode.INSTANCE.selectedTool == Tool.SELECT;
+        boolean selectToolActive = DimensiumEditorMode.INSTANCE.isActive()
+                && DimensiumEditorMode.INSTANCE.getSelectedTool() == Tool.SELECT;
         boolean builderActive = DimensiumEditorMode.INSTANCE.isBuilderToolsActive();
         if (!selectToolActive && !builderActive) {
             sel.pendingPos1 = false;
@@ -428,7 +429,7 @@ public class SelectionRenderer {
         }
 
         // ── Box confirmed: frozen AABB + pos1/pos2 gizmos ────────────────────
-        if (sel.boxConfirmed && DimensiumEditorMode.INSTANCE.selectedTool == Tool.SELECT) {
+        if (sel.boxConfirmed && DimensiumEditorMode.INSTANCE.getSelectedTool() == Tool.SELECT) {
             Vec3DInt mn = sel.pendingPos.min(sel.pendingPos2);
             Vec3DInt mx = sel.pendingPos.max(sel.pendingPos2).plus(1);
             Vec3DDouble boxTrans = mn.toDouble().minus(camPos);
@@ -511,7 +512,7 @@ public class SelectionRenderer {
         // ── Shape placement gizmos ────────────────────────────────────────────
         ShapePlacementState ps = ShapePlacementState.INSTANCE;
         if (ps.active) {
-            if (DimensiumEditorMode.INSTANCE.selectedTool != Tool.SHAPE) {
+            if (DimensiumEditorMode.INSTANCE.getSelectedTool() != Tool.SHAPE) {
                 ps.cancel();
             } else if (!cameraMoving || gizmoDragging) {
                 ps.rebuildIfNeeded();
@@ -540,7 +541,7 @@ public class SelectionRenderer {
 
         // ── Move tool ghost + gizmos ──────────────────────────────────────────
         MoveToolState ms = MoveToolState.INSTANCE;
-        if (DimensiumEditorMode.INSTANCE.isActive() && DimensiumEditorMode.INSTANCE.selectedTool == Tool.MOVE) {
+        if (DimensiumEditorMode.INSTANCE.isActive() && DimensiumEditorMode.INSTANCE.getSelectedTool() == Tool.MOVE) {
             if (sel.hasSelection()) {
                 if (!ms.active || ms.capturedSelVersion != sel.renderVersion) {
                     ms.activate(sel, mc.theWorld);
@@ -566,7 +567,7 @@ public class SelectionRenderer {
 
         // ── Modify tool preview ───────────────────────────────────────────────
         ModifyToolState mods = ModifyToolState.INSTANCE;
-        if (DimensiumEditorMode.INSTANCE.isActive() && DimensiumEditorMode.INSTANCE.selectedTool == Tool.MODIFY) {
+        if (DimensiumEditorMode.INSTANCE.isActive() && DimensiumEditorMode.INSTANCE.getSelectedTool() == Tool.MODIFY) {
             mods.rebuildIfNeeded(sel, mc.theWorld);
             if (mods.preview != null) renderProposalPreview(mc, camPos, mods.preview);
             if (mods.mode == ModifyToolState.ModifyMode.TWIST && sel.hasSelection()) {
@@ -590,7 +591,8 @@ public class SelectionRenderer {
         }
 
         // ── Modelling tool point rendering ────────────────────────────────────
-        if (DimensiumEditorMode.INSTANCE.isActive() && DimensiumEditorMode.INSTANCE.selectedTool == Tool.MODELLING) {
+        if (DimensiumEditorMode.INSTANCE.isActive()
+                && DimensiumEditorMode.INSTANCE.getSelectedTool() == Tool.MODELLING) {
             ModellingToolState mts = ModellingToolState.INSTANCE;
             GL11.glDisable(GL11.GL_TEXTURE_2D);
             for (int r = 0; r < mts.rows.size(); r++) {
@@ -641,7 +643,7 @@ public class SelectionRenderer {
         }
 
         // ── Path tool point rendering ─────────────────────────────────────────
-        if (DimensiumEditorMode.INSTANCE.isActive() && DimensiumEditorMode.INSTANCE.selectedTool == Tool.PATH) {
+        if (DimensiumEditorMode.INSTANCE.isActive() && DimensiumEditorMode.INSTANCE.getSelectedTool() == Tool.PATH) {
             PathToolState pathState = PathToolState.INSTANCE;
             // Capture GL matrices here unconditionally so GizmoProjection is valid even
             // before any point is selected (gizmo.render only captures when selectedIndex >= 0).

@@ -433,7 +433,7 @@ public final class MenuBar {
         ImGui.separator();
 
         if (ImGui.menuItem(I18n.format("dimensium.select.move"), null, false, hasSel)) {
-            DimensiumEditorMode.INSTANCE.selectedTool = Tool.MOVE;
+            DimensiumEditorMode.INSTANCE.selectTool(Tool.MOVE);
         }
         if (ImGui.menuItem(I18n.format("dimensium.select.filter"), null, false, hasSel)) {
             FilterSelectionWindow.INSTANCE.open();

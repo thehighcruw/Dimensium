@@ -222,7 +222,7 @@ public class OverlayRenderer {
 
             // ── Box-select commit on tool change ─────────────────────────────
             SelectionState bxSel = SelectionState.INSTANCE;
-            if (bxSel.boxConfirmed && DimensiumEditorMode.INSTANCE.selectedTool != Tool.SELECT) {
+            if (bxSel.boxConfirmed && DimensiumEditorMode.INSTANCE.getSelectedTool() != Tool.SELECT) {
                 GuiDimensiumOverlay.commitBoxSelection(bxSel, BoxSelectToolState.INSTANCE);
             }
 
@@ -281,7 +281,7 @@ public class OverlayRenderer {
 
             // ── Per-tool overlay (gizmos, 2D overlays) ────────────────────────
             // Rendered after ImGui so the overlay is not captured into the viewport texture.
-            Tool activeTool = DimensiumEditorMode.INSTANCE.selectedTool;
+            Tool activeTool = DimensiumEditorMode.INSTANCE.getSelectedTool();
             ToolRenderer toolRenderer = ToolRegistry.toolRenderer(activeTool);
             toolRenderer.renderOverlay(mc, mx, my, mx, my);
 

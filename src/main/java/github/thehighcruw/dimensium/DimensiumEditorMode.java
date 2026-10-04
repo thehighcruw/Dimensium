@@ -8,6 +8,7 @@ import github.thehighcruw.dimensium.editor.freecam.FreecamState;
 import github.thehighcruw.dimensium.editor.overlay.OverlayRenderer;
 import github.thehighcruw.dimensium.editor.tool.Tool;
 import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapePlacementState;
+import github.thehighcruw.dimensium.editor.tool.painting.gradient.GradientToolState;
 import github.thehighcruw.dimensium.editor.tool.state.ClipboardPlacementState;
 import github.thehighcruw.dimensium.editor.window.viewport.ViewportRegistry;
 import github.thehighcruw.dimensium.editor.window.viewport.ViewportState;
@@ -25,7 +26,20 @@ public class DimensiumEditorMode {
     // Builder tools mode — independent of overlay, no GUI required
     private boolean builderToolsActive = false;
 
-    public Tool selectedTool = Tool.FREEHAND_DRAW;
+    private Tool selectedTool = Tool.FREEHAND_DRAW;
+
+    public Tool getSelectedTool() {
+        return selectedTool;
+    }
+
+    public void selectTool(Tool tool) {
+        if (selectedTool != tool) {
+            GradientToolState gradientState = GradientToolState.INSTANCE;
+            gradientState.gradientHasPos1 = false;
+            gradientState.gradientHasPos2 = false;
+        }
+        selectedTool = tool;
+    }
 
     public boolean isActive() {
         return active;

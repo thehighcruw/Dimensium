@@ -29,11 +29,19 @@ public class GradientSection implements ToolSection {
     private final ImInt interpIdx = new ImInt();
     private final ImBoolean maskSurface = new ImBoolean();
     private final ImBoolean clampToEdge = new ImBoolean();
+    private final GradientShape[] shapes = GradientShape.values();
+    private final GradientInterp[] interps = GradientInterp.values();
+    private final String[] shapeLabels;
+    private final String[] interpLabels;
 
     public GradientSection(GradientToolState state, BrushState bs, PaletteState ps) {
         this.state = state;
         this.paletteSection = new MultiPaletteSection(ps);
         this.brushSection = new BrushSection(bs);
+        this.shapeLabels = new String[shapes.length];
+        for (int i = 0; i < shapes.length; i++) shapeLabels[i] = I18n.format(shapes[i].label);
+        this.interpLabels = new String[interps.length];
+        for (int i = 0; i < interps.length; i++) interpLabels[i] = I18n.format(interps[i].label);
     }
 
     @Override
@@ -44,17 +52,11 @@ public class GradientSection implements ToolSection {
         ImGui.separator();
         ImGui.text(I18n.format("dimensium.ui.section.gradient"));
 
-        GradientShape[] shapes = GradientShape.values();
-        String[] shapeLabels = new String[shapes.length];
-        for (int i = 0; i < shapes.length; i++) shapeLabels[i] = I18n.format(shapes[i].label);
         shapeIdx.set(state.gradientShape.ordinal());
         if (ImGui.combo(I18n.format("dimensium.ui.gradient.shape") + "##grad_shape", shapeIdx, shapeLabels)) {
             state.gradientShape = shapes[shapeIdx.get()];
         }
 
-        GradientInterp[] interps = GradientInterp.values();
-        String[] interpLabels = new String[interps.length];
-        for (int i = 0; i < interps.length; i++) interpLabels[i] = I18n.format(interps[i].label);
         interpIdx.set(state.gradientInterp.ordinal());
         if (ImGui.combo(I18n.format("dimensium.ui.gradient.interp") + "##grad_interp", interpIdx, interpLabels)) {
             state.gradientInterp = interps[interpIdx.get()];
@@ -72,6 +74,12 @@ public class GradientSection implements ToolSection {
 
         if (ImGui.button(I18n.format("dimensium.ui.gradient.randomize_seed") + "##grad_seed")) {
             state.gradientSeed = ThreadLocalRandom.current().nextLong();
+        }
+
+        if (state.gradientHasPos1) {
+            if (ImGui.button(I18n.format("dimensium.ui.gradient.clear_pos1") + "##grad_clear_pos1")) {
+                state.gradientHasPos1 = false;
+            }
         }
     }
 }

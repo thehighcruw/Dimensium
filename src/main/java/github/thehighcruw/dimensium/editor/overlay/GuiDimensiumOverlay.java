@@ -160,7 +160,7 @@ public final class GuiDimensiumOverlay {
             return;
         }
 
-        Tool tool = DimensiumEditorMode.INSTANCE.selectedTool;
+        Tool tool = DimensiumEditorMode.INSTANCE.getSelectedTool();
         BrushInput brushInput = BrushInputRegistry.get(tool);
         if (brushInput != null) {
             MovingObjectPosition mop = raycastFromMouse(
@@ -231,7 +231,7 @@ public final class GuiDimensiumOverlay {
             if (mtsDrag.getPlaneTranslationGizmo().isDragging())
                 mtsDrag.getPlaneTranslationGizmo().endDrag();
         } else if (button == KeyConstants.RMB) {
-            Tool tool = DimensiumEditorMode.INSTANCE.selectedTool;
+            Tool tool = DimensiumEditorMode.INSTANCE.getSelectedTool();
             if (tool == Tool.SELECT) {
                 SelectionState sel = SelectionState.INSTANCE;
                 if (sel.pendingPos1) {

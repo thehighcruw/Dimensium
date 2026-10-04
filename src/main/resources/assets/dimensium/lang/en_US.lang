@@ -341,6 +341,7 @@ dimensium.ui.freehand.replace_solid=Replace Solid
 dimensium.ui.gradient.clamp_edge=Clamp Edge
 dimensium.ui.gradient.interp=Interpolation
 dimensium.ui.gradient.mask_surface=Mask Surface
+dimensium.ui.gradient.clear_pos1=Clear Start Point
 dimensium.ui.gradient.randomize_seed=Randomize Seed
 dimensium.ui.gradient.shape=Shape
 

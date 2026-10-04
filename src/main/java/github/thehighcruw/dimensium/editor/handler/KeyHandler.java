@@ -115,7 +115,7 @@ public class KeyHandler {
             if (matches(key, mods, Dimensium.actionConfirm, Dimensium.actionConfirmMods)
                     || key == Keyboard.KEY_NUMPADENTER) {
                 SelectionState bxConfSel = SelectionState.INSTANCE;
-                if (bxConfSel.boxConfirmed && DimensiumEditorMode.INSTANCE.selectedTool == Tool.SELECT) {
+                if (bxConfSel.boxConfirmed && DimensiumEditorMode.INSTANCE.getSelectedTool() == Tool.SELECT) {
                     GuiDimensiumOverlay.commitBoxSelection(bxConfSel, BoxSelectToolState.INSTANCE);
                     return;
                 }
@@ -127,15 +127,15 @@ public class KeyHandler {
                     GuiDimensiumOverlay.confirmClipboardPlacement();
                     return;
                 }
-                if (DimensiumEditorMode.INSTANCE.selectedTool == Tool.PATH) {
+                if (DimensiumEditorMode.INSTANCE.getSelectedTool() == Tool.PATH) {
                     GuiDimensiumOverlay.applyPath();
                     return;
                 }
-                if (DimensiumEditorMode.INSTANCE.selectedTool == Tool.MODELLING) {
+                if (DimensiumEditorMode.INSTANCE.getSelectedTool() == Tool.MODELLING) {
                     GuiDimensiumOverlay.applyModelling();
                     return;
                 }
-                if (DimensiumEditorMode.INSTANCE.selectedTool == Tool.MODIFY) {
+                if (DimensiumEditorMode.INSTANCE.getSelectedTool() == Tool.MODIFY) {
                     GuiDimensiumOverlay.confirmModify();
                     return;
                 }
@@ -165,7 +165,7 @@ public class KeyHandler {
                     ClipboardPlacementState.INSTANCE.cancel();
                     return;
                 }
-                DimensiumEditorMode.INSTANCE.selectedTool = Tool.POINTER;
+                DimensiumEditorMode.INSTANCE.selectTool(Tool.POINTER);
                 return;
             }
 
@@ -184,7 +184,7 @@ public class KeyHandler {
             // Tool shortcuts.
             Tool switched = toolForKey(key, mods);
             if (switched != null) {
-                DimensiumEditorMode.INSTANCE.selectedTool = switched;
+                DimensiumEditorMode.INSTANCE.selectTool(switched);
                 return;
             }
 
@@ -205,14 +205,15 @@ public class KeyHandler {
             // Erase — also accepts Backspace as an alias.
             if (matches(key, mods, Dimensium.actionErase, Dimensium.actionEraseMods) || key == Keyboard.KEY_BACK) {
                 PathToolState pts = PathToolState.INSTANCE;
-                if (DimensiumEditorMode.INSTANCE.selectedTool == Tool.PATH
+                if (DimensiumEditorMode.INSTANCE.getSelectedTool() == Tool.PATH
                         && pts.selectedIndex >= 0
                         && !pts.points.isEmpty()) {
                     pts.removeCurrentPoint();
                     return;
                 }
                 ModellingToolState mts = ModellingToolState.INSTANCE;
-                if (DimensiumEditorMode.INSTANCE.selectedTool == Tool.MODELLING && mts.selectedPointObj() != null) {
+                if (DimensiumEditorMode.INSTANCE.getSelectedTool() == Tool.MODELLING
+                        && mts.selectedPointObj() != null) {
                     mts.removeSelectedPoint();
                     return;
                 }
@@ -340,7 +341,7 @@ public class KeyHandler {
         Vec3DInt delta = nudgeDelta(key, mods);
         if (delta == null) return false;
 
-        Tool tool = DimensiumEditorMode.INSTANCE.selectedTool;
+        Tool tool = DimensiumEditorMode.INSTANCE.getSelectedTool();
 
         if (tool == Tool.SHAPE && ShapePlacementState.INSTANCE.active) {
             ShapePlacementState sps = ShapePlacementState.INSTANCE;

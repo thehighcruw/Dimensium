@@ -52,7 +52,7 @@ public class ToolOptionsWindow extends ToggleableWindow {
             return;
         }
 
-        ToolSection section = toolWindow.sectionMap.get(DimensiumEditorMode.INSTANCE.selectedTool);
+        ToolSection section = toolWindow.sectionMap.get(DimensiumEditorMode.INSTANCE.getSelectedTool());
         if (section != null) {
             section.render();
         }

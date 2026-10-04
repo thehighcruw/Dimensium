@@ -44,6 +44,7 @@ public class GradientBrushInput implements BrushInput {
             pos1JustSet = false;
             return;
         }
+        if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return;
         GradientToolState gs = GradientToolState.INSTANCE;
         gs.gradientPos2 = Vec3DInt.from(mop.blockX, mop.blockY, mop.blockZ);
         gs.gradientHasPos2 = true;

@@ -122,7 +122,7 @@ public class ToolWindow extends ToggleableWindow {
         int cols = DimensiumConfig.toolGridColumns;
         float gap = 2f;
         float iconSize = (available - gap * (cols - 1)) / cols - DeferredItemRender.ITEM_PAD * 2f;
-        Tool selectedTool = DimensiumEditorMode.INSTANCE.selectedTool;
+        Tool selectedTool = DimensiumEditorMode.INSTANCE.getSelectedTool();
 
         for (int i = 0; i < GRID_TOOLS.length; i++) {
             int col = i % cols;
@@ -131,7 +131,7 @@ public class ToolWindow extends ToggleableWindow {
             int texId = ToolIconCache.INSTANCE.getTexture(tool);
             String tooltip = I18n.format(tool.label);
             if (DeferredItemRender.placeIconButton("##tool" + i, texId, iconSize, tool == selectedTool, tooltip)) {
-                DimensiumEditorMode.INSTANCE.selectedTool = tool;
+                DimensiumEditorMode.INSTANCE.selectTool(tool);
             }
         }
     }

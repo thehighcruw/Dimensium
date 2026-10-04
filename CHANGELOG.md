@@ -5,6 +5,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com). Run `scripts/rele
 
 ## [Unreleased]
 ### Added
+- Gradient tool: add "Clear Start Point" button to reset pos1 from the tool options panel
+- Gradient tool: reset pos1 when switching away from the gradient tool
 
 ### Changed
 

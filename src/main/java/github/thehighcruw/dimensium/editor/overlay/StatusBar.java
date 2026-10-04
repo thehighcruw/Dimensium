@@ -76,7 +76,7 @@ public final class StatusBar {
         float sep = 14f * scale;
 
         // ── Tool ─────────────────────────────────────────────────────────────
-        String toolName = I18n.format(DimensiumEditorMode.INSTANCE.selectedTool.label);
+        String toolName = I18n.format(DimensiumEditorMode.INSTANCE.getSelectedTool().label);
         ImGui.text(toolName);
 
         divider(sep);

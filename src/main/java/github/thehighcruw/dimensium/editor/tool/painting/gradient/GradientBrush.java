@@ -19,6 +19,9 @@ import net.minecraft.world.World;
 
 public class GradientBrush implements BrushStrategy {
 
+    // Arbitrary seed used to decorrelate the linear-interp dither from the bezier-interp dither.
+    private static final long LINEAR_DITHER_SEED = 0x5EEDC0DEL;
+
     @Override
     public void apply(World world, MovingObjectPosition mop) {
         GradientToolState s = GradientToolState.INSTANCE;
@@ -35,13 +38,13 @@ public class GradientBrush implements BrushStrategy {
         double len = axis.length();
         boolean samePos = len < 0.001;
 
-        float bezP1 = 0f, bezP2 = 1f;
+        float rawBezierControl1 = 0f, rawBezierControl2 = 1f;
         if (s.gradientInterp == GradientToolState.GradientInterp.BEZIER) {
             Random bzr = new Random(s.gradientSeed);
-            bezP1 = bzr.nextFloat();
-            bezP2 = bzr.nextFloat();
+            rawBezierControl1 = bzr.nextFloat();
+            rawBezierControl2 = bzr.nextFloat();
         }
-        final float bp1 = bezP1, bp2 = bezP2;
+        final float bezierControl1 = rawBezierControl1, bezierControl2 = rawBezierControl2;
         final int paletteN = ps.palette.size();
 
         BrushUtil.forBrush(bs, offset -> {
@@ -61,11 +64,11 @@ public class GradientBrush implements BrushStrategy {
             if (s.gradientClampToEdge && (t < 0f || t > 1f)) return;
 
             if (s.gradientInterp == GradientToolState.GradientInterp.LINEAR) {
-                t += (float) PathMath.voxelHash(pos.x(), pos.y(), pos.z(), 0x5EEDC0DEL) * (0.5f / paletteN);
+                t += (float) PathMath.voxelHash(pos.x(), pos.y(), pos.z(), LINEAR_DITHER_SEED) * (0.5f / paletteN);
             } else if (s.gradientInterp == GradientToolState.GradientInterp.BEZIER) {
                 float tc = Math.max(0f, Math.min(1f, t));
                 float inv = 1f - tc;
-                t = 3f * inv * inv * tc * bp1 + 3f * inv * tc * tc * bp2 + tc * tc * tc;
+                t = 3f * inv * inv * tc * bezierControl1 + 3f * inv * tc * tc * bezierControl2 + tc * tc * tc;
                 t += (float) PathMath.voxelHash(pos.x(), pos.y(), pos.z(), s.gradientSeed) * (0.5f / paletteN);
             }
 

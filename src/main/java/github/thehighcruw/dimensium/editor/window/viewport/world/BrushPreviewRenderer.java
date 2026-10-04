@@ -49,7 +49,7 @@ public class BrushPreviewRenderer {
         if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return;
 
         Vec3DInt cursor = Vec3DInt.from(mop.blockX, mop.blockY, mop.blockZ);
-        Tool activeTool = DimensiumEditorMode.INSTANCE.selectedTool;
+        Tool activeTool = DimensiumEditorMode.INSTANCE.getSelectedTool();
         BrushState bs = BrushState.INSTANCE;
         int sx = bs.brushRadius;
         int sy = bs.brushShape.hasHeight ? bs.brushHeight : bs.brushRadius;
