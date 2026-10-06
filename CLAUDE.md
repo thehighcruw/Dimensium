@@ -176,7 +176,7 @@ Omit sections that have no entries for a given release.
 
 ### Workflow
 
-Add entries to `[Unreleased]` as you work — one entry per meaningful change, alongside the code commit. At release, run `scripts/release.sh <version>` which promotes `[Unreleased]` to the versioned section and resets it.
+Add entries to `[Unreleased]` as you work — one entry per meaningful change, alongside the code commit. At release, run `scripts/release.sh <version>` which promotes `[Unreleased]` to the versioned section and resets it. An empty `[Unreleased]` section is fine — release does not require changelog entries.
 
 ---
 

@@ -27,16 +27,10 @@ jobs:
           java-version: 25
           cache: gradle
 
-      - name: Validate changelog
+      - name: Extract changelog section
         run: |
           VERSION=${GITHUB_REF_NAME#v}
-          section=$(awk "/^## \[$VERSION\]/{found=1; next} found && /^## /{exit} found{print}" CHANGELOG.md)
-          entries=$(echo "$section" | grep -v '^\s*$' | grep -v '^###' || true)
-          if [[ -z "$entries" ]]; then
-            echo "CHANGELOG.md has no entries for [$VERSION]. Run scripts/release.sh before tagging." >&2
-            exit 1
-          fi
-          echo "$section" > /tmp/release_notes.md
+          awk "/^## \[$VERSION\]/{found=1; next} found && /^## /{exit} found{print}" CHANGELOG.md > /tmp/release_notes.md
 
       - name: Build jar
         run: ./gradlew clean jar reobfJar -PmodVersion=${{ github.ref_name }}
