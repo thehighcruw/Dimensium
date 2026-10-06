@@ -130,6 +130,7 @@ class HologramRenderer {
             GL11.glEnable(GL11.GL_TEXTURE_2D);
             mc.getTextureManager().bindTexture(TextureMap.locationBlocksTexture);
             GL11.glDisable(GL11.GL_LIGHTING);
+            GL11.glDisable(GL11.GL_FOG);
             GL11.glEnable(GL11.GL_CULL_FACE);
             GL11.glFrontFace(GL11.GL_CW);
             // Fully opaque textured pass; additive glow below provides the animation.

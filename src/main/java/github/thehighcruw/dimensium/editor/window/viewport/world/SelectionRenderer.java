@@ -1073,8 +1073,8 @@ public class SelectionRenderer {
         GL11.glEnable(GL11.GL_TEXTURE_2D);
         mc.getTextureManager().bindTexture(TextureMap.locationBlocksTexture);
         GL11.glDisable(GL11.GL_LIGHTING);
-        GL11.glEnable(GL11.GL_CULL_FACE);
-        GL11.glFrontFace(GL11.GL_CW);
+        GL11.glDisable(GL11.GL_CULL_FACE);
+        GL11.glDisable(GL11.GL_FOG);
         GL11.glPushMatrix();
         Vec3DDouble trans = origin.toDouble().minus(camPos);
         GL11.glTranslated(trans.x(), trans.y(), trans.z());
