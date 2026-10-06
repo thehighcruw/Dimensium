@@ -16,6 +16,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com). Run `scripts/rele
 
 ### Security
 
+## [0.1.3] — 2026-10-06
 ## [0.1.2] — 2026-10-04
 ### Added
 - Replace mode: toggle via a configurable keybind (default: unbound) to replace existing blocks on right-click; targeted block is highlighted in red while mode is active

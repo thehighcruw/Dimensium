@@ -11,6 +11,8 @@ import github.thehighcruw.dimensium.editor.tool.creating.shape.ShapePlacementSta
 import github.thehighcruw.dimensium.editor.tool.painting.gradient.GradientToolState;
 import github.thehighcruw.dimensium.editor.tool.state.ClipboardPlacementState;
 import github.thehighcruw.dimensium.editor.tool.utility.ruler.RulerToolState;
+import github.thehighcruw.dimensium.editor.window.popup.BlueprintBrowserPopup;
+import github.thehighcruw.dimensium.editor.window.popup.CreateBlueprintPopup;
 import github.thehighcruw.dimensium.editor.window.viewport.ViewportRegistry;
 import github.thehighcruw.dimensium.editor.window.viewport.ViewportState;
 import github.thehighcruw.dimensium.shared.SelectionState;
@@ -80,6 +82,9 @@ public class DimensiumEditorMode {
         FreecamState.INSTANCE.deactivate();
         ShapePlacementState.INSTANCE.cancel();
         ClipboardPlacementState.INSTANCE.cancel();
+        OverlayRenderer.picker.close();
+        CreateBlueprintPopup.INSTANCE.close();
+        BlueprintBrowserPopup.INSTANCE.close();
         toggle();
         if (mc.thePlayer != null) mc.thePlayer.setInvisible(false);
     }

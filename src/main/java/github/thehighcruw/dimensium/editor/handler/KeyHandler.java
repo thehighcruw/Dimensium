@@ -90,10 +90,12 @@ public class KeyHandler {
         Minecraft mc = Minecraft.getMinecraft();
 
         // ── Toggle overlay (RShift) — requires creative mode ─────────────────
+        // Block toggle-off while editor-owned popups are open; never block re-entry.
+        boolean editorPopupsOpen = OverlayRenderer.picker.isOpen()
+                || CreateBlueprintPopup.INSTANCE.isOpen()
+                || BlueprintBrowserPopup.INSTANCE.isOpen();
         if (key == Dimensium.toggleDimensium.getKeyCode()
-                && !OverlayRenderer.picker.isOpen()
-                && !CreateBlueprintPopup.INSTANCE.isOpen()
-                && !BlueprintBrowserPopup.INSTANCE.isOpen()) {
+                && !(DimensiumEditorMode.INSTANCE.isActive() && editorPopupsOpen)) {
             if (OverlayRenderer.isNotCreative()) return;
             OverlayRenderer.picker.close();
             if (DimensiumEditorMode.INSTANCE.isActive()) {

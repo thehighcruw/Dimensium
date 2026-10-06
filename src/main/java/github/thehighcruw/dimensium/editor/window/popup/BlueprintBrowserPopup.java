@@ -84,6 +84,11 @@ public class BlueprintBrowserPopup {
         return open;
     }
 
+    public void close() {
+        open = false;
+        selectionCallback = null;
+    }
+
     // ── Render ────────────────────────────────────────────────────────────────
 
     public void renderImGui() {
