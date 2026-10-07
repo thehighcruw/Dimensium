@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import net.minecraft.block.Block;
 
 public class PipelineGraph {
 
@@ -213,7 +214,13 @@ public class PipelineGraph {
             JsonArray arr = new JsonArray();
             for (int[] entry : (List<int[]>) value) {
                 JsonArray pair = new JsonArray();
-                pair.add(new JsonPrimitive(entry[0]));
+                Block block = Block.getBlockById(entry[0]);
+                Object nameObj = block != null ? Block.blockRegistry.getNameForObject(block) : null;
+                if (nameObj instanceof String) {
+                    pair.add(new JsonPrimitive((String) nameObj));
+                } else {
+                    pair.add(new JsonPrimitive(entry[0]));
+                }
                 pair.add(new JsonPrimitive(entry[1]));
                 arr.add(pair);
             }
@@ -256,25 +263,9 @@ public class PipelineGraph {
             String fromId = eo.get("from").getAsString();
             String toId = eo.get("to").getAsString();
 
-            if (eo.has("fromPort") && eo.has("toPort")) {
-                // New format with explicit port names
-                String fromPort = eo.get("fromPort").getAsString();
-                String toPort = eo.get("toPort").getAsString();
-                graph.edges.add(new Edge(fromId, fromPort, toId, toPort));
-            } else {
-                // Legacy format: resolve primary ports from schema
-                NodeInstance fromNode = graph.findNode(fromId);
-                NodeInstance toNode = graph.findNode(toId);
-                if (fromNode != null && toNode != null) {
-                    NodeSchema.OutputPortDef outPort =
-                            NodeRegistry.create(fromNode.typeId).schema().primaryOutput();
-                    NodeSchema.InputPortDef inPort =
-                            NodeRegistry.create(toNode.typeId).schema().primaryInput();
-                    if (outPort != null && inPort != null) {
-                        graph.edges.add(new Edge(fromId, outPort.name, toId, inPort.name));
-                    }
-                }
-            }
+            String fromPort = eo.get("fromPort").getAsString();
+            String toPort = eo.get("toPort").getAsString();
+            graph.edges.add(new Edge(fromId, fromPort, toId, toPort));
         }
 
         return graph;
@@ -291,7 +282,15 @@ public class PipelineGraph {
             List<int[]> palette = new ArrayList<>();
             for (JsonElement item : el.getAsJsonArray()) {
                 JsonArray pair = item.getAsJsonArray();
-                palette.add(new int[] {pair.get(0).getAsInt(), pair.get(1).getAsInt()});
+                int blockId;
+                JsonElement idElement = pair.get(0);
+                if (idElement.getAsJsonPrimitive().isString()) {
+                    Object blockObj = Block.blockRegistry.getObject(idElement.getAsString());
+                    blockId = blockObj instanceof Block ? Block.getIdFromBlock((Block) blockObj) : 0;
+                } else {
+                    blockId = idElement.getAsInt();
+                }
+                palette.add(new int[] {blockId, pair.get(1).getAsInt()});
             }
             return palette;
         }
