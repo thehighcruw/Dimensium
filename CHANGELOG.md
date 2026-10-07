@@ -16,6 +16,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com). Run `scripts/rele
 ### Fixed
 - Pipeline editor: fix modded blocks not appearing in palette and placing wrong blocks — serialize palette entries by registry name instead of numeric block ID
 - Box select tool: clicking empty space no longer accidentally confirms the bounding box
+- Colour picker: fix modded blocks not appearing due to custom IIcon implementations being skipped
 
 ### Security
 

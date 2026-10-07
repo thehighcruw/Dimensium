@@ -233,9 +233,10 @@ public class BlockColorCache {
 
                 for (int face = 0; face < 6; face++) {
                     IIcon icon = block.getIcon(face, meta);
-                    if (!(icon instanceof TextureAtlasSprite)) continue;
-                    TextureAtlasSprite sprite = (TextureAtlasSprite) icon;
-                    String iconName = sprite.getIconName();
+                    if (icon == null) continue;
+                    String iconName = icon.getIconName();
+                    TextureAtlasSprite sprite = pendingAtlas.getAtlasSprite(iconName);
+                    if (sprite == null) continue;
 
                     Boolean animated = spriteAnimatedCache.computeIfAbsent(iconName, k -> sprite.getFrameCount() > 1);
                     if (animated) {
