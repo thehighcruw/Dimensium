@@ -192,6 +192,22 @@ public class TickHandler {
         }
 
         boolean lmb = Mouse.isButtonDown(KeyConstants.LMB);
+        boolean rmb = Mouse.isButtonDown(KeyConstants.RMB);
+
+        // Polling fallbacks: clear drag flags if the button is no longer physically held.
+        // Release events can be missed (window focus change, cursor leaving window mid-drag),
+        // leaving these flags stuck true. cameraLmbDragActive has its own fallback below.
+        if (fs.lmbDragging && !lmb) {
+            fs.lmbDragging = false;
+            fs.lmbPressing = false;
+        }
+        if (fs.rmbDragging && !rmb) {
+            fs.rmbDragging = false;
+            fs.rmbPressing = false;
+        }
+        if (fs.cameraRmbDragActive && !rmb) {
+            fs.cameraRmbDragActive = false;
+        }
 
         // CameraMod+LMB orbit: persists until LMB is released (cameraLmbDragActive cleared on release).
         if (fs.cameraLmbDragActive) {
