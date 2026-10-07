@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ServerData;
 
 @SideOnly(Side.CLIENT)
 public class ClientEditHistory {
@@ -157,9 +158,28 @@ public class ClientEditHistory {
         save();
     }
 
+    public void reset() {
+        entries.clear();
+        pointer = -1;
+        loaded = false;
+    }
+
+    private String worldId() {
+        Minecraft mc = Minecraft.getMinecraft();
+        String raw;
+        if (mc.isSingleplayer()) {
+            raw = "sp_" + mc.getIntegratedServer().getFolderName();
+        } else {
+            ServerData server = mc.func_147104_D();
+            raw = "mp_" + (server != null ? server.serverIP : "unknown");
+        }
+        return raw.replaceAll("[^A-Za-z0-9._\\-]", "_");
+    }
+
     private File saveFile() {
-        String uuid = Minecraft.getMinecraft().thePlayer.getUniqueID().toString();
-        return new File(Minecraft.getMinecraft().mcDataDir, "dimensium_history/" + uuid + ".dat");
+        Minecraft mc = Minecraft.getMinecraft();
+        String uuid = mc.thePlayer.getUniqueID().toString();
+        return new File(mc.mcDataDir, "dimensium_history/" + uuid + "/" + worldId() + ".dat");
     }
 
     public void save() {

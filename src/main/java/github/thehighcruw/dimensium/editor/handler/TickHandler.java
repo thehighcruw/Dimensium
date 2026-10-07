@@ -14,6 +14,7 @@ import github.thehighcruw.dimensium.DimensiumEditorMode;
 import github.thehighcruw.dimensium.editor.freecam.FreecamEntity;
 import github.thehighcruw.dimensium.editor.freecam.FreecamState;
 import github.thehighcruw.dimensium.editor.freecam.FreecamUtils;
+import github.thehighcruw.dimensium.editor.history.ClientEditHistory;
 import github.thehighcruw.dimensium.editor.overlay.GuiDimensiumOverlay;
 import github.thehighcruw.dimensium.editor.overlay.MenuBar;
 import github.thehighcruw.dimensium.editor.overlay.OverlayRenderer;
@@ -635,6 +636,7 @@ public class TickHandler {
         DimensiumEditorMode.INSTANCE.fullReset();
         ReplaceModeState.INSTANCE.active = false;
         ImGuiManager.INSTANCE.clearPendingInput();
+        ClientEditHistory.INSTANCE.reset();
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
