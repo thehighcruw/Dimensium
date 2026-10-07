@@ -13,6 +13,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com). Run `scripts/rele
 ### Removed
 
 ### Fixed
+- Blueprint paste: modded blocks no longer replaced by wrong blocks when pasting into a different world
 
 ### Security
 

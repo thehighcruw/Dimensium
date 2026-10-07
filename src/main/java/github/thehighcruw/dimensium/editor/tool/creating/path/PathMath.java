@@ -499,18 +499,21 @@ public class PathMath {
 
         if (rotation == null) {
             for (ClipboardBlock cb : offsets) {
+                Block blk = Block.getBlockFromName(cb.registryName());
+                if (blk == null) continue;
                 Vec3DInt worldPos = anchor.plus(cb.offset());
-                out.put(ChangeProposal.packKey(worldPos), new int[] {cb.blockId(), cb.meta()});
+                out.put(ChangeProposal.packKey(worldPos), new int[] {Block.getIdFromBlock(blk), cb.meta()});
             }
         } else {
             Vec3DFloat blueprintCenter = clipDim.toFloat().divide(2f);
             for (ClipboardBlock cb : offsets) {
+                Block blk = Block.getBlockFromName(cb.registryName());
+                if (blk == null) continue;
                 Vec3DFloat local = cb.offset().toFloat().plus(0.5f).minus(blueprintCenter);
                 Vec3DInt worldPos =
                         anchor.plus(Vec3DInt.floor(rotation.mul(local).plus(blueprintCenter)));
-                Block blk = Block.getBlockById(cb.blockId());
                 int meta = BlockMetaRotator.rotateOrKeep(blk, cb.meta(), rotation);
-                out.put(ChangeProposal.packKey(worldPos), new int[] {cb.blockId(), meta});
+                out.put(ChangeProposal.packKey(worldPos), new int[] {Block.getIdFromBlock(blk), meta});
             }
         }
     }

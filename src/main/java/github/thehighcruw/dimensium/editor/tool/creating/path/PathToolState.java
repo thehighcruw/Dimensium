@@ -208,7 +208,7 @@ public class PathToolState implements WithAxisTranslationGizmo, WithPlaneTransla
                             .append(',')
                             .append(cb.offset().z())
                             .append(',')
-                            .append(cb.blockId())
+                            .append(cb.registryName())
                             .append(',')
                             .append(cb.meta())
                             .append(';');

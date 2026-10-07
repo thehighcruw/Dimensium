@@ -290,7 +290,7 @@ public class BlueprintBrowserPopup {
         Map<Long, SelectionState.BlockData> clipboard =
                 new HashMap<>(bp.offsets().size());
         for (ClipboardBlock o : bp.offsets()) {
-            Block block = Block.getBlockById(o.blockId());
+            Block block = Block.getBlockFromName(o.registryName());
             if (block == null || block == Blocks.air) continue;
             clipboard.put(SelectionState.clipboardKey(o.offset()), new SelectionState.BlockData(block, o.meta()));
         }

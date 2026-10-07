@@ -20,7 +20,8 @@ public final class ClipboardUtils {
         for (Map.Entry<Long, SelectionState.BlockData> e : clipboard.entrySet()) {
             Vec3DInt p = SelectionState.decodeClipboardKey(e.getKey());
             SelectionState.BlockData bd = e.getValue();
-            offsets.add(new ClipboardBlock(p, Block.getIdFromBlock(bd.block()), bd.meta()));
+            String registryName = (String) Block.blockRegistry.getNameForObject(bd.block());
+            offsets.add(new ClipboardBlock(p, registryName != null ? registryName : "minecraft:air", bd.meta()));
         }
         return offsets;
     }

@@ -18,7 +18,10 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
@@ -26,19 +29,20 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
 
 /**
- * Serialises blueprints in a two-section format:
+ * Serialises blueprints in a two-section format (v2):
  *
  * [4 bytes magic 0x444D4250]
  * [4 bytes: header section byte length]
- * [N bytes: uncompressed NBT — name, tags, clipW/H/D]
- * [remaining: gzip-compressed NBT — offsets int[]]
+ * [N bytes: uncompressed NBT — name, version, tags, clipW/H/D]
+ * [remaining: gzip-compressed NBT — palette (string list) + offsets int[x,y,z,paletteIdx,meta]]
  *
- * Old files (gzip magic) are detected and migrated transparently on read.
- * Thumbnail PNGs are stored as sidecar files (<file>.dblueprint.png).
+ * v1 files (numeric block IDs, no palette) are migrated to registry names on read using the
+ * current session's block registry. Thumbnail PNGs are stored as sidecar files (&lt;file&gt;.dblueprint.png).
  */
 public class BlueprintIO {
 
     private static final int MAGIC = 0x444D4250; // "DMBP"
+    private static final int FORMAT_VERSION = 2;
 
     public static File getBlueprintsDir() {
         File dir = new File(Minecraft.getMinecraft().mcDataDir, "dimensium/blueprints");
@@ -54,6 +58,7 @@ public class BlueprintIO {
 
         NBTTagCompound headerTag = new NBTTagCompound();
         headerTag.setString("name", bp.name());
+        headerTag.setInteger("version", FORMAT_VERSION);
         NBTTagList tagList = new NBTTagList();
         for (String tg : bp.tags()) tagList.appendTag(new NBTTagString(tg));
         headerTag.setTag("tags", tagList);
@@ -61,7 +66,20 @@ public class BlueprintIO {
         headerTag.setInteger("clipH", bp.clipDim().y());
         headerTag.setInteger("clipD", bp.clipDim().z());
 
+        // Build palette: unique registry names in encounter order.
+        List<String> palette = new ArrayList<>();
+        Map<String, Integer> paletteIndex = new HashMap<>();
+        for (ClipboardBlock o : bp.offsets()) {
+            if (!paletteIndex.containsKey(o.registryName())) {
+                paletteIndex.put(o.registryName(), palette.size());
+                palette.add(o.registryName());
+            }
+        }
+        NBTTagList paletteTag = new NBTTagList();
+        for (String name : palette) paletteTag.appendTag(new NBTTagString(name));
+
         NBTTagCompound bodyTag = new NBTTagCompound();
+        bodyTag.setTag("palette", paletteTag);
         int n = bp.offsets().size();
         int[] flat = new int[n * 5];
         for (int i = 0; i < n; i++) {
@@ -69,7 +87,7 @@ public class BlueprintIO {
             flat[i * 5] = o.offset().x();
             flat[i * 5 + 1] = o.offset().y();
             flat[i * 5 + 2] = o.offset().z();
-            flat[i * 5 + 3] = o.blockId();
+            flat[i * 5 + 3] = paletteIndex.get(o.registryName());
             flat[i * 5 + 4] = o.meta();
         }
         bodyTag.setIntArray("offsets", flat);
@@ -78,17 +96,17 @@ public class BlueprintIO {
         CompressedStreamTools.write(headerTag, new DataOutputStream(headerBuf));
         byte[] headerBytes = headerBuf.toByteArray();
 
-        DataOutputStream out = new DataOutputStream(new FileOutputStream(file));
-        out.writeInt(MAGIC);
-        out.writeInt(headerBytes.length);
-        out.write(headerBytes);
-        CompressedStreamTools.writeCompressed(bodyTag, out);
-        out.close();
+        try (DataOutputStream out = new DataOutputStream(new FileOutputStream(file))) {
+            out.writeInt(MAGIC);
+            out.writeInt(headerBytes.length);
+            out.write(headerBytes);
+            CompressedStreamTools.writeCompressed(bodyTag, out);
+        }
 
         if (bp.thumbnailPng() != null) Files.write(sidecarFor(file).toPath(), bp.thumbnailPng());
     }
 
-    /** Reads only name/tags/dims. O(header size), not O(block count). Migrates old-format files on first read. */
+    /** Reads only name/tags/dims. O(header size), not O(block count). */
     public static Blueprint loadHeader(File file) throws IOException {
         try (DataInputStream in = new DataInputStream(new FileInputStream(file))) {
             return readHeader(in);
@@ -98,24 +116,28 @@ public class BlueprintIO {
     /** Reads full blueprint including block offsets. */
     public static Blueprint load(File file) throws IOException {
         try (DataInputStream in = new DataInputStream(new FileInputStream(file))) {
-            Blueprint header = readHeader(in);
+            NBTTagCompound headerTag = readHeaderTag(in);
+            Blueprint header = fromHeaderTag(headerTag);
+            int version = headerTag.getInteger("version");
             NBTTagCompound bodyTag = CompressedStreamTools.readCompressed(in);
-            return new Blueprint(
-                    header.name(),
-                    header.tags(),
-                    header.clipDim(),
-                    decodeOffsets(bodyTag.getIntArray("offsets")),
-                    null);
+            List<ClipboardBlock> offsets = version >= FORMAT_VERSION
+                    ? decodeOffsets(bodyTag)
+                    : decodeOffsetLegacy(bodyTag.getIntArray("offsets"));
+            return new Blueprint(header.name(), header.tags(), header.clipDim(), offsets, null);
         }
     }
 
     private static Blueprint readHeader(DataInputStream in) throws IOException {
+        return fromHeaderTag(readHeaderTag(in));
+    }
+
+    private static NBTTagCompound readHeaderTag(DataInputStream in) throws IOException {
         int magic = in.readInt();
         if (magic != MAGIC) throw new IOException("trying to open blueprint file that is not a blueprint");
         int headerLen = in.readInt();
         byte[] headerBytes = new byte[headerLen];
         readFully(in, headerBytes);
-        return parseHeader(new DataInputStream(new ByteArrayInputStream(headerBytes)));
+        return CompressedStreamTools.read(new DataInputStream(new ByteArrayInputStream(headerBytes)));
     }
 
     public static File sidecarFor(File blueprintFile) {
@@ -153,10 +175,6 @@ public class BlueprintIO {
 
     // ── Internals ─────────────────────────────────────────────────────────────
 
-    private static Blueprint parseHeader(DataInputStream in) throws IOException {
-        return fromHeaderTag(CompressedStreamTools.read(in));
-    }
-
     private static Blueprint fromHeaderTag(NBTTagCompound tag) {
         NBTTagList tagList = tag.getTagList("tags", 8);
         List<String> tags = new ArrayList<>(tagList.tagCount());
@@ -169,10 +187,33 @@ public class BlueprintIO {
                 null);
     }
 
-    private static List<ClipboardBlock> decodeOffsets(int[] flat) {
+    private static List<ClipboardBlock> decodeOffsets(NBTTagCompound bodyTag) {
+        NBTTagList paletteTag = bodyTag.getTagList("palette", 8);
+        String[] palette = new String[paletteTag.tagCount()];
+        for (int i = 0; i < palette.length; i++) palette[i] = paletteTag.getStringTagAt(i);
+        int[] flat = bodyTag.getIntArray("offsets");
         List<ClipboardBlock> offsets = new ArrayList<>(flat.length / 5);
         for (int i = 0; i + 4 < flat.length; i += 5) {
-            offsets.add(new ClipboardBlock(Vec3DInt.from(flat[i], flat[i + 1], flat[i + 2]), flat[i + 3], flat[i + 4]));
+            int paletteIdx = flat[i + 3];
+            if (paletteIdx < 0 || paletteIdx >= palette.length) continue;
+            offsets.add(new ClipboardBlock(
+                    Vec3DInt.from(flat[i], flat[i + 1], flat[i + 2]), palette[paletteIdx], flat[i + 4]));
+        }
+        return offsets;
+    }
+
+    /**
+     * Migrates v1 blueprints (numeric IDs) to registry names using the current session's block registry.
+     * Best-effort: IDs must be valid in the current world's registry mapping.
+     */
+    private static List<ClipboardBlock> decodeOffsetLegacy(int[] flat) {
+        List<ClipboardBlock> offsets = new ArrayList<>(flat.length / 5);
+        for (int i = 0; i + 4 < flat.length; i += 5) {
+            Block block = Block.getBlockById(flat[i + 3]);
+            String registryName =
+                    block != null ? (String) Block.blockRegistry.getNameForObject(block) : "minecraft:air";
+            offsets.add(
+                    new ClipboardBlock(Vec3DInt.from(flat[i], flat[i + 1], flat[i + 2]), registryName, flat[i + 4]));
         }
         return offsets;
     }

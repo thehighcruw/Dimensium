@@ -8,4 +8,4 @@ import com.github.bsideup.jabel.Desugar;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 
 @Desugar
-public record ClipboardBlock(Vec3DInt offset, int blockId, int meta) {}
+public record ClipboardBlock(Vec3DInt offset, String registryName, int meta) {}

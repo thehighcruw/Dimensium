@@ -157,14 +157,13 @@ public final class StampBrushInput implements BrushInput {
                     if (existing != null && existing != Blocks.air) continue;
                 }
 
-                Block blk = Block.getBlockById(o.blockId());
+                Block blk = Block.getBlockFromName(o.registryName());
+                if (blk == null) continue;
                 int meta = o.meta();
-                if (blk != null) {
-                    if (inst.flipX) meta = BlockMetaMirror.mirrorX(blk, meta);
-                    if (inst.flipZ) meta = BlockMetaMirror.mirrorZ(blk, meta);
-                    if (rotated) meta = BlockMetaRotator.rotate(blk, meta, R);
-                }
-                ops.add(worldPos.toBlockOp(o.blockId(), meta));
+                if (inst.flipX) meta = BlockMetaMirror.mirrorX(blk, meta);
+                if (inst.flipZ) meta = BlockMetaMirror.mirrorZ(blk, meta);
+                if (rotated) meta = BlockMetaRotator.rotate(blk, meta, R);
+                ops.add(worldPos.toBlockOp(Block.getIdFromBlock(blk), meta));
             }
         }
         return ops;

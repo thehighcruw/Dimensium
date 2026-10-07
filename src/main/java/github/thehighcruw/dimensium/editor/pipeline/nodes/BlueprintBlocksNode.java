@@ -50,7 +50,7 @@ public class BlueprintBlocksNode implements PipelineNode {
 
         BlockMap blockMap = new BlockMap();
         for (ClipboardBlock clipboardBlock : blueprint.offsets()) {
-            Block block = Block.getBlockById(clipboardBlock.blockId());
+            Block block = Block.getBlockFromName(clipboardBlock.registryName());
             if (block == null || block == Blocks.air) continue;
             blockMap.put(clipboardBlock.offset(), block, clipboardBlock.meta());
         }

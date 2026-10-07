@@ -120,7 +120,9 @@ public class ClipboardPlacementState
         // Build a lookup from clipboard local-space integer position to block data.
         Map<Long, int[]> clipLookup = new HashMap<>(offsets.size());
         for (ClipboardBlock o : offsets) {
-            clipLookup.put(ChangeProposal.packKey(o.offset()), new int[] {o.blockId(), o.meta()});
+            Block block = Block.getBlockFromName(o.registryName());
+            if (block == null) continue;
+            clipLookup.put(ChangeProposal.packKey(o.offset()), new int[] {Block.getIdFromBlock(block), o.meta()});
         }
 
         Mat3DFloat R = rot.equals(Vec3DFloat.ZERO) ? null : ShapeMath.buildRotationMatrix(rot.x(), rot.y(), rot.z());
@@ -224,7 +226,9 @@ public class ClipboardPlacementState
         List<int[]> ops = new ArrayList<>(offsets.size());
         for (ClipboardBlock o : offsets) {
             Vec3DInt world = anchor.plus(o.offset());
-            ops.add(world.toBlockOp(o.blockId(), o.meta()));
+            Block block = Block.getBlockFromName(o.registryName());
+            if (block == null) continue;
+            ops.add(world.toBlockOp(Block.getIdFromBlock(block), o.meta()));
         }
         return ops;
     }
