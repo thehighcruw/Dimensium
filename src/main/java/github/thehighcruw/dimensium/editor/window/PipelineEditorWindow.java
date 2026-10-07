@@ -104,6 +104,7 @@ public class PipelineEditorWindow extends ToggleableWindow {
     private String hoveredWireToPort = null;
 
     private final ImString nameBuffer = new ImString(128);
+    private PipelineGraph nameBufferGraph = null;
 
     private PipelineEditorWindow() {}
 
@@ -175,7 +176,10 @@ public class PipelineEditorWindow extends ToggleableWindow {
 
     private void renderToolbar(float uiScale) {
         ImGui.setNextItemWidth(160 * uiScale);
-        nameBuffer.set(graph.name);
+        if (nameBufferGraph != graph) {
+            nameBuffer.set(graph.name);
+            nameBufferGraph = graph;
+        }
         if (ImGui.inputText("##pname", nameBuffer)) {
             graph.name = nameBuffer.get();
         }
