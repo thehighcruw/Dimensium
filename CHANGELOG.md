@@ -13,10 +13,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com). Run `scripts/rele
 ### Removed
 
 ### Fixed
-- Edit history: scope save file per world/server so history is no longer shared across worlds
-- Blueprint paste: modded blocks no longer replaced by wrong blocks when pasting into a different world
 
 ### Security
+
+## [0.1.5] — 2026-10-07
+### Fixed
+- Edit history: scope save file per world/server so history is no longer shared across worlds
+- Blueprint paste: modded blocks no longer replaced by wrong blocks when pasting into a different world
 
 ## [0.1.4] — 2026-10-06
 ## [0.1.3] — 2026-10-06
