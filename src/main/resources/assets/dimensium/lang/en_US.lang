@@ -269,6 +269,11 @@ dimensium.blueprint.create.thumb.hint=Drag to rotate · Scroll to zoom
 dimensium.blueprint.create.tags.suggest=Existing tags:
 dimensium.blueprint.browser.search.name.tip=Filter by name
 dimensium.blueprint.browser.search.tag.tip=Filter by tag
+dimensium.blueprint.browser.delete=Delete
+dimensium.blueprint.browser.delete.confirm.title=Delete Blueprint
+dimensium.blueprint.browser.delete.confirm.msg=Delete "%s"? This cannot be undone.
+dimensium.blueprint.browser.delete.confirm.yes=Delete
+dimensium.blueprint.browser.delete.confirm.no=Cancel
 
 # Tool-specific widget labels (new ImGui sections)
 dimensium.ui.boolean_op=Boolean Op

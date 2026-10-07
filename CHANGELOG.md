@@ -5,6 +5,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com). Run `scripts/rele
 
 ## [Unreleased]
 ### Added
+- Blueprint browser: add right-click delete with confirmation
 
 ### Changed
 

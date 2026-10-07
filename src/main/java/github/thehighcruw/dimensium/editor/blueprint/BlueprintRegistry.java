@@ -59,6 +59,12 @@ public class BlueprintRegistry {
         return loading;
     }
 
+    /** Forces a background reload regardless of directory mtime. */
+    public void forceReload() {
+        lastDirMtime = -1;
+        scheduleReload();
+    }
+
     // ── Internals ─────────────────────────────────────────────────────────────
 
     private void scheduleReload() {

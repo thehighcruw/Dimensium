@@ -88,6 +88,14 @@ public class BlueprintThumbnailCache {
         return -1;
     }
 
+    /** Removes the cached texture for a single file so it can be re-loaded or skipped after deletion. */
+    public void invalidate(File blueprintFile) {
+        Integer texId = cache.remove(blueprintFile);
+        if (texId != null) GL11.glDeleteTextures(texId);
+        pending.remove(blueprintFile);
+        ready.remove(blueprintFile);
+    }
+
     private static DecodedImage decode(File sidecar) {
         if (!sidecar.exists()) return null;
         try {

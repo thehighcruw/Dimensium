@@ -28,18 +28,28 @@ import java.util.function.Consumer;
 import net.minecraft.block.Block;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.init.Blocks;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 @SideOnly(Side.CLIENT)
 public class BlueprintBrowserPopup {
 
+    private static final Logger LOGGER = LogManager.getLogger(BlueprintBrowserPopup.class);
+
     public static final BlueprintBrowserPopup INSTANCE = new BlueprintBrowserPopup();
 
     private static final String POPUP_ID = "bp_browser_modal";
+    private static final String DELETE_CONFIRM_POPUP_ID = "bp_delete_confirm";
 
     private boolean open = false;
     private boolean pendingOpen = false;
     private final ImString nameSearchBuf = new ImString(256);
     private final ImString tagSearchBuf = new ImString(256);
+
+    /** Blueprint pending deletion — set when user right-clicks Delete. */
+    private File pendingDeleteFile = null;
+
+    private String pendingDeleteName = null;
 
     private final BlueprintThumbnailCache thumbCache = new BlueprintThumbnailCache();
 
@@ -54,6 +64,11 @@ public class BlueprintBrowserPopup {
     private static final float CELL = 120f;
     private static final float LABEL_H = 18f;
     private static final int COLS = (int) ((POPUP_W - PAD * 2) / CELL);
+    private static final float SEARCH_AND_SEPARATOR_H = 86f;
+    private static final float TAG_CLOUD_H = 26f;
+    private static final float CELL_TOTAL = CELL + LABEL_H;
+    private static final int MAX_LABEL_CHARS = 14;
+    private static final int TRUNCATED_LABEL_CHARS = 12;
 
     private static final char[] SPINNER_CHARS = {'|', '/', '-', '\\'};
 
@@ -125,7 +140,7 @@ public class BlueprintBrowserPopup {
         List<Map.Entry<File, Blueprint>> filtered = getFiltered();
         boolean registryLoading = BlueprintRegistry.INSTANCE.isLoading();
 
-        float usedH = 86f + (tagCloud.isEmpty() ? 0f : 26f);
+        float usedH = SEARCH_AND_SEPARATOR_H + (tagCloud.isEmpty() ? 0f : TAG_CLOUD_H);
         float gridH = POPUP_H - usedH;
         ImGui.beginChild("##bb_grid", POPUP_W - PAD * 2, gridH, false);
 
@@ -140,7 +155,6 @@ public class BlueprintBrowserPopup {
                 ImGui.textDisabled(msg);
             }
         } else {
-            float cellTotal = CELL + LABEL_H;
             for (int i = 0; i < filtered.size(); i++) {
                 Map.Entry<File, Blueprint> entry = filtered.get(i);
                 File file = entry.getKey();
@@ -152,7 +166,7 @@ public class BlueprintBrowserPopup {
                 ImVec2 pos = new ImVec2();
                 ImGui.getCursorScreenPos(pos);
 
-                ImGui.invisibleButton("##bb_cell_" + i, CELL, cellTotal);
+                ImGui.invisibleButton("##bb_cell_" + i, CELL, CELL_TOTAL);
                 boolean clicked = ImGui.isItemClicked();
                 boolean hovered = ImGui.isItemHovered();
 
@@ -175,7 +189,9 @@ public class BlueprintBrowserPopup {
                                 pos.x + 2,
                                 pos.y + CELL,
                                 hovered ? 0xFFFFEEDD : 0xFFAA9988,
-                                label.length() > 14 ? label.substring(0, 12) + ".." : label);
+                                label.length() > MAX_LABEL_CHARS
+                                        ? label.substring(0, TRUNCATED_LABEL_CHARS) + ".."
+                                        : label);
 
                 if (clicked) {
                     try {
@@ -188,10 +204,22 @@ public class BlueprintBrowserPopup {
                     ImGui.endPopup();
                     return;
                 }
+
+                if (ImGui.beginPopupContextItem("##bb_ctx_" + i)) {
+                    if (ImGui.menuItem(I18n.format("dimensium.blueprint.browser.delete"))) {
+                        pendingDeleteFile = file;
+                        pendingDeleteName = meta.name();
+                        ImGui.openPopup(DELETE_CONFIRM_POPUP_ID);
+                    }
+                    ImGui.endPopup();
+                }
             }
         }
 
         ImGui.endChild();
+
+        renderDeleteConfirmModal();
+
         ImGui.endPopup();
     }
 
@@ -270,6 +298,49 @@ public class BlueprintBrowserPopup {
         }
         tagCloud.addAll(tagCounts.keySet());
         tagCloud.sort((a, b) -> tagCounts.get(b) - tagCounts.get(a));
+    }
+
+    // ── Delete confirm modal ──────────────────────────────────────────────────
+
+    private void renderDeleteConfirmModal() {
+        if (!ImGui.beginPopupModal(
+                I18n.format("dimensium.blueprint.browser.delete.confirm.title") + "###" + DELETE_CONFIRM_POPUP_ID,
+                ImGuiWindowFlags.AlwaysAutoResize)) {
+            return;
+        }
+
+        ImGui.text(String.format(I18n.format("dimensium.blueprint.browser.delete.confirm.msg"), pendingDeleteName));
+        ImGui.spacing();
+
+        if (ImGui.button(I18n.format("dimensium.blueprint.browser.delete.confirm.yes"))) {
+            if (pendingDeleteFile != null) {
+                deleteBlueprint(pendingDeleteFile);
+            }
+            pendingDeleteFile = null;
+            pendingDeleteName = null;
+            ImGui.closeCurrentPopup();
+        }
+        ImGui.sameLine(0, 8f);
+        if (ImGui.button(I18n.format("dimensium.blueprint.browser.delete.confirm.no"))) {
+            pendingDeleteFile = null;
+            pendingDeleteName = null;
+            ImGui.closeCurrentPopup();
+        }
+
+        ImGui.endPopup();
+    }
+
+    private void deleteBlueprint(File file) {
+        File sidecar = BlueprintIO.sidecarFor(file);
+        if (!file.delete()) {
+            LOGGER.warn("Failed to delete blueprint file: {}", file);
+        }
+        if (sidecar.exists() && !sidecar.delete()) {
+            LOGGER.warn("Failed to delete blueprint sidecar: {}", sidecar);
+        }
+        thumbCache.invalidate(file);
+        BlueprintRegistry.INSTANCE.forceReload();
+        buildTagCloud();
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
