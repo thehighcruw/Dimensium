@@ -13,7 +13,6 @@ import github.thehighcruw.dimensium.editor.pipeline.PortType;
 import github.thehighcruw.dimensium.editor.pipeline.PortValues;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import java.util.Map;
-import net.minecraft.block.Block;
 
 /** Keeps only positions present in both A and B; block type taken from A. */
 public class IntersectBlocksNode implements PipelineNode {
@@ -41,7 +40,7 @@ public class IntersectBlocksNode implements PipelineNode {
         for (Map.Entry<Long, int[]> entry : blockMapA.entries().entrySet()) {
             if (bEntries.containsKey(entry.getKey())) {
                 Vec3DInt pos = BlockMap.unpackKey(entry.getKey());
-                result.put(pos, Block.getBlockById(entry.getValue()[0]), entry.getValue()[1]);
+                result.put(pos, entry.getValue()[0], entry.getValue()[1]);
             }
         }
         outputs.set("blocks", result);

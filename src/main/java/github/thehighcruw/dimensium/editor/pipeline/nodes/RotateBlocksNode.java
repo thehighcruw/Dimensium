@@ -13,7 +13,6 @@ import github.thehighcruw.dimensium.editor.pipeline.PortType;
 import github.thehighcruw.dimensium.editor.pipeline.PortValues;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import java.util.Map;
-import net.minecraft.block.Block;
 
 /**
  * Rotates a block map in 90-degree increments around the pipeline origin.
@@ -74,7 +73,7 @@ public class RotateBlocksNode implements PipelineNode {
             }
 
             Vec3DInt rotated = Vec3DInt.from(origin.x() + dx, origin.y() + dy, origin.z() + dz);
-            result.put(rotated, Block.getBlockById(entry.getValue()[0]), entry.getValue()[1]);
+            result.put(rotated, entry.getValue()[0], entry.getValue()[1]);
         }
         outputs.set("blocks", result);
     }

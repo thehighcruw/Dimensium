@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import net.minecraft.block.Block;
 
 public class DepthPaletteNode implements PipelineNode {
 
@@ -69,8 +68,7 @@ public class DepthPaletteNode implements PipelineNode {
 
             int paletteIndex = Math.min(palette.size() - 1, (int) (t * palette.size()));
             int[] blockEntry = palette.get(paletteIndex);
-            Block block = Block.getBlockById(blockEntry[0]);
-            blockMap.put(pos, block, blockEntry[1]);
+            blockMap.put(pos, blockEntry[0], blockEntry[1]);
         }
 
         outputs.set("blocks", blockMap);

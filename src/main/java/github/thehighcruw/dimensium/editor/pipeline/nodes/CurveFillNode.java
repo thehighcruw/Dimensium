@@ -17,7 +17,6 @@ import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
-import net.minecraft.block.Block;
 
 /** Fills a tube of blocks along each point of a curve by stamping spheres of the given radius. */
 public class CurveFillNode implements PipelineNode {
@@ -58,7 +57,7 @@ public class CurveFillNode implements PipelineNode {
                 float dz = pos.z() - point.z();
                 if (dx * dx + dy * dy + dz * dz <= rSq) {
                     int[] entry = palette.get(rand.nextInt(palette.size()));
-                    map.put(pos, Block.getBlockById(entry[0]), entry[1]);
+                    map.put(pos, entry[0], entry[1]);
                 }
             });
         }

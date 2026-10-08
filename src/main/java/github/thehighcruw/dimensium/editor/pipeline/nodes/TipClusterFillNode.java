@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
-import net.minecraft.block.Block;
 
 /** Fills noisy spherical clusters around skeleton tip nodes using a block palette. */
 public class TipClusterFillNode implements PipelineNode {
@@ -102,7 +101,7 @@ public class TipClusterFillNode implements PipelineNode {
 
             if (density >= FILL_THRESHOLD && !map.contains(pos)) {
                 int[] entry = palette.get(rand.nextInt(palette.size()));
-                map.put(pos, Block.getBlockById(entry[0]), entry[1]);
+                map.put(pos, entry[0], entry[1]);
             }
         });
     }

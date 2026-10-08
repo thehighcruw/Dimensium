@@ -14,7 +14,6 @@ import github.thehighcruw.dimensium.editor.pipeline.PortValues;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import java.util.HashMap;
 import java.util.Map;
-import net.minecraft.block.Block;
 
 public class GaussianBlurNode implements PipelineNode {
 
@@ -85,7 +84,7 @@ public class GaussianBlurNode implements PipelineNode {
 
         for (Map.Entry<Long, int[]> entry : additions.entrySet()) {
             Vec3DInt pos = BlockMap.unpackKey(entry.getKey());
-            source.put(pos, Block.getBlockById(entry.getValue()[0]), entry.getValue()[1]);
+            source.put(pos, entry.getValue()[0], entry.getValue()[1]);
         }
         return source;
     }

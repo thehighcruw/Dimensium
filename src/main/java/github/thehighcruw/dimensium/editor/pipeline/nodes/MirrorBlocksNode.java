@@ -13,7 +13,6 @@ import github.thehighcruw.dimensium.editor.pipeline.PortType;
 import github.thehighcruw.dimensium.editor.pipeline.PortValues;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import java.util.Map;
-import net.minecraft.block.Block;
 
 /**
  * Reflects a block map across an axis plane through the pipeline origin.
@@ -63,7 +62,7 @@ public class MirrorBlocksNode implements PipelineNode {
             int mdz = axis == AXIS_Z ? -dz : dz;
 
             Vec3DInt mirrored = Vec3DInt.from(origin.x() + mdx, origin.y() + mdy, origin.z() + mdz);
-            result.put(mirrored, Block.getBlockById(entry.getValue()[0]), entry.getValue()[1]);
+            result.put(mirrored, entry.getValue()[0], entry.getValue()[1]);
         }
         outputs.set("blocks", result);
     }

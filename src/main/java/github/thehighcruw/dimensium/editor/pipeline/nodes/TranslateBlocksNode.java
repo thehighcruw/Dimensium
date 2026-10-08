@@ -13,7 +13,6 @@ import github.thehighcruw.dimensium.editor.pipeline.PortType;
 import github.thehighcruw.dimensium.editor.pipeline.PortValues;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import java.util.Map;
-import net.minecraft.block.Block;
 
 /** Shifts all blocks in a block map by a fixed integer offset. */
 public class TranslateBlocksNode implements PipelineNode {
@@ -41,7 +40,7 @@ public class TranslateBlocksNode implements PipelineNode {
         for (Map.Entry<Long, int[]> entry : input.entries().entrySet()) {
             Vec3DInt pos = BlockMap.unpackKey(entry.getKey());
             Vec3DInt shifted = pos.plus(new Vec3DInt(offsetX, offsetY, offsetZ));
-            result.put(shifted, Block.getBlockById(entry.getValue()[0]), entry.getValue()[1]);
+            result.put(shifted, entry.getValue()[0], entry.getValue()[1]);
         }
         outputs.set("blocks", result);
     }

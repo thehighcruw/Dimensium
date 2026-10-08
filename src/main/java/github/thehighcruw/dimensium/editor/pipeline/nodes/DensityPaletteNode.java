@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import net.minecraft.block.Block;
 
 public class DensityPaletteNode implements PipelineNode {
 
@@ -53,7 +52,7 @@ public class DensityPaletteNode implements PipelineNode {
 
             int index = Math.min(palette.size() - 1, (int) (density * palette.size()));
             int[] chosen = palette.get(index);
-            blockMap.put(pos, Block.getBlockById(chosen[0]), chosen[1]);
+            blockMap.put(pos, chosen[0], chosen[1]);
         }
 
         outputs.set("blocks", blockMap);

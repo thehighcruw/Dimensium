@@ -16,7 +16,6 @@ import github.thehighcruw.dimensium.shared.math.Vec3DFloat;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import java.util.List;
 import java.util.Map;
-import net.minecraft.block.Block;
 
 /**
  * Places copies of a block map centred at each Nth point along a curve.
@@ -73,7 +72,7 @@ public class CurveScatterNode implements PipelineNode {
                         inputOrigin.x() + rotatedDx + shiftX,
                         inputOrigin.y() + dy + shiftY,
                         inputOrigin.z() + rotatedDz + shiftZ);
-                result.put(placed, Block.getBlockById(entry.getValue()[0]), entry.getValue()[1]);
+                result.put(placed, entry.getValue()[0], entry.getValue()[1]);
             }
         }
         outputs.set("blocks", result);

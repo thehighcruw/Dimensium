@@ -18,7 +18,6 @@ import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
-import net.minecraft.block.Block;
 
 /** Converts a Skeleton into a BlockMap by stamping spheres along each segment. */
 public class SkeletonVoxelizerNode implements PipelineNode {
@@ -87,7 +86,7 @@ public class SkeletonVoxelizerNode implements PipelineNode {
         float rSq = radius * radius;
 
         int[] entry = palette.get(rand.nextInt(palette.size()));
-        Block block = Block.getBlockById(entry[0]);
+        int blockId = entry[0];
         int meta = entry[1];
 
         Vec3DInt.forEachInclusive(min, max, pos -> {
@@ -95,7 +94,7 @@ public class SkeletonVoxelizerNode implements PipelineNode {
             float dy = pos.y() - center.y();
             float dz = pos.z() - center.z();
             if (dx * dx + dy * dy + dz * dz <= rSq) {
-                map.put(pos, block, meta);
+                map.put(pos, blockId, meta);
             }
         });
     }

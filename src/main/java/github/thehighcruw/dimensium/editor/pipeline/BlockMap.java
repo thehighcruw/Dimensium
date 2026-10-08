@@ -38,7 +38,12 @@ public class BlockMap {
     }
 
     public void put(Vec3DInt pos, Block block, int meta) {
-        blocks.put(packKey(pos), new int[] {Block.getIdFromBlock(block), meta});
+        put(pos, Block.getIdFromBlock(block), meta);
+    }
+
+    public void put(Vec3DInt pos, int blockId, int meta) {
+        if (blockId <= 0) return;
+        blocks.put(packKey(pos), new int[] {blockId, meta});
     }
 
     public boolean contains(Vec3DInt pos) {

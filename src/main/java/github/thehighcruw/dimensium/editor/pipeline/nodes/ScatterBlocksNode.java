@@ -14,7 +14,6 @@ import github.thehighcruw.dimensium.editor.pipeline.PortValues;
 import github.thehighcruw.dimensium.shared.math.Vec3DInt;
 import java.util.Map;
 import java.util.Random;
-import net.minecraft.block.Block;
 
 /**
  * Places copies of the input block map at random offsets within a volume.
@@ -63,7 +62,7 @@ public class ScatterBlocksNode implements PipelineNode {
             for (Map.Entry<Long, int[]> entry : input.entries().entrySet()) {
                 Vec3DInt pos = BlockMap.unpackKey(entry.getKey());
                 Vec3DInt shifted = Vec3DInt.from(pos.x() + shiftX, pos.y() + shiftY, pos.z() + shiftZ);
-                result.put(shifted, Block.getBlockById(entry.getValue()[0]), entry.getValue()[1]);
+                result.put(shifted, entry.getValue()[0], entry.getValue()[1]);
             }
         }
         outputs.set("blocks", result);

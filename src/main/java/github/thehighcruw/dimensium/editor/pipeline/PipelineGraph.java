@@ -214,7 +214,7 @@ public class PipelineGraph {
             JsonArray arr = new JsonArray();
             for (int[] entry : (List<int[]>) value) {
                 JsonArray pair = new JsonArray();
-                Block block = Block.getBlockById(entry[0]);
+                Block block = entry[0] > 0 ? Block.getBlockById(entry[0]) : null;
                 Object nameObj = block != null ? Block.blockRegistry.getNameForObject(block) : null;
                 if (nameObj instanceof String) {
                     pair.add(new JsonPrimitive((String) nameObj));
