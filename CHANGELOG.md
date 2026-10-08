@@ -13,9 +13,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com). Run `scripts/rele
 ### Removed
 
 ### Fixed
-- Pipeline: fix crash and incomplete preview when palette contains modded blocks by eliminating block ID round-trips in all pipeline nodes
 
 ### Security
+
+## [0.1.7] — 2026-10-08
+### Fixed
+- Pipeline: fix crash and incomplete preview when palette contains modded blocks by eliminating block ID round-trips in all pipeline nodes
 
 ## [0.1.6] — 2026-10-07
 ### Added
